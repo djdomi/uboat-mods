@@ -81,6 +81,7 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | Cheat | Alles freischalten, Torpedo-Tempo, Schnellreise (Strg+Umschalt+T), Echolot-Ping | CheatUnlockAll, CheatTorpedoSpeed, CheatQuickTravel, CheatSonarPing |
 | Tool | Freie Tastenbelegung: Tab „Tasten“ im F10-Menü, „Ändern“ drücken, dann neue Taste (mit Strg/Umschalt/Alt). Esc = Abbruch, Rück = keine Taste. Steht auch in der INI unter [Tasten], z. B. KeyReloadAll=Ctrl+Shift+R | Key... |
 | Tool | Spiel-Log klein halten (nur Warnungen/Fehler), GC-Zeit pro Bild einstellbar | GameLogFilter, GcSliceMs |
+| Tool | Weniger Schiffe/Gruppen gleichzeitig in 3D (spart viel CPU im Konvoi-Gefecht) | MaxShipsPerGroup, MaxGroupsPerBattle |
 | Tool | Ferne Schiffe: KI seltener berechnen (30 s = Spiel, 60 s = weniger CPU) | FarAIInterval |
 | Tool | Bremsen-Finder für die Spiel-Warteschlange (CSV in logs) | PerfQueue |
 | Tool | Speicher aufräumen alle x Minuten in ruhigen Momenten (Pause/Zeitraffer) | MemoryCleanMinutes |

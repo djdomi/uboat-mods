@@ -171,6 +171,8 @@ namespace UboatToolkit
             Bool(Tools, "GameLogFilter", "Spiel-Log klein halten: nur Warnungen + Fehler in Player.log (spart Festplatte + RAM)", true);
             Num(Tools, "GcSliceMs", "Speicher-Müllabfuhr: max. ms pro Bild (0 = Spielwert, kleiner = weniger Ruckler)", 0, 0, 10, 0.5f);
             Num(Tools, "MemoryCleanMinutes", "Speicher aufräumen alle x Minuten (gegen wachsenden RAM, 0 = aus)", 30, 0, 120, 5);
+            Num(Tools, "MaxShipsPerGroup", "Höchstens x Schiffe pro Konvoi gleichzeitig in 3D (0 = Spiel: 28, weniger = schneller)", 0, 0, 60, 1);
+            Num(Tools, "MaxGroupsPerBattle", "Höchstens x Gruppen gleichzeitig im Gefecht (0 = Spiel: 4, weniger = schneller)", 0, 0, 10, 1);
             Num(Tools, "FarAIInterval", "Ferne Schiffe: KI-Takt in Sekunden (30 = Spiel-Standard, 60 = weniger CPU)", 30, 5, 300, 5);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
