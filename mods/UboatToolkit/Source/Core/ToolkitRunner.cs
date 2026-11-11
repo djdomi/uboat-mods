@@ -41,6 +41,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.Cheats());
             Modules.Add(new Modules.Watch());
             Modules.Add(new Modules.Extras());
+            Modules.Add(new Modules.HatchEqualizer());
             Modules.Add(new Modules.PerfLogger());
         }
 

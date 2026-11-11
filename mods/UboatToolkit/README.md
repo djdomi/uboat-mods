@@ -72,7 +72,7 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | QoL | Alle leeren Rohre aus dem Lager laden (Strg+Umschalt+R) | ReloadAllNow |
 | QoL | Wachen tauschen, Lager aufräumen, Milchkuh herholen (Einmal-Schalter) | SwapShiftsNow, SortStorageNow, CallMilkCow |
 | QoL | Iron Coffins A: Ballast-Befehle immer da | BallastAlwaysAvailable |
-| QoL | Iron Coffins E: Luken zeigen Luftdruck, sperren bei Unterschied | HatchPressure, HatchPressureLimit |
+| QoL | Iron Coffins E: Luken zeigen Luftdruck, sperren bei Unterschied + Druckausgleich | HatchPressure, HatchPressureLimit, HatchEqualize |
 | QoL | Iron Coffins F: Leck abdichten wie mit zwei Matrosen | LeakTwoSailors |
 | Cheat | Backup-Spielstand, wenn ein Cheat angeht | BackupBeforeCheats |
 | Cheat | Preise, Reparatur-, Forschungstempo | CheatPriceFactor, CheatRepairSpeed, CheatResearchSpeed |

@@ -63,6 +63,28 @@ namespace UboatToolkit.Modules
         }
     }
 
+    // Iron Coffins E, part 2: pressure equalizing valve. A hatch locked by pressure would stay shut forever,
+    // so air slowly flows between both rooms (10 % of the difference per second) until the hatch can open again.
+    public class HatchEqualizer : ModuleBase
+    {
+        public override void Tick()
+        {
+            if (!Settings.B("HatchPressure") || !Settings.B("HatchEqualize")) return;
+            foreach (var h in Util.PlayerShip.GetComponentsInChildren<Hatch>(true))
+            {
+                if (!IC_HatchLockPatch.TooBig(h)) continue;
+                var a = h.LeftCompartment; var b = h.RightCompartment;
+                double pa = a.AirPressure, pb = b.AirPressure;
+                if (pa <= 0.0001 || pb <= 0.0001) continue;
+                double va = a.Air / pa, vb = b.Air / pb;
+                double target = (a.Air + b.Air) / (va + vb);
+                double move = (target * va - a.Air) * 0.1;
+                a.Air += move;
+                b.Air -= move;
+            }
+        }
+    }
+
     // Iron Coffins F: a leak is sealed like with two sailors (water comes in only half as fast as with one).
     [HarmonyPatch(typeof(BlockLeakAction), nameof(BlockLeakAction.UpdateAction))]
     internal static class IC_LeakTwoMenPatch

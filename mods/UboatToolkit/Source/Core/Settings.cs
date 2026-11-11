@@ -84,6 +84,7 @@ namespace UboatToolkit
             Bool(QoL, "BallastAlwaysAvailable", "Ballast-Befehle immer verfügbar (außer Ventil kaputt / Hafen) (Iron Coffins A)", true);
             Bool(QoL, "HatchPressure", "Luken zeigen Luftdruck beider Räume + sperren bei großem Unterschied (Iron Coffins E)", true);
             Num(QoL, "HatchPressureLimit", "  Sperre ab Druck-Unterschied (bar, 0 = nie sperren)", 0.5f, 0, 5, 0.1f);
+            Bool(QoL, "HatchEqualize", "  Druckausgleich: Luft strömt langsam nach, bis die Luke wieder aufgeht", true);
             Bool(QoL, "LeakTwoSailors", "Lecks: abdichten wie mit zwei Matrosen (Iron Coffins F)", true);
             Bool(QoL, "AutoPump", "Pumpe schaltet sich bei Wasser im Boot selbst an (#38)", true);
             Bool(QoL, "PortLoadingFix", "Hafen-Grundfix: kein Einfrieren beim Verladen, hängende Aufträge werden gelöst (#39)", true);
