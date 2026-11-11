@@ -38,6 +38,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
 | QoL | Tiefenruder und Kartentisch immer besetzt | KeepDepthStation, KeepNavTable, StationDelay |
+| QoL | NEU: Echolot als Matrosen-Aufgabe (pingt nicht bei Alarm) | EchoSailor, EchoSailorSeconds, EchoSailorQuiet |
 | QoL | NEU: 88 mm und Flak automatisch besetzen (aufgetaucht + Alarm) | AutoManGuns |
 | QoL | NEU: Maschinenraum automatisch besetzen, wenn ein Motor läuft | AutoManEngines |
 | QoL | NEU: Mehr Matrosen pro Offizier | MaxFollowers |

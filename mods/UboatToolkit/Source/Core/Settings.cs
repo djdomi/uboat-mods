@@ -66,6 +66,9 @@ namespace UboatToolkit
             Bool(QoL, "KeepDepthStation", "Tiefenruder immer besetzt: freier Matrose geht hin (#34)", true);
             Bool(QoL, "KeepNavTable", "Kartentisch immer besetzt (spart Diesel): freier Matrose geht hin (#35)", true);
             Num(QoL, "StationDelay", "  Sekunden leer, bevor jemand geschickt wird", 15, 0, 120, 5);
+            Bool(QoL, "EchoSailor", "Echolot als Matrosen-Aufgabe: unter Wasser geht ein freier Matrose hin und pingt", false);
+            Bool(QoL, "EchoSailorQuiet", "  Bei Alarm nicht pingen (verrät sonst das Boot)", true);
+            Num(QoL, "EchoSailorSeconds", "  Alle x Sekunden (Spielzeit läuft im Zeitraffer schneller)", 60, 10, 600, 10);
             Bool(QoL, "AutoManGuns", "Deckgeschütz + Flak automatisch besetzen (aufgetaucht + Alarm)", false);
             Bool(QoL, "AutoManEngines", "Maschinenraum automatisch besetzen, wenn ein Motor läuft", false);
             Num(QoL, "MaxFollowers", "Matrosen pro Offizier höchstens (0 = Spiel-Wert)", 0, 0, 20, 1);

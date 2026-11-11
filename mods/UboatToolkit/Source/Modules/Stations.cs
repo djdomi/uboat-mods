@@ -40,6 +40,17 @@ namespace UboatToolkit.Modules
                     else if (engines && eq is PlayerShipEngine eng && eng.GearIndex != 0) Keep(act, "Maschinenraum");
                 }
 
+            // Echo sounder as a sailor job: under water a free sailor goes there every x seconds and pings (game's own PingDeep action).
+            float every = Settings.F("EchoSailorSeconds");
+            if (Settings.B("EchoSailor") && every > 0f && ship.SubmergedOrGoingToSubmerge && Time.time - lastPing > every
+                && !(Settings.B("EchoSailorQuiet") && ship.Alarmed))
+                foreach (var act in Util.Find<Activator>())
+                    if (act != null && act.AssociatedEquipment is SoundRangingDevice && act.Users.Count == 0)
+                    {
+                        if (Send(act, "Echolot", t => t is PingDeep)) lastPing = Time.time;
+                        break;
+                    }
+
             // More sailors per officer.
             float max = Settings.F("MaxFollowers");
             if (max > 0f || hadMax)
@@ -50,6 +61,31 @@ namespace UboatToolkit.Modules
             }
         }
         private bool hadMax;
+        private float lastPing = -9999f;
+
+        // Sends the nearest free sailor to do one action at this activator (for one-off jobs).
+        private bool Send(Activator act, string label, System.Func<CharacterAction, bool> accept)
+        {
+            PlayableCharacter best = null; CharacterAction tmpl = null; float bestD = float.MaxValue;
+            foreach (var h in crew.Characters)
+            {
+                if (h == null || h.IsOfficer || !IsFree(h)) continue;
+                act.GetActionInfos(infos, h, ActionContext.Normal, true);
+                CharacterAction t = null;
+                foreach (var i in infos)
+                    if (i.ActionTemplate != null && i.State == ActionState.Enabled && accept(i.ActionTemplate)) { t = i.ActionTemplate; break; }
+                if (t == null) continue;
+                float d = (h.transform.position - act.transform.position).sqrMagnitude;
+                if (d < bestD) { bestD = d; best = h; tmpl = t; }
+            }
+            if (best == null) return false;
+            var a = tmpl.Duplicate(act);
+            a.QueuePriority = 90f;
+            best.StopCurrentAction(true);
+            best.StartAction(act, a);
+            Util.Log(label + ": " + best.Name + " übernimmt");
+            return true;
+        }
 
         private void Keep(Activator act, string label)
         {
