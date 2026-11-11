@@ -26,6 +26,33 @@ namespace UboatToolkit.Modules
             EnergySaver(ship);
             Tubes();
             if (Settings.B("CheatAllSkills")) AllSkills();
+            SkillLevels(Settings.B("CheatSkillsAnyLevel"));
+        }
+
+        // All skills can be learned at any level: the level requirement is set to 0 (and restored when switched off).
+        private static readonly Dictionary<CharacterSkill, int> skillLevels = new Dictionary<CharacterSkill, int>();
+        private static void SkillLevels(bool on)
+        {
+            if (!on)
+            {
+                if (skillLevels.Count == 0) return;
+                foreach (var kv in skillLevels) if (kv.Key != null) kv.Key.RequiredLevel = kv.Value;
+                skillLevels.Clear();
+                return;
+            }
+            var list = new List<CharacterSkill>();
+            var classes = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault()?.GetClassesDirect();
+            if (classes != null) list.AddRange(classes.SelectMany(c => c.Skills));
+            var crew = Object.FindObjectOfType<PlayerCrew>();
+            if (crew?.Characters != null)
+                foreach (var ch in crew.Characters)
+                    if (ch?.Data?.AvailableSkills != null) list.AddRange(ch.Data.AvailableSkills);
+            foreach (var sk in list)
+            {
+                if (sk == null || sk.RequiredLevel <= 0) continue;
+                if (!skillLevels.ContainsKey(sk)) skillLevels[sk] = sk.RequiredLevel;
+                sk.RequiredLevel = 0;
+            }
         }
 
         // Battery low under water: switch off big power users (compressor, searchlight) once.

@@ -58,7 +58,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | Cheat | NEU: Deck-Crew bleibt beim Tauchen draußen, schießt weiter, ertrinkt nie | CheatDeckCrewStays |
 | Cheat | Crew läuft schneller, unsterblich + unverletzbar, nie müde | CheatCrewWalkSpeed, CheatImmortalCrew, CheatCrewNeverTired |
 | Cheat | Disziplin immer voll, kein Stress | CheatFullDiscipline |
-| Cheat | Skillpunkte extra, Skills aller Klassen | CheatExtraSkillPoints, CheatAllSkills |
+| Cheat | Skillpunkte extra, Skills aller Klassen, ohne Stufen-Sperre | CheatExtraSkillPoints, CheatAllSkills, CheatSkillsAnyLevel |
 
 ### Boot & Technik
 | Art | Funktion | Schlüssel in der INI |

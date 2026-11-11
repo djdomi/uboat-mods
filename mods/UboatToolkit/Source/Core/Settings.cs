@@ -180,6 +180,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatCrewProtection", "Rumpf schützt die Crew: keine Verletzungen durch Treffer", false);
             Bool(Cheat, "CheatSonarPing", "Echolot pingt unter Wasser von selbst", false);
             Num(Cheat, "CheatExtraSkillPoints", "Offiziere: x Skillpunkte extra", 0, 0, 20, 1);
+            Bool(Cheat, "CheatSkillsAnyLevel", "Alle Skills ab Stufe 1 lernbar (keine Stufen-Sperre)", false);
             Bool(Cheat, "CheatAllSkills", "Offiziere dürfen Skills aller Klassen wählen", false);
             Bool(Cheat, "CheatSinkConvoy", "  >> Sink the convoy: alle Gegner-Schiffe in Reichweite bekommen Torpedos", false);
             Num(Cheat, "SinkConvoyRange", "  Reichweite in km", 20, 1, 100, 1);
