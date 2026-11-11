@@ -35,6 +35,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.Pump());
             Modules.Add(new Modules.CrewFill());
             Modules.Add(new Modules.CrewCheats());
+            Modules.Add(new Modules.Inventory());
             Modules.Add(new Modules.Torpedoes());
             Modules.Add(new Modules.Cheats());
             Modules.Add(new Modules.PerfLogger());
