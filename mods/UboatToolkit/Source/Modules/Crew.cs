@@ -6,7 +6,7 @@ using UBOAT.Game.Scene.Items;
 
 namespace UboatToolkit.Modules
 {
-    // QoL #21: crew walks through each other (same idea as shole's "No Crew Collisions"); doors are not touched.
+    // QoL #21: crew walks through each other; doors are not touched.
     // QoL #14: sailors may man the navigation table.
     public class Crew : ModuleBase
     {
@@ -18,7 +18,7 @@ namespace UboatToolkit.Modules
             if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
             if (crew != null && crew.Characters != null)
             {
-                bool through = Settings.B("NoCrewCollisions");
+                bool through = Settings.B("CrewWalkThrough");
                 foreach (var c in crew.Characters)
                 {
                     if (c == null || c.Navigator == null) continue;
