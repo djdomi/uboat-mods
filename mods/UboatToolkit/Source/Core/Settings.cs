@@ -73,6 +73,12 @@ namespace UboatToolkit
             Num(QoL, "FullCrewSize", "  Gewünschte Besatzung (Männer, in der INI ohne Obergrenze)", 90, 10, 200, 1);
             Bool(QoL, "StopTimeOnShip", "Zeitraffer stoppt bei neuem Schiff-Kontakt (Idee 1)", true);
             Bool(QoL, "StopTimeOnAircraft", "Zeitraffer stoppt bei Flugzeug (Idee 1)", true);
+            Bool(QoL, "IgnoreFishingBoats", "  Zeitraffer ignoriert Fischerboote", true);
+            Bool(QoL, "IgnoreAlliedShips", "  Zeitraffer ignoriert Verbündete (grün)", true);
+            Bool(QoL, "IgnoreNeutralShips", "  Zeitraffer ignoriert Neutrale", false);
+            Bool(QoL, "BackToWater", "Zurück ins Wasser: festgefahren an Land -> Boot an letzte sichere Stelle", true);
+            Num(QoL, "BackToWaterSeconds", "  So viele Sekunden festgefahren, bevor es passiert", 8, 3, 60, 1);
+            Bool(QoL, "BackToWaterNow", "  >> Jetzt zurück ins Wasser", false);
             Num(QoL, "AutoSaveMinutes", "Auto-Speichern alle x Minuten (0 = aus) (Idee 6)", 15, 0, 120, 5);
             Num(QoL, "LowWarnPercent", "Warnung + Zeitraffer-Stopp bei Diesel/Batterie/Luft unter x % (0 = aus) (Idee 8)", 15, 0, 50, 5);
             Bool(QoL, "NavInfo", "Karte: Ankunftszeit + Restweg + Diesel-Reichweite oben links (Idee 7)", true);
