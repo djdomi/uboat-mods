@@ -63,3 +63,38 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // The real cause of the port hang: PortServicesProvider.AddDateListener moves ONE unit per loop
+    // step on the main thread. With tiny item weight the wait per unit becomes 0 ticks, so a stack of
+    // millions of units is moved in one endless loop -> the game freezes and the queue stays blocked
+    // (no more ammo, items or fuel). Fix: move the whole order in one step.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.PortServicesProvider), "AddDateListener")]
+    internal static class Loading_ResupplyPatch
+    {
+        private static bool Prefix(UBOAT.Game.Scene.Tasks.PortServicesProvider __instance)
+        {
+            if (!Settings.B("InstantPortLoading")) return true;
+            var t = HarmonyLib.Traverse.Create(__instance);
+            var orders = t.Field("transportOrders").GetValue<System.Collections.Generic.List<UBOAT.Game.Scene.Items.TransportOrder>>();
+            if (orders == null) return true;
+            orders.RemoveAll(o => o == null || o.IsCompleted);
+            if (orders.Count == 0) return true;
+
+            var order = orders[0];
+            t.Field("currentTransportOrder").SetValue(order);
+            try
+            {
+                // Complete() fires the game's own handler, which starts the next order (back into this patch).
+                UBOAT.Game.Scene.Utilities.StorageUtility.ResolveTransportOrderInstantly(order);
+            }
+            catch (System.Exception ex)
+            {
+                Util.Log("Verladen Fehler: " + ex.Message);
+                if (!order.IsCompleted) order.Complete();
+            }
+            return false;
+        }
+    }
+}
