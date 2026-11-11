@@ -43,7 +43,9 @@ namespace UboatToolkit.Modules
 
             int wanted = Mathf.RoundToInt(Settings.F("AutoDamageControlCount"));
             switched.RemoveWhere(o => o == null || o.RoleOverride == null);
-            foreach (var o in crew.Officers)
+            var officers = new List<PlayableCharacter>(crew.Officers);
+            officers.Sort((a, b) => DcScore(b).CompareTo(DcScore(a)));
+            foreach (var o in officers)
             {
                 if (switched.Count >= wanted) break;
                 if (o == null || switched.Contains(o) || o.RoleOverride != null) continue;
@@ -54,6 +56,18 @@ namespace UboatToolkit.Modules
                 switched.Add(o);
                 Util.Log("Schadenskontrolle: " + o.Name);
             }
+        }
+
+        // Higher = sent first. Handyman repairs 25% faster, Thrifty gets scrap back from
+        // used replacement parts. Engine Specialist stays at the engines if possible.
+        private static int DcScore(PlayableCharacter o)
+        {
+            if (o == null || !Settings.B("AutoDamageControlSkills")) return 0;
+            int s = 0;
+            if (o.Data.HasStatus("Handyman")) s += 4;
+            if (o.Data.HasStatus("Thrifty")) s += 2;
+            if (o.Data.HasStatus("Engine Specialist")) s -= 3;
+            return s;
         }
 
         private static void FeedWorkshop()

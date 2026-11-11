@@ -37,8 +37,8 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | – | Schussgeräusche begrenzen, gegen Tonprobleme bei schnellem Feuer | GunSoundGap |
 | IC-H | Verletzte werden nicht automatisch weggetragen | NoAutoCarryWounded |
 | IC-J | Atemgeräte halten länger | RebreatherDurability |
-| 29 | Verletzte und Kranke werden automatisch versorgt. Ein freier Mann holt sich dafür einen Verbandskasten aus dem Lager | AutoFirstAid, AutoFirstAidDelay, AutoFetchMedKit |
-| 30 | Schadenskontrolle automatisch: Bei Alarm und Schaden schalten Ingenieure um, danach wieder zurück | AutoDamageControl, AutoDamageControlCount, AutoDamageControlRadioman |
+| 29 | Verletzte und Kranke werden automatisch versorgt. Ein freier Mann holt sich dafür einen Verbandskasten aus dem Lager | AutoFirstAid, AutoFirstAidDelay, AutoFetchMedKit, AutoFirstAidSkills (Sanitäts-Ausbildung, Funker, Läufer zuerst) |
+| 30 | Schadenskontrolle automatisch: Bei Alarm und Schaden schalten Ingenieure um, danach wieder zurück | AutoDamageControl, AutoDamageControlCount, AutoDamageControlRadioman, AutoDamageControlSkills (Handwerker + Sparsam zuerst) |
 | 31 | Werkstatt automatisch: Schrott kommt in die Werkstatt, Ersatzteile werden gebaut | AutoWorkshop |
 | 17 | Torpedo-Rechner: Das Spiel rechnet die Lösung automatisch (Vorschau an) | EasyTDC |
 | 26 | Torpedos unendlich: Das Rohr lädt nach dem Schuss sofort nach | CheatInfiniteTorpedoes |

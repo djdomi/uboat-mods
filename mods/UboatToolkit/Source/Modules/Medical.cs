@@ -64,6 +64,20 @@ namespace UboatToolkit.Modules
             return a == null || (a.CanBeStopped && a.Role != null);
         }
 
+        // Lower = preferred. Skills: Medical Training (faster, uses MedKit in hand),
+        // radioman, men of a "Medical Coordinator" officer, Runner (walks faster), MedKit already in hand.
+        private static float SkillFactor(PlayableCharacter h)
+        {
+            float f = 1f;
+            if (!Settings.B("AutoFirstAidSkills")) return HasMedKit(h) ? 0.25f : 1f;
+            if (h.Data.HasStatus<MedicalTraining>()) f *= 0.05f;
+            else if (h.Data.HasStatus<Radioman>()) f *= 0.2f;
+            if (h.Employer != null && h.Employer.Data.HasStatus("Medical Coordinator")) f *= 0.4f;
+            if (h.Data.HasStatus("Runner")) f *= 0.8f;
+            if (HasMedKit(h)) f *= 0.5f;
+            return f;
+        }
+
         private static bool HasMedKit(PlayableCharacter h) => h.Backpack.Item is MedKit;
 
         private bool SendHelper(PlayableCharacter w, Activator act)
@@ -76,15 +90,19 @@ namespace UboatToolkit.Modules
             {
                 var h = chars[i];
                 if (h == null || h == w || !IsFree(h)) continue;
-                // Only someone who already carries a MedKit, or has free hands to fetch one.
-                if (!HasMedKit(h) && !(fetch && h.Backpack.Item == null)) continue;
+                bool radioman = h.Data.HasStatus<Radioman>();
+                // Radiomen treat from storage; everyone else needs a MedKit in hand (or free hands to fetch one).
+                if (!radioman && !HasMedKit(h) && !(fetch && h.Backpack.Item == null)) continue;
                 float d = (h.transform.position - w.transform.position).sqrMagnitude;
-                if (HasMedKit(h)) d *= 0.25f; // prefer men who already have one
+                d *= SkillFactor(h);
                 if (d < bestDist) { bestDist = d; best = h; }
             }
             if (best == null) return false;
 
-            if (!HasMedKit(best) && !best.IsOfficer && !GiveMedKit(best))
+            // Fetch a MedKit. A radioman with Medical Training works faster with one in hand,
+            // without one he still treats from storage.
+            if (!HasMedKit(best) && best.Backpack.Item == null && fetch) GiveMedKit(best);
+            if (!HasMedKit(best) && !best.Data.HasStatus<Radioman>())
             {
                 LogOnce("Kein Verbandskasten (MedKit) mehr im Lager.");
                 return false;
