@@ -11,14 +11,18 @@ namespace UboatToolkit
     public class ToolkitLoader : IUserMod
     {
         public const string Tag = "[UboatToolkit]";
+        public static Harmony Harmony;
 
         public void OnLoaded()
         {
             try
             {
                 Settings.Load();
-                var harmony = new Harmony("djdomi.uboat.toolkit");
-                harmony.PatchAll(typeof(ToolkitLoader).Assembly);
+                Harmony = new Harmony("djdomi.uboat.toolkit");
+                Harmony.PatchAll(typeof(ToolkitLoader).Assembly);
+                var go = new GameObject(Tag);
+                go.AddComponent<ToolkitRunner>();
+                UnityEngine.Object.DontDestroyOnLoad(go);
                 Debug.Log(Tag + " loaded.");
             }
             catch (Exception e)

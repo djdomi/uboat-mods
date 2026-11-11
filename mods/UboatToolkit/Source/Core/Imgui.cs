@@ -1,0 +1,67 @@
+using System;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+
+namespace UboatToolkit
+{
+    // The game does not give mods a direct reference to Unity's IMGUI (GUI/GUILayout),
+    // so the menu calls it through reflection. Only a handful of calls are needed.
+    public static class Imgui
+    {
+        private static Type gui, layout, option;
+        private static MethodInfo label, toggle, slider, button, beginH, endH, beginScroll, endScroll, beginArea, endArea, box, guiLabel, width, space;
+        private static object noOptions;
+        public static bool Ready;
+
+        public static void Init()
+        {
+            if (Ready) return;
+            gui = Type.GetType("UnityEngine.GUI, UnityEngine.IMGUIModule");
+            layout = Type.GetType("UnityEngine.GUILayout, UnityEngine.IMGUIModule");
+            option = Type.GetType("UnityEngine.GUILayoutOption, UnityEngine.IMGUIModule");
+            if (gui == null || layout == null || option == null) return;
+            noOptions = Array.CreateInstance(option, 0);
+            MethodInfo L(string n, params Type[] p) => layout.GetMethod(n, BindingFlags.Public | BindingFlags.Static, null, p, null);
+            var opts = option.MakeArrayType();
+            label = L("Label", typeof(string), opts);
+            toggle = L("Toggle", typeof(bool), typeof(string), opts);
+            slider = L("HorizontalSlider", typeof(float), typeof(float), typeof(float), opts);
+            button = L("Button", typeof(string), opts);
+            beginH = L("BeginHorizontal", opts);
+            endH = L("EndHorizontal");
+            beginScroll = L("BeginScrollView", typeof(Vector2), opts);
+            endScroll = L("EndScrollView");
+            beginArea = L("BeginArea", typeof(Rect));
+            endArea = L("EndArea");
+            space = L("Space", typeof(float));
+            width = L("Width", typeof(float));
+            box = gui.GetMethod("Box", new[] { typeof(Rect), typeof(string) });
+            guiLabel = gui.GetMethod("Label", new[] { typeof(Rect), typeof(string) });
+            Ready = new[] { label, toggle, slider, button, beginH, endH, beginScroll, endScroll, beginArea, endArea, box, guiLabel, width, space }.All(m => m != null);
+            if (!Ready) Util.Log("menu could not be created (IMGUI not found).");
+        }
+
+        private static object Opts(float w)
+        {
+            if (w <= 0) return noOptions;
+            var arr = Array.CreateInstance(option, 1);
+            arr.SetValue(width.Invoke(null, new object[] { w }), 0);
+            return arr;
+        }
+
+        public static void Label(string t, float w = 0) => label.Invoke(null, new[] { t, Opts(w) });
+        public static bool Toggle(bool v, string t) => (bool)toggle.Invoke(null, new object[] { v, t, noOptions });
+        public static float Slider(float v, float min, float max, float w) => (float)slider.Invoke(null, new object[] { v, min, max, Opts(w) });
+        public static bool Button(string t, float w = 0) => (bool)button.Invoke(null, new[] { t, Opts(w) });
+        public static void BeginH() => beginH.Invoke(null, new[] { noOptions });
+        public static void EndH() => endH.Invoke(null, null);
+        public static Vector2 BeginScroll(Vector2 pos) => (Vector2)beginScroll.Invoke(null, new object[] { pos, noOptions });
+        public static void EndScroll() => endScroll.Invoke(null, null);
+        public static void BeginArea(Rect r) => beginArea.Invoke(null, new object[] { r });
+        public static void EndArea() => endArea.Invoke(null, null);
+        public static void Space(float px) => space.Invoke(null, new object[] { px });
+        public static void Box(Rect r, string t) => box.Invoke(null, new object[] { r, t });
+        public static void TextAt(Rect r, string t) => guiLabel.Invoke(null, new object[] { r, t });
+    }
+}

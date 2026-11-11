@@ -2,74 +2,119 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using UnityEngine;
 
 namespace UboatToolkit
 {
-    // Optional INI file. The mod works without it and then uses the defaults below.
-    // Location: <persistent data>/UboatToolkit.ini  (same folder as the game's "Mods" folder)
+    // One setting. Bool settings use Value 0/1.
+    public class Opt
+    {
+        public string Key, Tab, Label;
+        public bool IsBool;
+        public float Value, Default, Min, Max, Step;
+        public bool On => Value > 0.5f;
+    }
+
+    // All settings of the mod. Stored in UboatToolkit.ini (optional; defaults are used without it).
+    // The in-game menu (F10) and the INI file both read and write this list.
     public static class Settings
     {
-        // ---- QoL ----
-        public static bool AwashGuns = true;          // #24 crew may use deck gun + AA while running deck awash
+        public const string QoL = "QoL";
+        public const string Cheat = "Cheat";
+        public const string Tools = "Tools";
 
-        private static readonly Dictionary<string, string> values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public static readonly List<Opt> All = new List<Opt>();
+        private static readonly Dictionary<string, Opt> byKey = new Dictionary<string, Opt>(StringComparer.OrdinalIgnoreCase);
 
+        public static string Folder => Path.Combine(Application.persistentDataPath, "UboatToolkit");
         public static string FilePath => Path.Combine(Application.persistentDataPath, "UboatToolkit.ini");
+
+        static Settings()
+        {
+            // ---------- QoL ----------
+            Bool(QoL, "AwashGuns", "Vorgeflutet: Crew darf an Deckgeschütz + Flak (#24)", true);
+            Num(QoL, "RadioSpeed", "Funk: so viel schneller senden (1 = normal) (#11)", 10, 1, 100, 1);
+            Bool(QoL, "RadioUndetectable", "Funk: Gegner kann dich nicht anpeilen (#12)", true);
+            Bool(QoL, "AutoLight", "Licht automatisch umschalten (#15)", true);
+            Bool(QoL, "AutoLightNightRed", "  nachts Rotlicht", true);
+            Bool(QoL, "AutoLightHuntedBlue", "  wenn gejagt Blaulicht", true);
+            Bool(QoL, "AutoSearchlight", "Suchscheinwerfer automatisch (nachts, aufgetaucht) (#16)", false);
+            Bool(QoL, "AutoHatches", "Luken automatisch schließen (Tauchen / gejagt) (#22)", true);
+            Num(QoL, "OpticsZoom", "Sehrohr + Fernglas: mehr Zoom (1 = normal) (#18)", 2, 1, 10, 0.5f);
+            Num(QoL, "OpticsStabilization", "Sehrohr + Fernglas: Ruhe (0 = Spiel, 1 = ganz ruhig) (#19)", 1, 0, 1, 0.1f);
+            Num(QoL, "PeriscopeHeight", "Sehrohr: max. Ausfahrhöhe in m (0 = Spielwert) (#20)", 12, 0, 12, 0.5f);
+            Bool(QoL, "SailorsNavTable", "Matrosen dürfen an die Kartenstation (#14)", true);
+            Bool(QoL, "NoCrewCollisions", "Crew läuft durcheinander durch (#21)", true);
+            Bool(QoL, "MilkCowsAtStart", "Milchkühe ab Spielstart unterwegs (#25)", true);
+            Num(QoL, "DeckGunTurnSpeed", "88mm: Dreh-/Neige-Tempo (1 = normal) (#27)", 1, 0.5f, 10, 0.5f);
+            Num(QoL, "DeckGunRPM", "88mm: Schuss pro Minute (0 = Spielwert) (#27)", 0, 0, 120, 5);
+            Num(QoL, "DeckGunMagazine", "88mm: Magazin (0 = Spielwert; groß = Dauerfeuer) (#28)", 0, 0, 200, 1);
+            Num(QoL, "AAGunTurnSpeed", "Flak: Dreh-/Neige-Tempo (1 = normal) (#27)", 1, 0.5f, 10, 0.5f);
+            Num(QoL, "AAGunRPM", "Flak: Schuss pro Minute (0 = Spielwert) (#27)", 0, 0, 600, 10);
+            Num(QoL, "AAGunMagazine", "Flak: Magazin (0 = Spielwert) (#28)", 0, 0, 500, 5);
+
+            // ---------- Cheats (single player) ----------
+            Num(Cheat, "CheatPeriscopeHeight", "Sehrohr bis zu x m ausfahren (0 = aus) (Cheat #34)", 0, 0, 100, 1);
+            Bool(Cheat, "CheatUndetectable", "Boot unentdeckbar (Sicht, Sonar, Horchgerät, Radar)", false);
+            Bool(Cheat, "CheatInfiniteGunAmmo", "Deckgeschütz + Flak: Munition unendlich", false);
+            Bool(Cheat, "CheatShowActive", "Aktive Cheats oben links anzeigen", true);
+
+            // ---------- Tools ----------
+            Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
+            Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste F11 an/aus, kostet Leistung)", false);
+        }
+
+        private static void Bool(string tab, string key, string label, bool def) => Add(new Opt { Tab = tab, Key = key, Label = label, IsBool = true, Default = def ? 1 : 0, Value = def ? 1 : 0, Min = 0, Max = 1, Step = 1 });
+        private static void Num(string tab, string key, string label, float def, float min, float max, float step) => Add(new Opt { Tab = tab, Key = key, Label = label, Default = def, Value = def, Min = min, Max = max, Step = step });
+        private static void Add(Opt o) { All.Add(o); byKey[o.Key] = o; }
+
+        public static bool B(string key) => byKey.TryGetValue(key, out var o) && o.On;
+        public static float F(string key) => byKey.TryGetValue(key, out var o) ? o.Value : 0f;
+        public static Opt Get(string key) => byKey.TryGetValue(key, out var o) ? o : null;
 
         public static void Load()
         {
-            values.Clear();
             try
             {
-                if (!File.Exists(FilePath))
-                {
-                    WriteDefaults();
-                    return;
-                }
+                if (!File.Exists(FilePath)) { Save(); return; }
                 foreach (var raw in File.ReadAllLines(FilePath))
                 {
                     var line = raw.Trim();
-                    if (line.Length == 0 || line.StartsWith(";") || line.StartsWith("#") || line.StartsWith("[")) continue;
+                    if (line.Length == 0 || line[0] == ';' || line[0] == '#' || line[0] == '[') continue;
                     int eq = line.IndexOf('=');
                     if (eq <= 0) continue;
-                    values[line.Substring(0, eq).Trim()] = line.Substring(eq + 1).Trim();
+                    var o = Get(line.Substring(0, eq).Trim());
+                    if (o == null) continue;
+                    var v = line.Substring(eq + 1).Trim().ToLowerInvariant();
+                    if (o.IsBool) o.Value = (v == "1" || v == "true" || v == "on" || v == "ja") ? 1 : 0;
+                    else if (float.TryParse(v.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var f)) o.Value = Mathf.Max(0f, f); // no upper cap: INI may go beyond the menu range
                 }
+                // Write back so new settings from a mod update appear in the file.
+                Save();
             }
             catch (Exception e)
             {
                 Debug.Log(ToolkitLoader.Tag + " could not read INI, using defaults.");
                 Debug.LogException(e);
             }
-
-            AwashGuns = GetBool("AwashGuns", AwashGuns);
         }
 
-        private static bool GetBool(string key, bool fallback)
-        {
-            if (!values.TryGetValue(key, out var v)) return fallback;
-            v = v.ToLowerInvariant();
-            if (v == "1" || v == "true" || v == "on" || v == "ja") return true;
-            if (v == "0" || v == "false" || v == "off" || v == "nein") return false;
-            return fallback;
-        }
-
-        public static float GetFloat(string key, float fallback)
-        {
-            return values.TryGetValue(key, out var v) && float.TryParse(v, NumberStyles.Float, CultureInfo.InvariantCulture, out var f) ? f : fallback;
-        }
-
-        private static void WriteDefaults()
+        public static void Save()
         {
             try
             {
-                File.WriteAllLines(FilePath, new[]
+                var sb = new StringBuilder();
+                sb.AppendLine("; UBOAT Toolkit. 1 = an, 0 = aus. Zahlen mit Punkt (z.B. 2.5).");
+                sb.AppendLine("; Menü im Spiel: F10. Diese Datei ist optional.");
+                string tab = null;
+                foreach (var o in All)
                 {
-                    "; UBOAT Toolkit settings. 1 = on, 0 = off.",
-                    "[QoL]",
-                    "; Crew may use deck gun and AA while running deck awash.",
-                    "AwashGuns=" + (AwashGuns ? "1" : "0"),
-                });
+                    if (o.Tab != tab) { tab = o.Tab; sb.AppendLine(); sb.AppendLine("[" + tab + "]"); }
+                    sb.AppendLine("; " + o.Label.Trim());
+                    sb.AppendLine(o.Key + "=" + (o.IsBool ? (o.On ? "1" : "0") : o.Value.ToString("0.###", CultureInfo.InvariantCulture)));
+                }
+                File.WriteAllText(FilePath, sb.ToString());
             }
             catch (Exception e)
             {

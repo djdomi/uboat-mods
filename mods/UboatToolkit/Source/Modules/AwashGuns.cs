@@ -15,7 +15,7 @@ namespace UboatToolkit.Modules
     {
         private static void Postfix(PlayerShip __instance, ref bool __result)
         {
-            if (!Settings.AwashGuns || !__result) return;
+            if (!Settings.B("AwashGuns") || !__result) return;
             if (__instance.DepthPreset != DepthPreset.DeckAwash) return;
 
             // Re-check the weather part of the original rule; only the "deck awash" reason is removed.
