@@ -28,6 +28,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.Ballast());
             Modules.Add(new Modules.IronCoffins());
             Modules.Add(new Modules.Medical());
+            Modules.Add(new Modules.Repairs());
             Modules.Add(new Modules.Torpedoes());
             Modules.Add(new Modules.Cheats());
             Modules.Add(new Modules.PerfLogger());
