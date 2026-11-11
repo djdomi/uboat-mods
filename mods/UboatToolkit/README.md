@@ -46,7 +46,7 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | 36 | Lüftung leiser, Absorber hält länger, E-Kompressor verbraucht keine Luft, unter Wasser Lüftung automatisch an, Notfall-Sauerstoff | VentilationNoise, AbsorberDuration, CompressorNoAir, AutoVentilation, EmergencyOxygen |
 | 37 | Volle Besatzung ab Start (vor der ersten Feindfahrt) | FullCrewAtStart, FullCrewSize |
 | 38 | Pumpe schaltet sich bei Wasser selbst an | AutoPump |
-| 39 | Hafen: Verladen friert nicht mehr ein, hängendes Verladen wird neu angestoßen oder abgebrochen, Abbrechen per Schalter | InstantPortLoading, PortLoadingStuckSeconds, CancelPortLoading |
+| 39 | Hafen: Verladen friert nicht mehr ein, hängendes Verladen wird neu angestoßen oder abgebrochen, Abbrechen per Schalter | PortLoadingFix (Grundfix, immer an), PortLoadingStuckSeconds, CancelPortLoading, InstantPortLoading (alles sofort) |
 | Cheat | Boot schneller | CheatSpeed |
 | Cheat | Munition und Gegenstände fast ohne Gewicht (0,0000001) | CheatNoWeight |
 | Cheat | Lager: viel mehr pro Platz stapeln | CheatStackSize |

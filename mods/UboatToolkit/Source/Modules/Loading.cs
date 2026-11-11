@@ -66,7 +66,7 @@ namespace UboatToolkit.Modules
 
         public override void Tick()
         {
-            if (Settings.B("InstantPortLoading")) Util.Safe("LoadingWatchdog", Watchdog);
+            if (Settings.B("PortLoadingFix")) Util.Safe("LoadingWatchdog", Watchdog);
             if (!Settings.B("InstantPortLoading") || Time.unscaledTime < next) return;
             next = Time.unscaledTime + 2f;
             var ship = Util.PlayerShip;
@@ -122,16 +122,28 @@ namespace UboatToolkit.Modules
     [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.PortServicesProvider), "AddDateListener")]
     internal static class Loading_ResupplyPatch
     {
+        private static readonly UBOAT.Game.Core.Data.GameDataReference durationFactor =
+            new UBOAT.Game.Core.Data.GameDataReference("General/Settings/Trade/Transfer Duration Factor (s/kg)");
+
         private static bool Prefix(UBOAT.Game.Scene.Tasks.PortServicesProvider __instance)
         {
-            if (!Settings.B("InstantPortLoading")) return true;
+            bool instant = Settings.B("InstantPortLoading");
+            bool fix = Settings.B("PortLoadingFix");
+            if (!instant && !fix) return true;
             var t = HarmonyLib.Traverse.Create(__instance);
             var orders = t.Field("transportOrders").GetValue<System.Collections.Generic.List<UBOAT.Game.Scene.Items.TransportOrder>>();
             if (orders == null) return true;
-            orders.RemoveAll(o => o == null || o.IsCompleted);
+            orders.RemoveAll(o => o == null || o.IsCompleted);     // base fix: drop dead orders that block the queue
             if (orders.Count == 0) return true;
 
             var order = orders[0];
+            if (!instant)
+            {
+                // Base fix only: keep the game's normal waiting, but never let it run into the
+                // endless loop (0 ticks per unit because of tiny weight, or giant stacks).
+                long perUnit = order.ItemData.HasTag("Torpedo") ? 1 : (long)((double)order.ItemData.Mass * (double)(float)durationFactor * 10000000.0);
+                if (perUnit >= 1 && order.CountLeft <= 10000f) return true;
+            }
             t.Field("currentTransportOrder").SetValue(order);
             try
             {
