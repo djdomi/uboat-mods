@@ -8,98 +8,123 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 2. Schalte den Mod im Launcher unter „Mods“ ein.
 
 ## Bedienung
-- **F10** öffnet das Menü mit den Reitern QoL, Cheat und Tools. Änderungen wirken sofort, mit „Speichern“ bleiben sie erhalten.
+- **F10** öffnet das Menü mit den Reitern QoL, Cheat, Crew, Tasten und Tools. Änderungen wirken sofort, mit „Speichern“ bleiben sie erhalten.
 - Die Einstellungen stehen in `%USERPROFILE%\AppData\LocalLow\Deep Water Studio\UBOAT\UboatToolkit.ini`. Der Mod legt die Datei selbst an, sie ist optional.
 - **F11** schaltet den Bremsen-Finder ein und aus, sofern er im Reiter Tools aktiviert ist.
 
 ## Funktionen
-| Nr. | Funktion | Schlüssel in der INI |
+Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
+
+
+### Zeitraffer & Navigation
+| Art | Funktion | Schlüssel in der INI |
 |---|---|---|
-| 11 | Funk sendet schneller (Standard 10-fach) | RadioSpeed |
-| 12 | Funk kann vom Gegner nicht angepeilt werden | RadioUndetectable |
-| 13 | Kompass ist leise (über die Datei `Data Sheets/General.xlsx`, nicht im Menü abschaltbar) | – |
-| 14 | Matrosen dürfen an die Kartenstation | SailorsNavTable |
-| 15 | Licht schaltet automatisch: nachts rot, wenn gejagt blau | AutoLight… |
-| 16 | Suchscheinwerfer schaltet automatisch (ab Werk aus) | AutoSearchlight |
-| 18 | Sehrohr und Fernglas zoomen weiter | OpticsZoom |
-| 19 | Sehrohr und Fernglas: ruhiges Bild | OpticsStabilization |
-| 20 | Sehrohr fährt bis 12 m aus | PeriscopeHeight |
-| 21 | Crew läuft durcheinander durch, Türen bleiben unverändert | NoCrewCollisions |
-| 22 | Luken schließen automatisch beim Tauchen und wenn du gejagt wirst | AutoHatches |
-| 23 | Ballast: Aufgetaucht bläst der Diesel die Tanks leer, beim Tauchen fluten sie schneller | BallastDieselBlow, BallastFastDive |
-| 24 | Vorgeflutetes Deck: Die Crew kann Deckgeschütz und Flak bedienen | AwashGuns |
-| 25 | Milchkühe sind ab Spielstart unterwegs | MilkCowsAtStart |
-| 27 | 88 mm und Flak: Dreh-Tempo und Schuss pro Minute | DeckGun…/AAGun… |
-| 28 | 88 mm und Flak: Magazingröße, für Dauerfeuer | …Magazine |
-| – | Geschossgeschwindigkeit für 88 mm und Flak | …ShellSpeed |
-| – | KI-Schützen treffen besser, ohne Streuung (gleicht auch das Wackeln aus) | GunnerAccuracy |
-| – | Flak schießt auch auf Schiffe | AAvsShips |
-| – | Schussgeräusche begrenzen, gegen Tonprobleme bei schnellem Feuer | GunSoundGap |
-| IC-H | Verletzte werden nicht automatisch weggetragen | NoAutoCarryWounded |
-| IC-J | Atemgeräte halten länger | RebreatherDurability |
-| 29 | Verletzte und Kranke werden automatisch versorgt. Ein freier Mann holt sich dafür einen Verbandskasten aus dem Lager | AutoFirstAid, AutoFirstAidDelay, AutoFetchMedKit, AutoFirstAidSkills (Sanitäts-Ausbildung, Funker, Läufer zuerst) |
-| 30 | Schadenskontrolle automatisch: Bei Alarm und Schaden schalten Ingenieure um, danach wieder zurück | AutoDamageControl, AutoDamageControlCount, AutoDamageControlRadioman, AutoDamageControlSkills (Handwerker + Sparsam zuerst) |
-| 31 | Werkstatt automatisch: Schrott kommt in die Werkstatt, Ersatzteile werden gebaut | AutoWorkshop |
-| 32 | Land-Schutz: Zeitraffer stoppt, bevor das Boot auf Land fährt | AntiGrounding, AntiGroundingSeconds |
-| 34 | Tiefenruder immer besetzt (freier Matrose geht hin) | KeepDepthStation, StationDelay |
-| 35 | Kartentisch immer besetzt (spart Diesel) | KeepNavTable |
-| 36 | Lüftung leiser, Absorber hält länger, E-Kompressor verbraucht keine Luft, unter Wasser Lüftung automatisch an, Notfall-Sauerstoff | VentilationNoise, AbsorberDuration, CompressorNoAir, AutoVentilation, EmergencyOxygen |
-| 37 | Volle Besatzung ab Start (vor der ersten Feindfahrt) | FullCrewAtStart, FullCrewSize |
-| 38 | Pumpe schaltet sich bei Wasser selbst an | AutoPump |
-| 39 | Hafen: Verladen friert nicht mehr ein, hängendes Verladen wird neu angestoßen oder abgebrochen, Abbrechen per Schalter | PortLoadingFix (Grundfix, immer an), PortLoadingStuckSeconds, CancelPortLoading, FixMyDamnShipment (alles erzwingen), InstantPortLoading (alles sofort) |
-| Cheat | Boot schneller | CheatSpeed |
-| Cheat | Munition und Gegenstände fast ohne Gewicht (0,0000001) | CheatNoWeight |
-| Cheat | Lager: viel mehr pro Platz stapeln | CheatStackSize |
-| Cheat | Crew läuft schneller, Crew unsterblich, Vorräte gehen nie aus | CheatCrewWalkSpeed, CheatImmortalCrew, CheatNoSupplyUse |
-| Cheat | Starke Pumpe, in jeder Tiefe, Boot läuft nie voll | CheatPumpPower, CheatPumpAnyDepth, CheatNeverFlood |
-| 17 | Torpedo-Rechner: Das Spiel rechnet die Lösung automatisch (Vorschau an) | EasyTDC |
-| 26 | Torpedos unendlich: Das Rohr lädt nach dem Schuss sofort nach | CheatInfiniteTorpedoes |
-| Cheat | Immer T5 Zaunkönig nachladen, keine Versager | CheatAllT5, CheatNoDuds |
-| Cheat | Sensoren sehen und hören weiter (Radar, Sonar, Horchgerät, Ausguck) | CheatSensorRange |
-| Cheat | Kein Wasserdruck-Schaden in der Tiefe | CheatDeepDive |
-| Cheat | Sehrohr bis 100 m | CheatPeriscopeHeight |
-| Cheat | Rumpf verliert keine Gesundheit | CheatNoHullDamage |
-| Cheat | Diesel, Batterie und Luft bleiben voll | CheatFullFuel, CheatFullBattery, CheatFullAir |
-| Cheat | Crew wird nie müde, Disziplin bleibt voll, kein Stress | CheatCrewNeverTired, CheatFullDiscipline |
-| Cheat | Mindestwert für Geld und Ruf | CheatMoney, CheatReputation |
-| Cheat | Boot ist unentdeckbar | CheatUndetectable |
-| Cheat | Munition für Deckgeschütz und Flak unendlich | CheatInfiniteGunAmmo |
 | QoL | Zeitraffer stoppt bei neuem Schiff oder Flugzeug | StopTimeOnShip, StopTimeOnAircraft |
-| QoL | Zeitraffer ignoriert Fischerboote, Verbündete (und auf Wunsch Neutrale) | IgnoreFishingBoats, IgnoreAlliedShips, IgnoreNeutralShips |
-| QoL | Zurück ins Wasser, wenn das Boot an Land festsitzt | BackToWater, BackToWaterSeconds, BackToWaterNow |
 | QoL | Zeitraffer stoppt bei Schaden und Funkspruch | StopTimeOnDamage, StopTimeOnRadio |
-| QoL | Tacho + Kilometerzähler oben links | Speedometer |
-| QoL | Kein automatischer Alarm (aus = Spiel-Verhalten) | NoAutoAlarm |
-| QoL | Kriegstagebuch als Textdatei (logs\\kriegstagebuch.txt) | WarDiary |
-| QoL | Rohr-Anzeige (Torpedo-Typ pro Rohr) oben links | TubeDisplay |
-| QoL | Strom sparen bei leerer Batterie unter Wasser | EnergySaverPercent |
-| QoL | Torpedos schneller nachladen bis sofort | TorpedoLoadSpeed |
-| QoL | Schneller laden (Ladebildschirm nutzt volle Rechenzeit) | FastLoading |
-| QoL | Tab „Crew“: Offiziers-Rollen per Klick wechseln, freie Skillpunkte sehen | – |
-| Cheat | Sink the convoy: alle Gegner in Reichweite bekommen Torpedos | CheatSinkConvoy, SinkConvoyRange, SinkConvoyTorpedoes |
-| Cheat | Fernschuss per Taste (Strg+Umschalt+F), auch aus der Koje | CheatRemoteTorpedo |
-| QoL | Torpedo-Symbol im Rohr-Fenster zeigt beim Drüberfahren den genauen Typ | TubeDisplay |
-| Cheat | Skillpunkte extra, Skills aller Klassen wählbar | CheatExtraSkillPoints, CheatAllSkills |
-| QoL | Auto-Speichern alle x Minuten | AutoSaveMinutes |
+| QoL | Zeitraffer ignoriert Fischerboote, Verbündete, auf Wunsch Neutrale | IgnoreFishingBoats, IgnoreAlliedShips, IgnoreNeutralShips |
+| QoL | Land-Schutz: Zeitraffer stoppt vor Land | AntiGrounding, AntiGroundingSeconds |
+| QoL | Zurück ins Wasser, wenn das Boot an Land festsitzt | BackToWater, BackToWaterSeconds, BackToWaterNow |
 | QoL | Warnung + Zeitraffer-Stopp bei wenig Diesel, Batterie, Luft | LowWarnPercent |
-| QoL | Karte: Restweg, Ankunftszeit, Diesel-Reichweite oben links | NavInfo |
-| QoL | Tiefe per Taste: frei belegbar (Standard Strg+Bild runter/hoch 10 m, Umschalt 100 m) | DepthHotkeys |
-| QoL | Alle leeren Rohre aus dem Lager laden (Strg+Umschalt+R) | ReloadAllNow |
-| QoL | Wachen tauschen, Lager aufräumen, Milchkuh herholen (Einmal-Schalter) | SwapShiftsNow, SortStorageNow, CallMilkCow |
-| QoL | Ballast-Befehle immer da | BallastAlwaysAvailable |
-| QoL | Luken zeigen Luftdruck, sperren bei Unterschied + Druckausgleich | HatchPressure, HatchPressureLimit, HatchEqualize |
-| QoL | Leck abdichten wie mit zwei Matrosen | LeakTwoSailors |
-| Cheat | Backup-Spielstand, wenn ein Cheat angeht | BackupBeforeCheats |
-| Cheat | Preise, Reparatur-, Forschungstempo | CheatPriceFactor, CheatRepairSpeed, CheatResearchSpeed |
-| Cheat | Alles freischalten, Torpedo-Tempo, Schnellreise (Strg+Umschalt+T), Echolot-Ping | CheatUnlockAll, CheatTorpedoSpeed, CheatQuickTravel, CheatSonarPing |
-| Tool | Freie Tastenbelegung: Tab „Tasten“ im F10-Menü, „Ändern“ drücken, dann neue Taste (mit Strg/Umschalt/Alt). Esc = Abbruch, Rück = keine Taste. Steht auch in der INI unter [Tasten], z. B. KeyReloadAll=Ctrl+Shift+R | Key... |
-| Tool | Spiel-Log klein halten (nur Warnungen/Fehler), GC-Zeit pro Bild einstellbar | GameLogFilter, GcSliceMs |
-| Tool | Weniger Schiffe/Gruppen gleichzeitig in 3D (spart viel CPU im Konvoi-Gefecht) | MaxShipsPerGroup, MaxGroupsPerBattle |
-| Tool | Ferne Schiffe: KI seltener berechnen (30 s = Spiel, 60 s = weniger CPU) | FarAIInterval |
-| Tool | Bremsen-Finder für die Spiel-Warteschlange (CSV in logs) | PerfQueue |
-| Tool | Speicher aufräumen alle x Minuten in ruhigen Momenten (Pause/Zeitraffer) | MemoryCleanMinutes |
-| Tool | Test-Log: alles, was der Mod tut, alle Fehler, Einstellungen, Bootzustand jede Minute. Datei: `%USERPROFILE%\AppData\LocalLow\Deep Water Studio\UBOAT\UboatToolkit\logs\toolkit-<Datum>.log` | DebugLog |
-| Tool | Performance-Logger: CSV-Datei in `...\UBOAT\UboatToolkit\logs` | PerfLogger, PerfHotspots |
+| QoL | Kein automatischer Alarm | NoAutoAlarm |
+| QoL | Auto-Speichern alle x Minuten | AutoSaveMinutes |
+| QoL | Milchkühe ab Spielstart, nächste Milchkuh herholen | MilkCowsAtStart, CallMilkCow |
+| Cheat | Schnellreise ans Kursziel (Strg+Umschalt+T) | CheatQuickTravel, CheatQuickTravelNow |
+| Cheat | Boot schneller | CheatSpeed |
+| Cheat | Boot unentdeckbar | CheatUndetectable |
+| Cheat | Sensoren sehen und hören weiter | CheatSensorRange |
+| Cheat | Echolot pingt von selbst | CheatSonarPing |
+
+### Crew
+| Art | Funktion | Schlüssel in der INI |
+|---|---|---|
+| QoL | Tiefenruder und Kartentisch immer besetzt | KeepDepthStation, KeepNavTable, StationDelay |
+| QoL | NEU: 88 mm und Flak automatisch besetzen (aufgetaucht + Alarm) | AutoManGuns |
+| QoL | NEU: Maschinenraum automatisch besetzen, wenn ein Motor läuft | AutoManEngines |
+| QoL | NEU: Mehr Matrosen pro Offizier | MaxFollowers |
+| QoL | NEU: Offiziere dürfen alle freien Matrosen mitnehmen | FollowersNoLimit |
+| QoL | NEU: Kein Stress | NoStress |
+| QoL | Matrosen dürfen an die Kartenstation | SailorsNavTable |
+| QoL | Crew läuft durcheinander durch | NoCrewCollisions |
+| QoL | Verletzte automatisch versorgen, Verbandskasten holen | AutoFirstAid, AutoFirstAidDelay, AutoFetchMedKit, AutoFirstAidSkills |
+| QoL | Verletzte nicht automatisch wegtragen | NoAutoCarryWounded |
+| QoL | Schadenskontrolle automatisch bei Alarm | AutoDamageControl, AutoDamageControlCount, AutoDamageControlSkills, AutoDamageControlRadioman |
+| QoL | Volle Besatzung ab Start | FullCrewAtStart, FullCrewSize |
+| QoL | Wachen tauschen | SwapShiftsNow |
+| QoL | Tab „Crew“: Rollen per Klick, freie Skillpunkte | – |
+| Cheat | Crew läuft schneller, unsterblich, nie müde | CheatCrewWalkSpeed, CheatImmortalCrew, CheatCrewNeverTired |
+| Cheat | Disziplin immer voll, kein Stress | CheatFullDiscipline |
+| Cheat | Skillpunkte extra, Skills aller Klassen | CheatExtraSkillPoints, CheatAllSkills |
+
+### Boot & Technik
+| Art | Funktion | Schlüssel in der INI |
+|---|---|---|
+| QoL | Luken schließen automatisch | AutoHatches |
+| QoL | Luken zeigen Luftdruck, Sperre + Druckausgleich | HatchPressure, HatchPressureLimit, HatchEqualize |
+| QoL | Ballast: Diesel bläst aus, schneller fluten, Befehle immer da | BallastDieselBlow, BallastDieselBlowRate, BallastFastDive, BallastAlwaysAvailable |
+| QoL | Pumpe schaltet sich selbst an | AutoPump |
+| QoL | Lecks abdichten wie mit zwei Matrosen | LeakTwoSailors |
+| QoL | Lüftung leiser, Absorber länger, Kompressor ohne Luft, Notfall-Sauerstoff | VentilationNoise, AbsorberDuration, CompressorNoAir, AutoVentilation, EmergencyOxygen |
+| QoL | Atemgeräte halten länger | RebreatherDurability |
+| QoL | Strom sparen bei leerer Batterie | EnergySaverPercent |
+| QoL | Licht und Suchscheinwerfer automatisch | AutoLight, AutoLightNightRed, AutoLightHuntedBlue, AutoSearchlight |
+| QoL | Funk schneller und nicht anpeilbar | RadioSpeed, RadioUndetectable |
+| QoL | Sehrohr + Fernglas: mehr Zoom, ruhiges Bild, höher | OpticsZoom, OpticsStabilization, PeriscopeHeight |
+| QoL | Werkstatt automatisch | AutoWorkshop |
+| Cheat | Diesel, Batterie, Luft bleiben voll | CheatFullFuel, CheatFullBattery, CheatFullAir |
+| Cheat | Kein Druckschaden, Rumpf ohne Schaden | CheatDeepDive, CheatNoHullDamage |
+| Cheat | Starke Pumpe, jede Tiefe, nie volllaufen | CheatPumpPower, CheatPumpAnyDepth, CheatNeverFlood |
+| Cheat | Sehrohr bis 100 m | CheatPeriscopeHeight |
+
+### Waffen & Torpedos
+| Art | Funktion | Schlüssel in der INI |
+|---|---|---|
+| QoL | Torpedo-Rechner rechnet selbst | EasyTDC |
+| QoL | Torpedos schneller nachladen bis sofort | TorpedoLoadSpeed |
+| QoL | Alle leeren Rohre laden (Strg+Umschalt+R) | ReloadAllNow |
+| QoL | Rohr-Anzeige + Tooltip mit Torpedo-Typ | TubeDisplay |
+| QoL | Vorgeflutet: Crew darf an 88 mm + Flak | AwashGuns |
+| QoL | 88 mm + Flak: Drehtempo, Schuss/Min, Magazin, Geschosstempo | DeckGun…, AAGun… |
+| QoL | KI-Schützen treffen besser, Flak auf Schiffe, Schussgeräusch-Grenze | GunnerAccuracy, AAvsShips, GunSoundGap |
+| Cheat | Torpedos unendlich, immer T5, keine Versager | CheatInfiniteTorpedoes, CheatAllT5, CheatNoDuds |
+| Cheat | Torpedos schneller | CheatTorpedoSpeed |
+| Cheat | 88 mm + Flak: Munition unendlich | CheatInfiniteGunAmmo |
+| Cheat | Sink the convoy | CheatSinkConvoy, SinkConvoyRange, SinkConvoyTorpedoes |
+| Cheat | Fernschuss aus der Koje (Strg+Umschalt+F) | CheatRemoteTorpedo |
+
+### Hafen, Lager & Geld
+| Art | Funktion | Schlüssel in der INI |
+|---|---|---|
+| QoL | Hafen: Verladen friert nicht ein, abbrechen, erzwingen, sofort | PortLoadingFix, PortLoadingStuckSeconds, CancelPortLoading, FixMyDamnShipment, InstantPortLoading |
+| QoL | Lager aufräumen | SortStorageNow |
+| Cheat | Vorräte gehen nie aus | CheatNoSupplyUse |
+| Cheat | Fast ohne Gewicht, mehr pro Platz stapeln | CheatNoWeight, CheatStackSize |
+| Cheat | Mindest-Geld und Ruf | CheatMoney, CheatReputation |
+| Cheat | Preise, Reparatur, Forschung schneller | CheatPriceFactor, CheatRepairSpeed, CheatResearchSpeed |
+| Cheat | Alle Upgrades + Boote freischalten | CheatUnlockAll |
+
+### Anzeigen & Erfolge
+| Art | Funktion | Schlüssel in der INI |
+|---|---|---|
+| QoL | Tacho + Kilometerzähler | Speedometer |
+| QoL | Karte: Restweg, Ankunft, Diesel-Reichweite | NavInfo |
+| QoL | Kriegstagebuch als Textdatei | WarDiary |
+| QoL | NEU: Erfolge immer erlaubt, auch nach Konsolen-Befehlen | AchievementsOn |
+| Cheat | NEU: Alle Steam-Erfolge freischalten | CheatAllAchievements |
+| Cheat | Aktive Cheats anzeigen, Backup vor Cheats | CheatShowActive, BackupBeforeCheats |
+
+### Leistung & Tools
+| Art | Funktion | Schlüssel in der INI |
+|---|---|---|
+| QoL | Schneller laden | FastLoading |
+| Tool | Weniger Schiffe/Gruppen gleichzeitig in 3D | MaxShipsPerGroup, MaxGroupsPerBattle |
+| Tool | Ferne Schiffe: KI seltener | FarAIInterval |
+| Tool | Speicher aufräumen, GC-Zeit, Spiel-Log klein | MemoryCleanMinutes, GcSliceMs, GameLogFilter |
+| Tool | Test-Log, Performance-Logger, Bremsen-Finder | DebugLog, PerfLogger, PerfHotspots, PerfQueue |
+
+### Tasten
+| Art | Funktion | Schlüssel in der INI |
+|---|---|---|
+| Tool | Alle Tasten frei belegbar (Tab „Tasten“), Tiefe per Taste | Key…, DepthHotkeys |
 
 ## Mit dem Spielstand
 Die Werte setzt der Mod als „Modifier“ auf die Spielwerte, die das Spiel selbst kennt. Wenn du eine Funktion ausschaltest, geht der Wert wieder auf den Spielwert zurück.

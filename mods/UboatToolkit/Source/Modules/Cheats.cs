@@ -42,6 +42,7 @@ namespace UboatToolkit.Modules
                 Fill(ship.Discipline);
                 if (ship.Stress != null) ship.Stress.Amount = 0;
             }
+            if (Settings.B("NoStress") && ship.Stress != null) ship.Stress.Amount = 0;
 
             if (Settings.B("CheatCrewNeverTired"))
             {
