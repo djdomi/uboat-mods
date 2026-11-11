@@ -25,6 +25,8 @@ namespace UboatToolkit
             Modules.Add(new Modules.Crew());
             Modules.Add(new Modules.Weapons());
             Modules.Add(new Modules.MilkCows());
+            Modules.Add(new Modules.Ballast());
+            Modules.Add(new Modules.IronCoffins());
             Modules.Add(new Modules.Cheats());
             Modules.Add(new Modules.PerfLogger());
         }

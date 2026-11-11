@@ -24,6 +24,8 @@ namespace UboatToolkit.Modules
             foreach (var field in new[] { "visualDetectability", "sonarDetectability", "radarDetectorDetectability", "hydroacousticDetectorsRangeScale" })
                 Util.ScaleParameter(t.Field(field).GetValue<Parameter>(), f);
 
+            Util.ScaleParameter(t.Field("hullCrackThreshold").GetValue<Parameter>(), Settings.B("CheatDeepDive") ? 100f : 1f);
+
             if (Settings.B("CheatFullFuel")) Fill(ship.Fuel);
             if (Settings.B("CheatFullBattery")) Fill(ship.Energy);
             if (Settings.B("CheatFullAir")) Fill(ship.Oxygen);
@@ -67,6 +69,18 @@ namespace UboatToolkit.Modules
         private static void Prefix(Entity __instance, ref float value)
         {
             if (Settings.B("CheatNoHullDamage") && __instance is PlayerShip && value < __instance.Health) value = __instance.Health;
+        }
+    }
+
+    // No water pressure damage at great depth.
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.ApplyWaterDamageToPlayerShip), "DoDamageTick")]
+    internal static class Cheats_DeepDivePatch
+    {
+        private static bool Prefix(ref float __result)
+        {
+            if (!Settings.B("CheatDeepDive")) return true;
+            __result = 5f; // check again in 5 seconds
+            return false;
         }
     }
 }

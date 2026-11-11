@@ -26,6 +26,7 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | 20 | Sehrohr fährt bis 12 m aus | PeriscopeHeight |
 | 21 | Crew läuft durcheinander durch, Türen bleiben unverändert | NoCrewCollisions |
 | 22 | Luken schließen automatisch beim Tauchen und wenn du gejagt wirst | AutoHatches |
+| 23 | Ballast: Aufgetaucht bläst der Diesel die Tanks leer, beim Tauchen fluten sie schneller | BallastDieselBlow, BallastFastDive |
 | 24 | Vorgeflutetes Deck: Die Crew kann Deckgeschütz und Flak bedienen | AwashGuns |
 | 25 | Milchkühe sind ab Spielstart unterwegs | MilkCowsAtStart |
 | 27 | 88 mm und Flak: Dreh-Tempo und Schuss pro Minute | DeckGun…/AAGun… |
@@ -34,6 +35,9 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | – | KI-Schützen treffen besser, ohne Streuung (gleicht auch das Wackeln aus) | GunnerAccuracy |
 | – | Flak schießt auch auf Schiffe | AAvsShips |
 | – | Schussgeräusche begrenzen, gegen Tonprobleme bei schnellem Feuer | GunSoundGap |
+| IC-H | Verletzte werden nicht automatisch weggetragen | NoAutoCarryWounded |
+| IC-J | Atemgeräte halten länger | RebreatherDurability |
+| Cheat | Kein Wasserdruck-Schaden in der Tiefe | CheatDeepDive |
 | Cheat | Sehrohr bis 100 m | CheatPeriscopeHeight |
 | Cheat | Rumpf verliert keine Gesundheit | CheatNoHullDamage |
 | Cheat | Diesel, Batterie und Luft bleiben voll | CheatFullFuel, CheatFullBattery, CheatFullAir |
