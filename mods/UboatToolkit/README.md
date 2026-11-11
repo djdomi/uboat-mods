@@ -40,6 +40,14 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | 29 | Verletzte und Kranke werden automatisch versorgt. Ein freier Mann holt sich dafür einen Verbandskasten aus dem Lager | AutoFirstAid, AutoFirstAidDelay, AutoFetchMedKit, AutoFirstAidSkills (Sanitäts-Ausbildung, Funker, Läufer zuerst) |
 | 30 | Schadenskontrolle automatisch: Bei Alarm und Schaden schalten Ingenieure um, danach wieder zurück | AutoDamageControl, AutoDamageControlCount, AutoDamageControlRadioman, AutoDamageControlSkills (Handwerker + Sparsam zuerst) |
 | 31 | Werkstatt automatisch: Schrott kommt in die Werkstatt, Ersatzteile werden gebaut | AutoWorkshop |
+| 32 | Land-Schutz: Zeitraffer stoppt, bevor das Boot auf Land fährt | AntiGrounding, AntiGroundingSeconds |
+| 34 | Tiefenruder immer besetzt (freier Matrose geht hin) | KeepDepthStation, StationDelay |
+| 35 | Kartentisch immer besetzt (spart Diesel) | KeepNavTable |
+| 36 | Lüftung leiser, Absorber hält länger, E-Kompressor verbraucht keine Luft, unter Wasser Lüftung automatisch an, Notfall-Sauerstoff | VentilationNoise, AbsorberDuration, CompressorNoAir, AutoVentilation, EmergencyOxygen |
+| 37 | Volle Besatzung ab Start (vor der ersten Feindfahrt) | FullCrewAtStart, FullCrewSize |
+| 38 | Pumpe schaltet sich bei Wasser selbst an | AutoPump |
+| Cheat | Boot schneller | CheatSpeed |
+| Cheat | Starke Pumpe, in jeder Tiefe, Boot läuft nie voll | CheatPumpPower, CheatPumpAnyDepth, CheatNeverFlood |
 | 17 | Torpedo-Rechner: Das Spiel rechnet die Lösung automatisch (Vorschau an) | EasyTDC |
 | 26 | Torpedos unendlich: Das Rohr lädt nach dem Schuss sofort nach | CheatInfiniteTorpedoes |
 | Cheat | Immer T5 Zaunkönig nachladen, keine Versager | CheatAllT5, CheatNoDuds |
