@@ -147,7 +147,16 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(PlayableCharacterData), nameof(PlayableCharacterData.GetAvailableSkillPoints))]
     internal static class ExtraFeatures_SkillPointsPatch
     {
-        private static void Postfix(ref int __result) => __result += Mathf.Max(0, (int)Settings.F("CheatExtraSkillPoints"));
+        // The game clamps at 0, so the extra points are added before that clamp (recomputed here).
+        private static void Postfix(PlayableCharacterData __instance, ref int __result)
+        {
+            if (Settings.B("CheatUnlimitedSkillPoints")) { __result = 99; return; }
+            int extra = Mathf.Max(0, (int)Settings.F("CheatExtraSkillPoints"));
+            if (extra == 0) return;
+            int level = Traverse.Create(__instance).Field("level").GetValue<int>();
+            int used = __instance.Statuses.OfType<CharacterSkill>().Count(sk => !sk.IsFree);
+            __result = Mathf.Max(0, level - 1 - used + extra);
+        }
     }
 
     // Torpedo loading x faster (1000 = practically instant).
