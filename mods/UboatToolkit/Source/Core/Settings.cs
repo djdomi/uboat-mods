@@ -53,11 +53,24 @@ namespace UboatToolkit
             Num(QoL, "AAGunTurnSpeed", "Flak: Dreh-/Neige-Tempo (1 = normal) (#27)", 1, 0.5f, 10, 0.5f);
             Num(QoL, "AAGunRPM", "Flak: Schuss pro Minute (0 = Spielwert) (#27)", 0, 0, 600, 10);
             Num(QoL, "AAGunMagazine", "Flak: Magazin (0 = Spielwert) (#28)", 0, 0, 500, 5);
+            Num(QoL, "DeckGunShellSpeed", "88mm: Geschossgeschwindigkeit (1 = normal)", 1, 0.5f, 5, 0.25f);
+            Num(QoL, "AAGunShellSpeed", "Flak: Geschossgeschwindigkeit (1 = normal)", 1, 0.5f, 5, 0.25f);
+            Num(QoL, "GunnerAccuracy", "KI-Schützen: Treffsicherheit (0 = Spiel, 1 = keine Streuung)", 0, 0, 1, 0.1f);
+            Bool(QoL, "AAvsShips", "Flak schießt automatisch auch auf Schiffe", false);
+            Num(QoL, "GunSoundGap", "Schussgeräusch höchstens alle x Sek. (0 = aus, gegen Tonprobleme)", 0.12f, 0, 1, 0.02f);
 
             // ---------- Cheats (single player) ----------
             Num(Cheat, "CheatPeriscopeHeight", "Sehrohr bis zu x m ausfahren (0 = aus) (Cheat #34)", 0, 0, 100, 1);
             Bool(Cheat, "CheatUndetectable", "Boot unentdeckbar (Sicht, Sonar, Horchgerät, Radar)", false);
             Bool(Cheat, "CheatInfiniteGunAmmo", "Deckgeschütz + Flak: Munition unendlich", false);
+            Bool(Cheat, "CheatNoHullDamage", "Rumpf verliert keine Gesundheit", false);
+            Bool(Cheat, "CheatFullFuel", "Diesel wird nicht verbraucht (Tank bleibt voll)", false);
+            Bool(Cheat, "CheatFullBattery", "Batterie bleibt voll", false);
+            Bool(Cheat, "CheatFullAir", "Luft unter Wasser unbegrenzt", false);
+            Bool(Cheat, "CheatCrewNeverTired", "Crew wird nie müde", false);
+            Bool(Cheat, "CheatFullDiscipline", "Disziplin/Stimmung immer voll, kein Stress", false);
+            Num(Cheat, "CheatMoney", "Geld: nie weniger als (0 = aus)", 0, 0, 1000000, 10000);
+            Num(Cheat, "CheatReputation", "Ruf-Punkte: nie weniger als (0 = aus)", 0, 0, 1000, 10);
             Bool(Cheat, "CheatShowActive", "Aktive Cheats oben links anzeigen", true);
 
             // ---------- Tools ----------

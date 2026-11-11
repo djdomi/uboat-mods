@@ -30,7 +30,15 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | 25 | Milchkühe sind ab Spielstart unterwegs | MilkCowsAtStart |
 | 27 | 88 mm und Flak: Dreh-Tempo und Schuss pro Minute | DeckGun…/AAGun… |
 | 28 | 88 mm und Flak: Magazingröße, für Dauerfeuer | …Magazine |
+| – | Geschossgeschwindigkeit für 88 mm und Flak | …ShellSpeed |
+| – | KI-Schützen treffen besser, ohne Streuung (gleicht auch das Wackeln aus) | GunnerAccuracy |
+| – | Flak schießt auch auf Schiffe | AAvsShips |
+| – | Schussgeräusche begrenzen, gegen Tonprobleme bei schnellem Feuer | GunSoundGap |
 | Cheat | Sehrohr bis 100 m | CheatPeriscopeHeight |
+| Cheat | Rumpf verliert keine Gesundheit | CheatNoHullDamage |
+| Cheat | Diesel, Batterie und Luft bleiben voll | CheatFullFuel, CheatFullBattery, CheatFullAir |
+| Cheat | Crew wird nie müde, Disziplin bleibt voll, kein Stress | CheatCrewNeverTired, CheatFullDiscipline |
+| Cheat | Mindestwert für Geld und Ruf | CheatMoney, CheatReputation |
 | Cheat | Boot ist unentdeckbar | CheatUndetectable |
 | Cheat | Munition für Deckgeschütz und Flak unendlich | CheatInfiniteGunAmmo |
 | Tool | Performance-Logger: CSV-Datei in `...\UBOAT\UboatToolkit\logs` | PerfLogger, PerfHotspots |
