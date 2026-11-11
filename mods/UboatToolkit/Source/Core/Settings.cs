@@ -70,7 +70,7 @@ namespace UboatToolkit
             Bool(QoL, "AutoVentilation", "  Unter Wasser: Lüftung automatisch an + Absorber einsetzen", true);
             Bool(QoL, "EmergencyOxygen", "  Notfall-Sauerstoff: etwas mehr als der Verbrauch, wenn die Luft sinkt", true);
             Bool(QoL, "FullCrewAtStart", "Volle Besatzung ab Start (vor der ersten Feindfahrt) (#37)", true);
-            Num(QoL, "FullCrewSize", "  Gewünschte Besatzung (Männer)", 35, 10, 120, 1);
+            Num(QoL, "FullCrewSize", "  Gewünschte Besatzung (Männer, in der INI ohne Obergrenze)", 90, 10, 200, 1);
             Bool(QoL, "AutoPump", "Pumpe schaltet sich bei Wasser im Boot selbst an (#38)", true);
             Num(QoL, "RebreatherDurability", "Atemgeräte halten x-mal länger (Iron Coffins J)", 2, 1, 10, 0.5f);
             Bool(QoL, "MilkCowsAtStart", "Milchkühe ab Spielstart unterwegs (#25)", true);
