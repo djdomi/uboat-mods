@@ -46,6 +46,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.MemoryCleaner());
             Modules.Add(new Modules.GameTuning());
             Modules.Add(new Modules.PerfLogger());
+            Modules.Add(new Modules.QueueProfiler());
         }
 
         private void Update()

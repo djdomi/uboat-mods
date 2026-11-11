@@ -81,6 +81,8 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | Cheat | Alles freischalten, Torpedo-Tempo, Schnellreise (Strg+Umschalt+T), Echolot-Ping | CheatUnlockAll, CheatTorpedoSpeed, CheatQuickTravel, CheatSonarPing |
 | Tool | Freie Tastenbelegung: Tab „Tasten“ im F10-Menü, „Ändern“ drücken, dann neue Taste (mit Strg/Umschalt/Alt). Esc = Abbruch, Rück = keine Taste. Steht auch in der INI unter [Tasten], z. B. KeyReloadAll=Ctrl+Shift+R | Key... |
 | Tool | Spiel-Log klein halten (nur Warnungen/Fehler), GC-Zeit pro Bild einstellbar | GameLogFilter, GcSliceMs |
+| Tool | Ferne Schiffe: KI seltener berechnen (30 s = Spiel, 60 s = weniger CPU) | FarAIInterval |
+| Tool | Bremsen-Finder für die Spiel-Warteschlange (CSV in logs) | PerfQueue |
 | Tool | Speicher aufräumen alle x Minuten in ruhigen Momenten (Pause/Zeitraffer) | MemoryCleanMinutes |
 | Tool | Test-Log: alles, was der Mod tut, alle Fehler, Einstellungen, Bootzustand jede Minute. Datei: `%USERPROFILE%\AppData\LocalLow\Deep Water Studio\UBOAT\UboatToolkit\logs\toolkit-<Datum>.log` | DebugLog |
 | Tool | Performance-Logger: CSV-Datei in `...\UBOAT\UboatToolkit\logs` | PerfLogger, PerfHotspots |
