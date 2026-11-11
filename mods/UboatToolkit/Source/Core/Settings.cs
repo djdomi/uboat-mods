@@ -72,6 +72,8 @@ namespace UboatToolkit
             Bool(QoL, "FullCrewAtStart", "Volle Besatzung ab Start (vor der ersten Feindfahrt) (#37)", true);
             Num(QoL, "FullCrewSize", "  Gewünschte Besatzung (Männer, in der INI ohne Obergrenze)", 90, 10, 200, 1);
             Bool(QoL, "AutoPump", "Pumpe schaltet sich bei Wasser im Boot selbst an (#38)", true);
+            Bool(QoL, "InstantPortLoading", "Hafen: Verladen ins Boot hängt nicht mehr (Aufträge werden sofort erledigt) (#39)", true);
+            Num(QoL, "PortLoadingStuckSeconds", "  Hängt ein Arbeiter so viele Sekunden, wird sein Auftrag sofort erledigt", 30, 5, 300, 5);
             Num(QoL, "RebreatherDurability", "Atemgeräte halten x-mal länger (Iron Coffins J)", 2, 1, 10, 0.5f);
             Bool(QoL, "MilkCowsAtStart", "Milchkühe ab Spielstart unterwegs (#25)", true);
             Bool(QoL, "EasyTDC", "Torpedo-Rechner einfach: Lösung wird automatisch berechnet + angezeigt (#17)", true);
