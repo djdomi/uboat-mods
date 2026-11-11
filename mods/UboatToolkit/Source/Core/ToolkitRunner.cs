@@ -44,6 +44,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.HatchEqualizer());
             Modules.Add(new Modules.Traffic());
             Modules.Add(new Modules.MemoryCleaner());
+            Modules.Add(new Modules.GameTuning());
             Modules.Add(new Modules.PerfLogger());
         }
 
