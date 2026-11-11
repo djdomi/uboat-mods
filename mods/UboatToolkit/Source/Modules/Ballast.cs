@@ -4,7 +4,7 @@ using UBOAT.Game.Scene.Entities;
 
 namespace UboatToolkit.Modules
 {
-    // QoL #23 ballast (all in one, inspired by "Proper Ballast" / Iron Coffins):
+    // QoL #23 ballast (all in one, own version):
     //  - surfaced: the diesel exhaust slowly blows the rest of the water out of the ballast tanks,
     //    so the boat rides fully surfaced without using compressed air;
     //  - diving: the ballast tanks flood faster.

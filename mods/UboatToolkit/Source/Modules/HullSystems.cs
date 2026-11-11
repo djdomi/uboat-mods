@@ -9,9 +9,9 @@ using Activator = UBOAT.Game.Scene.Characters.Activators.Activator;
 
 namespace UboatToolkit.Modules
 {
-    // Iron Coffins A: ballast valve orders are always offered (only not when the valve is broken or in port).
+    // Ballast valve orders are always offered (only not when the valve is broken or in port).
     [HarmonyPatch]
-    internal static class IC_BallastAlwaysPatch
+    internal static class Hull_BallastAlwaysPatch
     {
         private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
         {
@@ -32,9 +32,9 @@ namespace UboatToolkit.Modules
         }
     }
 
-    // Iron Coffins E: hatches show the air pressure on both sides and stay shut when it differs too much.
+    // Hatches show the air pressure on both sides and stay shut when it differs too much.
     [HarmonyPatch(typeof(Hatch), nameof(Hatch.GetStateText))]
-    internal static class IC_HatchTextPatch
+    internal static class Hull_HatchTextPatch
     {
         private static void Postfix(Hatch __instance, ref string __result)
         {
@@ -42,13 +42,13 @@ namespace UboatToolkit.Modules
             var l = __instance.LeftCompartment; var r = __instance.RightCompartment;
             if (l == null || r == null) return;
             string p = "Luftdruck: " + l.AirPressure.ToString("0.00") + " / " + r.AirPressure.ToString("0.00") + " bar";
-            if (IC_HatchLockPatch.TooBig(__instance)) p += "  (gesperrt: Unterschied zu groß)";
+            if (Hull_HatchLockPatch.TooBig(__instance)) p += "  (gesperrt: Unterschied zu groß)";
             __result = string.IsNullOrEmpty(__result) ? p : __result + "\n" + p;
         }
     }
 
     [HarmonyPatch(typeof(Hatch), nameof(Hatch.CanBeOpened), MethodType.Getter)]
-    internal static class IC_HatchLockPatch
+    internal static class Hull_HatchLockPatch
     {
         public static bool TooBig(Hatch h)
         {
@@ -63,7 +63,7 @@ namespace UboatToolkit.Modules
         }
     }
 
-    // Iron Coffins E, part 2: pressure equalizing valve. A hatch locked by pressure would stay shut forever,
+    // Pressure equalizing valve. A hatch locked by pressure would stay shut forever,
     // so air slowly flows between both rooms (10 % of the difference per second) until the hatch can open again.
     public class HatchEqualizer : ModuleBase
     {
@@ -72,7 +72,7 @@ namespace UboatToolkit.Modules
             if (!Settings.B("HatchPressure") || !Settings.B("HatchEqualize")) return;
             foreach (var h in Util.Find<Hatch>())
             {
-                if (!IC_HatchLockPatch.TooBig(h)) continue;
+                if (!Hull_HatchLockPatch.TooBig(h)) continue;
                 var a = h.LeftCompartment; var b = h.RightCompartment;
                 double pa = a.AirPressure, pb = b.AirPressure;
                 if (pa <= 0.0001 || pb <= 0.0001) continue;
@@ -85,9 +85,9 @@ namespace UboatToolkit.Modules
         }
     }
 
-    // Iron Coffins F: a leak is sealed like with two sailors (water comes in only half as fast as with one).
+    // A leak is sealed like with two sailors (water comes in only half as fast as with one).
     [HarmonyPatch(typeof(BlockLeakAction), nameof(BlockLeakAction.UpdateAction))]
-    internal static class IC_LeakTwoMenPatch
+    internal static class Hull_LeakTwoMenPatch
     {
         private static void Postfix(BlockLeakAction __instance)
         {

@@ -4,9 +4,9 @@ using UBOAT.Game.Scene.Items;
 
 namespace UboatToolkit.Modules
 {
-    // Ideas taken over from the old "Iron Coffins" mod (2022), rebuilt for 2026.1.
+    // Crew gear and wounded handling.
     // H: injured crew is not carried away automatically.  J: rebreathers last longer.
-    public class IronCoffins : ModuleBase
+    public class CrewGear : ModuleBase
     {
         public override void Tick()
         {
@@ -19,7 +19,7 @@ namespace UboatToolkit.Modules
     // Only the "carry wounded" part is blocked: the game skips carrying when no bed is free.
     // Pulling divers back on board keeps working.
     [HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.AutoCarryWoundedToSafety), "DoUpdate")]
-    internal static class IronCoffins_NoAutoCarryPatch
+    internal static class CrewGear_NoAutoCarryPatch
     {
         internal static bool Inside;
         private static void Prefix() { Inside = Settings.B("NoAutoCarryWounded"); }
@@ -27,11 +27,11 @@ namespace UboatToolkit.Modules
     }
 
     [HarmonyPatch(typeof(UBOAT.Game.Scene.Entities.PlayerShip), "HasFreeBed")]
-    internal static class IronCoffins_NoFreeBedPatch
+    internal static class CrewGear_NoFreeBedPatch
     {
         private static bool Prefix(ref bool __result)
         {
-            if (!IronCoffins_NoAutoCarryPatch.Inside) return true;
+            if (!CrewGear_NoAutoCarryPatch.Inside) return true;
             __result = false;
             return false;
         }
