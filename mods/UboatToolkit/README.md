@@ -64,6 +64,7 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | Cheat | Mindestwert für Geld und Ruf | CheatMoney, CheatReputation |
 | Cheat | Boot ist unentdeckbar | CheatUndetectable |
 | Cheat | Munition für Deckgeschütz und Flak unendlich | CheatInfiniteGunAmmo |
+| Tool | Test-Log: alles, was der Mod tut, alle Fehler, Einstellungen, Bootzustand jede Minute. Datei: `%USERPROFILE%\AppData\LocalLow\Deep Water Studio\UBOAT\UboatToolkit\logs\toolkit-<Datum>.log` | DebugLog |
 | Tool | Performance-Logger: CSV-Datei in `...\UBOAT\UboatToolkit\logs` | PerfLogger, PerfHotspots |
 
 ## Mit dem Spielstand

@@ -63,12 +63,29 @@ namespace UboatToolkit
 
         public static void SetField(object obj, string field, object value) => Traverse.Create(obj).Field(field).SetValue(value);
 
-        public static void Log(string text) => Debug.Log(ToolkitLoader.Tag + " " + text);
+        public static void Log(string text)
+        {
+            Debug.Log(ToolkitLoader.Tag + " " + text);
+            DebugLog.Write("INFO", text);
+        }
+
+        private static readonly Dictionary<string, int> errorCounts = new Dictionary<string, int>();
 
         public static void Safe(string what, Action a)
         {
             try { a(); }
-            catch (Exception e) { Debug.Log(ToolkitLoader.Tag + " error in " + what + ": " + e.Message); }
+            catch (Exception e)
+            {
+                // Same error every second would flood the log: write it 3 times, then every 100th time.
+                string key = what + "|" + e.Message;
+                errorCounts.TryGetValue(key, out int n);
+                errorCounts[key] = ++n;
+                if (n <= 3 || n % 100 == 0)
+                {
+                    Debug.Log(ToolkitLoader.Tag + " error in " + what + " (x" + n + "): " + e.Message);
+                    DebugLog.Write("ERROR", what + " (x" + n + "): " + e.GetType().Name + ": " + e.Message + "\n" + e.StackTrace);
+                }
+            }
         }
     }
 }

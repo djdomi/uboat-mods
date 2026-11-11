@@ -18,8 +18,23 @@ namespace UboatToolkit
             try
             {
                 Settings.Load();
+                DebugLog.Write("START", "UBOAT Toolkit wird geladen, Unity " + Application.unityVersion + ", Spiel " + Application.version);
+                DebugLog.DumpSettings("Start");
                 Harmony = new Harmony("djdomi.uboat.toolkit");
-                Harmony.PatchAll(typeof(ToolkitLoader).Assembly);
+                // Patch class by class: if one game method changed, only that feature fails, the rest still works.
+                int ok = 0, bad = 0;
+                foreach (var t in AccessTools.GetTypesFromAssembly(typeof(ToolkitLoader).Assembly))
+                {
+                    if (t.GetCustomAttributes(typeof(HarmonyPatch), true).Length == 0) continue;
+                    try { Harmony.CreateClassProcessor(t).Patch(); ok++; }
+                    catch (Exception pe)
+                    {
+                        bad++;
+                        Debug.Log(Tag + " patch failed: " + t.Name + ": " + pe.Message);
+                        DebugLog.Write("ERROR", "Patch " + t.Name + " fehlgeschlagen: " + pe.Message);
+                    }
+                }
+                DebugLog.Write("START", "Patches ok: " + ok + ", fehlgeschlagen: " + bad);
                 var go = new GameObject(Tag);
                 go.AddComponent<ToolkitRunner>();
                 UnityEngine.Object.DontDestroyOnLoad(go);

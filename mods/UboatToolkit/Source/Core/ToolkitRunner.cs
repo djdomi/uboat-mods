@@ -49,9 +49,12 @@ namespace UboatToolkit
 
             if (Time.unscaledTime < nextTick) return;
             nextTick = Time.unscaledTime + 1f;
+            if (Time.unscaledTime >= nextState) { nextState = Time.unscaledTime + 60f; DebugLog.DumpState(); }
             if (Util.PlayerShip == null) return;
             foreach (var m in Modules) Util.Safe(m.GetType().Name, m.Tick);
         }
+
+        private float nextState;
 
         private void OnGUI()
         {

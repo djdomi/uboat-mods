@@ -121,6 +121,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatShowActive", "Aktive Cheats oben links anzeigen", true);
 
             // ---------- Tools ----------
+            Bool(Tools, "DebugLog", "Test-Log: alles, was der Mod tut + Fehler (logs\\toolkit-Datum.log)", true);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste F11 an/aus, kostet Leistung)", false);
         }
@@ -162,6 +163,7 @@ namespace UboatToolkit
 
         public static void Save()
         {
+            DebugLog.DumpSettings("gespeichert");
             try
             {
                 var sb = new StringBuilder();
