@@ -85,7 +85,7 @@ namespace UboatToolkit.Modules
                     "sounds=" + Resources.FindObjectsOfTypeAll<AudioClip>().Length);
             }
 
-            if (Settings.B("PerfHotspots") && Input.GetKeyDown(KeyCode.F11)) SetHotspots(!hotspotsOn);
+            if (Settings.B("PerfHotspots") && Keys.Down("KeyHotspots")) SetHotspots(!hotspotsOn);
             if (!Settings.B("PerfHotspots") && hotspotsOn) SetHotspots(false);
             if (hotspotsOn && now >= nextHotspotDump)
             {

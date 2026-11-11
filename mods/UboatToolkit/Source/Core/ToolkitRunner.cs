@@ -48,7 +48,8 @@ namespace UboatToolkit
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F10)) menuOpen = !menuOpen;
+            Keys.CaptureFrame();
+            if (Keys.Down("KeyMenu")) menuOpen = !menuOpen;
             foreach (var m in Modules) Util.Safe(m.GetType().Name + ".Frame", m.Frame);
 
             if (Time.unscaledTime < nextTick) return;
@@ -89,14 +90,21 @@ namespace UboatToolkit
             Imgui.Box(r, "UBOAT Toolkit  (F10 schließt)");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             Imgui.BeginH();
-            foreach (var t in new[] { Settings.QoL, Settings.Cheat, Settings.Tools })
+            foreach (var t in new[] { Settings.QoL, Settings.Cheat, Settings.KeysTab, Settings.Tools })
                 if (Imgui.Button((t == tab ? "> " : "") + t, 120)) tab = t;
             Imgui.EndH();
             Imgui.Space(6);
             scroll = Imgui.BeginScroll(scroll);
             foreach (var o in Settings.All.Where(x => x.Tab == tab))
             {
-                if (o.IsBool)
+                if (o.IsKey)
+                {
+                    Imgui.BeginH();
+                    Imgui.Label(o.Label + ":  " + (string.IsNullOrEmpty(o.Text) ? "(keine)" : o.Text), 450);
+                    if (Imgui.Button(Keys.Capturing == o ? "Taste drücken ... (Esc = Abbruch, Rück = keine)" : "Ändern", 200)) Keys.Capturing = o;
+                    Imgui.EndH();
+                }
+                else if (o.IsBool)
                 {
                     o.Value = Imgui.Toggle(o.On, " " + o.Label) ? 1 : 0;
                 }

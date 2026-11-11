@@ -35,7 +35,7 @@ namespace UboatToolkit
 
         public static void DumpSettings(string why)
         {
-            Write("SETTINGS", why + ": " + string.Join(", ", Settings.All.Select(o => o.Key + "=" + (o.IsBool ? (o.On ? "an" : "aus") : o.Value.ToString("0.###")))));
+            Write("SETTINGS", why + ": " + string.Join(", ", Settings.All.Select(o => o.Key + "=" + (o.IsKey ? o.Text : o.IsBool ? (o.On ? "an" : "aus") : o.Value.ToString("0.###")))));
         }
 
         public static void DumpState()

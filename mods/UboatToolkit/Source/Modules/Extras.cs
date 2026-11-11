@@ -19,17 +19,19 @@ namespace UboatToolkit.Modules
         public override void Frame()
         {
             if (Util.PlayerShip == null) return;
-            bool ctrl = Game.Ctrl, shift = Game.Shift;
-
-            // Depth keys: Ctrl + PageUp/PageDown = 10 m, Shift = 100 m.
-            if (Settings.B("DepthHotkeys") && (ctrl || shift))
+            if (Settings.B("DepthHotkeys"))
             {
-                float step = shift ? 100f : 10f;
-                if (Input.GetKeyDown(KeyCode.PageDown)) ChangeDepth(step);
-                if (Input.GetKeyDown(KeyCode.PageUp)) ChangeDepth(-step);
+                if (Keys.Down("KeyDepthDown10")) ChangeDepth(10f);
+                if (Keys.Down("KeyDepthUp10")) ChangeDepth(-10f);
+                if (Keys.Down("KeyDepthDown100")) ChangeDepth(100f);
+                if (Keys.Down("KeyDepthUp100")) ChangeDepth(-100f);
             }
-            if (ctrl && shift && Input.GetKeyDown(KeyCode.R)) ReloadAll();
-            if (ctrl && shift && Input.GetKeyDown(KeyCode.T) && Settings.B("CheatQuickTravel")) QuickTravel();
+            if (Keys.Down("KeyReloadAll")) Util.Safe("ReloadAll", ReloadAll);
+            if (Keys.Down("KeyQuickTravel") && Settings.B("CheatQuickTravel")) Util.Safe("QuickTravel", QuickTravel);
+            if (Keys.Down("KeySortStorage")) Util.Safe("SortStorage", SortStorage);
+            if (Keys.Down("KeySwapShifts")) Util.Safe("SwapShifts", SwapShifts);
+            if (Keys.Down("KeyCallMilkCow")) Util.Safe("CallMilkCow", CallMilkCow);
+            if (Keys.Down("KeyBackToWater")) { var o = Settings.Get("BackToWaterNow"); if (o != null) o.Value = 1; }
         }
 
         public override void Tick()

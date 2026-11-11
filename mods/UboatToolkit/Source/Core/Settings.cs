@@ -11,7 +11,8 @@ namespace UboatToolkit
     public class Opt
     {
         public string Key, Tab, Label;
-        public bool IsBool;
+        public bool IsBool, IsKey;
+        public string Text = "";
         public float Value, Default, Min, Max, Step;
         public bool On => Value > 0.5f;
     }
@@ -23,6 +24,7 @@ namespace UboatToolkit
         public const string QoL = "QoL";
         public const string Cheat = "Cheat";
         public const string Tools = "Tools";
+        public const string KeysTab = "Tasten";
 
         public static readonly List<Opt> All = new List<Opt>();
         private static readonly Dictionary<string, Opt> byKey = new Dictionary<string, Opt>(StringComparer.OrdinalIgnoreCase);
@@ -82,8 +84,8 @@ namespace UboatToolkit
             Num(QoL, "AutoSaveMinutes", "Auto-Speichern alle x Minuten (0 = aus) (Idee 6)", 15, 0, 120, 5);
             Num(QoL, "LowWarnPercent", "Warnung + Zeitraffer-Stopp bei Diesel/Batterie/Luft unter x % (0 = aus) (Idee 8)", 15, 0, 50, 5);
             Bool(QoL, "NavInfo", "Karte: Ankunftszeit + Restweg + Diesel-Reichweite oben links (Idee 7)", true);
-            Bool(QoL, "DepthHotkeys", "Tiefe per Taste: Strg+Bild runter/hoch = 10 m, Umschalt = 100 m (Idee 10)", true);
-            Bool(QoL, "ReloadAllNow", "  >> Alle leeren Rohre aus dem Lager laden (auch Strg+Umschalt+R) (Idee 2)", false);
+            Bool(QoL, "DepthHotkeys", "Tiefe per Taste (Tasten im Tab „Tasten“) (Idee 10)", true);
+            Bool(QoL, "ReloadAllNow", "  >> Alle leeren Rohre aus dem Lager laden (Idee 2)", false);
             Bool(QoL, "SwapShiftsNow", "  >> Wachen tauschen: Gruppen mit gleicher Aufgabe tauschen Schichten (Idee 4)", false);
             Bool(QoL, "SortStorageNow", "  >> Lager aufräumen: gleiche Sachen stapeln, nach vorne rücken (Idee 5)", false);
             Bool(QoL, "CallMilkCow", "  >> Nächste Milchkuh zu mir holen", false);
@@ -144,20 +146,35 @@ namespace UboatToolkit
             Num(Cheat, "CheatResearchSpeed", "Forschung/Aufgaben im Hauptquartier x schneller", 1, 1, 1000, 10);
             Bool(Cheat, "CheatUnlockAll", "  >> Alle Upgrades + alle Boote freischalten", false);
             Num(Cheat, "CheatTorpedoSpeed", "Torpedos x schneller (Rechner zielt mit, Treffer sicherer)", 1, 1, 5, 0.25f);
-            Bool(Cheat, "CheatQuickTravel", "Schnellreise ans Kursziel mit Strg+Umschalt+T", false);
+            Bool(Cheat, "CheatQuickTravel", "Schnellreise ans Kursziel per Taste (Tab „Tasten“)", false);
             Bool(Cheat, "CheatQuickTravelNow", "  >> Jetzt ans Kursziel springen", false);
             Bool(Cheat, "CheatSonarPing", "Echolot pingt unter Wasser von selbst", false);
             Bool(Cheat, "BackupBeforeCheats", "Backup-Spielstand, sobald ein Cheat eingeschaltet wird", true);
             Bool(Cheat, "CheatShowActive", "Aktive Cheats oben links anzeigen", true);
 
+            // ---------- Tasten (frei belegbar) ----------
+            Key("KeyMenu", "Menü öffnen/schließen", "F10");
+            Key("KeyDepthDown10", "Tiefe +10 m (tiefer)", "Ctrl+PageDown");
+            Key("KeyDepthUp10", "Tiefe -10 m (höher)", "Ctrl+PageUp");
+            Key("KeyDepthDown100", "Tiefe +100 m (tiefer)", "Shift+PageDown");
+            Key("KeyDepthUp100", "Tiefe -100 m (höher)", "Shift+PageUp");
+            Key("KeyReloadAll", "Alle leeren Rohre laden", "Ctrl+Shift+R");
+            Key("KeyQuickTravel", "Schnellreise ans Kursziel (Cheat muss an sein)", "Ctrl+Shift+T");
+            Key("KeyBackToWater", "Zurück ins Wasser", "Ctrl+Shift+W");
+            Key("KeySortStorage", "Lager aufräumen", "");
+            Key("KeySwapShifts", "Wachen tauschen", "");
+            Key("KeyCallMilkCow", "Milchkuh herholen", "");
+            Key("KeyHotspots", "Bremsen-Finder an/aus", "F11");
+
             // ---------- Tools ----------
             Bool(Tools, "DebugLog", "Test-Log: alles, was der Mod tut + Fehler (logs\\toolkit-Datum.log)", true);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
-            Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste F11 an/aus, kostet Leistung)", false);
+            Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
         }
 
         private static void Bool(string tab, string key, string label, bool def) => Add(new Opt { Tab = tab, Key = key, Label = label, IsBool = true, Default = def ? 1 : 0, Value = def ? 1 : 0, Min = 0, Max = 1, Step = 1 });
         private static void Num(string tab, string key, string label, float def, float min, float max, float step) => Add(new Opt { Tab = tab, Key = key, Label = label, Default = def, Value = def, Min = min, Max = max, Step = step });
+        private static void Key(string key, string label, string def) => Add(new Opt { Tab = KeysTab, Key = key, Label = label, IsKey = true, Text = def });
         private static void Add(Opt o) { All.Add(o); byKey[o.Key] = o; }
 
         public static bool B(string key) => byKey.TryGetValue(key, out var o) && o.On;
@@ -177,6 +194,7 @@ namespace UboatToolkit
                     if (eq <= 0) continue;
                     var o = Get(line.Substring(0, eq).Trim());
                     if (o == null) continue;
+                    if (o.IsKey) { o.Text = line.Substring(eq + 1).Trim(); continue; }
                     var v = line.Substring(eq + 1).Trim().ToLowerInvariant();
                     if (o.IsBool) o.Value = (v == "1" || v == "true" || v == "on" || v == "ja") ? 1 : 0;
                     else if (float.TryParse(v.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var f)) o.Value = Mathf.Max(0f, f); // no upper cap: INI may go beyond the menu range
@@ -204,7 +222,7 @@ namespace UboatToolkit
                 {
                     if (o.Tab != tab) { tab = o.Tab; sb.AppendLine(); sb.AppendLine("[" + tab + "]"); }
                     sb.AppendLine("; " + o.Label.Trim());
-                    sb.AppendLine(o.Key + "=" + (o.IsBool ? (o.On ? "1" : "0") : o.Value.ToString("0.###", CultureInfo.InvariantCulture)));
+                    sb.AppendLine(o.Key + "=" + (o.IsKey ? o.Text : o.IsBool ? (o.On ? "1" : "0") : o.Value.ToString("0.###", CultureInfo.InvariantCulture)));
                 }
                 File.WriteAllText(FilePath, sb.ToString());
             }

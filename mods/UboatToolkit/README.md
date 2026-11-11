@@ -70,7 +70,7 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | QoL | Auto-Speichern alle x Minuten | AutoSaveMinutes |
 | QoL | Warnung + Zeitraffer-Stopp bei wenig Diesel, Batterie, Luft | LowWarnPercent |
 | QoL | Karte: Restweg, Ankunftszeit, Diesel-Reichweite oben links | NavInfo |
-| QoL | Tiefe per Taste: Strg+Bild runter/hoch 10 m, Umschalt 100 m | DepthHotkeys |
+| QoL | Tiefe per Taste: frei belegbar (Standard Strg+Bild runter/hoch 10 m, Umschalt 100 m) | DepthHotkeys |
 | QoL | Alle leeren Rohre aus dem Lager laden (Strg+Umschalt+R) | ReloadAllNow |
 | QoL | Wachen tauschen, Lager aufräumen, Milchkuh herholen (Einmal-Schalter) | SwapShiftsNow, SortStorageNow, CallMilkCow |
 | QoL | Iron Coffins A: Ballast-Befehle immer da | BallastAlwaysAvailable |
@@ -79,6 +79,7 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | Cheat | Backup-Spielstand, wenn ein Cheat angeht | BackupBeforeCheats |
 | Cheat | Preise, Reparatur-, Forschungstempo | CheatPriceFactor, CheatRepairSpeed, CheatResearchSpeed |
 | Cheat | Alles freischalten, Torpedo-Tempo, Schnellreise (Strg+Umschalt+T), Echolot-Ping | CheatUnlockAll, CheatTorpedoSpeed, CheatQuickTravel, CheatSonarPing |
+| Tool | Freie Tastenbelegung: Tab „Tasten“ im F10-Menü, „Ändern“ drücken, dann neue Taste (mit Strg/Umschalt/Alt). Esc = Abbruch, Rück = keine Taste. Steht auch in der INI unter [Tasten], z. B. KeyReloadAll=Ctrl+Shift+R | Key... |
 | Tool | Test-Log: alles, was der Mod tut, alle Fehler, Einstellungen, Bootzustand jede Minute. Datei: `%USERPROFILE%\AppData\LocalLow\Deep Water Studio\UBOAT\UboatToolkit\logs\toolkit-<Datum>.log` | DebugLog |
 | Tool | Performance-Logger: CSV-Datei in `...\UBOAT\UboatToolkit\logs` | PerfLogger, PerfHotspots |
 
