@@ -28,6 +28,8 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Kein automatischer Alarm | NoAutoAlarm |
 | QoL | Auto-Speichern alle x Minuten | AutoSaveMinutes |
 | QoL | Milchkühe ab Spielstart, nächste Milchkuh herholen | MilkCowsAtStart, CallMilkCow |
+| Cheat | NEU: Horchgerät hört voll, auch aufgetaucht und bei Fahrt | CheatHydrophoneAlways |
+| Cheat | NEU: Funk-Empfang in jeder Tiefe | CheatRadioAnyDepth |
 | Cheat | Schnellreise ans Kursziel (Strg+Umschalt+T) | CheatQuickTravel, CheatQuickTravelNow |
 | Cheat | Boot schneller | CheatSpeed |
 | Cheat | Boot unentdeckbar | CheatUndetectable |
@@ -73,6 +75,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Funk schneller und nicht anpeilbar | RadioSpeed, RadioUndetectable |
 | QoL | Sehrohr + Fernglas: mehr Zoom, ruhiges Bild, höher | OpticsZoom, OpticsStabilization, PeriscopeHeight |
 | QoL | Werkstatt automatisch | AutoWorkshop |
+| Cheat | NEU: Panzer-Rumpf: weniger Schaden, Crew geschützt | CheatHullArmour, CheatCrewProtection |
 | Cheat | Diesel, Batterie, Luft bleiben voll | CheatFullFuel, CheatFullBattery, CheatFullAir |
 | Cheat | Kein Druckschaden, Rumpf ohne Schaden | CheatDeepDive, CheatNoHullDamage |
 | Cheat | Starke Pumpe, jede Tiefe, nie volllaufen | CheatPumpPower, CheatPumpAnyDepth, CheatNeverFlood |
@@ -88,6 +91,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Vorgeflutet: Crew darf an 88 mm + Flak | AwashGuns |
 | QoL | 88 mm + Flak: Drehtempo, Schuss/Min, Magazin, Geschosstempo | DeckGun…, AAGun… |
 | QoL | KI-Schützen treffen besser, Flak auf Schiffe, Schussgeräusch-Grenze | GunnerAccuracy, AAvsShips, GunSoundGap |
+| Cheat | NEU: Zielerfassung genau (Tempo, Kurs, Entfernung) | CheatExactTargets |
 | Cheat | Torpedos unendlich, immer T5, keine Versager | CheatInfiniteTorpedoes, CheatAllT5, CheatNoDuds |
 | Cheat | Torpedos schneller | CheatTorpedoSpeed |
 | Cheat | 88 mm + Flak: Munition unendlich | CheatInfiniteGunAmmo |
