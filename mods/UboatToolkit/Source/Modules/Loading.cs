@@ -42,6 +42,15 @@ namespace UboatToolkit.Modules
                 lastLeft = -1; kicks = 0;
                 return;
             }
+            var force = Settings.Get("FixMyDamnShipment");
+            if (force != null && force.On)
+            {
+                force.Value = 0f;
+                Settings.Save();
+                ForceDeliver(provider, orders);
+                lastLeft = -1; kicks = 0;
+                return;
+            }
             if (orders == null || orders.Count == 0) { lastLeft = -1; kicks = 0; return; }
 
             double left = 0;
@@ -64,9 +73,41 @@ namespace UboatToolkit.Modules
             }
         }
 
+        // "Fix my damn shipment": deliver EVERYTHING that is ordered into the boat right now,
+        // including orders a worker is carrying, then clear whatever is left in the queue.
+        private void ForceDeliver(UBOAT.Game.Scene.Tasks.PortServicesProvider p, List<TransportOrder> orders)
+        {
+            var all = new HashSet<TransportOrder>();
+            if (orders != null) foreach (var o in orders) if (o != null) all.Add(o);
+            var ship = Util.PlayerShip;
+            if (ship != null)
+                foreach (var s in ship.GetComponentsInChildren<Storage>(true))
+                    for (int i = 0; i < s.SlotCount; i++)
+                    {
+                        buffer.Clear();
+                        if (s.GetTransportOrders(i, buffer)) foreach (var o in buffer) if (o != null) all.Add(o);
+                    }
+            int n = 0;
+            foreach (var o in all)
+            {
+                if (o.IsCompleted) continue;
+                try
+                {
+                    if (o.CountInTransit > 0f) { o.CountLeft += o.CountInTransit; o.CountInTransit = 0f; }
+                    StorageUtility.ResolveTransportOrderInstantly(o);
+                }
+                catch (System.Exception ex) { Util.Log("Force: " + ex.Message); }
+                if (!o.IsCompleted) o.Complete();
+                n++;
+            }
+            p.CancelResupply();   // clears any leftovers and ends the "loading" state
+            progress.Clear();
+            ToolkitRunner.ShowNotice("FIX MY DAMN SHIPMENT: " + n + " Lieferungen erzwungen. Ruhe jetzt.");
+        }
+
         public override void Tick()
         {
-            if (Settings.B("PortLoadingFix")) Util.Safe("LoadingWatchdog", Watchdog);
+            if (Settings.B("PortLoadingFix") || Settings.B("FixMyDamnShipment") || Settings.B("CancelPortLoading")) Util.Safe("LoadingWatchdog", Watchdog);
             if (!Settings.B("InstantPortLoading") || Time.unscaledTime < next) return;
             next = Time.unscaledTime + 2f;
             var ship = Util.PlayerShip;
