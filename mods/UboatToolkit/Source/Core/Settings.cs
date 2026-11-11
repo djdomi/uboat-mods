@@ -160,6 +160,10 @@ namespace UboatToolkit
             Bool(Cheat, "CheatSonarPing", "Echolot pingt unter Wasser von selbst", false);
             Num(Cheat, "CheatExtraSkillPoints", "Offiziere: x Skillpunkte extra", 0, 0, 20, 1);
             Bool(Cheat, "CheatAllSkills", "Offiziere dürfen Skills aller Klassen wählen", false);
+            Bool(Cheat, "CheatSinkConvoy", "  >> Sink the convoy: alle Gegner-Schiffe in Reichweite bekommen Torpedos", false);
+            Num(Cheat, "SinkConvoyRange", "  Reichweite in km", 20, 1, 100, 1);
+            Num(Cheat, "SinkConvoyTorpedoes", "  Torpedos pro Schiff", 3, 1, 10, 1);
+            Bool(Cheat, "CheatRemoteTorpedo", "Fernschuss per Taste (auch aus der Koje): Torpedo auf nächsten Gegner", false);
             Bool(Cheat, "BackupBeforeCheats", "Backup-Spielstand, sobald ein Cheat eingeschaltet wird", true);
             Bool(Cheat, "CheatShowActive", "Aktive Cheats oben links anzeigen", true);
 
@@ -175,6 +179,8 @@ namespace UboatToolkit
             Key("KeySortStorage", "Lager aufräumen", "");
             Key("KeySwapShifts", "Wachen tauschen", "");
             Key("KeyCallMilkCow", "Milchkuh herholen", "");
+            Key("KeyRemoteTorpedo", "Fernschuss: Torpedo auf nächsten Gegner (Cheat muss an sein)", "Ctrl+Shift+F");
+            Key("KeySinkConvoy", "Sink the convoy", "");
             Key("KeyHotspots", "Bremsen-Finder an/aus", "F11");
 
             // ---------- Tools ----------

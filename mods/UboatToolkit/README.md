@@ -76,6 +76,9 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | QoL | Torpedos schneller nachladen bis sofort | TorpedoLoadSpeed |
 | QoL | Schneller laden (Ladebildschirm nutzt volle Rechenzeit) | FastLoading |
 | QoL | Tab „Crew“: Offiziers-Rollen per Klick wechseln, freie Skillpunkte sehen | – |
+| Cheat | Sink the convoy: alle Gegner in Reichweite bekommen Torpedos | CheatSinkConvoy, SinkConvoyRange, SinkConvoyTorpedoes |
+| Cheat | Fernschuss per Taste (Strg+Umschalt+F), auch aus der Koje | CheatRemoteTorpedo |
+| QoL | Torpedo-Symbol im Rohr-Fenster zeigt beim Drüberfahren den genauen Typ | TubeDisplay |
 | Cheat | Skillpunkte extra, Skills aller Klassen wählbar | CheatExtraSkillPoints, CheatAllSkills |
 | QoL | Auto-Speichern alle x Minuten | AutoSaveMinutes |
 | QoL | Warnung + Zeitraffer-Stopp bei wenig Diesel, Batterie, Luft | LowWarnPercent |
