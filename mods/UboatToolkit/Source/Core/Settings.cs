@@ -98,6 +98,9 @@ namespace UboatToolkit
             Num(Cheat, "CheatPumpPower", "Pumpe x stärker (1 = normal) (#38)", 1, 1, 50, 1);
             Bool(Cheat, "CheatPumpAnyDepth", "Pumpe arbeitet in jeder Tiefe voll", false);
             Bool(Cheat, "CheatNeverFlood", "Boot kann nie volllaufen (Wasser wird sofort abgepumpt)", false);
+            Num(Cheat, "CheatCrewWalkSpeed", "Crew läuft x schneller (1 = normal)", 1, 1, 3, 0.25f);
+            Bool(Cheat, "CheatImmortalCrew", "Crew unsterblich (verliert keine Gesundheit)", false);
+            Bool(Cheat, "CheatNoSupplyUse", "Vorräte gehen nie aus (Essen, Ersatzteile, Verbandskästen ...)", false);
             Num(Cheat, "CheatSensorRange", "Sensor-Reichweite x (Radar, Sonar, Horchgerät, Ausguck) (1 = normal)", 1, 1, 5, 0.5f);
             Bool(Cheat, "CheatDeepDive", "Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)", false);
             Bool(Cheat, "CheatNoHullDamage", "Rumpf verliert keine Gesundheit", false);

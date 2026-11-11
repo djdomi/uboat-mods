@@ -47,6 +47,7 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | 37 | Volle Besatzung ab Start (vor der ersten Feindfahrt) | FullCrewAtStart, FullCrewSize |
 | 38 | Pumpe schaltet sich bei Wasser selbst an | AutoPump |
 | Cheat | Boot schneller | CheatSpeed |
+| Cheat | Crew läuft schneller, Crew unsterblich, Vorräte gehen nie aus | CheatCrewWalkSpeed, CheatImmortalCrew, CheatNoSupplyUse |
 | Cheat | Starke Pumpe, in jeder Tiefe, Boot läuft nie voll | CheatPumpPower, CheatPumpAnyDepth, CheatNeverFlood |
 | 17 | Torpedo-Rechner: Das Spiel rechnet die Lösung automatisch (Vorschau an) | EasyTDC |
 | 26 | Torpedos unendlich: Das Rohr lädt nach dem Schuss sofort nach | CheatInfiniteTorpedoes |
