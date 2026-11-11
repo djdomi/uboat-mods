@@ -39,6 +39,8 @@ namespace UboatToolkit
             Modules.Add(new Modules.Loading());
             Modules.Add(new Modules.Torpedoes());
             Modules.Add(new Modules.Cheats());
+            Modules.Add(new Modules.Watch());
+            Modules.Add(new Modules.Extras());
             Modules.Add(new Modules.PerfLogger());
         }
 
@@ -65,6 +67,7 @@ namespace UboatToolkit
 
         // Short on-screen message from a module (e.g. "Land voraus").
         public static string Notice;
+        public static string InfoLine;
         public static float NoticeUntil;
         public static void ShowNotice(string text, float seconds = 6f) { Notice = text; NoticeUntil = Time.unscaledTime + seconds; Util.Log(text); }
 
@@ -72,6 +75,7 @@ namespace UboatToolkit
         {
             if (Notice != null && Time.unscaledTime < NoticeUntil)
                 Imgui.TextAt(new Rect(Screen.width / 2f - 300, 60, 600, 24), ">>> " + Notice + " <<<");
+            if (!string.IsNullOrEmpty(InfoLine)) Imgui.TextAt(new Rect(8, 24, 1100, 22), InfoLine);
             if (Settings.B("CheatShowActive"))
             {
                 var active = Settings.All.Where(o => o.Tab == Settings.Cheat && o.Key != "CheatShowActive" && (o.IsBool ? o.Value > 0f : o.Value != o.Default)).Select(o => o.Key.Replace("Cheat", "")).ToArray();

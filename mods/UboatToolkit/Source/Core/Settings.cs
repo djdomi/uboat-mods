@@ -71,6 +71,20 @@ namespace UboatToolkit
             Bool(QoL, "EmergencyOxygen", "  Notfall-Sauerstoff: etwas mehr als der Verbrauch, wenn die Luft sinkt", true);
             Bool(QoL, "FullCrewAtStart", "Volle Besatzung ab Start (vor der ersten Feindfahrt) (#37)", true);
             Num(QoL, "FullCrewSize", "  Gewünschte Besatzung (Männer, in der INI ohne Obergrenze)", 90, 10, 200, 1);
+            Bool(QoL, "StopTimeOnShip", "Zeitraffer stoppt bei neuem Schiff-Kontakt (Idee 1)", true);
+            Bool(QoL, "StopTimeOnAircraft", "Zeitraffer stoppt bei Flugzeug (Idee 1)", true);
+            Num(QoL, "AutoSaveMinutes", "Auto-Speichern alle x Minuten (0 = aus) (Idee 6)", 15, 0, 120, 5);
+            Num(QoL, "LowWarnPercent", "Warnung + Zeitraffer-Stopp bei Diesel/Batterie/Luft unter x % (0 = aus) (Idee 8)", 15, 0, 50, 5);
+            Bool(QoL, "NavInfo", "Karte: Ankunftszeit + Restweg + Diesel-Reichweite oben links (Idee 7)", true);
+            Bool(QoL, "DepthHotkeys", "Tiefe per Taste: Strg+Bild runter/hoch = 10 m, Umschalt = 100 m (Idee 10)", true);
+            Bool(QoL, "ReloadAllNow", "  >> Alle leeren Rohre aus dem Lager laden (auch Strg+Umschalt+R) (Idee 2)", false);
+            Bool(QoL, "SwapShiftsNow", "  >> Wachen tauschen: Gruppen mit gleicher Aufgabe tauschen Schichten (Idee 4)", false);
+            Bool(QoL, "SortStorageNow", "  >> Lager aufräumen: gleiche Sachen stapeln, nach vorne rücken (Idee 5)", false);
+            Bool(QoL, "CallMilkCow", "  >> Nächste Milchkuh zu mir holen", false);
+            Bool(QoL, "BallastAlwaysAvailable", "Ballast-Befehle immer verfügbar (außer Ventil kaputt / Hafen) (Iron Coffins A)", true);
+            Bool(QoL, "HatchPressure", "Luken zeigen Luftdruck beider Räume + sperren bei großem Unterschied (Iron Coffins E)", true);
+            Num(QoL, "HatchPressureLimit", "  Sperre ab Druck-Unterschied (bar, 0 = nie sperren)", 0.5f, 0, 5, 0.1f);
+            Bool(QoL, "LeakTwoSailors", "Lecks: abdichten wie mit zwei Matrosen (Iron Coffins F)", true);
             Bool(QoL, "AutoPump", "Pumpe schaltet sich bei Wasser im Boot selbst an (#38)", true);
             Bool(QoL, "PortLoadingFix", "Hafen-Grundfix: kein Einfrieren beim Verladen, hängende Aufträge werden gelöst (#39)", true);
             Num(QoL, "PortLoadingStuckSeconds", "  Hängt das Verladen so viele Sekunden: neu anstoßen, dann abbrechen", 30, 5, 300, 5);
@@ -118,6 +132,15 @@ namespace UboatToolkit
             Bool(Cheat, "CheatFullDiscipline", "Disziplin/Stimmung immer voll, kein Stress", false);
             Num(Cheat, "CheatMoney", "Geld: nie weniger als (0 = aus)", 0, 0, 1000000, 10000);
             Num(Cheat, "CheatReputation", "Ruf-Punkte: nie weniger als (0 = aus)", 0, 0, 1000, 10);
+            Num(Cheat, "CheatPriceFactor", "Preise im Hafen x (1 = normal, 0,01 = fast gratis)", 1, 0.01f, 1, 0.01f);
+            Num(Cheat, "CheatRepairSpeed", "Reparieren x schneller (1 = normal, 1000 = ca. 1 Sek.)", 1, 1, 1000, 10);
+            Num(Cheat, "CheatResearchSpeed", "Forschung/Aufgaben im Hauptquartier x schneller", 1, 1, 1000, 10);
+            Bool(Cheat, "CheatUnlockAll", "  >> Alle Upgrades + alle Boote freischalten", false);
+            Num(Cheat, "CheatTorpedoSpeed", "Torpedos x schneller (Rechner zielt mit, Treffer sicherer)", 1, 1, 5, 0.25f);
+            Bool(Cheat, "CheatQuickTravel", "Schnellreise ans Kursziel mit Strg+Umschalt+T", false);
+            Bool(Cheat, "CheatQuickTravelNow", "  >> Jetzt ans Kursziel springen", false);
+            Bool(Cheat, "CheatSonarPing", "Echolot pingt unter Wasser von selbst", false);
+            Bool(Cheat, "BackupBeforeCheats", "Backup-Spielstand, sobald ein Cheat eingeschaltet wird", true);
             Bool(Cheat, "CheatShowActive", "Aktive Cheats oben links anzeigen", true);
 
             // ---------- Tools ----------
