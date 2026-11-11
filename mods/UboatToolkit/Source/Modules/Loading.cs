@@ -16,8 +16,57 @@ namespace UboatToolkit.Modules
         private readonly Dictionary<TransportOrder, KeyValuePair<float, float>> progress = new Dictionary<TransportOrder, KeyValuePair<float, float>>();
         private float next;
 
+        private UBOAT.Game.Scene.Tasks.PortServicesProvider provider;
+        private double lastLeft = -1;
+        private float lastChange;
+        private int kicks;
+
+        // Watchdog for the port resupply queue: if "loading" shows but nothing moves,
+        // push it once more; if it is still stuck, cancel it so you can order again.
+        // The menu switch "CancelPortLoading" cancels it by hand.
+        private void Watchdog()
+        {
+            if (provider == null)
+                provider = HarmonyLib.Traverse.Create(typeof(UBOAT.Game.Sandbox.Missions.TutorialUtility)).Field("portServicesProvider").GetValue<UBOAT.Game.Scene.Tasks.PortServicesProvider>();
+            if (provider == null) return;
+            var t = HarmonyLib.Traverse.Create(provider);
+            var orders = t.Field("transportOrders").GetValue<List<TransportOrder>>();
+
+            var cancel = Settings.Get("CancelPortLoading");
+            if (cancel != null && cancel.On)
+            {
+                cancel.Value = 0f;
+                Settings.Save();
+                provider.CancelResupply();
+                ToolkitRunner.ShowNotice("Verladen abgebrochen. Du kannst neu bestellen.");
+                lastLeft = -1; kicks = 0;
+                return;
+            }
+            if (orders == null || orders.Count == 0) { lastLeft = -1; kicks = 0; return; }
+
+            double left = 0;
+            foreach (var o in orders) if (o != null) left += o.CountLeft;
+            if (left != lastLeft) { lastLeft = left; lastChange = Time.unscaledTime; return; }
+            if (Time.unscaledTime - lastChange < Settings.F("PortLoadingStuckSeconds")) return;
+
+            lastChange = Time.unscaledTime;
+            if (kicks == 0)
+            {
+                kicks++;
+                Util.Log("Verladen hängt, neuer Anstoß");
+                t.Method("AddDateListener").GetValue();
+            }
+            else
+            {
+                kicks = 0;
+                provider.CancelResupply();
+                ToolkitRunner.ShowNotice("Verladen hing fest und wurde abgebrochen. Bitte neu bestellen.");
+            }
+        }
+
         public override void Tick()
         {
+            if (Settings.B("InstantPortLoading")) Util.Safe("LoadingWatchdog", Watchdog);
             if (!Settings.B("InstantPortLoading") || Time.unscaledTime < next) return;
             next = Time.unscaledTime + 2f;
             var ship = Util.PlayerShip;
