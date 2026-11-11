@@ -182,6 +182,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatExtraSkillPoints", "Offiziere: x Skillpunkte extra", 0, 0, 50, 1);
             Bool(Cheat, "CheatUnlimitedSkillPoints", "Offiziere: Skillpunkte unbegrenzt (alle Skills lernbar)", false);
             Bool(Cheat, "CheatSkillsAnyLevel", "Alle Skills ab Stufe 1 lernbar (keine Stufen-Sperre)", false);
+            Bool(Cheat, "CheatLinguist", "Wer eine Fremdsprache spricht, wird Sprachgenie (Linguist: alle Sprachen)", false);
             Bool(Cheat, "CheatAllSkills", "Offiziere dürfen Skills aller Klassen wählen", false);
             Bool(Cheat, "CheatSinkConvoy", "  >> Sink the convoy: alle Gegner-Schiffe in Reichweite bekommen Torpedos", false);
             Num(Cheat, "SinkConvoyRange", "  Reichweite in km", 20, 1, 100, 1);

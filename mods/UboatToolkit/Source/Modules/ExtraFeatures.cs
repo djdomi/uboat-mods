@@ -27,6 +27,23 @@ namespace UboatToolkit.Modules
             Tubes();
             if (Settings.B("CheatAllSkills")) AllSkills();
             SkillLevels(Settings.B("CheatSkillsAnyLevel"));
+            if (Settings.B("CheatLinguist")) Linguists();
+        }
+
+        // Everyone who speaks one foreign language ("... Speaker") also gets "Linguist" (all languages).
+        private static void Linguists()
+        {
+            var classes = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault()?.GetClassesDirect();
+            var ling = classes?.SelectMany(c => c.Skills).FirstOrDefault(x => x != null && x.Name == "Linguist");
+            var crew = Object.FindObjectOfType<PlayerCrew>();
+            if (ling == null || crew?.Characters == null) return;
+            foreach (var ch in crew.Characters)
+            {
+                var d = ch?.Data;
+                if (d == null) continue;
+                var sk = d.Statuses.OfType<CharacterSkill>().ToList();
+                if (sk.Any(x => x.Name.EndsWith(" Speaker")) && !sk.Any(x => x.Name == "Linguist")) d.LearnSkill(ling, false);
+            }
         }
 
         // All skills can be learned at any level: the level requirement is set to 0 (and restored when switched off).
@@ -120,7 +137,7 @@ namespace UboatToolkit.Modules
             var crew = Object.FindObjectOfType<PlayerCrew>();
             if (Util.PlayerShip == null || crew?.Characters == null) { Imgui.Label("Nur im Spiel verfügbar."); return; }
             var db = Traverse.Create(typeof(UBOAT.Game.Scene.Tasks.ExpandedSchedulesController)).Field("characterRolesDatabase").GetValue() as ICharacterRolesDatabase;
-            Imgui.Label("Offiziere: Rolle mit Klick wechseln. Skills wählst du wie gewohnt im Charakter-Fenster.");
+            Imgui.Label("Offiziere: Rolle mit Klick wechseln. „Skills bearbeiten“ öffnet den Skill-Editor (alle Skills aller Klassen).");
             foreach (var ch in crew.Characters)
             {
                 var d = ch?.Data;
@@ -138,8 +155,43 @@ namespace UboatToolkit.Modules
                         ch.Role = allowed[(i + 1) % allowed.Count];
                     }
                 }
+                bool open = editSkills == d;
+                if (Imgui.Button(open ? "Skills zu" : "Skills bearbeiten", 160)) editSkills = open ? null : d;
+                Imgui.EndH();
+                if (editSkills == d) SkillEditor(d);
+            }
+        }
+
+        // Skill editor: every skill of every class, one click adds or removes it (no points, no level needed).
+        private static PlayableCharacterData editSkills;
+        private static void SkillEditor(PlayableCharacterData d)
+        {
+            var classes = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault()?.GetClassesDirect();
+            if (classes == null) { Imgui.Label("  Skill-Liste nicht gefunden."); return; }
+            var all = classes.SelectMany(c => c.Skills).Where(x => x != null).GroupBy(x => x.Name).Select(g => g.First()).OrderBy(x => x.Name).ToList();
+            var owned = d.Statuses.OfType<CharacterSkill>().ToList();
+            Imgui.BeginH();
+            Imgui.Label("  Klick = Skill dazu (+) oder weg (✓).", 330);
+            if (Imgui.Button("Alle geben", 120)) foreach (var sk in all) if (!owned.Any(o => o.Name == sk.Name)) d.LearnSkill(sk, false);
+            if (Imgui.Button("Alle weg", 120)) foreach (var o in owned) d.RemoveStatus(o);
+            Imgui.EndH();
+            for (int i = 0; i < all.Count; i += 3)
+            {
+                Imgui.BeginH();
+                Imgui.Space(20);
+                for (int j = i; j < i + 3 && j < all.Count; j++)
+                {
+                    var sk = all[j];
+                    var have = owned.FirstOrDefault(o => o.Name == sk.Name);
+                    if (Imgui.Button((have != null ? "✓ " : "+ ") + sk.Name, 250))
+                    {
+                        if (have != null) d.RemoveStatus(have);
+                        else d.LearnSkill(sk, false);
+                    }
+                }
                 Imgui.EndH();
             }
+            Imgui.Space(6);
         }
     }
 

@@ -39,6 +39,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Crew
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Skill-Editor im Tab „Crew“: jeden Skill per Klick geben oder nehmen | – |
 | QoL | Tiefenruder und Kartentisch immer besetzt | KeepDepthStation, KeepNavTable, StationDelay |
 | QoL | NEU: Echolot als Matrosen-Aufgabe (pingt nicht bei Alarm) | EchoSailor, EchoSailorSeconds, EchoSailorQuiet |
 | QoL | NEU: 88 mm und Flak automatisch besetzen (aufgetaucht + Alarm) | AutoManGuns |
@@ -54,6 +55,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Volle Besatzung ab Start | FullCrewAtStart, FullCrewSize |
 | QoL | Wachen tauschen | SwapShiftsNow |
 | QoL | Tab „Crew“: Rollen per Klick, freie Skillpunkte | – |
+| Cheat | NEU: Eine Fremdsprache = Sprachgenie (Linguist, alle Sprachen) | CheatLinguist |
 | Cheat | NEU: Alle heilen (Knopf + Taste) | CheatHealNow, KeyHealAll |
 | Cheat | NEU: Deck-Crew bleibt beim Tauchen draußen, schießt weiter, ertrinkt nie | CheatDeckCrewStays |
 | Cheat | Crew läuft schneller, unsterblich + unverletzbar, nie müde | CheatCrewWalkSpeed, CheatImmortalCrew, CheatCrewNeverTired |
