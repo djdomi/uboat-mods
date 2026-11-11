@@ -30,8 +30,12 @@ namespace UboatToolkit.Modules
     internal static class DeckCrew_NoDrownPatch
     {
         // With "immortal crew" every death is blocked (also deaths the game sets directly, not via health).
-        private static bool Prefix(CharacterStatus status) =>
-            !(status is Dead d && (Settings.B("CheatImmortalCrew") || (Settings.B("CheatDeckCrewStays") && d.Cause == DeathCause.DrowningOffBoard)));
+        // Immortal also means unhurt: no bleeding wounds and no serious injuries.
+        private static bool Prefix(CharacterStatus status)
+        {
+            if (Settings.B("CheatImmortalCrew") && (status is Dead || status is Bleeding || status is SeriousInjuryGeneration)) return false;
+            return !(Settings.B("CheatDeckCrewStays") && status is Dead d && d.Cause == DeathCause.DrowningOffBoard);
+        }
     }
 
     // Guns are not switched off when the boat dives.
@@ -42,5 +46,12 @@ namespace UboatToolkit.Modules
         {
             if (Settings.B("CheatDeckCrewStays")) __instance.SetDisableFlag(DeviceDisableFlag.Depth, false);
         }
+    }
+
+    // Immortal crew does not fall over from hits.
+    [HarmonyPatch(typeof(PlayableCharacter), nameof(PlayableCharacter.EnableRagdoll))]
+    internal static class DeckCrew_NoRagdollPatch
+    {
+        private static bool Prefix() => !Settings.B("CheatImmortalCrew");
     }
 }

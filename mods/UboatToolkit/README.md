@@ -55,7 +55,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Wachen tauschen | SwapShiftsNow |
 | QoL | Tab „Crew“: Rollen per Klick, freie Skillpunkte | – |
 | Cheat | NEU: Deck-Crew bleibt beim Tauchen draußen, schießt weiter, ertrinkt nie | CheatDeckCrewStays |
-| Cheat | Crew läuft schneller, unsterblich, nie müde | CheatCrewWalkSpeed, CheatImmortalCrew, CheatCrewNeverTired |
+| Cheat | Crew läuft schneller, unsterblich + unverletzbar, nie müde | CheatCrewWalkSpeed, CheatImmortalCrew, CheatCrewNeverTired |
 | Cheat | Disziplin immer voll, kein Stress | CheatFullDiscipline |
 | Cheat | Skillpunkte extra, Skills aller Klassen | CheatExtraSkillPoints, CheatAllSkills |
 
