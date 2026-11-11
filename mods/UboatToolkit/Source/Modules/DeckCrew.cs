@@ -30,10 +30,10 @@ namespace UboatToolkit.Modules
     internal static class DeckCrew_NoDrownPatch
     {
         // With "immortal crew" every death is blocked (also deaths the game sets directly, not via health).
-        // Immortal also means unhurt: no bleeding wounds and no serious injuries.
+        // Immortal also means unhurt: no bleeding wounds.
         private static bool Prefix(CharacterStatus status)
         {
-            if (Settings.B("CheatImmortalCrew") && (status is Dead || status is Bleeding || status is SeriousInjuryGeneration)) return false;
+            if (Settings.B("CheatImmortalCrew") && (status is Dead || status is Bleeding)) return false;
             return !(Settings.B("CheatDeckCrewStays") && status is Dead d && d.Cause == DeathCause.DrowningOffBoard);
         }
     }
@@ -53,5 +53,40 @@ namespace UboatToolkit.Modules
     internal static class DeckCrew_NoRagdollPatch
     {
         private static bool Prefix() => !Settings.B("CheatImmortalCrew");
+    }
+
+    // One-shot heal: every crew member gets full health, wounds and illnesses are removed, the fallen stand up.
+    public class HealAll : ModuleBase
+    {
+        public override void Frame()
+        {
+            if (Keys.Down("KeyHealAll")) { var o = Settings.Get("CheatHealNow"); if (o != null) o.Value = 1; }
+        }
+
+        public override void Tick()
+        {
+            var o = Settings.Get("CheatHealNow");
+            if (o == null || !o.On) return;
+            o.Value = 0;
+            Util.Safe("HealAll", () =>
+            {
+                var crew = UnityEngine.Object.FindObjectOfType<PlayerCrew>();
+                if (crew == null) return;
+                int n = 0;
+                foreach (var c in crew.Characters)
+                {
+                    if (c == null || c.Data == null || c.Data.HasStatus<Dead>()) continue;
+                    c.Data.RemoveStatuses<Bleeding>();
+                    c.Data.RemoveStatuses<Illness>();
+                    c.Data.RemoveStatuses<EarlyIllness>();
+                    c.Data.RemoveStatuses<Choking>();
+                    c.Health = 1f;
+                    c.BleedoutHealth = 1f;
+                    if (c.Ragdoll) c.DisableRagdoll();
+                    n++;
+                }
+                ToolkitRunner.ShowNotice(n + " Mann geheilt", 4f);
+            });
+        }
     }
 }

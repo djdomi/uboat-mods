@@ -54,6 +54,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Volle Besatzung ab Start | FullCrewAtStart, FullCrewSize |
 | QoL | Wachen tauschen | SwapShiftsNow |
 | QoL | Tab „Crew“: Rollen per Klick, freie Skillpunkte | – |
+| Cheat | NEU: Alle heilen (Knopf + Taste) | CheatHealNow, KeyHealAll |
 | Cheat | NEU: Deck-Crew bleibt beim Tauchen draußen, schießt weiter, ertrinkt nie | CheatDeckCrewStays |
 | Cheat | Crew läuft schneller, unsterblich + unverletzbar, nie müde | CheatCrewWalkSpeed, CheatImmortalCrew, CheatCrewNeverTired |
 | Cheat | Disziplin immer voll, kein Stress | CheatFullDiscipline |

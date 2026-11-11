@@ -172,6 +172,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatQuickTravel", "Schnellreise ans Kursziel per Taste (Tab „Tasten“)", false);
             Bool(Cheat, "CheatQuickTravelNow", "  >> Jetzt ans Kursziel springen", false);
             Bool(Cheat, "CheatDeckCrewStays", "Deck-Crew bleibt beim Tauchen draußen, schießt weiter + ertrinkt nie", false);
+            Bool(Cheat, "CheatHealNow", "  >> Alle heilen (Wunden, Blutungen, Krankheiten, wieder aufstehen)", false);
             Bool(Cheat, "CheatRadioAnyDepth", "Funk-Empfang in jeder Tiefe", false);
             Bool(Cheat, "CheatHydrophoneAlways", "Horchgerät hört voll, auch aufgetaucht und bei hoher Fahrt", false);
             Bool(Cheat, "CheatExactTargets", "Zielerfassung genau: Tempo, Kurs, Entfernung exakt statt geschätzt", false);
@@ -201,6 +202,7 @@ namespace UboatToolkit
             Key("KeyCallMilkCow", "Milchkuh herholen", "");
             Key("KeyRemoteTorpedo", "Fernschuss: Torpedo auf nächsten Gegner (Cheat muss an sein)", "Ctrl+Shift+F");
             Key("KeySinkConvoy", "Sink the convoy", "");
+            Key("KeyHealAll", "Alle heilen", "");
             Key("KeyHotspots", "Bremsen-Finder an/aus", "F11");
 
             // ---------- Tools ----------
