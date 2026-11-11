@@ -222,7 +222,8 @@ namespace UboatToolkit.Modules
 
         private static void NavInfo(PlayerShip ship)
         {
-            if (!Settings.B("NavInfo")) { ToolkitRunner.InfoLine = null; return; }
+            string speed = Events.SpeedText;
+            if (!Settings.B("NavInfo")) { ToolkitRunner.InfoLine = speed; return; }
             var w = Game.Wolfpack;
             string text = "";
             if (w?.Route != null && w.Route.Count > 0)
@@ -237,7 +238,7 @@ namespace UboatToolkit.Modules
                 text += "  |  ";
             }
             try { text += "Diesel-Reichweite (3. Stufe): " + ship.EstimatedRangeOnThirdGear.ToString("0") + " km"; } catch { }
-            ToolkitRunner.InfoLine = text;
+            ToolkitRunner.InfoLine = speed != null ? speed + "  |  " + text : text;
         }
     }
 

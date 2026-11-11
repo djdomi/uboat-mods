@@ -43,6 +43,8 @@ namespace UboatToolkit
             Modules.Add(new Modules.Extras());
             Modules.Add(new Modules.HatchEqualizer());
             Modules.Add(new Modules.Traffic());
+            Modules.Add(new Modules.Events());
+            Modules.Add(new Modules.ExtraFeatures());
             Modules.Add(new Modules.MemoryCleaner());
             Modules.Add(new Modules.GameTuning());
             Modules.Add(new Modules.PerfLogger());
@@ -89,6 +91,7 @@ namespace UboatToolkit
             if (Notice != null && Time.unscaledTime < NoticeUntil)
                 Imgui.TextAt(new Rect(Screen.width / 2f - 300, 60, 600, 24), ">>> " + Notice + " <<<");
             if (!string.IsNullOrEmpty(InfoLine)) Imgui.TextAt(new Rect(8, 24, 1100, 22), InfoLine);
+            if (!string.IsNullOrEmpty(UboatToolkit.Modules.ExtraFeatures.TubeLine)) Imgui.TextAt(new Rect(8, 44, 1100, 22), UboatToolkit.Modules.ExtraFeatures.TubeLine);
             if (Settings.B("CheatShowActive"))
             {
                 var active = Settings.All.Where(o => o.Tab == Settings.Cheat && o.Key != "CheatShowActive" && (o.IsBool ? o.Value > 0f : o.Value != o.Default)).Select(o => o.Key.Replace("Cheat", "")).ToArray();
@@ -100,11 +103,12 @@ namespace UboatToolkit
             Imgui.Box(r, "UBOAT Toolkit  (F10 schließt)");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             Imgui.BeginH();
-            foreach (var t in new[] { Settings.QoL, Settings.Cheat, Settings.KeysTab, Settings.Tools })
+            foreach (var t in new[] { Settings.QoL, Settings.Cheat, "Crew", Settings.KeysTab, Settings.Tools })
                 if (Imgui.Button((t == tab ? "> " : "") + t, 120)) tab = t;
             Imgui.EndH();
             Imgui.Space(6);
             scroll = Imgui.BeginScroll(scroll);
+            if (tab == "Crew") UboatToolkit.Modules.ExtraFeatures.DrawCrewTab();
             foreach (var o in Settings.All.Where(x => x.Tab == tab))
             {
                 if (o.IsKey)

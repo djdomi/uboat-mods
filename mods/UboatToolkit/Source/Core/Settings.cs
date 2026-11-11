@@ -75,6 +75,8 @@ namespace UboatToolkit
             Num(QoL, "FullCrewSize", "  Gewünschte Besatzung (Männer, in der INI ohne Obergrenze)", 90, 10, 200, 1);
             Bool(QoL, "StopTimeOnShip", "Zeitraffer stoppt bei neuem Schiff-Kontakt (Idee 1)", true);
             Bool(QoL, "StopTimeOnAircraft", "Zeitraffer stoppt bei Flugzeug (Idee 1)", true);
+            Bool(QoL, "StopTimeOnDamage", "Zeitraffer stoppt bei Schaden (Treffer, neues Leck)", true);
+            Bool(QoL, "StopTimeOnRadio", "Zeitraffer stoppt bei Funkspruch", true);
             Bool(QoL, "IgnoreFishingBoats", "  Zeitraffer ignoriert Fischerboote", true);
             Bool(QoL, "IgnoreAlliedShips", "  Zeitraffer ignoriert Verbündete (grün)", true);
             Bool(QoL, "IgnoreNeutralShips", "  Zeitraffer ignoriert Neutrale", false);
@@ -94,6 +96,13 @@ namespace UboatToolkit
             Num(QoL, "HatchPressureLimit", "  Sperre ab Druck-Unterschied (bar, 0 = nie sperren)", 0.5f, 0, 5, 0.1f);
             Bool(QoL, "HatchEqualize", "  Druckausgleich: Luft strömt langsam nach, bis die Luke wieder aufgeht", true);
             Bool(QoL, "LeakTwoSailors", "Lecks: abdichten wie mit zwei Matrosen", true);
+            Bool(QoL, "Speedometer", "Tacho + Kilometerzähler oben links (Knoten, Fahrt-km, gesamt)", true);
+            Bool(QoL, "NoAutoAlarm", "Kein automatischer Alarm (nur wenn du ihn selbst gibst)", false);
+            Bool(QoL, "WarDiary", "Kriegstagebuch: Kontakte, Funk, Schäden, Häfen in logs\\kriegstagebuch.txt", true);
+            Bool(QoL, "TubeDisplay", "Rohr-Anzeige oben links: welcher Torpedo-Typ in welchem Rohr", true);
+            Num(QoL, "EnergySaverPercent", "Strom sparen: unter Wasser bei Batterie unter x % Kompressor + Scheinwerfer aus (0 = aus)", 20, 0, 50, 5);
+            Num(QoL, "TorpedoLoadSpeed", "Torpedos x schneller nachladen (1 = normal, 1000 = sofort)", 1, 1, 1000, 1);
+            Bool(QoL, "FastLoading", "Schneller laden: Ladebildschirm nutzt die volle Rechenzeit", true);
             Bool(QoL, "AutoPump", "Pumpe schaltet sich bei Wasser im Boot selbst an (#38)", true);
             Bool(QoL, "PortLoadingFix", "Hafen-Grundfix: kein Einfrieren beim Verladen, hängende Aufträge werden gelöst (#39)", true);
             Num(QoL, "PortLoadingStuckSeconds", "  Hängt das Verladen so viele Sekunden: neu anstoßen, dann abbrechen", 30, 5, 300, 5);
@@ -149,6 +158,8 @@ namespace UboatToolkit
             Bool(Cheat, "CheatQuickTravel", "Schnellreise ans Kursziel per Taste (Tab „Tasten“)", false);
             Bool(Cheat, "CheatQuickTravelNow", "  >> Jetzt ans Kursziel springen", false);
             Bool(Cheat, "CheatSonarPing", "Echolot pingt unter Wasser von selbst", false);
+            Num(Cheat, "CheatExtraSkillPoints", "Offiziere: x Skillpunkte extra", 0, 0, 20, 1);
+            Bool(Cheat, "CheatAllSkills", "Offiziere dürfen Skills aller Klassen wählen", false);
             Bool(Cheat, "BackupBeforeCheats", "Backup-Spielstand, sobald ein Cheat eingeschaltet wird", true);
             Bool(Cheat, "CheatShowActive", "Aktive Cheats oben links anzeigen", true);
 

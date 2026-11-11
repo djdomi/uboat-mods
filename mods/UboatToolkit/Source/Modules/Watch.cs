@@ -37,7 +37,9 @@ namespace UboatToolkit.Modules
             try
             {
                 var c = e.Contact;
-                if (c == null || Traffic.Ignore(c)) return;
+                if (c == null) return;
+                Events.Diary((c.IsAirborne ? "Flugzeug" : "Kontakt") + ": " + c.Name);
+                if (Traffic.Ignore(c)) return;
                 bool air = c.IsAirborne;
                 if (air ? !Settings.B("StopTimeOnAircraft") : !Settings.B("StopTimeOnShip")) return;
                 Game.StopTimeCompression((air ? "Flugzeug" : "Kontakt") + " gesichtet: " + c.Name);

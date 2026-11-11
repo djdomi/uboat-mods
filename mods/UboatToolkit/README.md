@@ -67,6 +67,16 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | QoL | Zeitraffer stoppt bei neuem Schiff oder Flugzeug | StopTimeOnShip, StopTimeOnAircraft |
 | QoL | Zeitraffer ignoriert Fischerboote, Verbündete (und auf Wunsch Neutrale) | IgnoreFishingBoats, IgnoreAlliedShips, IgnoreNeutralShips |
 | QoL | Zurück ins Wasser, wenn das Boot an Land festsitzt | BackToWater, BackToWaterSeconds, BackToWaterNow |
+| QoL | Zeitraffer stoppt bei Schaden und Funkspruch | StopTimeOnDamage, StopTimeOnRadio |
+| QoL | Tacho + Kilometerzähler oben links | Speedometer |
+| QoL | Kein automatischer Alarm (aus = Spiel-Verhalten) | NoAutoAlarm |
+| QoL | Kriegstagebuch als Textdatei (logs\\kriegstagebuch.txt) | WarDiary |
+| QoL | Rohr-Anzeige (Torpedo-Typ pro Rohr) oben links | TubeDisplay |
+| QoL | Strom sparen bei leerer Batterie unter Wasser | EnergySaverPercent |
+| QoL | Torpedos schneller nachladen bis sofort | TorpedoLoadSpeed |
+| QoL | Schneller laden (Ladebildschirm nutzt volle Rechenzeit) | FastLoading |
+| QoL | Tab „Crew“: Offiziers-Rollen per Klick wechseln, freie Skillpunkte sehen | – |
+| Cheat | Skillpunkte extra, Skills aller Klassen wählbar | CheatExtraSkillPoints, CheatAllSkills |
 | QoL | Auto-Speichern alle x Minuten | AutoSaveMinutes |
 | QoL | Warnung + Zeitraffer-Stopp bei wenig Diesel, Batterie, Luft | LowWarnPercent |
 | QoL | Karte: Restweg, Ankunftszeit, Diesel-Reichweite oben links | NavInfo |
