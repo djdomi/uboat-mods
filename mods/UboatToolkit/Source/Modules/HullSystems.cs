@@ -71,11 +71,13 @@ namespace UboatToolkit.Modules
         {
             Snorkel();
             if (!Settings.B("HatchPressure") || !Settings.B("HatchEqualize")) return;
-            // Running ventilation (no disable flag at all = on and working) moves air 3x faster.
-            double rate = 0.1;
-            if (Settings.B("VentEqualizeFaster"))
+            // Speed is set in the menu; running ventilation (no disable flag = on and working) multiplies it.
+            double rate = Settings.F("HatchEqualizeSpeed") / 100.0;
+            float boost = Settings.F("VentEqualizeFaster");
+            if (boost > 1f)
                 foreach (var v in Util.Find<Ventilation>())
-                    if (v != null && v.DisableFlags == 0) { rate = 0.3; break; }
+                    if (v != null && v.DisableFlags == 0) { rate *= boost; break; }
+            if (rate > 1.0) rate = 1.0;
             foreach (var h in Util.Find<Hatch>())
             {
                 if (!Hull_HatchLockPatch.TooBig(h)) continue;
