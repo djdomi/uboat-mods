@@ -18,7 +18,7 @@ namespace UboatToolkit.Modules
             if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
             if (crew != null && crew.Characters != null)
             {
-                bool through = Settings.B("CrewWalkThrough");
+                bool through = Settings.B("NoCrewCollisions");
                 foreach (var c in crew.Characters)
                 {
                     if (c == null || c.Navigator == null) continue;

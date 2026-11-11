@@ -24,7 +24,7 @@ Er ist für UBOAT 2026.1 gebaut und kompiliert ohne Fehler. **Im Spiel ist er no
 | 18 | Sehrohr und Fernglas zoomen weiter | OpticsZoom |
 | 19 | Sehrohr und Fernglas: ruhiges Bild | OpticsStabilization |
 | 20 | Sehrohr fährt bis 12 m aus | PeriscopeHeight |
-| 21 | Crew läuft durcheinander durch, Türen bleiben unverändert | CrewWalkThrough |
+| 21 | Crew läuft durcheinander durch, Türen bleiben unverändert | NoCrewCollisions |
 | 22 | Luken schließen automatisch beim Tauchen und wenn du gejagt wirst | AutoHatches |
 | 23 | Ballast: Aufgetaucht bläst der Diesel die Tanks leer, beim Tauchen fluten sie schneller | BallastDieselBlow, BallastFastDive |
 | 24 | Vorgeflutetes Deck: Die Crew kann Deckgeschütz und Flak bedienen | AwashGuns |
