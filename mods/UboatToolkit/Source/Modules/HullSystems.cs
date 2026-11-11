@@ -69,6 +69,7 @@ namespace UboatToolkit.Modules
     {
         public override void Tick()
         {
+            Snorkel();
             if (!Settings.B("HatchPressure") || !Settings.B("HatchEqualize")) return;
             foreach (var h in Util.Find<Hatch>())
             {
@@ -81,6 +82,30 @@ namespace UboatToolkit.Modules
                 double move = (target * va - a.Air) * 0.1;
                 a.Air += move;
                 b.Air -= move;
+            }
+        }
+
+        // Auto snorkel: the game has its own automatic raise logic (periscope depth 1-10 m), it is just never switched on.
+        // With the mast up, fresh air comes in: ventilation runs and every room goes back to normal pressure (30 % per second).
+        private static void Snorkel()
+        {
+            bool auto = Settings.B("AutoSnorkel");
+            bool up = false;
+            var ship = Util.PlayerShip;
+            foreach (var s in Util.Find<UBOAT.Game.Scene.Items.Snorkel>())
+            {
+                if (s == null) continue;
+                Traverse.Create(s).Field("automaticRaise").SetValue(auto);
+                if (s.ShouldMastBeRaised && ship.DeckDepth < 10f && s.Performance.Value > 0.5f) up = true;
+            }
+            if (!up || !Settings.B("SnorkelAir")) return;
+            foreach (var v in Util.Find<Ventilation>()) v.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
+            foreach (var c in Util.Find<Compartment>())
+            {
+                double p = c.AirPressure;
+                if (p <= 0.0001 || System.Math.Abs(p - 1.0) < 0.01) continue;
+                double vol = c.Air / p;
+                c.Air += (vol * 1.0 - c.Air) * 0.3;
             }
         }
     }

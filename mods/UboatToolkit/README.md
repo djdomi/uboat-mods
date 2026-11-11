@@ -61,6 +61,8 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Luken schließen automatisch | AutoHatches |
 | QoL | Luken zeigen Luftdruck, Sperre + Druckausgleich | HatchPressure, HatchPressureLimit, HatchEqualize |
 | QoL | Ballast: Diesel bläst aus, schneller fluten, Befehle immer da | BallastDieselBlow, BallastDieselBlowRate, BallastFastDive, BallastAlwaysAvailable |
+| QoL | NEU: Schnorchel automatisch auf Sehrohrtiefe | AutoSnorkel |
+| QoL | NEU: Schnorchel oben: Lüftung an, Luftdruck schnell auf Normaldruck | SnorkelAir |
 | QoL | Pumpe schaltet sich selbst an | AutoPump |
 | QoL | Lecks abdichten wie mit zwei Matrosen | LeakTwoSailors |
 | QoL | Lüftung leiser, Absorber länger, Kompressor ohne Luft, Notfall-Sauerstoff | VentilationNoise, AbsorberDuration, CompressorNoAir, AutoVentilation, EmergencyOxygen |
