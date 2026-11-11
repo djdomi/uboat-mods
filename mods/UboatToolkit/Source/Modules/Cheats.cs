@@ -18,6 +18,14 @@ namespace UboatToolkit.Modules
         {
             var ship = Util.PlayerShip;
 
+            // Sensor range: radar, sonar, hydrophones, lookouts, radar detector see further.
+            float sr = Mathf.Max(1f, Settings.F("CheatSensorRange"));
+            foreach (var d in ship.GetComponentsInChildren<UBOAT.Game.Scene.Items.BaseDetector>(true))
+            {
+                Util.ScaleParameter(d.DetectionRange, sr);
+                Util.ScaleParameter(d.GroupDetectionRange, sr);
+            }
+
             // Undetectable: seen, heard (sonar + hydrophones) and radar-detected at almost zero range.
             float f = Settings.B("CheatUndetectable") ? 0.001f : 1f;
             var t = Traverse.Create(ship);

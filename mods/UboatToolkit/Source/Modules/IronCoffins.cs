@@ -16,13 +16,23 @@ namespace UboatToolkit.Modules
         }
     }
 
+    // Only the "carry wounded" part is blocked: the game skips carrying when no bed is free.
+    // Pulling divers back on board keeps working.
     [HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.AutoCarryWoundedToSafety), "DoUpdate")]
     internal static class IronCoffins_NoAutoCarryPatch
     {
-        private static bool Prefix(ref float __result)
+        internal static bool Inside;
+        private static void Prefix() { Inside = Settings.B("NoAutoCarryWounded"); }
+        private static void Finalizer() { Inside = false; }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Entities.PlayerShip), "HasFreeBed")]
+    internal static class IronCoffins_NoFreeBedPatch
+    {
+        private static bool Prefix(ref bool __result)
         {
-            if (!Settings.B("NoAutoCarryWounded")) return true;
-            __result = 5f;
+            if (!IronCoffins_NoAutoCarryPatch.Inside) return true;
+            __result = false;
             return false;
         }
     }
