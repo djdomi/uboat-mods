@@ -11,7 +11,7 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             float f = Settings.F("RebreatherDurability");
-            foreach (var r in Util.PlayerShip.GetComponentsInChildren<Rebreather>(true))
+            foreach (var r in Util.Find<Rebreather>())
                 Util.ScaleParameter(Traverse.Create(r).Field("durability").GetValue<Parameter>(), f);
         }
     }

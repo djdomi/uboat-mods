@@ -74,11 +74,11 @@ namespace UboatToolkit.Modules
         {
             if (!Settings.B("AutoWorkshop")) return;
             var ship = Util.PlayerShip;
-            foreach (var ws in ship.GetComponentsInChildren<Workshop>(true))
+            foreach (var ws in Util.Find<Workshop>())
             {
                 var target = ws.Storage;
                 if (target == null || target.GetTotalCount("Scrap") >= 2f) continue;
-                foreach (var s in ship.GetComponentsInChildren<Storage>(true))
+                foreach (var s in Util.Find<Storage>())
                 {
                     if (s == target || s.IsShop) continue;
                     for (int i = s.SlotCount - 1; i >= 0; i--)

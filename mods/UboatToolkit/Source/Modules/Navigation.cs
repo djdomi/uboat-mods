@@ -50,12 +50,12 @@ namespace UboatToolkit.Modules
         {
             float f = Mathf.Max(1f, Settings.F("CheatSpeed"));
             var ship = Util.PlayerShip;
-            foreach (var p in ship.GetComponentsInChildren<Propeller>(true))
+            foreach (var p in Util.Find<Propeller>())
             {
                 float orig = Util.Original<float>(p, "maxPower");
                 Util.SetField(p, "maxPower", orig * f * f);   // drag grows with speed², so force x f² ≈ speed x f
             }
-            foreach (var e in ship.GetComponentsInChildren<PlayerShipEngine>(true))
+            foreach (var e in Util.Find<PlayerShipEngine>())
             {
                 Scale(e, "expectedVelocityPerGear", f);
                 Scale(e, "expectedVelocityPerGearUnderwater", f);

@@ -20,7 +20,7 @@ namespace UboatToolkit.Modules
 
             // Sensor range: radar, sonar, hydrophones, lookouts, radar detector see further.
             float sr = Mathf.Max(1f, Settings.F("CheatSensorRange"));
-            foreach (var d in ship.GetComponentsInChildren<UBOAT.Game.Scene.Items.BaseDetector>(true))
+            foreach (var d in Util.Find<UBOAT.Game.Scene.Items.BaseDetector>())
             {
                 Util.ScaleParameter(d.DetectionRange, sr);
                 Util.ScaleParameter(d.GroupDetectionRange, sr);

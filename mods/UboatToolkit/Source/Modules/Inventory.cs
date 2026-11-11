@@ -21,7 +21,7 @@ namespace UboatToolkit.Modules
             bool noWeight = Settings.B("CheatNoWeight");
             float stack = Mathf.Max(1f, Settings.F("CheatStackSize"));
 
-            foreach (var s in ship.GetComponentsInChildren<Storage>(true))
+            foreach (var s in Util.Find<Storage>())
             {
                 if (s.IsShop) continue;
                 var t = Traverse.Create(s);
@@ -29,7 +29,7 @@ namespace UboatToolkit.Modules
                 t.Field("ignoreStackLimits").SetValue(stack > 1f || origIgnore);
                 Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noWeight ? 1000000f : 1f);
             }
-            foreach (var e in ship.GetComponentsInChildren<Equipment>(true))
+            foreach (var e in Util.Find<Equipment>())
             {
                 Util.ScaleParameter(e.Mass, noWeight ? 0.0000001f : 1f);
                 if (e is Cargo c) Util.ScaleParameter(c.StackLimit, stack);

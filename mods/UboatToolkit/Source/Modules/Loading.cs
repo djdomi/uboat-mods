@@ -81,7 +81,7 @@ namespace UboatToolkit.Modules
             if (orders != null) foreach (var o in orders) if (o != null) all.Add(o);
             var ship = Util.PlayerShip;
             if (ship != null)
-                foreach (var s in ship.GetComponentsInChildren<Storage>(true))
+                foreach (var s in Util.Find<Storage>())
                     for (int i = 0; i < s.SlotCount; i++)
                     {
                         buffer.Clear();
@@ -114,7 +114,7 @@ namespace UboatToolkit.Modules
             if (!ship.Docked) { progress.Clear(); return; }
 
             seen.Clear();
-            foreach (var s in ship.GetComponentsInChildren<Storage>(true))
+            foreach (var s in Util.Find<Storage>())
                 for (int i = 0; i < s.SlotCount; i++)
                 {
                     buffer.Clear();

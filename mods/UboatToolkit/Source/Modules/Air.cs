@@ -24,7 +24,7 @@ namespace UboatToolkit.Modules
             float absorber = Settings.F("AbsorberDuration");
             bool compressorFree = Settings.B("CompressorNoAir");
 
-            foreach (var v in ship.GetComponentsInChildren<Ventilation>(true))
+            foreach (var v in Util.Find<Ventilation>())
             {
                 Util.ScaleParameter(Traverse.Create(v).Field("noise").GetValue<Parameter>(), Mathf.Max(0.01f, noise));
                 if (Settings.B("AutoVentilation") && ship.SubmergedOrGoingToSubmerge)
@@ -33,9 +33,9 @@ namespace UboatToolkit.Modules
                     if (v.Item == null) GiveAbsorber(ship, v);
                 }
             }
-            foreach (var a in ship.GetComponentsInChildren<PotassiumAbsorber>(true))
+            foreach (var a in Util.Find<PotassiumAbsorber>())
                 Util.ScaleParameter(a.Duration, absorber);
-            foreach (var c in ship.GetComponentsInChildren<AirCompressor>(true))
+            foreach (var c in Util.Find<AirCompressor>())
                 Util.ScaleParameter(Traverse.Create(c).Field("oxygenUsage").GetValue<Parameter>(), compressorFree ? 0.001f : 1f);
 
             EmergencyOxygen(ship);
@@ -53,7 +53,7 @@ namespace UboatToolkit.Modules
 
         private static void GiveAbsorber(UBOAT.Game.Scene.Entities.PlayerShip ship, Ventilation v)
         {
-            foreach (var s in ship.GetComponentsInChildren<Storage>(true))
+            foreach (var s in Util.Find<Storage>())
             {
                 if (s == v || s.IsShop) continue;
                 for (int i = s.SlotCount - 1; i >= 0; i--)

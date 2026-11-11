@@ -41,7 +41,7 @@ namespace UboatToolkit.Modules
             }
 
             if (!Settings.B("CheatNoDuds")) return;
-            foreach (var t in Util.PlayerShip.GetComponentsInChildren<Torpedo>(true))
+            foreach (var t in Util.Find<Torpedo>(1f))
                 t.DudsDisabled = true;
         }
     }

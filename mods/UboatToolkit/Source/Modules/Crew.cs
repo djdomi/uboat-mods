@@ -37,7 +37,7 @@ namespace UboatToolkit.Modules
                 }
             }
 
-            foreach (var table in Util.PlayerShip.GetComponentsInChildren<NavigationTable>(true))
+            foreach (var table in Util.Find<NavigationTable>())
             {
                 var i = table.GetComponent<Interactable>();
                 if (i == null) continue;

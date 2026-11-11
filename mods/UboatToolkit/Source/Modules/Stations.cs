@@ -23,10 +23,10 @@ namespace UboatToolkit.Modules
             if (crew == null) return;
             var ship = Util.PlayerShip;
             if (Settings.B("KeepDepthStation"))
-                foreach (var st in ship.GetComponentsInChildren<DivingPlanesStation>(true))
+                foreach (var st in Util.Find<DivingPlanesStation>())
                     Keep(st.GetComponent<Activator>(), "Tiefenruder");
             if (Settings.B("KeepNavTable"))
-                foreach (var st in ship.GetComponentsInChildren<NavigationTable>(true))
+                foreach (var st in Util.Find<NavigationTable>())
                     Keep(st.GetComponent<Activator>(), "Kartentisch");
         }
 

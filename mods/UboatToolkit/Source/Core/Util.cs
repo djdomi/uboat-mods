@@ -18,9 +18,39 @@ namespace UboatToolkit
         {
             get
             {
-                if (playerShip == null) playerShip = UnityEngine.Object.FindObjectOfType<PlayerShip>();
+                // Searching the whole scene is slow: in menus (no boat) only try once per second.
+                if (playerShip == null && Time.unscaledTime >= nextShipSearch)
+                {
+                    nextShipSearch = Time.unscaledTime + 1f;
+                    playerShip = UnityEngine.Object.FindObjectOfType<PlayerShip>();
+                }
                 return playerShip;
             }
+        }
+
+        private static float nextShipSearch;
+        private static PlayerShip cacheShip;
+        private static readonly Dictionary<Type, Array> found = new Dictionary<Type, Array>();
+        private static readonly Dictionary<Type, float> foundAt = new Dictionary<Type, float>();
+
+        // All parts of type T on the player's boat. Searching the boat is slow, so the result is kept
+        // for 10 seconds (or until one of the parts is gone). Saves many small stutters.
+        public static T[] Find<T>(float maxAge = 10f) where T : Component
+        {
+            var ship = PlayerShip;
+            if (ship == null) return new T[0];
+            if (cacheShip != ship) { found.Clear(); foundAt.Clear(); cacheShip = ship; }
+            var t = typeof(T);
+            if (found.TryGetValue(t, out var a) && Time.unscaledTime - foundAt[t] < maxAge)
+            {
+                var arr = (T[])a;
+                bool ok = true;
+                for (int i = 0; i < arr.Length; i++) if (arr[i] == null) { ok = false; break; }
+                if (ok) return arr;
+            }
+            var res = ship.GetComponentsInChildren<T>(true);
+            found[t] = res; foundAt[t] = Time.unscaledTime;
+            return res;
         }
 
         public static bool IsPlayers(Component c)

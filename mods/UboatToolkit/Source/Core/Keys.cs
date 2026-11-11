@@ -9,12 +9,21 @@ namespace UboatToolkit
     {
         public static Opt Capturing;
 
+        private class Parsed { public string Text; public bool Ok, C, S, A; public KeyCode Code; }
+        private static readonly System.Collections.Generic.Dictionary<string, Parsed> cache = new System.Collections.Generic.Dictionary<string, Parsed>();
+
         public static bool Down(string key)
         {
             var o = Settings.Get(key);
             if (o == null || string.IsNullOrEmpty(o.Text) || Capturing != null) return false;
-            if (!Parse(o.Text, out var code, out bool c, out bool s, out bool a)) return false;
-            return Input.GetKeyDown(code) && c == Ctrl && s == Shift && a == Alt;
+            if (!cache.TryGetValue(key, out var k) || k.Text != o.Text)
+            {
+                k = new Parsed { Text = o.Text };
+                k.Ok = Parse(o.Text, out k.Code, out k.C, out k.S, out k.A);
+                cache[key] = k;
+            }
+            if (!k.Ok || !Input.GetKeyDown(k.Code)) return false;
+            return k.C == Ctrl && k.S == Shift && k.A == Alt;
         }
 
         public static bool Ctrl => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);

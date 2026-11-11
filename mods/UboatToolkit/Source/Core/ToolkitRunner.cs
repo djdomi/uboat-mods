@@ -50,14 +50,21 @@ namespace UboatToolkit
         {
             Keys.CaptureFrame();
             if (Keys.Down("KeyMenu")) menuOpen = !menuOpen;
-            foreach (var m in Modules) Util.Safe(m.GetType().Name + ".Frame", m.Frame);
+            if (names == null) { names = new string[Modules.Count]; frameNames = new string[Modules.Count]; for (int i = 0; i < Modules.Count; i++) { names[i] = Modules[i].GetType().Name; frameNames[i] = names[i] + ".Frame"; } }
+            for (int i = 0; i < Modules.Count; i++) Util.Safe(frameNames[i], Modules[i].Frame);
 
-            if (Time.unscaledTime < nextTick) return;
-            nextTick = Time.unscaledTime + 1f;
             if (Time.unscaledTime >= nextState) { nextState = Time.unscaledTime + 60f; DebugLog.DumpState(); }
             if (Util.PlayerShip == null) return;
-            foreach (var m in Modules) Util.Safe(m.GetType().Name, m.Tick);
+            // Each module runs once per second, but spread over the frames (one module per frame),
+            // so there is no single heavy frame = no stutter.
+            if (Time.unscaledTime < nextTick) return;
+            Util.Safe(names[tickIndex], Modules[tickIndex].Tick);
+            tickIndex++;
+            if (tickIndex >= Modules.Count) { tickIndex = 0; nextTick = Time.unscaledTime + 1f; }
         }
+
+        private string[] names, frameNames;
+        private int tickIndex;
 
         private float nextState;
 

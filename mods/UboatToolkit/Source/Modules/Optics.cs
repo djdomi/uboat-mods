@@ -15,7 +15,7 @@ namespace UboatToolkit.Modules
             float calm = Mathf.Clamp01(Settings.F("OpticsStabilization"));
             float height = Mathf.Max(Mathf.Min(Settings.F("PeriscopeHeight"), 12f), Settings.F("CheatPeriscopeHeight"));
 
-            foreach (var p in Util.PlayerShip.GetComponentsInChildren<Periscope>(true))
+            foreach (var p in Util.Find<Periscope>())
             {
                 ApplyFov(p, "fovPresets", "fovSensitivities", zoom);
                 ApplyFov(p, "fovPresetsRealistic", "fovSensitivitiesRealistic", zoom);

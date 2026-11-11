@@ -49,13 +49,13 @@ namespace UboatToolkit.Modules
 
             // Echo sounder pings by itself while submerged.
             if (Settings.B("CheatSonarPing"))
-                foreach (var d in ship.GetComponentsInChildren<SoundRangingDevice>(true))
+                foreach (var d in Util.Find<SoundRangingDevice>())
                     d.IsSendButtonPressed = ship.SubmergedOrGoingToSubmerge;
 
             // Faster torpedoes: the speed values of all own torpedoes are raised, so the
             // torpedo computer also aims with the new speed.
             float tf = Settings.F("CheatTorpedoSpeed");
-            foreach (var t in ship.GetComponentsInChildren<StoredTorpedo>(true))
+            foreach (var t in Util.Find<StoredTorpedo>(1f))
             {
                 Util.ScaleParameter(t.Speed1, tf);
                 Util.ScaleParameter(t.Speed2, tf);
@@ -85,9 +85,9 @@ namespace UboatToolkit.Modules
         private static void ReloadAll()
         {
             var ship = Util.PlayerShip;
-            var storages = ship.GetComponentsInChildren<Storage>(true).Where(s => s.GetComponentInParent<PlayableCharacter>() == null).ToArray();
+            var storages = Util.Find<Storage>().Where(s => s.GetComponentInParent<PlayableCharacter>() == null).ToArray();
             int n = 0;
-            foreach (var l in ship.GetComponentsInChildren<TorpedoLauncher>(true))
+            foreach (var l in Util.Find<TorpedoLauncher>())
             {
                 if (l.Torpedo != null) continue;
                 Storage best = null; int bestSlot = -1; float bestDist = float.MaxValue;
@@ -140,7 +140,7 @@ namespace UboatToolkit.Modules
         private static void SortStorage()
         {
             int moves = 0;
-            foreach (var s in Util.PlayerShip.GetComponentsInChildren<Storage>(true))
+            foreach (var s in Util.Find<Storage>())
             {
                 if (s.GetComponentInParent<PlayableCharacter>() != null) continue;
                 for (int a = 0; a < s.SlotCount; a++)

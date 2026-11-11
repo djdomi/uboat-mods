@@ -38,7 +38,7 @@ namespace UboatToolkit.Modules
                 bool on = night && !ship.SubmergedOrGoingToSubmerge && !ship.IsHunted;
                 if (lastSearchlight != on)
                 {
-                    foreach (var s in ship.GetComponentsInChildren<Searchlight>(true))
+                    foreach (var s in Util.Find<Searchlight>())
                         s.SetDisableFlag(DeviceDisableFlag.TurnedOff, !on);
                     lastSearchlight = on;
                 }

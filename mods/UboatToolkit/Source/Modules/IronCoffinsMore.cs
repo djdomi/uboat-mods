@@ -70,7 +70,7 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             if (!Settings.B("HatchPressure") || !Settings.B("HatchEqualize")) return;
-            foreach (var h in Util.PlayerShip.GetComponentsInChildren<Hatch>(true))
+            foreach (var h in Util.Find<Hatch>())
             {
                 if (!IC_HatchLockPatch.TooBig(h)) continue;
                 var a = h.LeftCompartment; var b = h.RightCompartment;

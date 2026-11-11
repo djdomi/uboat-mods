@@ -24,7 +24,7 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             var ship = Util.PlayerShip;
-            foreach (var gun in ship.GetComponentsInChildren<Gun>(true))
+            foreach (var gun in Util.Find<Gun>())
             {
                 string p = Prefix(gun);
                 float turn = Settings.F(p + "TurnSpeed");

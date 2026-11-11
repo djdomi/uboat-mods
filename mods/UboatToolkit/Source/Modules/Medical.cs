@@ -123,7 +123,7 @@ namespace UboatToolkit.Modules
         private static bool GiveMedKit(PlayableCharacter h)
         {
             if (Util.PlayerShip == null) return false;
-            foreach (var s in Util.PlayerShip.GetComponentsInChildren<Storage>(true))
+            foreach (var s in Util.Find<Storage>())
             {
                 if (s.IsShop) continue;
                 for (int i = s.SlotCount - 1; i >= 0; i--)
