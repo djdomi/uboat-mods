@@ -29,8 +29,9 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(PlayableCharacterData), nameof(PlayableCharacterData.AddStatus), new[] { typeof(CharacterStatus) })]
     internal static class DeckCrew_NoDrownPatch
     {
+        // With "immortal crew" every death is blocked (also deaths the game sets directly, not via health).
         private static bool Prefix(CharacterStatus status) =>
-            !(Settings.B("CheatDeckCrewStays") && status is Dead d && d.Cause == DeathCause.DrowningOffBoard);
+            !(status is Dead d && (Settings.B("CheatImmortalCrew") || (Settings.B("CheatDeckCrewStays") && d.Cause == DeathCause.DrowningOffBoard)));
     }
 
     // Guns are not switched off when the boat dives.
