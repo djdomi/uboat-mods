@@ -40,12 +40,14 @@ namespace UboatToolkit.Modules.Warthog
             var gt = Traverse.Create(typeof(Snorkel)).Field("gameTime").GetValue<GameTime>();
             float ts = gt != null ? gt.ArtificialTimeScale : 1f;
 
-            // telescopic tube: move the whole mast up by the extra length
+            // telescopic tube: extend along the mast's own axis, only as far as the mast is raised (0.3.2: 0.3.0 moved the
+            // folded mast 6 m straight up -> "periscope floating in the sky"; base is remembered per snorkel instance)
             var tube = Tube(__instance);
             if (tube != null)
             {
-                if (tubeBase == null) tubeBase = tube.localPosition;
-                tube.localPosition = tubeBase.Value + Vector3.up * WarthogSnorkel.Extra;
+                if (tubeBase == null || tubeOwner != (object)__instance) { RestoreTube(null); tubeBase = tube.localPosition; tubeOwner = __instance; tubeOf = tube; }
+                float raised = 1f - Mathf.Clamp01(Angle(__instance) / 90f);
+                tube.localPosition = tubeBase.Value + tube.localRotation * Vector3.up * (WarthogSnorkel.Extra * raised);
             }
             float limit = 10f + WarthogSnorkel.Extra;   // the game: 10 m
 
@@ -99,12 +101,13 @@ namespace UboatToolkit.Modules.Warthog
             return false;
         }
 
+        private static object tubeOwner; private static Transform tubeOf;
         private static void RestoreTube(Snorkel s)
         {
             if (tubeBase == null) return;
-            var tube = Tube(s);
-            if (tube != null) tube.localPosition = tubeBase.Value;
-            tubeBase = null;
+            if (s != null && (object)s != tubeOwner) return;   // another boat's snorkel: not ours to reset
+            if (tubeOf != null) tubeOf.localPosition = tubeBase.Value;
+            tubeBase = null; tubeOwner = null; tubeOf = null;
         }
     }
 }

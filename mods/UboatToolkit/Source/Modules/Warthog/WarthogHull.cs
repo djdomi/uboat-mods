@@ -75,10 +75,26 @@ namespace UboatToolkit.Modules.Warthog
             }
 
             // ---- thrusters
-            if (!Settings.B("WhThrusters")) { heldHeading = float.NaN; WarthogThrusterGauge.Cmd = 0f; return; }
+            if (!Settings.B("WhThrusters")) { heldHeading = float.NaN; WarthogThrusterGauge.Cmd = 0f; WarthogThrusterGauge.Bow = WarthogThrusterGauge.Stern = 0f; return; }
             float cmd = 0f;
             if (Keys.Held("KeyWhThrustLeft")) cmd -= 1f;
             if (Keys.Held("KeyWhThrustRight")) cmd += 1f;
+            // 0.3.2: Shift + Z/X = whole boat sideways (both thrusters the same way), for docking
+            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            if (cmd != 0f && shift && Settings.B("WhThrustShiftSide"))
+            {
+                heldHeading = float.NaN;
+                Push(ship, rb, cmd, cmd, k, "Seitwärts", "Taste");
+                return;
+            }
+            // F10: each thruster on its own (only while no key is held)
+            float mb = Settings.F("WhThrustBowManual") / 100f, ms = Settings.F("WhThrustSternManual") / 100f;
+            if (cmd == 0f && (Mathf.Abs(mb) > 0.01f || Mathf.Abs(ms) > 0.01f))
+            {
+                heldHeading = float.NaN;
+                Push(ship, rb, mb, ms, k, "Einzeln", "F10");
+                return;
+            }
             // same sign fix as the fins; astern the game mirrors Turn (rudder works reversed), thrusters do not -> undo it
             if (cmd == 0f && Settings.B("WhThrusterWithRudder"))
             {
@@ -96,15 +112,29 @@ namespace UboatToolkit.Modules.Warthog
             }
             else heldHeading = float.NaN;
 
-            WarthogThrusterGauge.Cmd = cmd;
-            WarthogThrusterGauge.Source = Mathf.Abs(cmd) < 0.01f ? "" : (Keys.Held("KeyWhThrustLeft") || Keys.Held("KeyWhThrustRight")) ? "Taste" : !float.IsNaN(heldHeading) ? "Kurs halten" : "Ruder";
-            if (Mathf.Abs(cmd) < 0.01f) { SetEnergy(ship, 0f); return; }
-            // bow pushes one way, stern the other = pure turning torque. 0.2.x/0.3.0 used a fixed 6 MNm: against the
-            // 92 m boat's yaw inertia (~1e9 kg m^2) and the game's angular drag that was hardly noticeable ("Z/X do nothing").
-            // Now scaled with the boat's inertia: power 6 = about 0.6 deg/s^2 turning acceleration.
-            float torque = cmd * rb.inertiaTensor.y * Settings.F("WhThrusterPower") * 0.00175f;
-            rb.AddTorque(ship.transform.up * torque * k, ForceMode.Force);
-            SetEnergy(ship, Mathf.Abs(cmd) * Settings.F("WhThrusterEnergy") * 0.0001f);
+            string src = Mathf.Abs(cmd) < 0.01f ? "" : (Keys.Held("KeyWhThrustLeft") || Keys.Held("KeyWhThrustRight")) ? "Taste" : !float.IsNaN(heldHeading) ? "Kurs halten" : "Ruder";
+            // turning on the spot: bow pushes one way, stern the other
+            Push(ship, rb, cmd, -cmd, k, "Drehen", src);
+        }
+
+        // bow / stern thruster command -1..1 each (+ = push to starboard). Equal = sideways, opposite = turning.
+        // Force per thruster F = Iy * power * 0.00175 / L (L = 2 x 40 m arm): with bow = -stern that gives the same turning
+        // torque as before (power 6 = about 0.6 deg/s^2); with bow = stern the boat moves sideways.
+        const float Arm = 40f;
+        private void Push(PlayerShip ship, Rigidbody rb, float bow, float stern, float k, string mode, string src)
+        {
+            bow = Mathf.Clamp(bow, -1f, 1f); stern = Mathf.Clamp(stern, -1f, 1f);
+            WarthogThrusterGauge.Bow = bow; WarthogThrusterGauge.Stern = stern; WarthogThrusterGauge.Mode = mode;
+            WarthogThrusterGauge.Cmd = (bow - stern) * 0.5f;
+            WarthogThrusterGauge.Source = src;
+            if (Mathf.Abs(bow) < 0.01f && Mathf.Abs(stern) < 0.01f) { SetEnergy(ship, 0f); return; }
+            float f = rb.inertiaTensor.y * Settings.F("WhThrusterPower") * 0.00175f / (2f * Arm);
+            var t = ship.transform;
+            Vector3 com = rb.worldCenterOfMass;
+            // forces at the thruster tunnels (same height as the centre of mass: no extra roll)
+            rb.AddForceAtPosition(t.right * (f * bow * k), com + t.forward * Arm, ForceMode.Force);
+            rb.AddForceAtPosition(t.right * (f * stern * k), com - t.forward * Arm, ForceMode.Force);
+            SetEnergy(ship, (Mathf.Abs(bow) + Mathf.Abs(stern)) * 0.5f * Settings.F("WhThrusterEnergy") * 0.0001f);
         }
 
         // Our 4 visible propellers (WH_Prop_* hubs + WH_Blade_* blades in the hull model) are static meshes; the game's

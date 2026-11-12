@@ -33,6 +33,9 @@ namespace UboatToolkit.Modules.Warthog
             Num("WhThrustGaugeX", "    Anzeige: Position von links in %", 2, 0, 95, 1);
             Num("WhThrustGaugeY", "    Anzeige: Position von oben in %", 62, 0, 95, 1);
             Bool("WhThrusterHoldFiring", "  Kurs halten, während Geschütze feuern (gegen Rückstoß)", true);
+            Bool("WhThrustShiftSide", "  Shift + Z/X: ganzes Boot seitwärts (Anlegen); Z/X ohne Shift: auf der Stelle drehen", true);
+            Num("WhThrustBowManual", "  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);
+            Num("WhThrustSternManual", "  Heck-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);
 
             // --- Schnorchel
             Bool("WhSnorkelTelescope", "Teleskop-Schnorchel: tiefer als Sehrohrtiefe", true);
