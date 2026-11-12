@@ -19,6 +19,27 @@ namespace UboatToolkit.Modules.Warthog
             Imgui.EndH();
             Imgui.Label("Im Spiel selbst: im Hafen den Depot-Arbeiter ansprechen → \"Kommando über anderes U-Boot übernehmen\".");
             Imgui.Space(6);
+            if (!WarthogSettings.IsWarthog(Util.PlayerShip)) return;
+            // anchor
+            Imgui.BeginH();
+            if (Imgui.Button(WarthogAnchor.Anchored ? "Anker lichten" : "Anker werfen", 160)) WarthogAnchor.Toggle();
+            Imgui.Label("  " + WarthogAnchor.Status);
+            Imgui.EndH();
+            // fire-control room
+            if (!string.IsNullOrEmpty(WarthogFireControl.Status)) Imgui.Label("Feuerleitstand: " + WarthogFireControl.Status);
+            // hatches
+            if (WarthogHatches.All.Count > 0)
+            {
+                Imgui.Label("Luken:");
+                foreach (var l in WarthogHatches.All)
+                {
+                    Imgui.BeginH();
+                    Imgui.Label("   " + l.Name + ": " + (l.IsOpen ? "offen" : "zu"), 220);
+                    if (!l.IsMain && WarthogHatches.On && WarthogHatches.Single && Imgui.Button(l.IsOpen ? "schließen" : "öffnen", 100)) WarthogHatches.Set(l, !l.IsOpen);
+                    Imgui.EndH();
+                }
+            }
+            Imgui.Space(6);
         }
 
         // In port: unlock "Type XXX" for this career and open the game's own ship selector.

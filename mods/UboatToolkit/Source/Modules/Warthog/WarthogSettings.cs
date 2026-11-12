@@ -19,7 +19,6 @@ namespace UboatToolkit.Modules.Warthog
             // --- Rumpf
             Num("WhRubberCoating", "Gummibeschichtung: Sonar-Ortbarkeit x (1 = ohne, 0 = unsichtbar)", 0.3f, 0f, 1f, 0.05f);
             Num("WhHydroNoise", "Gummibeschichtung: Horch-Ortbarkeit x (1 = normal)", 0.6f, 0f, 1f, 0.05f);
-            Bool("WhSecondHatch", "Zweites Turmluk + Seitentüren Deck <-> Turm (Crew nimmt den kürzesten Weg)", true);
             Bool("WhFins", "Finnen: engere Kurven, weniger Rollen, schneller Tiefe wechseln", true);
             Num("WhFinTurn", "  Kurven: Drehkraft x", 1.6f, 1f, 4f, 0.1f);
             Num("WhFinRoll", "  Rollen: Dämpfung x", 2.5f, 1f, 6f, 0.1f);
@@ -62,12 +61,31 @@ namespace UboatToolkit.Modules.Warthog
             Bool("WhSonarStern", "Aktives Sonar Heck (nach hinten + unten)", true);
             Bool("WhPingReveals", "  Ping verrät uns (Gegner hören den Ping)", true);
 
+            // --- Luken
+            Bool("WhHatchAll", "Luken: alle Luken benutzbar (2. Turmluk, Seitentüren, Torpedoluken, Kombüse; aus = Spiel mit einem Luk)", true);
+            Bool("WhHatchSingle", "  Luken einzeln steuern (Liste oben im Reiter; aus = alle folgen Turmluk 1)", false);
+
+            // --- Hafen
+            Num("WhDockShift", "Liegeplatz: Boot x m nach vorn schieben (IXC = 5; 14 = Heck wie beim IXC)", 14, -10, 30, 1);
+            Num("WhDockSide", "Liegeplatz: Boot x m seitlich schieben (+ = Steuerbord)", 0, -5, 5, 0.5f);
+
+            // --- Netzsäge + Anker
+            Bool("WhNetSaw", "Netzsäge: U-Boot-Netze durchschneiden (Bug + Heck)", true);
+            Bool("WhAnchor", "Anker benutzen (Knopf oben im Reiter oder Taste)", true);
+            Num("WhAnchorMode", "  welcher Anker: 0 = Bug, 1 = Heck, 2 = beide", 0, 0, 2, 1);
+            Num("WhAnchorChain", "  Kettenlänge in m", 150, 20, 400, 10);
+            Num("WhAnchorLiftSeconds", "  Anker lichten dauert x Sekunden (0 = sofort)", 30, 0, 120, 5);
+
+            // --- Feuerleitstand
+            Bool("WhFireControlCrew", "Feuerleitstand: Geschützgruppe nur bereit, wenn ihr Platz besetzt ist", false);
+
             // --- Torpedos
             Bool("WhAutoLoad", "Automatischer Torpedolader: Rohre laden ohne Crew, Außenbehälter füllen innen nach", true);
             Num("WhAutoLoadSeconds", "  Nachladezeit pro Rohr in Sekunden (0 = sofort, Typ XXI hydraulisch ≈ 120)", 30, 0, 120, 5);
 
             // --- Waffen
-            Num("WhCaliber", "Deckgeschütze: Kaliber (88 oder 105 mm)", 105, 88, 105, 17);
+            // a switch, not a slider: the Toolkit slider rounds to multiples of the step (17 -> 85 / 102 mm)
+            Bool("WhCaliber88", "Deckgeschütze: Kaliber 8,8 cm statt 10,5 cm", false);
             Bool("WhOverkill", "Overkill: Vierlingsrohre statt Zwillinge", false);
             Num("WhFlakDepression", "Flak: Absenkung bis x Grad (unter Horizont)", 45, 5, 60, 5);
             Bool("WhOwnBoatGuard", "  Feuerschutz: nie ins eigene Boot schießen", true);
@@ -77,6 +95,7 @@ namespace UboatToolkit.Modules.Warthog
 
             Key("KeyWhThrustLeft", "Warthog: Strahlruder links", "Z");
             Key("KeyWhThrustRight", "Warthog: Strahlruder rechts", "X");
+            Key("KeyWhAnchor", "Warthog: Anker werfen / lichten", "J");
         }
 
         // True when the Warthog features should act on this ship.
@@ -112,6 +131,7 @@ namespace UboatToolkit.Modules.Warthog
     // Modules to add in ToolkitRunner.Awake():  foreach (var m in WarthogModules.All()) Modules.Add(m);
     public static class WarthogModules
     {
-        public static IModule[] All() => new IModule[] { new WarthogHull(), new WarthogPumps(), new WarthogPower(), new WarthogAir(), new WarthogSonar(), new WarthogSnorkel(), new WarthogWeapons(), new WarthogTorpedoes(), new WarthogHatches() };
+        public static IModule[] All() => new IModule[] { new WarthogHull(), new WarthogPumps(), new WarthogPower(), new WarthogAir(), new WarthogSonar(), new WarthogSnorkel(), new WarthogWeapons(), new WarthogTorpedoes(), new WarthogHatches(),
+            new WarthogNetCutter(), new WarthogAnchor(), new WarthogFireControl() };
     }
 }

@@ -24,6 +24,14 @@ namespace UboatToolkit.Modules.Warthog
             Scale(ship.SonarDetectability, on ? Settings.F("WhRubberCoating") : 1f, "Warthog Coating");
             Scale(ship.HydrophoneDetectability, on ? Settings.F("WhHydroNoise") : 1f, "Warthog Coating");
             Scale(ship.VerticalSteersPerformance, on && Settings.B("WhFins") ? Settings.F("WhFinDepth") : 1f, "Warthog Fins");
+            if (on && WarthogSettings.IsWarthog(ship)) MirrorBadge(ship);
+            // berth position (used by the game at the next docking): forward shift + side shift away from the pier
+            if (on && WarthogSettings.IsWarthog(ship))
+            {
+                var want = new Vector3(0.1f + Settings.F("WhDockSide"), 0.6f, Settings.F("WhDockShift"));
+                var cur = Util.SafeGet(() => HarmonyLib.Traverse.Create(ship).Field("dockOffset").GetValue<Vector3>(), want);
+                if ((cur - want).sqrMagnitude > 0.0001f) { HarmonyLib.Traverse.Create(ship).Field("dockOffset").SetValue(want); Util.Log("[Warthog] dock: berth offset " + want); }
+            }
         }
 
         static void Scale(Parameter p, float f, string name)
@@ -99,6 +107,36 @@ namespace UboatToolkit.Modules.Warthog
             if (Time.unscaledTime < nextWhy) return;
             nextWhy = Time.unscaledTime + 5f;
             ToolkitRunner.ShowNotice(text, 3f);
+        }
+
+        // emblem on BOTH tower drums: the game shows the chosen badge at the "Badge" slot (first drum); we keep a
+        // render-only mirror copy on the second drum (mirrored at the boat's middle, turned 180 degrees)
+        private GameObject badgeCopy; private int badgeOf;
+        private void MirrorBadge(PlayerShip ship)
+        {
+            UBOAT.Game.Scene.Entities.ShipEquipmentSlot slot = null;
+            foreach (var s in ship.GetComponentsInChildren<UBOAT.Game.Scene.Entities.ShipEquipmentSlot>(true)) if (s.name == "Badge") { slot = s; break; }
+            var item = slot != null && slot.transform.childCount > 0 ? slot.transform.GetChild(slot.transform.childCount - 1).gameObject : null;
+            int id = item != null ? item.GetInstanceID() : 0;
+            if (id == badgeOf && (badgeCopy != null) == (item != null)) return;
+            if (badgeCopy != null) Object.Destroy(badgeCopy);
+            badgeCopy = null; badgeOf = id;
+            if (item == null) return;
+            badgeCopy = new GameObject("Warthog Badge (second drum)");
+            badgeCopy.transform.SetParent(ship.transform, false);
+            foreach (var r in item.GetComponentsInChildren<Renderer>(true))
+            {
+                var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+                var go = new GameObject(r.name); go.layer = r.gameObject.layer;
+                go.transform.SetParent(badgeCopy.transform, false);
+                Vector3 lp = ship.transform.InverseTransformPoint(r.transform.position);
+                go.transform.localPosition = new Vector3(lp.x, lp.y, -lp.z);
+                go.transform.localRotation = Quaternion.Euler(0, 180f, 0) * (Quaternion.Inverse(ship.transform.rotation) * r.transform.rotation);
+                go.transform.localScale = r.transform.lossyScale;
+                go.AddComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
+                go.AddComponent<MeshRenderer>().sharedMaterials = r.sharedMaterials;
+            }
+            Util.Log("[Warthog] badge: '" + item.name + "' mirrored onto the second tower drum");
         }
 
         private void SetEnergy(PlayerShip ship, float use)

@@ -66,7 +66,7 @@ namespace UboatToolkit.Modules.Warthog
             }
             if (!IsFlak(g) && g.Calibre.Value > 80f)
             {
-                bool c88 = on && Settings.F("WhCaliber") < 96f;
+                bool c88 = on && Settings.B("WhCaliber88");   // exactly 88 mm, else the gun's own 105 mm
                 Util.SetParameter(g.Calibre, c88 ? 88f : 0f);
                 g.ReloadTime.GetScaleModifier("Warthog Calibre", true).Value = c88 ? 0.75f : 1f;
             }
@@ -98,7 +98,8 @@ namespace UboatToolkit.Modules.Warthog
     {
         private static void Prefix(Device __instance, DeviceDisableFlag disableFlag, ref bool state)
         {
-            if (state && disableFlag == DeviceDisableFlag.Unmanned && __instance is Gun && WarthogWeapons.On && Settings.B("WhRemoteGuns") && Util.IsPlayers(__instance))
+            if (state && disableFlag == DeviceDisableFlag.Unmanned && __instance is Gun g && WarthogWeapons.On && Settings.B("WhRemoteGuns") && Util.IsPlayers(__instance)
+                && WarthogFireControl.Ready(g))   // optional: only when its fire-control station is manned
                 state = false;
         }
     }

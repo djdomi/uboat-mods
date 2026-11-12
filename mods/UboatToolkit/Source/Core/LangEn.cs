@@ -822,6 +822,18 @@ namespace UboatToolkit
             m["Flugzeuge beschießen ab x km"] = "Fire at aircraft from x km";
             m["Warthog: Strahlruder links"] = "Warthog: thruster left";
             m["Warthog: Strahlruder rechts"] = "Warthog: thruster right";
+            m["Warthog: Anker werfen / lichten"] = "Warthog: drop / raise anchor";
+            m["Luken: alle Luken benutzbar (2. Turmluk, Seitentüren, Torpedoluken, Kombüse; aus = Spiel mit einem Luk)"] = "Hatches: all hatches usable (2nd tower hatch, side doors, torpedo hatches, galley; off = game's single hatch)";
+            m["  Luken einzeln steuern (Liste oben im Reiter; aus = alle folgen Turmluk 1)"] = "  Control hatches one by one (list at the top of the tab; off = all follow tower hatch 1)";
+            m["Liegeplatz: Boot x m nach vorn schieben (IXC = 5; 14 = Heck wie beim IXC)"] = "Berth: move boat x m forward (IXC = 5; 14 = stern like the IXC)";
+            m["Liegeplatz: Boot x m seitlich schieben (+ = Steuerbord)"] = "Berth: move boat x m sideways (+ = starboard)";
+            m["Netzsäge: U-Boot-Netze durchschneiden (Bug + Heck)"] = "Net saw: cut anti-submarine nets (bow + stern)";
+            m["Anker benutzen (Knopf oben im Reiter oder Taste)"] = "Use anchor (button at the top of the tab or key)";
+            m["  welcher Anker: 0 = Bug, 1 = Heck, 2 = beide"] = "  which anchor: 0 = bow, 1 = stern, 2 = both";
+            m["  Kettenlänge in m"] = "  chain length in m";
+            m["  Anker lichten dauert x Sekunden (0 = sofort)"] = "  raising the anchor takes x seconds (0 = instant)";
+            m["Feuerleitstand: Geschützgruppe nur bereit, wenn ihr Platz besetzt ist"] = "Fire control: gun group only ready when its station is manned";
+            m["Deckgeschütze: Kaliber 8,8 cm statt 10,5 cm"] = "Deck guns: 8.8 cm calibre instead of 10.5 cm";
             m["Sonar: neuer Kontakt, Peilung "] = "Sonar: new contact, bearing ";
             m["Warthog übernehmen"] = "Take over Warthog";
             m["Im Spiel selbst: im Hafen den Depot-Arbeiter ansprechen → \"Kommando über anderes U-Boot übernehmen\"."] = "In the game itself: in port talk to the depot worker → \"Take command of another U-boat\".";
