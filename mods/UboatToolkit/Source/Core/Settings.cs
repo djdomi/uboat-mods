@@ -130,6 +130,7 @@ namespace UboatToolkit
             Bool(QoL, "SeaLayerNote", "  Kurze Meldung beim Unter-/\u00dcberqueren der Sprungschicht", true);
             Bool(QoL, "FixUnreadableColliders", "Fix: Gegenstände mit gesperrter Kollisionsform (Bin, Clock, Folder) zählen wieder, keine rote Meldung", true);
             Bool(QoL, "FixOffNavmeshCrew", "Fix: Matrosen, die neben dem Laufweg feststecken, werden zurückgesetzt", true);
+            Bool(QoL, "FixGunModeError", "Fix: Fehler \"Unrecognized mode\" beim Umschalten des Geschütz-Ziels", true);
             Bool(QoL, "FixNavmeshSnap", "Fix: Matrosen finden Ziele knapp neben dem Laufweg (bis 5 m statt 1,5 m)", true);
             Bool(QoL, "SkipIntroTutorial", "Neue Karriere: Einf\u00fchrungs-Tutorial \u00fcberspringen", true);
             Bool(QoL, "FixFadeReparent", "Fehler-Fix: Einblend-Effekt von Figuren (z. B. Hafenarbeiter) beim Ein-/Ausschalten nicht mehr falsch umh\u00e4ngen", true);

@@ -212,7 +212,7 @@ namespace UboatToolkit.Modules
             if (!Settings.B("FixSpeedRange")) return;
             var t = Traverse.Create(__instance);
             if (!t.Field("timeCompression").GetValue<bool>()) return;
-            var mod = t.Field("timeScaleModifier").GetValue<ParameterModifier>();
+            var mod = t.Field("timeScaleModifier").GetValue<Modifier>();   // field is a Modifier (was read as wrong type -> "Specified cast is not valid")
             var gt = t.Field("gameTime").GetValue<GameTime>();
             if (mod == null || gt == null) return;
             float s = timeCompressionScale;
@@ -413,6 +413,27 @@ namespace UboatToolkit.Modules
                 return false;
             }
             catch { return true; }
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // QoL: "InvalidOperationException: Unrecognized mode." (game code, UseGun.OnModeChosen).
+    // The gun's target buttons (Ships / Aircraft / Hold fire) share one window with other devices.
+    // When the window switches, the old buttons are only removed at the end of the frame and can
+    // still fire with a mode the gun does not know -> error. Unknown modes are now simply ignored.
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Actions.UseGun), "OnModeChosen")]
+    internal static class Fix_GunUnknownMode
+    {
+        private static Exception Finalizer(Exception __exception, string mode)
+        {
+            if (__exception is InvalidOperationException && Settings.B("FixGunModeError"))
+            {
+                Util.Log("Geschütz: unbekannter Modus \"" + mode + "\" ignoriert");
+                return null;
+            }
+            return __exception;
         }
     }
 }
