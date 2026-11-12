@@ -333,3 +333,30 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // A periscope whose "vision" renderer has no material (seen on a custom boat model): Periscope.Awake stops at
+    // Instantiate(vision.sharedMaterial) ("The Object you want to instantiate is null"), so the rest of Awake never runs
+    // and Periscope.Update then throws a NullReferenceException EVERY FRAME (lag, periscope unusable). Now the empty
+    // renderer gets the visionUI material (or a plain one) first, so Awake finishes. Logged once per periscope.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Items.Periscope), "Awake")]
+    internal static class Fix_PeriscopeNoMaterial
+    {
+        private static void Prefix(UBOAT.Game.Scene.Items.Periscope __instance)
+        {
+            try
+            {
+                var vision = __instance.Vision;
+                if (vision == null || vision.sharedMaterial != null) return;
+                var ui = __instance.VisionUI;
+                var mat = ui != null && ui.sharedMaterial != null ? ui.sharedMaterial : null;
+                if (mat == null) { var sh = UnityEngine.Shader.Find("Unlit/Texture") ?? UnityEngine.Shader.Find("Standard"); if (sh != null) mat = new UnityEngine.Material(sh); }
+                if (mat == null) return;
+                vision.sharedMaterial = mat;
+                Util.Log("Sehrohr: '" + __instance.name + "' hatte kein Bild-Material, Ersatz gesetzt (" + mat.name + ") - sonst Fehler in jedem Bild");
+            }
+            catch (System.Exception e) { Util.Log("Sehrohr: Ersatz-Material fehlgeschlagen: " + e.Message); }
+        }
+    }
+}
