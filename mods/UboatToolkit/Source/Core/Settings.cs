@@ -548,6 +548,11 @@ namespace UboatToolkit
             Key("KeyHotspots", "Bremsen-Finder an/aus", "F11");
 
             // ---------- Tools ----------
+            Num(Tools, "MenuOpacity", "Menü: Hintergrund-Deckkraft (1 = ganz dunkel)", 0.92f, 0f, 1f, 0.02f);
+            Num(Tools, "MenuWidth", "Menü: Breite in Pixeln (oder rechte untere Ecke ziehen)", 1000f, 500f, 3840f, 10f);
+            Num(Tools, "MenuHeight", "Menü: Höhe in Pixeln (0 = ganze Bildschirmhöhe)", 0f, 0f, 2160f, 10f);
+            Num(Tools, "MenuX", "Menü: Abstand von links (oder Titel ziehen)", 40f, 0f, 3840f, 10f);
+            Num(Tools, "MenuY", "Menü: Abstand von oben (oder Titel ziehen)", 40f, 0f, 2160f, 10f);
             Bool(Tools, "DebugLog", "Test-Log: alles, was der Mod tut + Fehler (logs\\toolkit-Datum.log)", true);
             Bool(Tools, "GameLogFilter", "Spiel-Log klein halten: nur Warnungen + Fehler in Player.log (spart Festplatte + RAM)", true);
             Bool(Tools, "MapPixelSample", "Karte: Pixel-Messung der Raster-Beschriftung ins Log (Kontrast, Lesbarkeit, je Stil und Ebene)", false);
@@ -630,6 +635,7 @@ namespace UboatToolkit
         public static bool B(string key) => byKey.TryGetValue(key, out var o) && o.On;
         public static float F(string key) => byKey.TryGetValue(key, out var o) ? o.Value : 0f;
         public static Opt Get(string key) => byKey.TryGetValue(key, out var o) ? o : null;
+        public static void Set(string key, float v) { if (byKey.TryGetValue(key, out var o)) o.Value = Math.Max(o.Min, Math.Min(o.Max, v)); }
 
         public static void Load()
         {

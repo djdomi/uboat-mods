@@ -10,7 +10,8 @@ namespace UboatToolkit
     public static class Imgui
     {
         private static Type gui, layout, option;
-        private static MethodInfo label, toggle, slider, button, beginH, endH, beginScroll, endScroll, beginArea, endArea, box, guiLabel, width, space;
+        private static MethodInfo label, toggle, slider, button, beginH, endH, beginScroll, endScroll, beginArea, endArea, box, guiLabel, width, space, drawTex;
+        private static PropertyInfo color;
         private static object noOptions;
         public static bool Ready;
 
@@ -38,6 +39,8 @@ namespace UboatToolkit
             width = L("Width", typeof(float));
             box = gui.GetMethod("Box", new[] { typeof(Rect), typeof(string) });
             guiLabel = gui.GetMethod("Label", new[] { typeof(Rect), typeof(string) });
+            drawTex = gui.GetMethod("DrawTexture", new[] { typeof(Rect), typeof(Texture) });
+            color = gui.GetProperty("color", BindingFlags.Public | BindingFlags.Static);
             Ready = new[] { label, toggle, slider, button, beginH, endH, beginScroll, endScroll, beginArea, endArea, box, guiLabel, width, space }.All(m => m != null);
             if (!Ready) Util.Log("menu could not be created (IMGUI not found).");
         }
@@ -62,6 +65,15 @@ namespace UboatToolkit
         public static void EndArea() => endArea.Invoke(null, null);
         public static void Space(float px) => space.Invoke(null, new object[] { px });
         public static void Box(Rect r, string t) => box.Invoke(null, new object[] { r, t });
+        // Solid dark background (alpha 0..1), so the menu stays readable over the game.
+        public static void Backdrop(Rect r, float alpha)
+        {
+            if (drawTex == null || color == null || alpha <= 0f) return;
+            var old = (Color)color.GetValue(null, null);
+            color.SetValue(null, new Color(0.05f, 0.06f, 0.08f, Mathf.Clamp01(alpha)), null);
+            drawTex.Invoke(null, new object[] { r, Texture2D.whiteTexture });
+            color.SetValue(null, old, null);
+        }
         public static void TextAt(Rect r, string t) => guiLabel.Invoke(null, new object[] { r, t });
     }
 }

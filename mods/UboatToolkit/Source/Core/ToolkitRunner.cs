@@ -109,6 +109,33 @@ namespace UboatToolkit
         public static float NoticeUntil;
         public static void ShowNotice(string text, float seconds = 6f) { Notice = text; NoticeUntil = Time.unscaledTime + seconds; Util.Log(text); }
 
+        // Menu position and size (saved in the INI), moved by dragging the title, resized by the bottom-right corner.
+        private static int dragMode; private static Vector2 dragStart; private static Rect dragRect;
+        internal static Rect MenuRect()
+        {
+            float w = Mathf.Clamp(Settings.F("MenuWidth"), 500, Screen.width - 20);
+            float h = Settings.F("MenuHeight") <= 0 ? Screen.height - 80 : Mathf.Clamp(Settings.F("MenuHeight"), 300, Screen.height - 20);
+            float x = Mathf.Clamp(Settings.F("MenuX"), 0, Mathf.Max(0, Screen.width - w));
+            float y = Mathf.Clamp(Settings.F("MenuY"), 0, Mathf.Max(0, Screen.height - h));
+            return new Rect(x, y, w, h);
+        }
+        private void DragMenu()
+        {
+            var r = MenuRect();
+            var m = Input.mousePosition; var p = new Vector2(m.x, Screen.height - m.y);
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (new Rect(r.xMax - 24, r.yMax - 24, 24, 24).Contains(p)) dragMode = 2;
+                else if (new Rect(r.x, r.y, r.width, 24).Contains(p)) dragMode = 1;
+                else dragMode = 0;
+                dragStart = p; dragRect = r;
+            }
+            if (!Input.GetMouseButton(0)) { if (dragMode != 0) Settings.Save(); dragMode = 0; return; }
+            var d = p - dragStart;
+            if (dragMode == 1) { Settings.Set("MenuX", dragRect.x + d.x); Settings.Set("MenuY", dragRect.y + d.y); }
+            if (dragMode == 2) { Settings.Set("MenuWidth", dragRect.width + d.x); Settings.Set("MenuHeight", dragRect.height + d.y); }
+        }
+
         private void DrawGui()
         {
             if (Notice != null && Time.unscaledTime < NoticeUntil)
@@ -122,14 +149,24 @@ namespace UboatToolkit
             }
             UboatToolkit.Modules.UnderFire.Draw();
             if (!menuOpen) return;
+            DragMenu();
 
-            var r = new Rect(40, 40, 720, Mathf.Min(760, Screen.height - 80));
-            Imgui.Box(r, "UBOAT Toolkit  (F10 schließt)");
+            var r = MenuRect();
+            Imgui.Backdrop(r, Settings.F("MenuOpacity"));
+            Imgui.Box(r, "UBOAT Toolkit  (F10 schließt, Titel ziehen = verschieben, Ecke unten rechts = Größe)");
+            Imgui.TextAt(new Rect(r.xMax - 18, r.yMax - 20, 16, 18), "◢");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
-            Imgui.BeginH();
-            foreach (var t in new[] { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden", Settings.KeysTab, Settings.Tools })
-                if (Imgui.Button((t == tab ? "> " : "") + t, 76)) tab = t;
-            Imgui.EndH();
+            // tabs: as wide as fits, second row when the window is narrow
+            var tabs = new[] { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden", Settings.KeysTab, Settings.Tools };
+            int perRow = Mathf.Clamp(Mathf.FloorToInt((r.width - 20) / 90f), 1, tabs.Length);
+            float tw = (r.width - 30) / perRow - 4;
+            for (int i = 0; i < tabs.Length; i += perRow)
+            {
+                Imgui.BeginH();
+                for (int j = i; j < Mathf.Min(i + perRow, tabs.Length); j++)
+                    if (Imgui.Button((tabs[j] == tab ? "> " : "") + tabs[j], tw)) tab = tabs[j];
+                Imgui.EndH();
+            }
             Imgui.Space(6);
             scroll = Imgui.BeginScroll(scroll);
             if (tab == "Crew") UboatToolkit.Modules.ExtraFeatures.DrawCrewTab();
@@ -153,7 +190,7 @@ namespace UboatToolkit
                 else
                 {
                     Imgui.Label(o.Label + ":  " + o.Value.ToString("0.##", CultureInfo.InvariantCulture));
-                    float v = Imgui.Slider(Mathf.Clamp(o.Value, o.Min, o.Max), o.Min, o.Max, 600);
+                    float v = Imgui.Slider(Mathf.Clamp(o.Value, o.Min, o.Max), o.Min, o.Max, Mathf.Max(200f, MenuRect().width - 120));
                     if (o.Step > 0) v = Mathf.Round(v / o.Step) * o.Step;
                     if (Mathf.Abs(v - Mathf.Clamp(o.Value, o.Min, o.Max)) > 0.0001f) o.Value = v;
                 }
