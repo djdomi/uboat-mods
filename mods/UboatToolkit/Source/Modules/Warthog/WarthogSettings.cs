@@ -88,9 +88,17 @@ namespace UboatToolkit.Modules.Warthog
         }
 
         // By the game's entity type ("Type XXX (Player)"), and by the object name as a fallback.
+        private static object logged;
         public static bool IsWarthog(PlayerShip ship)
         {
             if (ship == null) return false;
+            if (!ReferenceEquals(logged, ship))
+            {
+                logged = ship;
+                string tn = "?";
+                try { tn = ship.SandboxEntity?.Type?.Name ?? "null"; } catch { }
+                Util.Log("[Warthog] Boot: Objekt '" + ship.gameObject.name + "', Typ '" + tn + "'");
+            }
             try
             {
                 var t = ship.SandboxEntity != null ? ship.SandboxEntity.Type : null;
