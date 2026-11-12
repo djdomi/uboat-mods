@@ -20,6 +20,7 @@ namespace UboatToolkit.Modules
         private UBOAT.Game.Scene.Tasks.PortServicesProvider provider;
         private double lastLeft = -1;
         private float lastChange;
+        private float nextDiag;
         private int kicks;
 
         // Watchdog for the port resupply queue: if "loading" shows but nothing moves,
@@ -114,7 +115,12 @@ namespace UboatToolkit.Modules
             if (!Settings.B("InstantPortLoading") || Time.unscaledTime < next) return;
             next = Time.unscaledTime + 2f;
             var ship = Util.PlayerShip;
-            if (!ship.Docked) { progress.Clear(); return; }
+            // Before the first patrol the game keeps bought goods waiting until you sail out
+            // ("Georderte Waren werden ... geladen, bevor es zu seinem ersten Einsatz ausläuft").
+            // Then the boat does not count as docked, so allow that case too.
+            var career = Util.Career;
+            bool firstPatrol = career != null && career.BeforeFirstPatrol;
+            if (!ship.Docked && !firstPatrol) { progress.Clear(); return; }
 
             seen.Clear();
             foreach (var s in Util.Find<Storage>())
@@ -140,13 +146,18 @@ namespace UboatToolkit.Modules
                     if (progress.TryGetValue(o, out var p) && p.Key == o.CountLeft) stuck = Time.unscaledTime - p.Value > stuckAfter;
                     else progress[o] = new KeyValuePair<float, float>(o.CountLeft, Time.unscaledTime);
                 }
-                if (!idle && !stuck) continue;
+                if (!idle && !stuck && !firstPatrol) continue;
 
                 Util.Safe("Loading", () => StorageUtility.ResolveTransportOrderInstantly(o));
                 progress.Remove(o);
                 done++;
             }
-            if (done > 0) Util.Log("Verladen: " + done + " Aufträge sofort erledigt");
+            if (done > 0) Util.Log("Verladen: " + done + " Aufträge sofort erledigt" + (firstPatrol ? " (vor erster Feindfahrt)" : ""));
+            else if (seen.Count > 0 && Time.unscaledTime >= nextDiag)
+            {
+                nextDiag = Time.unscaledTime + 30f;
+                Util.Log("Verladen: " + seen.Count + " Aufträge gefunden, keiner erledigt (angedockt " + ship.Docked + ", vor erster Feindfahrt " + firstPatrol + ")");
+            }
         }
 
         private static bool IsShip(IItemStorage s, UBOAT.Game.Scene.Entities.PlayerShip ship)

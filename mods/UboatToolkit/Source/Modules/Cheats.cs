@@ -31,6 +31,14 @@ namespace UboatToolkit.Modules
             var t = Traverse.Create(ship);
             foreach (var field in new[] { "visualDetectability", "sonarDetectability", "radarDetectorDetectability", "hydroacousticDetectorsRangeScale" })
                 Util.ScaleParameter(t.Field(field).GetValue<Parameter>(), f);
+            // Also the boat's own noise (dB, heard by hydrophones) and its radar size (cm): the game's own
+            // dev-console "undetectable" sets exactly these to 0. Shown in the detection tooltip too.
+            bool und = Settings.B("CheatUndetectable");
+            Util.Safe("Undetectable.Noise", () =>
+            {
+                ship.HydrophoneDetectability.GetScaleModifier(Util.ModifierName, true).Value = und ? 0f : 1f;
+                ship.SandboxEntity.SignatureRadius.GetScaleModifier(Util.ModifierName, true).Value = und ? 0f : 1f;
+            });
 
             Util.ScaleParameter(t.Field("hullCrackThreshold").GetValue<Parameter>(), Settings.B("CheatDeepDive") ? 100f : 1f);
 
