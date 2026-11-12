@@ -128,8 +128,8 @@ namespace UboatToolkit.Modules
     {
         private static IEnumerable<System.Reflection.MethodBase> TargetMethods()
         {
-            yield return AccessTools.Method(typeof(PatrolAssignment), "OnStageStarted");
-            yield return AccessTools.Method(typeof(PatrolAssignment), "OnStageResumed");
+            yield return AccessTools.DeclaredMethod(typeof(PatrolAssignment), "OnStageStarted", new[] { typeof(PatrolAssignment.Stages), typeof(bool) });
+            yield return AccessTools.DeclaredMethod(typeof(PatrolAssignment), "OnStageResumed", new[] { typeof(PatrolAssignment.Stages) });
         }
         private static void Postfix(PatrolAssignment __instance)
         {

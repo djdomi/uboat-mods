@@ -33,6 +33,8 @@ namespace UboatToolkit
                     catch (Exception pe)
                     {
                         bad++;
+                        var inner = pe; while (inner.InnerException != null) inner = inner.InnerException;
+                        if (inner != pe) pe = new Exception(pe.Message + " -> " + inner.GetType().Name + ": " + inner.Message);
                         Debug.Log(Tag + " patch failed: " + t.Name + ": " + pe.Message);
                         DebugLog.Write("ERROR", "Patch " + t.Name + " fehlgeschlagen: " + pe.Message);
                     }
