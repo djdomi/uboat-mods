@@ -387,3 +387,36 @@ namespace UboatToolkit.Modules
         private static void Postfix() => BoardingQueue.FlushNow();
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Commander creation: the skill list (SkillTreeUI) crashed in Start with a NullReferenceException,
+    // so the list stayed empty and no campaign could be started. This repairs a missing link to the
+    // character screen and writes exactly what was missing into the toolkit log.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.SkillTreeUI), "Start")]
+    internal static class GuardSkillTree
+    {
+        private static void Prefix(UBOAT.Game.UI.SkillTreeUI __instance, ref UBOAT.Game.Scene.Spaces.CharacterScreenScene ___scene)
+        {
+            try
+            {
+                string path = __instance.transform.name; var p = __instance.transform.parent;
+                while (p != null) { path = p.name + "/" + path; p = p.parent; }
+                if (___scene == null)
+                {
+                    ___scene = UnityEngine.Object.FindObjectOfType<UBOAT.Game.Scene.Spaces.CharacterScreenScene>();
+                    Util.Log("Fähigkeiten-Liste: Verbindung zum Charakter-Bildschirm fehlte (" + path + ", Szene " + __instance.gameObject.scene.name + ") - " + (___scene != null ? "repariert" : "nicht gefunden"));
+                }
+                else if (___scene.Character == null || ___scene.Character.Data == null)
+                    Util.Log("Fähigkeiten-Liste: noch keine Figur geladen (" + path + ")");
+            }
+            catch (System.Exception e) { Util.Log("Fähigkeiten-Liste Prüfung: " + e); }
+        }
+
+        private static System.Exception Finalizer(UBOAT.Game.UI.SkillTreeUI __instance, System.Exception __exception)
+        {
+            if (__exception != null) Util.Log("Fähigkeiten-Liste Fehler: " + __exception);
+            return __exception;
+        }
+    }
+}
