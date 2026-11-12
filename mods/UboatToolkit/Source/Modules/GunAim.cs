@@ -8,7 +8,10 @@ namespace UboatToolkit.Modules
 {
     // Shell weight and damage, aim assist (QoL) and perfect aim (cheat). Only your own boat's guns.
     //  * Shell weight: the shell's physics mass (own value in kg, 0 = game) times a multiplier.
-    //    Note: in this game the damage does NOT come from the weight, so there is an own damage multiplier.
+    //    Note: in this game version the damage does NOT come from weight or speed (Shell.Explode uses only the
+    //    Damage / CrewDamage values x a random 1..2). So there are own multipliers for damage and crew damage,
+    //    and an optional "weight x speed" mode that scales both like the first release did.
+    //    ArmorPiercing exists as a value but the game never reads it, so a setting for it would do nothing.
     //  * Aim assist (GunAimAssist, degrees): when YOU fire and an enemy ship you can see is within this
     //    angle of your barrel, the shot flies with the game's own lead calculation (the same one the crew
     //    uses: target speed and shell flight time). 0 = off.
@@ -53,21 +56,36 @@ namespace UboatToolkit.Modules
         {
             if (__result == null || !Util.IsPlayers(__instance)) return;
             string p = Weapons.Prefix(__instance);
-            float kg = Settings.F(p + "ShellMass"), massMul = Settings.F(p + "ShellMassMul"), dmgMul = Settings.F(p + "ShellDamageMul");
+            float kg = Settings.F(p + "ShellMass"), massMul = Settings.F(p + "ShellMassMul");
+            float dmgMul = Settings.F(p + "ShellDamageMul"), crewMul = Settings.F(p + "ShellCrewDamageMul");
+            if (dmgMul <= 0f) dmgMul = 1f;
+            if (crewMul <= 0f) crewMul = 1f;
             var rb = __result.GetComponent<Rigidbody>();
             var massParam = Traverse.Create(__result).Field("mass").GetValue<UBOAT.Game.Core.Data.Parameter>();
+            float gameMass = massParam != null ? massParam.Value : 0f, mass = gameMass;
             if (rb != null && massParam != null)
             {
-                float m = (kg > 0f ? kg : massParam.Value) * (massMul > 0f ? massMul : 1f);
-                rb.mass = Mathf.Max(0.0001f, m);
+                mass = Mathf.Max(0.0001f, (kg > 0f ? kg : gameMass) * (massMul > 0f ? massMul : 1f));
+                rb.mass = mass;
             }
-            foreach (var name in new[] { "damage", "crewDamage" })
+            // Optional (like the first release): damage grows with weight x speed compared to the game's shell.
+            float kinetic = 1f;
+            if (Settings.B(p + "KineticDamage") && gameMass > 0f)
             {
-                var par = Traverse.Create(__result).Field(name).GetValue<UBOAT.Game.Core.Data.Parameter>();
-                if (par == null) continue;
-                par.RemoveScaleModifiers(ModName); // shells are re-used from a pool
-                if (dmgMul > 0f && Mathf.Abs(dmgMul - 1f) > 0.001f) par.AddScaleModifier(ModName).Value = dmgMul;
+                float gameSpeed = Util.Original<float>(__instance, "shellSpeed");
+                float speed = Traverse.Create(__instance).Field("shellSpeed").GetValue<float>();
+                if (gameSpeed > 0f) kinetic = Mathf.Clamp(mass * speed / (gameMass * gameSpeed), 0.01f, 10000f);
             }
+            Scale(__result, "damage", dmgMul * kinetic);
+            Scale(__result, "crewDamage", crewMul * kinetic);
+        }
+
+        private static void Scale(Shell shell, string field, float f)
+        {
+            var par = Traverse.Create(shell).Field(field).GetValue<UBOAT.Game.Core.Data.Parameter>();
+            if (par == null) return;
+            par.RemoveScaleModifiers(ModName); // shells are re-used from a pool
+            if (Mathf.Abs(f - 1f) > 0.001f) par.AddScaleModifier(ModName).Value = f;
         }
     }
 }
