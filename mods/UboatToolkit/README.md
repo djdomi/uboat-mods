@@ -19,6 +19,8 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Zeitraffer & Navigation
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Fix: Wolfsrudel geht nicht verloren, wenn das BdU gerade funkt | FixWolfpackRetry |
+| QoL | NEU: Kurs und Tiefe auf Tasten (Strg/Shift + Pfeile, Strg+F/R/P/C/H) | KeyTurn…, KeyAmidships, KeyDeeper…, KeyShallower…, KeyPeriscopeDepth, KeyMaxDepth, KeyHoldDepth |
 | QoL | NEU: Konvois mit Flugzeugträger fahren normal | FixCarrierConvoy |
 | QoL | NEU: Maschinen-Telegraf auf Tasten (Alt+0 bis Alt+5, Strg+Alt+1-4 zurück) | KeyGearStop, KeyGear1-5, KeyGearBack1-4 |
 | QoL | NEU: Meeresboden immer laden bei flachem Wasser (unter ~300 m) | SeaFloorAlways |
@@ -46,6 +48,13 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Crew
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Ich-Sicht: mit Shift schneller durch Luken | FastHatch |
+| QoL | NEU: Regenkleidung auch bei Sturm/Gischt (ab Windstärke 6) | RainGearWind |
+| QoL | NEU: Neue/beförderte Offiziere bekommen 6-Stunden-Wachen | OfficerWatches |
+| QoL | NEU: Offiziere gehen nicht von selbst ans Sehrohr | CrewScopeNoOfficers |
+| QoL | NEU: Müde Männer nehmen die nächste freie Koje | CrewNearestBed |
+| QoL | NEU: Alarmtauchen: höchstens 8 Mann laufen zum Bug | CrewBowRunCap |
+| QoL | NEU: Bei Alarm nur essen, wenn sehr hungrig | CrewNoEatAlarm |
 | QoL | NEU: Skill-Editor im Tab „Crew“: jeden Skill per Klick geben oder nehmen | – |
 | QoL | Tiefenruder und Kartentisch immer besetzt | KeepDepthStation, KeepNavTable, StationDelay |
 | QoL | NEU: Echolot als Matrosen-Aufgabe (pingt nicht bei Alarm) | EchoSailor, EchoSailorSeconds, EchoSailorQuiet |
@@ -97,6 +106,11 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Waffen & Torpedos
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Fadenkreuz-Licht an/aus (Taste F) und Helligkeit | KeyReticleLight, ReticleBright |
+| QoL | NEU: Sehrohr merkt sich Ansicht und Zoom | ScopeRemember |
+| QoL | NEU: Deckgeschütz bei Seegang langsamer und ungenauer | DeckGunSeaState |
+| QoL | NEU: Rauch fahrender Schiffe früher sichtbar, gestoppte Schiffe bleiben sichtbar | LookoutSmoke |
+| QoL | NEU: Ausguck sieht Schiffe weiter (weniger bei schlechter Sicht) | LookoutRange |
 | QoL | NEU: Tab „Torpedos“: Typen für den Hafen-Nachschub gezielt wählen | (Datei toolkit-torpedos.txt) |
 | QoL | NEU: Häfen haben eine gleichmäßige Torpedo-Mischung | TorpedoMix |
 | QoL | Torpedo-Rechner rechnet selbst | EasyTDC |
@@ -135,6 +149,10 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Anzeigen & Erfolge
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Ansagen zum Lichtwechsel stumm | MuteLightCallouts |
+| QoL | NEU: Getaucht bleibt die Außenkamera unter Wasser | CamOrbitUnderwater |
+| QoL | NEU: Mausrad-Zoom in Ich-Sicht und freier Kamera, Strg+Mausrad an Geräten | CamWheelZoom, StationZoom |
+| QoL | NEU: Nacht draußen heller, Boot innen heller (in %) | NightBright, InteriorBright |
 | QoL | NEU: Pause ohne Unschärfe und dunkle Einblendung | NoPauseBlur |
 | QoL | NEU: Vergessene Belohnungen von Funk-Aufträgen werden ausgezahlt | FixRadioRewards |
 | QoL | NEU: Patrouille: Tonnage zählt schon auf dem Weg | TonnageBeforePatrol |
@@ -149,6 +167,10 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Leistung & Tools
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Fix: gewählte Crew-Sprache bleibt nach Updates | KeepVoiceLanguage |
+| QoL | NEU: Fixes gegen Ruckler und Abstürze (Crew-Texturen) | FixAbortStall, FixTextureRace |
+| QoL | NEU: Spielstand-Liste nach Karriere sortiert | SaveGroupCareer |
+| QoL | NEU: Spielstände schneller laden | FastLoad |
 | QoL | NEU: Kein Ruckeln beim Zoomen von Sehrohr/UZO | FixScopeStall |
 | QoL | NEU: Kein Bild-Wegrutschen am Bildschirmrand | NoEdgeScroll |
 | QoL | Schneller laden | FastLoading |
