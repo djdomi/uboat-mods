@@ -843,6 +843,10 @@ namespace UboatToolkit
             m["  Männer ohne Arbeit (stehen, ruhen, rauchen, schlafen) überlegen nur jedes x. Bild, auch sichtbar (1 = aus)"] = "  men without work (standing, resting, smoking, sleeping) think only every x-th frame, even when visible (1 = off)";
             m["Start-Videos (Logos) beim Spielstart überspringen"] = "Skip the start videos (logos) when the game starts";
             m["Start-Intros übersprungen"] = "Start videos skipped";
+            m["Strahlruder gibt es nur auf dem Warthog (U-1337)"] = "Thrusters exist only on the Warthog (U-1337)";
+            m["Strahlruder sind ausgeschaltet (F10 > Warthog)"] = "Thrusters are switched off (F10 > Warthog)";
+            m["Strahlruder: im Hafen festgemacht, erst ablegen"] = "Thrusters: moored in port, cast off first";
+            m["Strahlruder: Boot wird gerade vom Spiel gehalten (Schnellreise/Andocken)"] = "Thrusters: the game is holding the boat right now (fast travel/docking)";
             return m;
         }
     }

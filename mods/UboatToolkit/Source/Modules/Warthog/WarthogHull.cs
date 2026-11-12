@@ -37,8 +37,12 @@ namespace UboatToolkit.Modules.Warthog
         public override void Frame()
         {
             var ship = Util.PlayerShip;
-            if (!WarthogSettings.Active(ship)) return;
+            bool keys = Keys.Held("KeyWhThrustLeft") || Keys.Held("KeyWhThrustRight");
+            if (!WarthogSettings.Active(ship)) { if (keys) Why("Strahlruder gibt es nur auf dem Warthog (U-1337)"); return; }
             var rb = ship.RigidBody;
+            if (keys && !Settings.B("WhThrusters")) Why("Strahlruder sind ausgeschaltet (F10 > Warthog)");
+            else if (keys && ship.Docked) Why("Strahlruder: im Hafen festgemacht, erst ablegen");
+            else if (keys && rb != null && rb.isKinematic) Why("Strahlruder: Boot wird gerade vom Spiel gehalten (Schnellreise/Andocken)");
             if (rb == null || Time.deltaTime <= 0f || Time.timeScale <= 0f) return;
             // Frame() runs in Update: forces added here are summed until the next physics step, so scale them per frame.
             float k = Mathf.Clamp(Time.deltaTime / Time.fixedDeltaTime, 0f, 4f);
@@ -86,6 +90,15 @@ namespace UboatToolkit.Modules.Warthog
             float torque = cmd * Settings.F("WhThrusterPower") * 1e6f;
             rb.AddTorque(ship.transform.up * torque * k, ForceMode.Force);
             SetEnergy(ship, Mathf.Abs(cmd) * Settings.F("WhThrusterEnergy") * 0.0001f);
+        }
+
+        private float nextWhy;
+        // When Z/X do nothing, say why (once every 5 s) instead of silently ignoring the key.
+        private void Why(string text)
+        {
+            if (Time.unscaledTime < nextWhy) return;
+            nextWhy = Time.unscaledTime + 5f;
+            ToolkitRunner.ShowNotice(text, 3f);
         }
 
         private void SetEnergy(PlayerShip ship, float use)
