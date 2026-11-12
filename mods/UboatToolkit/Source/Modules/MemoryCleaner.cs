@@ -7,7 +7,7 @@ namespace UboatToolkit.Modules
     // so it waits for a calm moment (game paused or time compression on).
     public class MemoryCleaner : ModuleBase
     {
-        private float due = -1f;
+        private float due = -1f, shipSince;
 
         public override void Tick()
         {
@@ -15,6 +15,11 @@ namespace UboatToolkit.Modules
             if (min <= 0f) { due = -1f; return; }
             if (due < 0f) { due = Time.unscaledTime + min * 60f; return; }
             if (Time.unscaledTime < due) return;
+            // Never while a save is loading or the boat just appeared: freeing "unused" assets then can unload
+            // ship prefabs the game is about to spawn (seen: HDML / Flower-Class spawn errors after a load).
+            if (SaveTools_LoadSpeedPatch.IsLoading || !Util.ShipReady || Util.SafeGet(() => Game.Saves != null && Game.Saves.IsLoading, false)
+                || Time.unscaledTime - shipSince < 120f)
+            { if (Util.PlayerShip == null) shipSince = Time.unscaledTime; return; }
             bool calm = Time.timeScale == 0f || (Game.TimeCompression?.TimeCompression ?? false);
             if (!calm && Time.unscaledTime < due + 300f) return; // wait max. 5 min for a calm moment
             due = Time.unscaledTime + min * 60f;
