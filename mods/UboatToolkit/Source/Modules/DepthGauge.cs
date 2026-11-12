@@ -36,7 +36,7 @@ namespace UboatToolkit.Modules
                 return Mathf.Clamp(Mathf.Ceil(need / step) * step, 30f, cap);
             }
         }
-        private static bool dragging; private static Vector2 dragOff;
+        private static bool dragging; private static Vector2 dragOff; private static float lastClick = -1f;
 
         private static float Step()
         {
@@ -93,10 +93,18 @@ namespace UboatToolkit.Modules
                 var hit = new Rect(sc.x - 30, sc.y, sc.width + 60, sc.height);
                 if (hit.Contains(p))
                 {
+                    // Double click only, so a stray click never sends the boat down.
                     if (Input.GetMouseButtonDown(0))
                     {
-                        float d = (p.y - sc.y) / sc.height * Max;
-                        Util.Safe("Depth.Click", () => SetTarget(ship, Mathf.Round(d)));
+                        float now = Time.unscaledTime;
+                        if (now - lastClick < 0.4f)
+                        {
+                            float d = (p.y - sc.y) / sc.height * Max;
+                            Util.Safe("Depth.Click", () => SetTarget(ship, Mathf.Round(d)));
+                            ToolkitRunner.ShowNotice("Zieltiefe " + Mathf.Round(d).ToString("F0") + " m", 2f);
+                            lastClick = -1f;
+                        }
+                        else lastClick = now;
                     }
                     float wheel = Input.mouseScrollDelta.y;
                     if (Mathf.Abs(wheel) > 0.01f) Util.Safe("Depth.Wheel", () => SetTarget(ship, ship.TargetDepth - Mathf.Sign(wheel) * Step()));
