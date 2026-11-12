@@ -58,6 +58,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.QuietUIHost());
             Modules.Add(new Modules.Helm());
             Modules.Add(new Modules.SeaGun());
+            Modules.Add(new Modules.StationCtl.StationHost());
             Modules.Add(new Modules.Reticle());
             Modules.Add(new Modules.GameTuning());
             Modules.Add(new Modules.PerfLogger());

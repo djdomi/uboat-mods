@@ -213,7 +213,29 @@ namespace UboatToolkit
             Num(QoL, "CamLookSmooth", "    Umschauen glätten (Sekunden)", 0.08f, 0, 2, 0.02f);
             Bool(QoL, "CamHideCursor", "  freie Kamera: Mauszeiger ausblenden", true);
             Bool(QoL, "CamProtectScripted", "  bei Zwischensequenzen nicht eingreifen", true);
-            Bool(QoL, "StationZoom", "Kamera: an Ger\u00e4ten (Horcher, Vorhaltrechner ...) zoomt Strg + Mausrad", true);
+            Bool(QoL, "StationZoom", "Stationen (Horcher, Vorhaltrechner, Torpedoraum ...): Zoom, Umschauen, Drehknöpfe", true);
+            Num(QoL, "StLookMode", "  Umschauen: 0 = wie Ich-Sicht (Mitte-Punkt), 1 = Blick dreht zum Mauszeiger", 0, 0, 1, 1);
+            Num(QoL, "StPanSpeed", "  Umschau-Tempo (1 = wie Ich-Sicht)", 1, 0.1f, 5, 0.1f);
+            Num(QoL, "StMaxPan", "  wie weit die Ansicht gleiten darf", 1.25f, 0, 4, 0.05f);
+            Num(QoL, "StMaxLook", "  wie weit die Ansicht drehen darf (Grad)", 35, 0, 90, 1);
+            Num(QoL, "StMinFov", "  Zoom bis (Grad, kleiner = näher)", 22, 5, 60, 1);
+            Num(QoL, "StHydroLook", "  Horcher: 0 = gleiten, 1 = drehen", 1, 0, 1, 1);
+            Num(QoL, "StTdcLook", "  Vorhaltrechner: 0 = gleiten, 1 = drehen", 0, 0, 1, 1);
+            Num(QoL, "StTorpLook", "  Torpedoraum/Feuerleitung: 0 = gleiten, 1 = drehen", 1, 0, 1, 1);
+            Num(QoL, "StGyroLook", "  Schusswinkel-Empfänger: 0 = gleiten, 1 = drehen", 0, 0, 1, 1);
+            Num(QoL, "StOtherLook", "  andere Stationen: 0 = gleiten, 1 = drehen", 0, 0, 1, 1);
+            Num(QoL, "StTdcX", "  Vorhaltrechner: Gleiten seitlich (x)", 1, 0, 2, 0.05f);
+            Num(QoL, "StTdcY", "  Vorhaltrechner: Gleiten hoch/runter (x)", 1, 0, 2, 0.05f);
+            Num(QoL, "StGyroX", "  Schusswinkel-Empfänger: Gleiten seitlich (x)", 0.35f, 0, 2, 0.05f);
+            Num(QoL, "StGyroY", "  Schusswinkel-Empfänger: Gleiten hoch/runter (x)", 0.35f, 0, 2, 0.05f);
+            Num(QoL, "StTorpForward", "  Torpedoraum: Standpunkt nach vorn (m)", 0.6f, -2, 2, 0.1f);
+            Bool(QoL, "StHideTooltips", "  Tooltips erst zeigen, wenn Mauszeiger frei ist", true);
+            Bool(QoL, "StHideReadout", "  Horcher-Anzeige erst zeigen, wenn Mauszeiger frei ist", true);
+            Bool(QoL, "StDialDirect", "  Drehknöpfe folgen der Maus direkt", true);
+            Num(QoL, "StDialRange", "  Drehknopf-Empfindlichkeit (Bildschirm-Anteil für ganzen Bereich)", 0.4f, 0.05f, 2, 0.05f);
+            Num(QoL, "StDialFine", "  mit Shift fein einstellen (x)", 0.05f, 0.01f, 1, 0.01f);
+            Bool(QoL, "StAobLive", "  Lagewinkel-Knopf folgt beim Ziehen sofort", true);
+            Num(QoL, "StAobSpeed", "  Lagewinkel-Knopf: Tempo (Grad/s, 0 = Spiel)", 240, 0, 1000, 10);
             Bool(QoL, "CamOrbitUnderwater", "Kamera: getaucht bleibt die Au\u00dfenkamera unter Wasser (realistisch)", false);
             Num(QoL, "OrbitMargin", "  Abstand unter der Wasseroberfläche (m)", 1.5f, 0, 10, 0.25f);
             Num(QoL, "OrbitGrace", "  Sehrohr gerade über Wasser: Kamera frei für ... Sekunden", 1.5f, 0, 10, 0.25f);
@@ -391,6 +413,8 @@ namespace UboatToolkit
             Key("KeyReticleLight", "Fadenkreuz-Licht an/aus (im Sehrohr/Fernglas)", "F");
             Key("KeyCamZoomReset", "Kamera: Zoom zurücksetzen", "R");
             Key("KeyCamFastZoom", "Kamera: schneller Zoom (halten)", "LeftShift");
+            Key("KeyStationCursor", "Station: Mauszeiger frei/fest", "LeftAlt");
+            Key("KeyStationDragLook", "Station: halten zum Umschauen (Modus 1)", "Mouse3");
             Key("KeyHotspots", "Bremsen-Finder an/aus", "F11");
 
             // ---------- Tools ----------
@@ -415,6 +439,7 @@ namespace UboatToolkit
             Bool(Tools, "HatchLog", "Log: Luken-Durchgang Bild für Bild", false);
             Bool(Tools, "CamLog", "Log: Kamera-Zoom", false);
             Bool(Tools, "OrbitLog", "Log: Außenkamera unter Wasser", false);
+            Bool(Tools, "StationLog", "Log: Stationen (Zoom, Drehknöpfe)", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);

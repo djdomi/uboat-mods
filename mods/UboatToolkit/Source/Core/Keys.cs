@@ -35,6 +35,15 @@ namespace UboatToolkit
             return Parse(o.Text, out var code, out _, out _, out _) && Input.GetKey(code);
         }
 
+        // The bound key as a KeyCode (single key names like "LeftAlt" or "Mouse3" allowed).
+        public static KeyCode Code(string key, KeyCode fallback)
+        {
+            var o = Settings.Get(key);
+            if (o == null || string.IsNullOrEmpty(o.Text)) return KeyCode.None;
+            if (Enum.TryParse<KeyCode>(o.Text.Trim(), true, out var single)) return single;
+            return Parse(o.Text, out var code, out _, out _, out _) ? code : fallback;
+        }
+
         public static bool Ctrl => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
         public static bool Shift => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
         public static bool Alt => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr);

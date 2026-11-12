@@ -72,7 +72,6 @@ namespace UboatToolkit.Modules
 
         private static void Postfix(MainCamera __instance)
         {
-            CameraTools_StationZoomPatch.Check();
             var mode = __instance.CurrentMode;
             if (!CamCfg.On)
             {
