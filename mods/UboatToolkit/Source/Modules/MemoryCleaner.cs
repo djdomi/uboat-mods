@@ -21,7 +21,9 @@ namespace UboatToolkit.Modules
                 || Time.unscaledTime - shipSince < 120f)
             { if (Util.PlayerShip == null) shipSince = Time.unscaledTime; return; }
             bool calm = Time.timeScale == 0f || (Game.TimeCompression?.TimeCompression ?? false);
-            if (!calm && Time.unscaledTime < due + 300f) return; // wait max. 5 min for a calm moment
+            // Only in a calm moment (paused or time compression): the cleanup itself takes 0.3-0.65 s, which was
+            // a visible hitch when it was forced after 5 minutes during normal play.
+            if (!calm) return;
             due = Time.unscaledTime + min * 60f;
             long before = System.GC.GetTotalMemory(false);
             Resources.UnloadUnusedAssets();

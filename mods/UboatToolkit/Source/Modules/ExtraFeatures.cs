@@ -25,17 +25,32 @@ namespace UboatToolkit.Modules
         private static CharacterClasses classesCache;
         private static PlayerCrew crewCache;
         private static float nextSkills;
+        private static int lastFlags = -1;
 
+        // A failed search (main menu, loading) used to be repeated on every call: 100-400 ms each time.
+        private static float classesRetry, crewRetry;
         private static IEnumerable<CharacterClass> Classes()
         {
-            if (classesCache == null) classesCache = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault();
+            if (classesCache == null && Time.unscaledTime >= classesRetry) { classesRetry = Time.unscaledTime + 30f; classesCache = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault(); }
             return classesCache?.GetClassesDirect();
         }
 
         private static PlayerCrew Crew()
         {
-            if (crewCache == null) crewCache = Object.FindObjectOfType<PlayerCrew>();
+            if (crewCache == null && Time.unscaledTime >= crewRetry) { crewRetry = Time.unscaledTime + 30f; crewCache = Object.FindObjectOfType<PlayerCrew>(); }
             return crewCache;
+        }
+
+        // The skill cheats walk every skill of every crew member (100-400 ms with a big crew). The result only changes
+        // when the crew changes, so they run again only then (and every 5 minutes as a safety net).
+        private static int lastCrewCount = -1;
+        private static float fullRunAt;
+        private static bool CrewChanged()
+        {
+            int n = Util.SafeGet(() => Crew()?.Characters?.Count() ?? -1, -1);
+            if (n == lastCrewCount && Time.unscaledTime < fullRunAt) return false;
+            lastCrewCount = n; fullRunAt = Time.unscaledTime + 300f;
+            return true;
         }
 
         public override void Tick()
@@ -47,9 +62,13 @@ namespace UboatToolkit.Modules
             if (!any && skillLevels.Count > 0) SkillLevels(false);
             if (Time.unscaledTime < nextSkills) return;
             nextSkills = Time.unscaledTime + 10f;
-            if (Settings.B("CheatAllSkills")) AllSkills();
+            bool all = Settings.B("CheatAllSkills"), ling = Settings.B("CheatLinguist");
+            bool turnedOn = (all ? 1 : 0) + (any ? 2 : 0) + (ling ? 4 : 0) != lastFlags;
+            lastFlags = (all ? 1 : 0) + (any ? 2 : 0) + (ling ? 4 : 0);
+            if (!CrewChanged() && !turnedOn) return;
+            if (all) AllSkills();
             if (any) SkillLevels(true);
-            if (Settings.B("CheatLinguist")) Linguists();
+            if (ling) Linguists();
         }
 
         // Everyone who speaks one foreign language ("... Speaker") also gets "Linguist" (all languages).

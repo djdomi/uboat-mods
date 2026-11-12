@@ -353,7 +353,7 @@ namespace UboatToolkit.Modules
     // Writes Bifrost's UI paths to the log once, 20 s after the game UI appears.
     public class BifrostProbe : ModuleBase
     {
-        private float probeAt = -1f;
+        private float probeAt = -1f, firstTry = -1f, nextTry;
         private bool done;
         private static int moonphase;   // 0 = not checked yet, 1 = there, 2 = not there (TypeByName scans every assembly: ~350 ms)
         private static readonly string[] Paths = { "GUI/Viewport/Main UI Area", "GUI/Viewport/Main UI Area/TimeCompressionExtendedUI", "GUI/Viewport/Main UI Area/TimeCompressionExtendedUI Alternative", "GUI/Viewport/Main UI Area/TimeCompressionExtendedUI Alternative/Timer" };
@@ -364,7 +364,16 @@ namespace UboatToolkit.Modules
             if (moonphase == 0) moonphase = AccessTools.TypeByName("UBOAT.Mods.Moonphase.Main") != null ? 1 : 2;
             if (moonphase == 2) { done = true; return; }
             float now = Time.unscaledTime;
-            if (probeAt < 0f && GameObject.Find(Paths[0]) != null) probeAt = now + 20f;
+            // GameObject.Find searches the whole scene (300-600 ms here). It ran every second for as long as the
+            // UI path was missing, i.e. all game long. Now: one try every 15 s, give up after 5 minutes.
+            if (probeAt < 0f)
+            {
+                if (firstTry < 0f) firstTry = now;
+                if (now - firstTry > 300f) { done = true; Util.Log("Bifrost-Fix: UI-Pfad nicht gefunden, Prüfung beendet"); return; }
+                if (now < nextTry) return;
+                nextTry = now + 15f;
+                if (GameObject.Find(Paths[0]) != null) probeAt = now + 20f;
+            }
             if (probeAt < 0f || now < probeAt) return;
             done = true;
             Util.Safe("Bifrost.Probe", () =>
