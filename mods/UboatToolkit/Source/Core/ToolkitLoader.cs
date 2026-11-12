@@ -28,6 +28,7 @@ namespace UboatToolkit
                 {
                     if (t.GetCustomAttributes(typeof(HarmonyPatch), true).Length == 0) continue;
                     if (t.Namespace == "UboatToolkit.Modules.CrewAi") continue; // the crew AI patches itself below (sorted, own log)
+                    if (t.Namespace == "UboatToolkit.Modules.Lrl") continue;    // the lookout patches its own list below
                     try { Harmony.CreateClassProcessor(t).Patch(); ok++; }
                     catch (Exception pe)
                     {
@@ -37,6 +38,8 @@ namespace UboatToolkit
                     }
                 }
                 DebugLog.Write("START", "Patches ok: " + ok + ", fehlgeschlagen: " + bad);
+                // Lookout: always installed, every switch is read live (as in the original).
+                try { UboatToolkit.Modules.Lrl.LrlInstall.Install(Harmony); } catch (Exception le) { Debug.Log(Tag + " lookout: " + le.Message); }
                 // Crew AI: switch takes effect at the next game start (as in the original).
                 if (Settings.B("CrewAIOverhaul")) { try { UboatToolkit.Modules.CrewAi.CrewAIInstall.Install(Harmony); } catch (Exception ce) { Debug.Log(Tag + " crew AI: " + ce.Message); } }
                 try { UboatToolkit.Modules.VoiceRepair.Run(); } catch (Exception ve) { Debug.Log(Tag + " voice: " + ve.Message); }
