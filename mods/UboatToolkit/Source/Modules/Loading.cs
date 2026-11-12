@@ -26,8 +26,37 @@ namespace UboatToolkit.Modules
         // Watchdog for the port resupply queue: if "loading" shows but nothing moves,
         // push it once more; if it is still stuck, cancel it so you can order again.
         // The menu switch "CancelPortLoading" cancels it by hand.
+        // Dead orders: finished (or nothing left to carry) but still hanging on a storage slot.
+        // The slot then shows "wird verladen... 0 / 0" forever. Seen when a storage got more slots
+        // (Complete() removes the order only from the slot index it remembers) or when an order ran
+        // down to 0 without being completed. They are completed and taken off every slot.
+        private readonly List<TransportOrder> sweepBuf = new List<TransportOrder>();
+        internal int SweepDeadOrders()
+        {
+            int n = 0;
+            if (Util.PlayerShip == null) return 0;
+            foreach (var s in Util.Find<Storage>())
+                for (int i = 0; i < Util.Slots(s); i++)
+                {
+                    sweepBuf.Clear();
+                    if (!s.GetTransportOrders(i, sweepBuf)) continue;
+                    foreach (var o in sweepBuf)
+                    {
+                        if (o == null) { s.RemoveTransportOrder(i, o); n++; continue; }
+                        bool dead = o.IsCompleted || (o.CountLeft <= 0f && o.CountInTransit <= 0f);
+                        if (!dead) continue;
+                        if (!o.IsCompleted) { try { o.Complete(); } catch (System.Exception ex) { Util.Log("Verladen: Abschluss-Fehler " + ex.Message); } }
+                        s.RemoveTransportOrder(i, o);
+                        n++;
+                    }
+                }
+            if (n > 0) Util.Log("Verladen: " + n + " tote Aufträge (0 / 0) entfernt");
+            return n;
+        }
+
         private void Watchdog()
         {
+            if (Util.PlayerShip != null && Util.PlayerShip.Docked) SweepDeadOrders();
             if (provider == null)
                 provider = HarmonyLib.Traverse.Create(typeof(UBOAT.Game.Sandbox.Missions.TutorialUtility)).Field("portServicesProvider").GetValue<UBOAT.Game.Scene.Tasks.PortServicesProvider>();
             if (provider == null) return;
@@ -102,6 +131,7 @@ namespace UboatToolkit.Modules
                 if (!o.IsCompleted) o.Complete();
                 n++;
             }
+            n += SweepDeadOrders();
             p.CancelResupply();   // clears any leftovers and ends the "loading" state
             progress.Clear();
             ToolkitRunner.ShowNotice("FIX MY DAMN SHIPMENT: " + n + " Lieferungen erzwungen. Ruhe jetzt.");
