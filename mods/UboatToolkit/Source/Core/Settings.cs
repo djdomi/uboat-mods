@@ -491,7 +491,7 @@ namespace UboatToolkit
             Bool(Cheat, "DevConsole", "Entwickler-Konsole des Spiels einschalten (mit „Erfolge immer erlaubt“ ohne Achievement-Verlust)", false);
             Bool(Cheat, "CheatInstantResearch", "Forschung + Aufgaben im Hauptquartier sofort fertig", false);
             Bool(Cheat, "CheatResearchAll", "  >> Alles erforschen", false);
-            Num(Cheat, "CheatAddReputationAmount", "  Punkte pro Klick (für die zwei Knöpfe unten)", 100, 1, 1000000, 10);
+            Num(Cheat, "CheatAddReputationAmount", "  Punkte pro Klick (für die zwei Knöpfe unten)", 10, 1, 1000000, 1);
             Bool(Cheat, "CheatAddReputation", "  >> Ruf-Punkte dazu (damit bezahlst du Forschung)", false);
             Bool(Cheat, "CheatAddUpgradePoints", "  >> Upgrade-Punkte dazu", false);
             Bool(Cheat, "CheatUnlockAll", "  >> Alle Upgrades + alle Boote freischalten", false);
