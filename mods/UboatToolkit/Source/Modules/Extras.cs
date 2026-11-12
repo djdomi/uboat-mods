@@ -194,17 +194,38 @@ namespace UboatToolkit.Modules
         }
 
         // Every research task of the headquarters that is not running is finished at once (the game's own Finish = item researched).
+        // Finishes every research of the headquarters: waiting ones, ones whose requirements are not met
+        // yet, and ones an officer is working on right now (those are completed through their handler,
+        // so the officer is free again and rewards are given).
         private static void ResearchAll(PlayerShip ship)
         {
             var hq = ship.SandboxEntity?.Country?.Headquarters;
             if (hq == null) return;
-            int n = 0;
-            foreach (var t in hq.Tasks.ToArray())
-                if (t is UBOAT.Game.Sandbox.HQ.Research r && !r.IsCompleted && (r.AssignedAgents == null || r.AssignedAgents.Length == 0))
-                { r.Finish(); n++; }
+            int n = 0, running = 0;
+            for (int pass = 0; pass < 5; pass++)   // finished research can unlock more research
+            {
+                int before = n + running;
+                foreach (var t in hq.Tasks.ToArray())
+                {
+                    // Research cards and production cards on the HQ table (crate = items, torpedo/shells = equipment).
+                    if (!(t is UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase r) || r.IsCompleted) continue;
+                    if (!(t is UBOAT.Game.Sandbox.HQ.Research || t is UBOAT.Game.Sandbox.HQ.EquipmentProduction
+                          || t is UBOAT.Game.Sandbox.HQ.ItemsProduction || t is UBOAT.Game.Sandbox.HQ.Production)) continue;
+                    try
+                    {
+                        var h = hq.GetHandlerOf(r);
+                        if (h != null && h.Task == r) { h.CompleteTask(); running++; }
+                        else { r.Finish(); n++; }
+                    }
+                    catch (System.Exception e) { Util.Log("Erforschen: " + r.Name + " Fehler " + e.Message); }
+                }
+                if (n + running == before) break;
+            }
             var db = Resources.FindObjectsOfTypeAll<EquipmentDatabase>().FirstOrDefault();
             if (db != null) foreach (var e in db.GetEquipmentDirect()) if (e != null) e.Researched = true;
-            ToolkitRunner.ShowNotice("Erforscht: " + n + " Forschungen (laufende bleiben, gehen mit „sofort“ gleich fertig)", 6f);
+            var left = hq.Tasks.Where(t => t != null && !t.IsCompleted).GroupBy(t => t.GetType().Name).Select(g => g.Key + " " + g.Count());
+            Util.Log("Erforschen: fertig " + n + ", davon liefen " + running + "; offen bleiben (andere Aufgaben): " + string.Join(", ", left.ToArray()));
+            ToolkitRunner.ShowNotice("Erforscht: " + (n + running) + " Forschungen (" + running + " davon liefen gerade)", 6f);
         }
 
         private static void UnlockAll()
@@ -307,6 +328,29 @@ namespace UboatToolkit.Modules
             if (Settings.F("CheatTorpedoSpeed") <= 1f || __instance.Owner != Util.PlayerShip) return;
             var rb = __instance.GetComponent<Rigidbody>();
             if (rb != null) rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // Cheat: research and production cards of your own headquarters need no earlier research and no date.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase), "IsAllowed", HarmonyLib.MethodType.Getter)]
+    internal static class NoResearchRequirements_Patch
+    {
+        private static object playerCountry;
+        private static void Postfix(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase __instance, ref bool __result)
+        {
+            if (__result || !Settings.B("CheatNoResearchRequirements")) return;
+            if (!(__instance is UBOAT.Game.Sandbox.HQ.Research || __instance is UBOAT.Game.Sandbox.HQ.EquipmentProduction
+                  || __instance is UBOAT.Game.Sandbox.HQ.ItemsProduction || __instance is UBOAT.Game.Sandbox.HQ.Production)) return;
+            try
+            {
+                var c = Util.PlayerShip?.SandboxEntity?.Country;
+                if (c != null) playerCountry = c;
+                if (playerCountry != null && ReferenceEquals(__instance.Country, playerCountry) && !__instance.IsCompleted) __result = true;
+            }
+            catch { }
         }
     }
 }

@@ -494,6 +494,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatResearchSpeed", "Forschung/Aufgaben im Hauptquartier x schneller", 1, 1, 1000, 10);
             Bool(Cheat, "DevConsole", "Entwickler-Konsole des Spiels einschalten (mit „Erfolge immer erlaubt“ ohne Achievement-Verlust)", false);
             Bool(Cheat, "CheatInstantResearch", "Forschung + Aufgaben im Hauptquartier sofort fertig", false);
+            Bool(Cheat, "CheatNoResearchRequirements", "Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum nötig", false);
             Bool(Cheat, "CheatResearchAll", "  >> Alles erforschen", false);
             Num(Cheat, "CheatAddReputationAmount", "  Punkte pro Klick (für die zwei Knöpfe unten)", 10, 1, 1000000, 1);
             Bool(Cheat, "CheatAddReputation", "  >> Ansehen (Ruf-Punkte) dazu (damit bezahlst du Forschung + Matrosen)", false);

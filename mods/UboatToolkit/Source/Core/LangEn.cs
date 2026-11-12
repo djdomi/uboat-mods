@@ -833,6 +833,9 @@ namespace UboatToolkit
             m["    >> Bremsen-Finder jetzt starten/stoppen (misst 1 Minute, dann Liste ins Log)"] = "    >> Start/stop slowdown finder now (measures 1 minute, then list into the log)";
             m["Fix: Fehler \"Requested asset Icons/Activators/... / Icons/Equipment/...\" (fehlende Bilder von Depots und Gegenständen)"] = "Fix: error \"Requested asset Icons/Activators/... / Icons/Equipment/...\" (missing pictures of depots and items)";
             m["Fix: Fehler \"GameObject is already being activated or deactivated\" nach dem Charakter-Bildschirm"] = "Fix: error \"GameObject is already being activated or deactivated\" after the character screen";
+            m[" Forschungen ("] = " research items (";
+            m[" davon liefen gerade)"] = " of them were running)";
+            m["Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum nötig"] = "Research without requirements: no earlier research, no date needed";
             return m;
         }
     }
