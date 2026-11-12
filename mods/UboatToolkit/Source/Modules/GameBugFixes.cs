@@ -38,3 +38,65 @@ namespace UboatToolkit.Modules
         private static Exception Finalizer(Exception __exception) => __exception is NullReferenceException ? null : __exception;
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // "GetRemainingDistance can only be called on an active agent that has been placed on a NavMesh" spam:
+    // the game asks how far a man still has to walk while he is not standing on walkable ground
+    // (agent switched off, or just pushed off the walk mesh - our NavRescue puts him back a moment later).
+    // Asking then is pointless; answer "not there yet" without asking, so nothing is logged.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator), "DestinationReached", HarmonyLib.MethodType.Getter)]
+    internal static class Fix_DestinationReachedOffMesh
+    {
+        private static bool Prefix(UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator __instance, ref bool __result)
+        {
+            try
+            {
+                var a = __instance.Agent;
+                if (a != null && a.isActiveAndEnabled && a.isOnNavMesh) return true;
+                __result = false;
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+
+    // Port recruits on the pier: same question for a recruit who is off the walk mesh. Wait and ask again later.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.DockRecruitsInteractable), "DoUpdate")]
+    internal static class Fix_DockRecruitsOffMesh
+    {
+        private static readonly HarmonyLib.AccessTools.FieldRef<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, System.Collections.Generic.List<UBOAT.Game.Scene.Characters.InteractiveCharacter>> chars =
+            HarmonyLib.AccessTools.FieldRefAccess<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, System.Collections.Generic.List<UBOAT.Game.Scene.Characters.InteractiveCharacter>>("characters");
+        private static readonly HarmonyLib.AccessTools.FieldRef<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, int> index =
+            HarmonyLib.AccessTools.FieldRefAccess<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, int>("characterIndex");
+
+        private static bool Prefix(UBOAT.Game.Scene.Characters.DockRecruitsInteractable __instance, ref float __result)
+        {
+            try
+            {
+                var list = chars(__instance);
+                int i = index(__instance);
+                if (list == null || i < 0 || i >= list.Count) return true;
+                var c = list[i];
+                if (c == null || c.Navigator == null || c.Ai == null || !c.Ai.isActiveAndEnabled) return true;
+                var a = c.Navigator.Agent;
+                if (a == null || (a.isActiveAndEnabled && a.isOnNavMesh)) return true;
+                if (c.Ai.GetActiveBehaviour<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour>() == null) return true;
+                __result = 0.1f;
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // Changing boats in port: the old boat's devices are destroyed while the resource bar still listens
+    // to them -> one error per device. Nothing left to show, so the error is dropped.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.Resources.ResourceGUI), "Gain_Modified")]
+    internal static class Fix_ResourceGuiBoatChange
+    {
+        private static System.Exception Finalizer(System.Exception __exception) => __exception is System.NullReferenceException ? null : __exception;
+    }
+}
