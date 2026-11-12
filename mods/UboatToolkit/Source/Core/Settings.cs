@@ -303,6 +303,7 @@ namespace UboatToolkit
             Bool(QoL, "CrewRestInBunks", "  Crew-KI: freie Matrosen legen sich in eine freie Koje statt im Gang zu stehen", true);
             Bool(QoL, "CrewNearestBed", "  Crew-KI: müde Männer nehmen die nächste freie Koje und reservieren sie", true);
             Bool(QoL, "CrewBedSharing", "  Crew-KI: zwei Mann pro Matrosen-Koje, wenn alle belegt sind (an: Spielstand neu laden)", false);
+            Num(QoL, "CrewBedMen", "    so viele Männer pro Matrosen-Koje (1-50, 1 = keiner teilt, Änderung: Spielstand neu laden)", 2, 1, 50, 1);
             Bool(QoL, "CrewBedYield", "  Crew-KI: ausgeruhte Männer machen die Koje für Müde frei", true);
             Bool(QoL, "CrewBowRunCap", "  Crew-KI: beim Alarmtauchen nur wenige Männer zum Bug (aus = Spiel)", true);
             Num(QoL, "CrewBowRunMen", "    so viele Männer zum Bug (0 = keiner)", 8, 0, 30, 1);

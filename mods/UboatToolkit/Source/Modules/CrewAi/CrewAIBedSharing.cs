@@ -16,7 +16,7 @@ namespace UboatToolkit.Modules.CrewAi
     {
         public static bool Enabled => UboatToolkit.Settings.B("CrewBedSharing");
 
-        public const int MenPerBunk = 2;
+        public static int MenPerBunk => Mathf.Clamp(Mathf.RoundToInt(UboatToolkit.Settings.F("CrewBedMen")), 1, 50);
 
         public static readonly bool FixCrewSlotWaterCheck = true;
 
