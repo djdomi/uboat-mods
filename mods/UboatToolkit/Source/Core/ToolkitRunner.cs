@@ -31,6 +31,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.Repairs());
             Modules.Add(new Modules.Navigation());
             Modules.Add(new Modules.Stations());
+            Modules.Add(new Modules.CrewSkills());
             Modules.Add(new Modules.Air());
             Modules.Add(new Modules.Pump());
             Modules.Add(new Modules.CrewFill());

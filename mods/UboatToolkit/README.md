@@ -50,6 +50,8 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Crew
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Horcher besetzt: hört weiter, peilt genauer | HorcherRange, HorcherBearing |
+| QoL | NEU: Horcher und Funkraum automatisch besetzen | AutoManHydrophone, AutoManRadio |
 | QoL | NEU: Luken: Varianten, Lauf-/Sprint-Tempo | HatchVariant, HatchSprintSpeed, HatchWalkSpeed, HatchMaxSpeed |
 | QoL | NEU: Regenkleidung: Modus, Regen-/Wind-Grenzen, Kommandant, Unterstand | RainGearMode, RainGearRain, RainGearCapWind, RainGearSkipperCap, RainGearSheltered |
 | QoL | NEU: Wer festhängt, versucht es 1 Minute nicht mehr | CrewStuckCooldown |
@@ -119,6 +121,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Waffen & Torpedos
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: KI-Schützen: schneller einschießen, beim Zielwechsel mehr behalten, nachts weniger Streuung | GunnerRangingSpeed, GunnerKeepRanging, GunnerNightPenalty |
 | QoL | NEU: Geräte: Umschauen, Zoom, Fadenkreuz, Drehknöpfe direkt, AOB live | StLookMode, StMinFov, StDialDirect, StAobLive |
 | QoL | NEU: Sehrohr-Knopf öffnet das zuletzt benutzte Sehrohr | ScopeStationLast |
 | QoL | NEU: Deckgeschütz: Gegner-Treffsicherheit, Einschießen, Treffer setzt Geschütz außer Gefecht | DgsNpcSpread, DgsNpcRanging, DgsKnockout |

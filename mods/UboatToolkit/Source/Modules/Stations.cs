@@ -29,6 +29,18 @@ namespace UboatToolkit.Modules
                 foreach (var st in Util.Find<NavigationTable>())
                     Keep(st.GetComponent<Activator>(), "Kartentisch");
 
+            // Hydrophone: under water or alarm. Radio room: whenever the radio can receive.
+            bool hydro = Settings.B("AutoManHydrophone") && (ship.SubmergedOrGoingToSubmerge || ship.Alarmed);
+            bool radio = Settings.B("AutoManRadio");
+            if (hydro || radio)
+                foreach (var act in Util.Find<Activator>())
+                {
+                    if (act == null) continue;
+                    var eq = act.AssociatedEquipment;
+                    if (hydro && eq is ListeningRoom) Keep(act, "Horcher");
+                    else if (radio && eq is PlayerShipRadio) Keep(act, "Funkraum");
+                }
+
             bool guns = Settings.B("AutoManGuns") && ship.DeckDepth < 1f && ship.Alarmed;
             bool engines = Settings.B("AutoManEngines") && !ship.Docked;
             if (guns || engines)
@@ -119,7 +131,8 @@ namespace UboatToolkit.Modules
             foreach (var i in infos)
                 if (i.ActionTemplate != null && i.State == ActionState.Enabled &&
                     (i.ActionTemplate is BasicWorkAction || i.ActionTemplate is UseNavigationTableAction ||
-                     i.ActionTemplate is UseGun || i.ActionTemplate is ManageEnginesAction))
+                     i.ActionTemplate is UseGun || i.ActionTemplate is ManageEnginesAction ||
+                     i.ActionTemplate is HydrophoneUseAction || i.ActionTemplate is SailorRadioUsageAction))
                     return i.ActionTemplate;
             return null;
         }
