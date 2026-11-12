@@ -56,7 +56,7 @@ namespace UboatToolkit.Modules
             Load();
             if (Util.PlayerShip == null) { Imgui.Label("Nur im Spiel verfügbar."); return; }
             var list = Names();
-            if (list.Count == 0) { Imgui.Label("Keine Torpedo-Typen gefunden."); return; }
+            if (list.Count == 0) { Imgui.Label("Keine Torpedo-Typen gefunden."); DrawAmmo(); return; }
 
             Imgui.Label("Hafen-Nachschub: Haken = dieser Typ kommt ins Hafenlager. Nichts angehakt = normal (oder Mischung, wenn eingeschaltet).");
             Imgui.Label("Gilt für Lager, die sich neu auffüllen.");
@@ -81,8 +81,13 @@ namespace UboatToolkit.Modules
                     int made = Create(n, count);
                     ToolkitRunner.ShowNotice(made > 0 ? made + "x " + n + " ins Boot gelegt" : "Kein freier Torpedo-Platz", 4f);
                 }
+            DrawAmmo();
         }
 
+        private static Storage[] BoatStorages() =>
+            Util.Find<Storage>(1f).Where(s => s != null && Util.IsPlayers(s) && s.GetComponentInParent<PlayableCharacter>() == null).ToArray();
+
+        // Torpedo: one per free slot that the game allows for it.
         private static int Create(string name, int want)
         {
             int made = 0;
@@ -90,26 +95,89 @@ namespace UboatToolkit.Modules
             {
                 var rm = Torpedoes.Resources;
                 if (rm == null) return;
-                var storages = Util.Find<Storage>(1f).Where(s => s != null && Util.IsPlayers(s) && s.GetComponentInParent<PlayableCharacter>() == null).ToArray();
-                foreach (var s in storages)
-                {
-                    var slots = Traverse.Create(s).Field("slots").GetValue<ShipEquipmentSlot[]>();
-                    if (slots == null) continue;
-                    for (int i = 0; i < slots.Length && made < want; i++)
+                StoredTorpedo t = null;
+                foreach (var s in BoatStorages())
+                    for (int i = 0; i < s.SlotCount && made < want; i++)
                     {
-                        var slot = slots[i];
-                        if (slot == null || slot.Item != null || s.HasTransportOrders(i)) continue;
-                        if (slot.SlotType == null || !slot.SlotType.Contains("Torpedo")) continue;
-                        var go = rm.InstantiatePrefab("Equipment/" + name);
-                        var t = go != null ? go.GetComponent<StoredTorpedo>() : null;
-                        if (t == null) { if (go != null) Object.Destroy(go); return; }
+                        if ((s.GetItemAt(i) as Object) != null || s.HasTransportOrders(i)) continue;
+                        if (t == null)
+                        {
+                            var go = rm.InstantiatePrefab("Equipment/" + name);
+                            t = go != null ? go.GetComponent<StoredTorpedo>() : null;
+                            if (t == null) { if (go != null) Object.Destroy(go); return; }
+                        }
+                        if (!s.IsItemAllowed(i, t)) continue;
                         s.SetItemAt(i, t);
+                        t = null;
                         made++;
                     }
-                    if (made >= want) break;
-                }
+                if (t != null) Object.Destroy(t.gameObject);
             });
             return made;
+        }
+
+        // Ammunition: stacks into the boat storages like loading in port.
+        private static float CreateAmmo(string name, float amount)
+        {
+            float stored = 0f;
+            Util.Safe("TorpedoTab.Ammo", () =>
+            {
+                var rm = Torpedoes.Resources;
+                var go = rm != null ? rm.InstantiatePrefab("Equipment/" + name) : null;
+                var c = go != null ? go.GetComponent<Cargo>() : null;
+                if (c == null) { if (go != null) Object.Destroy(go); return; }
+                c.Count = amount;
+                foreach (var s in BoatStorages())
+                {
+                    for (int k = 0; k < 20 && c != null; k++)
+                    {
+                        float before = c.Count;
+                        if (s.StoreItem(c)) c = null;
+                        else if (c.Count >= before - 0.0001f) break;
+                    }
+                    if (c == null) break;
+                }
+                if (c == null) { stored = amount; return; }
+                if (c != null) { stored = amount - c.Count; Object.Destroy(c.gameObject); }
+            });
+            return stored;
+        }
+
+        private static List<string> ammoNames;
+        private static float ammoAt = -100f;
+        private static int ammoAmount = 100;
+        private static List<string> AmmoNames()
+        {
+            if (ammoNames != null && Time.unscaledTime - ammoAt < 10f) return ammoNames;
+            ammoAt = Time.unscaledTime;
+            var set = new HashSet<string>();
+            var sb = Object.FindObjectOfType<UBOAT.Game.Sandbox.Sandbox>();
+            var de = sb != null ? sb.GetCountryByCode("DE", false) : null;
+            if (de != null)
+                foreach (var r in de.Reserves)
+                    if (r?.ItemData?.Type != null && typeof(Ammunition).IsAssignableFrom(r.ItemData.Type)) set.Add(r.ItemData.Name);
+            foreach (var a in Util.Find<Ammunition>(5f)) if (a != null && !string.IsNullOrEmpty(a.TypeName)) set.Add(a.TypeName);
+            ammoNames = set.OrderBy(n => n).ToList();
+            return ammoNames;
+        }
+
+        private static void DrawAmmo()
+        {
+            Imgui.Space(10);
+            Imgui.Label("Cheat: Munition direkt ins Boot legen (stapelt sich ins Lager wie beim Beladen im Hafen).");
+            var list = AmmoNames();
+            if (list.Count == 0) { Imgui.Label("Keine Munitions-Typen gefunden."); return; }
+            Imgui.BeginH();
+            Imgui.Label("Menge: " + ammoAmount, 120);
+            foreach (var n in new[] { 10, 50, 100, 500, 1000 })
+                if (Imgui.Button(n.ToString(), 60)) ammoAmount = n;
+            Imgui.EndH();
+            foreach (var n in list)
+                if (Imgui.Button("Erzeugen: " + n, 600))
+                {
+                    float got = CreateAmmo(n, ammoAmount);
+                    ToolkitRunner.ShowNotice(got > 0.5f ? Mathf.RoundToInt(got) + "x " + n + " ins Lager gelegt" : "Kein Platz im Lager (oder zu schwer)", 4f);
+                }
         }
     }
 }
