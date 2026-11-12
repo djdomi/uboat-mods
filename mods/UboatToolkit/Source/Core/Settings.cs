@@ -112,6 +112,7 @@ namespace UboatToolkit
             Bool(QoL, "DepthHotkeys", "Tiefe per Taste (Tasten im Tab „Tasten“) (Idee 10)", true);
             Bool(QoL, "FixTooltipParent", "Fix: Fehler \"Default Tooltip ... GUI\" (Tooltip nicht unnötig umhängen)", true);
             Bool(QoL, "FixSkillIcons", "Fix: Fehler \"Requested asset Icons/Skills/...\" (fehlende Skill-Bilder)", true);
+            Bool(QoL, "FixFlames", "Fix: Fehler in FlamesRegistry (Feuer an abgeschossenen Schiffsteilen)", true);
             Bool(QoL, "FixPoolAnimators", "Fix: Fehler \"Pooled instance ... enabled animators\" (z. B. Zeitungsständer)", true);
             Num(QoL, "DepthStep", "  Tiefen-Schritt in m (Shift = x10, Alt = x100, auch Mausrad an der Tiefenanzeige)", 1, 0.5f, 50, 0.5f);
             Bool(QoL, "DepthGauge", "Eigene Tiefenanzeige ohne 260-m-Grenze (Doppelklick/Mausrad setzt Zieltiefe)", true);
@@ -577,7 +578,7 @@ namespace UboatToolkit
             Key("KeyCamFastZoom", "Kamera: schneller Zoom (halten)", "LeftShift");
             Key("KeyStationCursor", "Station: Mauszeiger frei/fest", "LeftAlt");
             Key("KeyStationDragLook", "Station: halten zum Umschauen (Modus 1)", "Mouse3");
-            Key("KeyHotspots", "Bremsen-Finder an/aus", "F11");
+            Key("KeyHotspotFinder", "Bremsen-Finder an/aus (F11 allein öffnet den Fehlerbericht des Spiels)", "Ctrl+F11");
 
             // ---------- Tools ----------
             Num(Tools, "MenuOpacity", "Menü: Hintergrund-Deckkraft (1 = ganz dunkel)", 0.92f, 0f, 1f, 0.02f);

@@ -66,3 +66,32 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Fix NullReferenceException in FlamesRegistry.OnFlamesDetached / SpawnParticles: when a burning part is shot
+    // off a ship (e.g. a gun "Detached"), the burning surface reports to a fire registry whose flame effect is
+    // already gone. The game then throws every time. Now: nothing to move -> skip quietly.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Effects.FlamesRegistry), nameof(UBOAT.Game.Scene.Effects.FlamesRegistry.OnFlamesDetached))]
+    internal static class UiFixes_FlamesDetached
+    {
+        private static bool Prefix(UBOAT.Game.Scene.Effects.FlamesRegistry __instance, UBOAT.Game.Scene.Effects.FlammableSurface flames)
+        {
+            if (!Settings.B("FixFlames")) return true;
+            return __instance != null && __instance.FlamesEffect != null && flames != null && flames.transform.parent != null;
+        }
+
+        private static System.Exception Finalizer(System.Exception __exception) =>
+            __exception is System.NullReferenceException && Settings.B("FixFlames") ? null : __exception;
+    }
+
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Effects.FlamesRegistry), "SpawnParticles", new System.Type[0])]
+    internal static class UiFixes_FlamesSpawn
+    {
+        private static bool Prefix(UBOAT.Game.Scene.Effects.FlamesRegistry __instance) =>
+            !Settings.B("FixFlames") || (__instance != null && __instance.FlamesEffect != null);
+
+        private static System.Exception Finalizer(System.Exception __exception) =>
+            __exception is System.NullReferenceException && Settings.B("FixFlames") ? null : __exception;
+    }
+}
