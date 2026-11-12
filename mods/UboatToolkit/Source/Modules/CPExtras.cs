@@ -216,23 +216,6 @@ namespace UboatToolkit.Modules
         private static void Postfix(Schedule __instance) { if (Settings.B("OfficerWatches")) Util.Safe("Extras.WatchLog", () => OfficerWatch.LogHour(__instance)); }
     }
 
-    // ---------- First person: running through hatches is faster (hold Shift) ----------
-    [HarmonyPatch(typeof(FPPCameraController), "ParseInputsFPPMode")]
-    internal static class Extras_HatchPatch
-    {
-        private static void Postfix(NavMeshNavigator ___characterNavigator, float ___offMeshLinkTravelDirection)
-        {
-            if (!Settings.B("FastHatch") || !Keys.Shift) return;
-            var n = ___characterNavigator;
-            if (n == null || !n.IsOnOffMeshLink || !(Traverse.Create(n).Field("currentLinkEventHandler").GetValue() is NavMeshHatch)) return;
-            var a = n.Animator;
-            if (a == null || (___offMeshLinkTravelDirection < 0f && !a.IsInTransition(0))) return;
-            float vanilla = 0.0001f + Mathf.Max(0f, ___offMeshLinkTravelDirection) * 1.25f;
-            float want = Mathf.Min(vanilla * 1.6f, 3f);
-            if (want > vanilla) a.speed = want;
-        }
-    }
-
     // ---------- Keep the chosen crew voice language (game resets it after some updates) ----------
     [HarmonyPatch(typeof(UserSettings), "DetermineDefaultVoice")]
     internal static class Extras_VoicePatch

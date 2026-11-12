@@ -172,7 +172,14 @@ namespace UboatToolkit
             Num(QoL, "RainGearInterval", "  Prüfen alle ... Sekunden", 2, 0.25f, 10, 0.25f);
             Bool(QoL, "OfficerWatches", "Neue/bef\u00f6rderte Offiziere bekommen 6-Stunden-Wachen (halb Dienst, halb Ruhe)", true);
             Num(QoL, "OfficerWatchHours", "  Wachlänge in Stunden (6 oder 3)", 6, 3, 6, 3);
-            Bool(QoL, "FastHatch", "Ich-Sicht: mit Shift schneller durch Luken", true);
+            Bool(QoL, "FastHatch", "Ich-Sicht: Luken flüssig durchqueren (Lauf-Gang bleibt, schneller)", true);
+            Bool(QoL, "HatchHoldState", "  Geh- oder Lauf-Durchgang bis zum Ende halten", true);
+            Num(QoL, "HatchVariant", "  Durchgang: 0 = wie gedrückt, 1 = immer gehen, 2 = immer laufen", 0, 0, 2, 1);
+            Bool(QoL, "HatchWalkForSprint", "  beim Rennen ruhige Geh-Animation nehmen (aber schnell)", false);
+            Num(QoL, "HatchSprintSpeed", "  Tempo beim Rennen (x)", 1.6f, 1, 3, 0.1f);
+            Num(QoL, "HatchWalkSpeed", "  Tempo beim Gehen (x)", 1, 1, 3, 0.1f);
+            Num(QoL, "HatchMaxSpeed", "  höchstes Animations-Tempo", 3, 1, 5, 0.25f);
+            Num(QoL, "HatchRunTail", "  nach der Luke weiterlaufen (Sekunden)", 0.35f, 0, 2, 0.05f);
             Bool(QoL, "MuteLightCallouts", "Ansagen zum Lichtwechsel stumm", false);
             Bool(QoL, "QuietUI", "Ruhige Oberfläche an (Einstellungen darunter, Meldungs-Stufen in toolkit-notifications.txt)", false);
             Bool(QoL, "QuietNames", "  Crew-Namen nur beim Zeigen oder Auswählen", true);
@@ -383,6 +390,7 @@ namespace UboatToolkit
             Bool(Tools, "NightLog", "Log: Nacht-Belichtung und Ansicht", false);
             Bool(Tools, "DgsLog", "Log: Deckgeschütz gesperrt wegen Seegang", false);
             Bool(Tools, "RainGearLog", "Log: Regenkleidung an/aus je Mann", false);
+            Bool(Tools, "HatchLog", "Log: Luken-Durchgang Bild für Bild", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
