@@ -19,6 +19,8 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Zeitraffer & Navigation
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Maschinen-Tasten wirken nicht am Sehrohr/freier Kamera | TelegraphBlockScopes |
+| QoL | NEU: Kurs-Tasten: fein/grob, Wende, mittschiffs, Tiefe (Standard aus) | CourseKeys |
 | QoL | NEU: Fix: Wolfsrudel geht nicht verloren, wenn das BdU gerade funkt | FixWolfpackRetry |
 | QoL | NEU: Kurs und Tiefe auf Tasten (Strg/Shift + Pfeile, Strg+F/R/P/C/H) | KeyTurn…, KeyAmidships, KeyDeeper…, KeyShallower…, KeyPeriscopeDepth, KeyMaxDepth, KeyHoldDepth |
 | QoL | NEU: Konvois mit Flugzeugträger fahren normal | FixCarrierConvoy |
@@ -48,12 +50,23 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Crew
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Luken: Varianten, Lauf-/Sprint-Tempo | HatchVariant, HatchSprintSpeed, HatchWalkSpeed, HatchMaxSpeed |
+| QoL | NEU: Regenkleidung: Modus, Regen-/Wind-Grenzen, Kommandant, Unterstand | RainGearMode, RainGearRain, RainGearCapWind, RainGearSkipperCap, RainGearSheltered |
+| QoL | NEU: Wer festhängt, versucht es 1 Minute nicht mehr | CrewStuckCooldown |
+| QoL | NEU: Deine Befehle gehen nicht verloren, "Alle Luken zu" bleibt zu | CrewOrderRoom, CrewHatchOrders |
+| QoL | NEU: Wachposten reservieren, laufende Arbeit behalten | CrewWatchClaims, CrewKeepJobs |
+| QoL | NEU: Männer ohne Aufgabe bleiben aus der Zentrale, Arbeit in der Nähe zuerst | CrewControlRoom, CrewNearbyJobs |
+| QoL | NEU: Angriffssehrohr nur für den Kommandanten | CrewSkipperAttackScope |
+| QoL | NEU: Ausgeruhte machen die Koje für Müde frei | CrewBedYield |
+| QoL | NEU: Zwei Mann pro Koje, wenn alle belegt (Standard aus) | CrewBedSharing |
+| QoL | NEU: Freie Matrosen legen sich in eine Koje statt im Gang zu stehen | CrewRestInBunks |
+| QoL | NEU: Crew-KI: ruhigere, klügere Crew (Hauptschalter, ab nächstem Start) | CrewAIOverhaul |
 | QoL | NEU: Ich-Sicht: mit Shift schneller durch Luken | FastHatch |
 | QoL | NEU: Regenkleidung auch bei Sturm/Gischt (ab Windstärke 6) | RainGearWind |
 | QoL | NEU: Neue/beförderte Offiziere bekommen 6-Stunden-Wachen | OfficerWatches |
-| QoL | NEU: Offiziere gehen nicht von selbst ans Sehrohr | CrewScopeNoOfficers |
-| QoL | NEU: Müde Männer nehmen die nächste freie Koje | CrewNearestBed |
-| QoL | NEU: Alarmtauchen: höchstens 8 Mann laufen zum Bug | CrewBowRunCap |
+| QoL | NEU: Offiziere gehen nicht von selbst ans Beobachtungs-Sehrohr | CrewScopeNoOfficers |
+| QoL | NEU: Müde Männer nehmen die nächste freie Koje und reservieren sie | CrewNearestBed |
+| QoL | NEU: Alarmtauchen: nur wenige Männer laufen zum Bug (Anzahl einstellbar) | CrewBowRunCap, CrewBowRunMen |
 | QoL | NEU: Bei Alarm nur essen, wenn sehr hungrig | CrewNoEatAlarm |
 | QoL | NEU: Skill-Editor im Tab „Crew“: jeden Skill per Klick geben oder nehmen | – |
 | QoL | Tiefenruder und Kartentisch immer besetzt | KeepDepthStation, KeepNavTable, StationDelay |
@@ -106,11 +119,19 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Waffen & Torpedos
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Geräte: Umschauen, Zoom, Fadenkreuz, Drehknöpfe direkt, AOB live | StLookMode, StMinFov, StDialDirect, StAobLive |
+| QoL | NEU: Sehrohr-Knopf öffnet das zuletzt benutzte Sehrohr | ScopeStationLast |
+| QoL | NEU: Deckgeschütz: Gegner-Treffsicherheit, Einschießen, Treffer setzt Geschütz außer Gefecht | DgsNpcSpread, DgsNpcRanging, DgsKnockout |
+| QoL | NEU: Vorgeflutet etwas Sicht behalten | LookoutAwashView |
+| QoL | NEU: Ausguck meldet richtig: Sicht-Würfel, Dunkel-Meldungen, bekannte Kontakte, Wiederholung | LookoutFixRoll, LookoutDarkReports, LookoutKnownAgain, LookoutRetry |
+| QoL | NEU: Nachts Konvois etwas weiter finden | LookoutConvoyNight |
+| QoL | NEU: Zeitraffer bremst, solange ein ungesehenes Schiff in Reichweite ist | LookoutTimeGuard |
+| QoL | NEU: Ausguck: Wetter nur einmal zählen, Nacht-Untergrenze, Nebel, Tag-Kürzung | LookoutWeatherOnce, LookoutWeatherFloor, LookoutFog, LookoutDaylightTrim |
 | QoL | NEU: Fadenkreuz-Licht an/aus (Taste F) und Helligkeit | KeyReticleLight, ReticleBright |
 | QoL | NEU: Sehrohr merkt sich Ansicht und Zoom | ScopeRemember |
 | QoL | NEU: Deckgeschütz bei Seegang langsamer und ungenauer | DeckGunSeaState |
-| QoL | NEU: Rauch fahrender Schiffe früher sichtbar, gestoppte Schiffe bleiben sichtbar | LookoutSmoke |
-| QoL | NEU: Ausguck sieht Schiffe weiter (weniger bei schlechter Sicht) | LookoutRange |
+| QoL | NEU: Schornstein-Rauch am Horizont: Konvois früher sichtbar | LookoutSmoke |
+| QoL | NEU: Ausguck sucht Schiffsgruppen weiter (einstellbar, Standard x1.69) | Lookout, LookoutGroupRange |
 | QoL | NEU: Tab „Torpedos“: Typen für den Hafen-Nachschub gezielt wählen | (Datei toolkit-torpedos.txt) |
 | QoL | NEU: Häfen haben eine gleichmäßige Torpedo-Mischung | TorpedoMix |
 | QoL | Torpedo-Rechner rechnet selbst | EasyTDC |
@@ -149,6 +170,8 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Anzeigen & Erfolge
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Am Rand der Ansicht kein Scrollen im Deck-Modus | NoEdgeDeck |
+| QoL | NEU: Freie Kamera: weich fahren, Neigen, Mindesthöhe, Zoom-Reset (R) | CamSmoothMove, CamBank, CamMinAlt, KeyCamZoomReset |
 | QoL | NEU: Ansagen zum Lichtwechsel stumm | MuteLightCallouts |
 | QoL | NEU: Getaucht bleibt die Außenkamera unter Wasser | CamOrbitUnderwater |
 | QoL | NEU: Mausrad-Zoom in Ich-Sicht und freier Kamera, Strg+Mausrad an Geräten | CamWheelZoom, StationZoom |
@@ -167,6 +190,9 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Leistung & Tools
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Fixes für andere Mods: Preis-Menü, Uniformen, Bifrost (nur aktiv, wenn installiert) | FixSupplyPriceMenu, FixUniformRebuild, FixBifrost |
+| QoL | NEU: Fix: Sehrohr ruckelt beim ersten Öffnen nicht | FixScopeStall, ScopePreload |
+| QoL | NEU: Laden: Zeit-Budget, keine Müllabfuhr beim Laden | FastLoadBudgetMs, FastLoadNoGc |
 | QoL | NEU: Fix: gewählte Crew-Sprache bleibt nach Updates | KeepVoiceLanguage |
 | QoL | NEU: Fixes gegen Ruckler und Abstürze (Crew-Texturen) | FixAbortStall, FixTextureRace |
 | QoL | NEU: Spielstand-Liste nach Karriere sortiert | SaveGroupCareer |
@@ -180,6 +206,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | Tool | Speicher aufräumen, GC-Zeit, Spiel-Log klein | MemoryCleanMinutes, GcSliceMs, GameLogFilter |
 | Tool | Test-Log, Performance-Logger, Bremsen-Finder | DebugLog, PerfLogger, PerfHotspots, PerfQueue |
 
+| Tools | NEU: Logs je Teil (Crew-KI, Ausguck, Kamera, Luken, ...) | CrewAILog, LookoutLog, CamLog, HatchLog |
 ### Tasten
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
