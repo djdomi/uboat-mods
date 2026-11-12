@@ -229,3 +229,28 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Fix "ArgumentOutOfRangeException ... MorphTarget.ApplyTo" (10x, e.g. on arriving in port): a character's face/body
+    // morph was made for a mesh with more vertices than the mesh he wears now. The game then throws every frame for him.
+    // Now: the error is caught, that one morph layer is switched off for this character (he keeps the plain mesh), and it
+    // is logged once with the character's path.
+    [HarmonyLib.HarmonyPatch(typeof(DWS.Common.Characters.Deformers.MorphDeformer), "UpdateDeformer")]
+    internal static class Fix_MorphOutOfRange
+    {
+        private static readonly System.Collections.Generic.HashSet<int> logged = new System.Collections.Generic.HashSet<int>();
+        private static System.Exception Finalizer(System.Exception __exception, DWS.Common.Characters.Deformers.MorphDeformer __instance)
+        {
+            if (!(__exception is System.ArgumentOutOfRangeException) || __instance == null) return __exception;
+            __instance.enabled = false;
+            if (logged.Add(__instance.GetInstanceID()))
+            {
+                var t = __instance.transform; string path = t.name;
+                for (int i = 0; i < 3 && t.parent != null; i++) { t = t.parent; path = t.name + "/" + path; }
+                Util.Log("Figur: Gesichts-/Körperform passt nicht zum Modell, abgeschaltet: " + path);
+            }
+            return null;
+        }
+    }
+}
