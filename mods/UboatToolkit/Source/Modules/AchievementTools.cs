@@ -26,8 +26,7 @@ namespace UboatToolkit.Modules
         private static void UnlockAll()
         {
             var ids = typeof(AchievementManager).GetNestedType("AchievementIDs", BindingFlags.NonPublic);
-            Type stats = AppDomain.CurrentDomain.GetAssemblies()
-                .Select(a => a.GetType("Steamworks.SteamUserStats", false)).FirstOrDefault(t => t != null);
+            Type stats = HarmonyLib.AccessTools.TypeByName("Steamworks.SteamUserStats");
             if (ids == null || stats == null) { ToolkitRunner.ShowNotice("Steam nicht gefunden", 4f); return; }
             var set = stats.GetMethod("SetAchievement", new[] { typeof(string) });
             var store = stats.GetMethod("StoreStats", Type.EmptyTypes);

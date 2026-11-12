@@ -126,6 +126,8 @@ namespace UboatToolkit
             Bool(QoL, "FixSkipperDead", "Fix: Kommandant tot/verwundet \u2192 Warnung vor dem Hafen + keine Gespr\u00e4che, die h\u00e4ngen", true);
             Bool(QoL, "FixPortDialogue", "Fix: Hafen-Gespr\u00e4che h\u00e4ngen nicht mehr fest", true);
             Bool(QoL, "FixRadioRewards", "Fix: vergessene Belohnungen von Funk-Auftr\u00e4gen werden ausgezahlt", true);
+            Bool(QoL, "MapReadable", "Karte: Raster-Beschriftung auf jedem Kartenstil lesbar + Stil \u201eEigene Farben\u201c (Farben im Tab Karte)", true);
+            Bool(QoL, "MapIvory", "Karte: zus\u00e4tzlicher Kartenstil \u201eElfenbein\u201c", true);
             Num(QoL, "ReticleBright", "Fadenkreuz-Licht: Helligkeit (1 = Spiel)", 1, 0.2f, 3, 0.1f);
             Bool(QoL, "DeckGunSeaState", "Deckgesch\u00fctz: bei hohem Seegang langsamer laden, Sch\u00fcsse streuen mehr (ab Windst\u00e4rke 4)", true);
             Bool(QoL, "ScopeRemember", "Sehrohr merkt sich Ansicht und Zoom (je Sehrohr)", false);
@@ -290,6 +292,7 @@ namespace UboatToolkit
             // ---------- Tools ----------
             Bool(Tools, "DebugLog", "Test-Log: alles, was der Mod tut + Fehler (logs\\toolkit-Datum.log)", true);
             Bool(Tools, "GameLogFilter", "Spiel-Log klein halten: nur Warnungen + Fehler in Player.log (spart Festplatte + RAM)", true);
+            Bool(Tools, "MapPixelSample", "Karte: Pixel-Messung der Raster-Beschriftung ins Log (Kontrast, Lesbarkeit, je Stil und Ebene)", false);
             Num(Tools, "GcSliceMs", "Speicher-Müllabfuhr: max. ms pro Bild (0 = Spielwert, kleiner = weniger Ruckler)", 0, 0, 10, 0.5f);
             Bool(Tools, "AutoCleanCache", "Cache aufräumen beim Spielstart: alte Daten-Cache, Absturzberichte, Mod-Logs (Spielstände nie)", true);
             Num(Tools, "AutoCleanDays", "  Dateien älter als x Tage", 14, 1, 90, 1);

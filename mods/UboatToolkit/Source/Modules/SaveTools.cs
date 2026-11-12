@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -17,7 +16,7 @@ namespace UboatToolkit.Modules
         private static System.Reflection.MethodBase TargetMethod() =>
             AccessTools.EnumeratorMoveNext(AccessTools.Method(typeof(SavesManager), "LoadCoroutine"));
 
-        public static long Budget() => Settings.B("FastLoad") ? (long)(100.0 * Stopwatch.Frequency / 1000.0) : 160000L;
+        public static long Budget() => Settings.B("FastLoad") ? 1000000L : 160000L;
         public static int MaxActions() => Settings.B("FastLoad") ? 5000 : 500;
 
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
