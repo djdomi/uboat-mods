@@ -27,7 +27,7 @@ namespace UboatToolkit.Modules.Warthog
             // --- Antrieb
             Bool("WhThrusters", "Strahlruder vorn + achtern", true);
             Bool("WhThrusterWithRudder", "  Strahlruder helfen automatisch beim Ruderlegen", true);
-            Num("WhThrusterPower", "  Stärke (Drehmoment in MNm)", 6f, 0.5f, 30f, 0.5f);
+            Num("WhThrusterPower", "  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)", 6f, 0.5f, 30f, 0.5f);
             Num("WhThrusterEnergy", "  Strom pro Sekunde volle Leistung (Anteil Batterie x 0,0001)", 2f, 0f, 20f, 0.5f);
             Bool("WhThrusterHoldFiring", "  Kurs halten, während Geschütze feuern (gegen Rückstoß)", true);
 

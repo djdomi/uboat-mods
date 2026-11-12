@@ -94,8 +94,10 @@ namespace UboatToolkit.Modules.Warthog
             else heldHeading = float.NaN;
 
             if (Mathf.Abs(cmd) < 0.01f) { SetEnergy(ship, 0f); return; }
-            // bow pushes one way, stern the other = pure turning torque (MNm -> Nm)
-            float torque = cmd * Settings.F("WhThrusterPower") * 1e6f;
+            // bow pushes one way, stern the other = pure turning torque. 0.2.x/0.3.0 used a fixed 6 MNm: against the
+            // 92 m boat's yaw inertia (~1e9 kg m^2) and the game's angular drag that was hardly noticeable ("Z/X do nothing").
+            // Now scaled with the boat's inertia: power 6 = about 0.6 deg/s^2 turning acceleration.
+            float torque = cmd * rb.inertiaTensor.y * Settings.F("WhThrusterPower") * 0.00175f;
             rb.AddTorque(ship.transform.up * torque * k, ForceMode.Force);
             SetEnergy(ship, Mathf.Abs(cmd) * Settings.F("WhThrusterEnergy") * 0.0001f);
         }

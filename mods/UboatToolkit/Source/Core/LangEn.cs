@@ -787,7 +787,7 @@ namespace UboatToolkit
             m["  Tiefenruder-Wirkung x"] = "  Dive plane effect x";
             m["Strahlruder vorn + achtern"] = "Bow + stern thrusters";
             m["  Strahlruder helfen automatisch beim Ruderlegen"] = "  Thrusters help automatically when the rudder is put over";
-            m["  Stärke (Drehmoment in MNm)"] = "  Strength (torque in MNm)";
+            m["  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)"] = "  Strength (torque in MNm)";
             m["  Strom pro Sekunde volle Leistung (Anteil Batterie x 0,0001)"] = "  Power per second at full output (share of battery x 0.0001)";
             m["  Kurs halten, während Geschütze feuern (gegen Rückstoß)"] = "  Hold course while the guns fire (against recoil)";
             m["Teleskop-Schnorchel: tiefer als Sehrohrtiefe"] = "Telescopic snorkel: deeper than periscope depth";
