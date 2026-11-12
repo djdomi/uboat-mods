@@ -115,7 +115,7 @@ namespace UboatToolkit
             Num(QoL, "DepthStep", "  Tiefen-Schritt in m (Shift = x10, Alt = x100, auch Mausrad an der Tiefenanzeige)", 1, 0.5f, 50, 0.5f);
             Bool(QoL, "DepthGauge", "Eigene Tiefenanzeige ohne 260-m-Grenze (Klick/Mausrad setzt Zieltiefe)", true);
             Num(QoL, "DepthGaugeMax", "  Skala bis (m)", 500, 100, 5000, 50);
-            Num(QoL, "DepthGaugeX", "  Position links (% vom Bildschirm)", 80, 0, 95, 1);
+            Num(QoL, "DepthGaugeXPos", "  Position von links (% vom Bildschirm, 100 = ganz rechts am Rand)", 100, 0, 100, 1);
             Num(QoL, "DepthGaugeY", "  Position oben (% vom Bildschirm)", 35, 0, 90, 1);
             Num(QoL, "DepthGaugeSeconds", "  Verlauf über x Sekunden (echte Zeit)", 120, 30, 600, 10);
             Bool(QoL, "AutoDepth", "Bodenabstand-Autopilot: hält Abstand zum Meeresgrund", false);
@@ -298,6 +298,7 @@ namespace UboatToolkit
             Bool(QoL, "FastLoad", "Spielst\u00e4nde schneller laden (Bild ruckelt beim Laden etwas mehr)", true);
             Num(QoL, "FastLoadBudgetMs", "  Rechenzeit pro Bild beim Laden (ms, Spiel = 16)", 100, 16, 1000, 10);
             Num(QoL, "FastLoadMaxActions", "  Schritte pro Bild (Spiel = 500)", 5000, 500, 100000, 500);
+            Num(QoL, "FastLoadQueueCap", "  Lade-Warteschlange: so viele Aufträge darf der Hintergrund-Leser vorausarbeiten (40 = Spiel)", 2000, 40, 100000, 100);
             Bool(QoL, "FastLoadNoGc", "  beim Laden kein Speicher-Aufräumen (spart Zeit)", true);
             Num(QoL, "FastLoadGcCapMb", "    außer Speicher über ... MB", 3000, 500, 32000, 250);
             Bool(QoL, "SaveGroupCareer", "Spielstand-Liste: Reiter je Karriere (Spielstände einer Karriere zusammen)", true);

@@ -171,6 +171,36 @@ namespace UboatToolkit.Modules
             " Gewartet " + LoadClock.Seconds(idleLoad).ToString("0.0", CultureInfo.InvariantCulture) + " s auf leere Warteschlange; " + framesYielded + " von " + frames + " Bildern früher beendet.";
     }
 
+    // The loader's worker thread may only queue 40 jobs for the main thread, then it stops and waits.
+    // The main thread then often idles too ("Gewartet x s auf leere Warteschlange"). A larger queue lets
+    // the worker read ahead, so both threads stay busy. 40 = game value.
+    [HarmonyPatch]
+    internal static class SaveTools_QueueCapPatch
+    {
+        private static bool Prepare() => TargetMethod() != null;
+        private static System.Reflection.MethodBase TargetMethod()
+        {
+            var t = AccessTools.TypeByName("UBOAT.Game.Serialization.GameStateDeserializer");
+            return t == null ? null : AccessTools.DeclaredMethod(t, "MainThread", new[] { typeof(Action), typeof(bool) });
+        }
+
+        public static int Cap() => Settings.B("FastLoad") ? Mathf.Clamp(Mathf.RoundToInt(Settings.F("FastLoadQueueCap")), 40, 100000) : 40;
+
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
+        {
+            var list = code.ToList();
+            int n = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var c = list[i];
+                if ((c.opcode == OpCodes.Ldc_I4_S || c.opcode == OpCodes.Ldc_I4) && Convert.ToInt32(c.operand) == 40)
+                { c.opcode = OpCodes.Call; c.operand = AccessTools.Method(typeof(SaveTools_QueueCapPatch), nameof(Cap)); n++; }
+            }
+            if (n != 2) Util.Log("Laden: Warteschlangen-Grenze passt nicht (" + n + " Stellen gefunden, erwartet 2).");
+            return list;
+        }
+    }
+
     // During a save load the game's memory clean-up (about 115 ms each) is skipped, up to a heap cap.
     [HarmonyPatch]
     internal static class SaveTools_MemoryPatch

@@ -21,7 +21,7 @@ namespace UboatToolkit.Modules
         private static string pilotText = "";
         private static float lastBed = float.NaN;
 
-        private static Rect Box() => new Rect(Screen.width * Settings.F("DepthGaugeX") / 100f, Screen.height * Settings.F("DepthGaugeY") / 100f, W, H);
+        private static Rect Box() => new Rect(Mathf.Clamp(Screen.width * Settings.F("DepthGaugeXPos") / 100f, 0f, Screen.width - W), Mathf.Clamp(Screen.height * Settings.F("DepthGaugeY") / 100f, 0f, Screen.height - H), W, H);
         private static Rect Scale() { var r = Box(); return new Rect(r.x + 44, r.y + 26, 40, r.height - 70); }
         private static float Max => Mathf.Max(50f, Settings.F("DepthGaugeMax"));
 
@@ -33,7 +33,7 @@ namespace UboatToolkit.Modules
 
         // Keel depth in "target depth" units: the game's target depth refers to the boat's origin, not the keel.
         private static float KeelOffset(PlayerShip ship) => ship.BottomDepth - (ship.Depth + ship.VerticalOriginOffset);
-        private static float Current(PlayerShip ship) => ship.Depth + ship.VerticalOriginOffset;
+        private static float Current(PlayerShip ship) => Mathf.Max(0f, ship.Depth + ship.VerticalOriginOffset);
 
         private static void SetTarget(PlayerShip ship, float depth)
         {
