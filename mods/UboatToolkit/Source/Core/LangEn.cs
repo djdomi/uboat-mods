@@ -822,6 +822,7 @@ namespace UboatToolkit
             m["Flugzeuge beschießen ab x km"] = "Fire at aircraft from x km";
             m["Warthog: Strahlruder links"] = "Warthog: thruster left";
             m["Warthog: Strahlruder rechts"] = "Warthog: thruster right";
+            m["Mehr Frachter: Konvois + einzelne Handelsschiffe x so oft (1 = Spiel)"] = "More freighters: convoys + single merchants x as often (1 = game)";
             m["Crew-Spezialisierungen (Tauchgang, Schleichfahrt, Disziplin): immer genug Punkte"] = "Crew specializations (diving, silent running, discipline): always enough points";
             m["  >> Konvoi spawnen (Gegner-Konvoi taucht vor dir auf)"] = "  >> Spawn convoy (enemy convoy appears ahead of you)";
             m["  Abstand voraus in km"] = "  Distance ahead in km";

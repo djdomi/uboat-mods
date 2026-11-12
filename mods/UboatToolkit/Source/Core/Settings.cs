@@ -417,6 +417,7 @@ namespace UboatToolkit
             Bool(QoL, "FixMyDamnShipment", "  >> FIX MY DAMN SHIPMENT! Alles Bestellte sofort ins Boot zwingen", false);
             Bool(QoL, "InstantPortLoading", "Hafen: alles sofort im Boot, keine Wartezeit", true);
             Num(QoL, "RebreatherDurability", "Atemgeräte halten x-mal länger", 2, 1, 10, 0.5f);
+            Num(QoL, "MerchantTraffic", "Mehr Frachter: Konvois + einzelne Handelsschiffe x so oft (1 = Spiel)", 3, 0.1f, 50, 0.5f);
             Bool(QoL, "MilkCowsAtStart", "Milchkühe ab Spielstart unterwegs (#25)", true);
             Bool(QoL, "MilkCowRadio", "  Funk-Nachschub: nächste Milchkuh kommt in Reichweite", true);
             Num(QoL, "MilkCowRadioKm", "    Abstand in km", 30, 5, 500, 5);
