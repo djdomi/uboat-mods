@@ -34,7 +34,7 @@ namespace UboatToolkit.Modules
         {
             if (!Settings.B("SeaFloorAlways") || wolfpack == null || wolfpack.IsInArea || grids == null || grids.Length == 0) { Forced = false; return; }
             if (userSettings?.GameplaySettings != null && userSettings.GameplaySettings.travelSystem == TravelSystem.Dynamic) { Forced = false; return; }
-            if (gameTime != null && (float)gameTime.TimeScale * gameTime.ArtificialTimeScale > 500f) { Forced = false; lastPos.x = float.NaN; return; }
+            if (gameTime != null && (float)gameTime.TimeScale * gameTime.ArtificialTimeScale > Settings.F("SeaFloorMaxCompression")) { Forced = false; lastPos.x = float.NaN; return; }
 
             var pos = wolfpack.Position;
             if (float.IsNaN(lastPos.x) || (pos - lastPos).sqrMagnitude > 0.01f)
