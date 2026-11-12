@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using UnityEngine;
@@ -81,12 +82,20 @@ namespace UboatToolkit.Modules
             NavInfo(ship);
         }
 
+        private static readonly Dictionary<string, int> oneShotTries = new Dictionary<string, int>();
+
+        // A switch that does something once and turns itself off. Waits until the boat is fully
+        // loaded; if it still fails, it tries again next second (up to 10 times) instead of giving up.
         private static void OneShot(string key, System.Action a)
         {
             var o = Settings.Get(key);
-            if (o == null || !o.On) return;
-            o.Value = 0;
-            Util.Safe(key, a);
+            if (o == null || !o.On || !Util.ShipReady) return;
+            try { a(); o.Value = 0; oneShotTries.Remove(key); }
+            catch (System.Exception e)
+            {
+                oneShotTries.TryGetValue(key, out int n); oneShotTries[key] = ++n;
+                if (n >= 10) { o.Value = 0; oneShotTries.Remove(key); Util.Log("Aktion " + key + " fehlgeschlagen: " + e); }
+            }
         }
 
         private static void ChangeDepth(float delta)

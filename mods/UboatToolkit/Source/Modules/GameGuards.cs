@@ -420,3 +420,28 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // The captain creation screen has a skill page the game never fills (it is not wired up there).
+    // The game opens that page by itself when the new captain has free skill points. Normally he has
+    // none, but with our skill point cheats he has, so the empty page showed and blocked the campaign
+    // start. Here the creation screen stays on the appearance page; the cheat works later as usual.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.CharacterScreenGUI), "Scene_CharacterChanged")]
+    internal static class GuardCreationSkillTab
+    {
+        private static void Postfix(UBOAT.Game.UI.CharacterScreenGUI __instance, UnityEngine.UI.Toggle ___skillsButton, UnityEngine.UI.Toggle ___customizeButton)
+        {
+            try
+            {
+                if (__instance.gameObject.scene.name != "Character Creation") return;
+                if (___skillsButton != null && ___skillsButton.isOn && ___customizeButton != null)
+                {
+                    ___customizeButton.isOn = true;
+                    Util.Log("Kapitän-Erstellung: leere Fähigkeiten-Seite übersprungen, Aussehen-Seite offen");
+                }
+            }
+            catch (System.Exception e) { Util.Log("Kapitän-Erstellung Prüfung: " + e); }
+        }
+    }
+}

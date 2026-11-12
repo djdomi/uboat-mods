@@ -21,7 +21,7 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
-            if (crew == null) return;
+            if (crew == null || !Util.ShipReady) return;
             if (Time.time >= nextDc) { nextDc = Time.time + 2f; Util.Safe("DamageControl", DamageControl); }
             if (Time.time >= nextWs) { nextWs = Time.time + 10f; Util.Safe("Workshop", FeedWorkshop); }
         }

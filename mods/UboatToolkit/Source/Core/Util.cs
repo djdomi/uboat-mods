@@ -23,10 +23,17 @@ namespace UboatToolkit
                 {
                     nextShipSearch = Time.unscaledTime + 1f;
                     playerShip = UnityEngine.Object.FindObjectOfType<PlayerShip>();
+                    if (playerShip != null) shipFoundAt = Time.unscaledTime;
                 }
                 return playerShip;
             }
         }
+
+        private static float shipFoundAt;
+
+        // True once the boat has existed for a few seconds: right after loading many parts are
+        // still being built, and touching them then gives "Object reference not set" errors.
+        public static bool ShipReady => PlayerShip != null && Time.unscaledTime - shipFoundAt >= 5f;
 
         private static float nextShipSearch;
         private static PlayerShip cacheShip;
