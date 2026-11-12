@@ -227,6 +227,7 @@ namespace UboatToolkit
             Imgui.EndH();
             scroll = Imgui.BeginScroll(scroll);
             if (tab == "Crew") UboatToolkit.Modules.ExtraFeatures.DrawCrewTab();
+            if (tab == UboatToolkit.Modules.Warthog.WarthogSettings.Tab) UboatToolkit.Modules.Warthog.WarthogTab.Draw();
             if (tab == "Torpedos") UboatToolkit.Modules.TorpedoTab.Draw();
             if (tab == "Karte") UboatToolkit.Modules.MapTab.Draw();
             if (tab == "Licht") UboatToolkit.Modules.LightTab.Draw();
