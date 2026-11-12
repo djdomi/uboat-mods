@@ -1,6 +1,6 @@
 {
   "name": "UBOAT Toolkit (QoL + Cheats)",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Quality-of-life improvements and optional single-player cheats in one mod. Every feature can be switched on or off in UboatToolkit.ini.",
   "author": "djdomi",
   "supportedGameVersions": [ "2026.1" ],
