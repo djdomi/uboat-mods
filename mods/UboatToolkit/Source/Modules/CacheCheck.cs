@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -154,8 +155,18 @@ namespace UboatToolkit.Modules
                 if (Listed(asm)) { doomed.Add(asm); listed++; continue; }
                 var mod = ModFor(asm);
                 if (mod == null) { notEnabled++; continue; }
+                // The game keeps a compiled mod even when its source files changed (or compiles while files
+                // are still being copied): then old code runs. A fingerprint of all Source\*.cs is stored with
+                // the check result; if the sources differ from the last check, the DLL is rebuilt.
+                string srcHash = SourceHash(mod);
                 string key;
-                try { var fi = new FileInfo(f); key = fi.Length + "|" + fi.LastWriteTimeUtc.Ticks + "|" + PermissionsOf(mod); } catch { key = null; }
+                try { var fi = new FileInfo(f); key = fi.Length + "|" + fi.LastWriteTimeUtc.Ticks + "|" + PermissionsOf(mod) + "|" + srcHash; } catch { key = null; }
+                if (srcHash != "-" && key != null && verified.TryGetValue(asm, out var before) && before != key && SameDll(before, key))
+                {
+                    doomed.Add(asm);
+                    Util.Log("Mod-Cache " + when + ": „" + mod.Name + "“ (" + asm + ".dll) passt nicht mehr zum Quellcode, wird neu gebaut.");
+                    continue;
+                }
                 if (key != null && verified.TryGetValue(asm, out var seen) && seen == key) { still[asm] = key; known++; continue; }
                 string v;
                 try { v = Violation(f, mod); checkedNow++; }
@@ -174,6 +185,37 @@ namespace UboatToolkit.Modules
             note = " (geprüft " + checkedNow + " in " + Mathf.RoundToInt((Time.realtimeSinceStartup - start) * 1000f) + " ms, " + known + " schon als gut bekannt" +
                    (listed > 0 ? ", " + listed + " aus der Liste" : "") + (notEnabled > 0 ? ", " + notEnabled + " nicht aktive Mods unberührt" : "") + ")";
             return doomed;
+        }
+
+        // Same DLL file (size + time) as at the last check, but something else (sources) changed.
+        private static bool SameDll(string a, string b)
+        {
+            var x = a.Split('|'); var y = b.Split('|');
+            return x.Length >= 2 && y.Length >= 2 && x[0] == y[0] && x[1] == y[1];
+        }
+
+        private static string SourceHash(Mod mod)
+        {
+            try
+            {
+                var src = Path.Combine(mod.Path ?? "", "Source");
+                if (!Directory.Exists(src)) return "-";
+                var files = Directory.GetFiles(src, "*.cs", SearchOption.AllDirectories);
+                Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+                using (var sha = System.Security.Cryptography.SHA1.Create())
+                {
+                    foreach (var f in files)
+                    {
+                        var name = System.Text.Encoding.UTF8.GetBytes(f.Substring(src.Length).ToLowerInvariant());
+                        sha.TransformBlock(name, 0, name.Length, null, 0);
+                        var b = File.ReadAllBytes(f);
+                        sha.TransformBlock(b, 0, b.Length, null, 0);
+                    }
+                    sha.TransformFinalBlock(new byte[0], 0, 0);
+                    return BitConverter.ToString(sha.Hash).Replace("-", "").Substring(0, 16);
+                }
+            }
+            catch { return "-"; }
         }
 
         private static Dictionary<string, string> LoadVerified()
