@@ -1,3 +1,4 @@
+using HarmonyLib;
 using System.Collections.Generic;
 using UBOAT.Game.Scene.Items;
 using UBOAT.Game.Scene.Utilities;
@@ -105,6 +106,8 @@ namespace UboatToolkit.Modules
             ToolkitRunner.ShowNotice("FIX MY DAMN SHIPMENT: " + n + " Lieferungen erzwungen. Ruhe jetzt.");
         }
 
+        public override void Frame() => Loading_ResupplyPatch.RunPending();
+
         public override void Tick()
         {
             if (Settings.B("PortLoadingFix") || Settings.B("FixMyDamnShipment") || Settings.B("CancelPortLoading")) Util.Safe("LoadingWatchdog", Watchdog);
@@ -166,8 +169,34 @@ namespace UboatToolkit.Modules
         private static readonly UBOAT.Game.Core.Data.GameDataReference durationFactor =
             new UBOAT.Game.Core.Data.GameDataReference("General/Settings/Trade/Transfer Duration Factor (s/kg)");
 
+        // Providers whose next order must be moved. Not done right away: the shop screen still reads the
+        // shop slot right after placing the order (price, name). Moving the goods in that same moment
+        // emptied the slot -> crash in the shop screen and the order stayed "wird verladen" forever.
+        // So the move happens one frame later (RunPending, called every frame by the Loading module).
+        private static readonly System.Collections.Generic.List<UBOAT.Game.Scene.Tasks.PortServicesProvider> pending =
+            new System.Collections.Generic.List<UBOAT.Game.Scene.Tasks.PortServicesProvider>();
+        private static bool running;
+
+        internal static void RunPending()
+        {
+            if (pending.Count == 0) return;
+            var list = pending.ToArray(); pending.Clear();
+            foreach (var p in list)
+            {
+                if (p == null) continue;
+                running = true;
+                try { Util.Safe("Verladen", () => Traverse.Create(p).Method("AddDateListener").GetValue()); }
+                finally { running = false; }
+            }
+        }
+
         private static bool Prefix(UBOAT.Game.Scene.Tasks.PortServicesProvider __instance)
         {
+            if (!running && (Settings.B("InstantPortLoading") || Settings.B("PortLoadingFix")))
+            {
+                if (!pending.Contains(__instance)) pending.Add(__instance);
+                return false;
+            }
             bool instant = Settings.B("InstantPortLoading");
             bool fix = Settings.B("PortLoadingFix");
             if (!instant && !fix) return true;

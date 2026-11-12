@@ -20,19 +20,27 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             bool noWeight = Settings.B("CheatNoWeight");
             float stack = Mathf.Max(1f, Settings.F("CheatStackSize"));
+            float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
 
             foreach (var s in Util.Find<Storage>())
             {
                 if (s.IsShop) continue;
                 var t = Traverse.Create(s);
                 bool origIgnore = Util.Original<bool>(s, "ignoreStackLimits");
-                t.Field("ignoreStackLimits").SetValue(stack > 1f || origIgnore);
+                t.Field("ignoreStackLimits").SetValue(stack > 1f || minStack > 0f || origIgnore);
                 Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noWeight ? 1000000f : 1f);
             }
             foreach (var e in Util.Find<Equipment>())
             {
                 Util.ScaleParameter(e.Mass, noWeight ? 0.0000001f : 1f);
-                if (e is Cargo c) Util.ScaleParameter(c.StackLimit, stack);
+                if (e is Cargo c)
+                {
+                    // At least "minStack" per slot: scale so the game's own limit reaches that number.
+                    float f = stack;
+                    float baseLimit = Mathf.Max(1f, c.Data != null ? c.Data.StackLimit : 1f);
+                    if (minStack > 0f) f = Mathf.Max(f, minStack / baseLimit);
+                    Util.ScaleParameter(c.StackLimit, f);
+                }
             }
         }
     }
