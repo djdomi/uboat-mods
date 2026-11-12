@@ -50,6 +50,10 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Crew
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Fehlerschutz für 9 Spielfehler + Einschiffen ohne Ruckler | GuardNoQueue, GuardCards, GuardEnemyLauncher, GuardCeiling, GuardPortraits, GuardSchedule, GuardSquadType, BoardingQueue |
+| QoL | NEU: Dichtes Packen = größere Stapel statt Extra-Platz | TightPackPerMan |
+| QoL | NEU: Luft und Essen hängen nicht an der Besatzungsgröße (optional Gefangene) | AirByCrew, AirHours, AirPrisoners, AirPrisonerPenalty, FoodByCrew, FoodRefCrew |
+| QoL | NEU: Überzählige Offiziere schlafen in Mannschaftskojen, Kojen-Mangel = schneller erholen, Ausdauer, Kartenspiel | OfficerOverflowSleep, OfficerRestBelow, OfficerWakeAt, OfficerIdleBefore, HotBunkAuto, HotBunkHours, HotBunkUse, HotBunkMax, HotBunkManual, OfficerEndurance, OfficerCards |
 | QoL | NEU: Horcher besetzt: hört weiter, peilt genauer | HorcherRange, HorcherBearing |
 | QoL | NEU: Horcher und Funkraum automatisch besetzen | AutoManHydrophone, AutoManRadio |
 | QoL | NEU: Luken: Varianten, Lauf-/Sprint-Tempo | HatchVariant, HatchSprintSpeed, HatchWalkSpeed, HatchMaxSpeed |
@@ -121,6 +125,9 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Waffen & Torpedos
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Abfrage ohne Pause = Symbol rechts, Knopf x Minuten ignorieren (Meldungen sammeln) | UnderFirePause, UnderFireIgnoreMin |
+| QoL | NEU: Unter Beschuss: Ausguck meldet, Herr Kaleun, was tun wir? mit Vorschlag (Tauchen / Ausweichen / Zurückschießen) | UnderFireMode, UnderFireNeedSighting, UnderFireCooldown |
+| QoL | NEU: Schadensbericht: was hat uns getroffen, wo, warum (F10 Reiter Schaden + Datei), optional Pause | DamageReport, DamageReportNotify, DamageReportMerge, DamageReportPause |
 | QoL | NEU: Zielhilfe beim Selbstzielen (Vorhalt wie die Crew) | GunAimAssist |
 | QoL | NEU: Flak so stark wie die 88 (Drehtempo, Neigung) | AAGunLike88 |
 | QoL | NEU: 88 + Flak: nach unten neigen, Mündungsgeschwindigkeit m/s, Feuerrate x, Geschossgewicht kg/x, Schaden x | DeckGunDepress, AAGunDepress, …ShellMps, …RateMul, …ShellMass, …ShellMassMul, …ShellDamageMul |
