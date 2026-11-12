@@ -136,6 +136,18 @@ namespace UboatToolkit
             Num(QoL, "OfficerWatchHours", "  Wachlänge in Stunden (6 oder 3)", 6, 3, 6, 3);
             Bool(QoL, "FastHatch", "Ich-Sicht: mit Shift schneller durch Luken", true);
             Bool(QoL, "MuteLightCallouts", "Ansagen zum Lichtwechsel stumm", false);
+            Bool(QoL, "QuietUI", "Ruhige Oberfläche an (Einstellungen darunter, Meldungs-Stufen in toolkit-notifications.txt)", false);
+            Bool(QoL, "QuietNames", "  Crew-Namen nur beim Zeigen oder Auswählen", true);
+            Bool(QoL, "QuietShowHover", "    Name beim Zeigen mit der Maus", true);
+            Bool(QoL, "QuietShowSelected", "    Name bei ausgewähltem Mann", true);
+            Bool(QoL, "QuietDeviceNames", "  auch Geräte- und Stations-Namen verstecken", false);
+            Bool(QoL, "QuietActionIcons", "  Tätigkeits-Symbol und Fortschritt verstecken (gleiche Regel)", true);
+            Bool(QoL, "QuietEnergyBars", "  Ruhe-Balken verstecken (gleiche Regel)", true);
+            Bool(QoL, "QuietEventIcons", "  Ereignis-Ausrufezeichen verstecken", false);
+            Bool(QoL, "QuietTimers", "  Countdown (z. B. Blutung) verstecken", false);
+            Bool(QoL, "QuietBanner", "  Band oben in der Mitte und Ton stumm (Symbole bleiben, wichtige Ausnahmen bleiben laut)", true);
+            Bool(QoL, "QuietDirectPopups", "  auch direkte Hinweise stumm („Spiel gespeichert“, Fehler beim Speichern ...)", false);
+            Bool(QoL, "QuietMutePort", "  Stimmen von Hafen-Personal und fremden Kapitänen stumm (Untertitel bleiben)", false);
             Bool(QoL, "KeepVoiceLanguage", "Fix: gew\u00e4hlte Sprache der Crew bleibt nach Updates erhalten", true);
             Num(QoL, "VoiceLang", "  Stimme festhalten auf: 0 = wie gerade eingestellt, 1 = Deutsch, 2 = Englisch", 0, 0, 2, 1);
             Bool(QoL, "VoiceRepairVersion", "  kaputte „letzte Version“ reparieren (sonst neue Spielstände nicht ladbar)", true);
@@ -311,6 +323,8 @@ namespace UboatToolkit
             Num(Tools, "MaxGroupsPerBattle", "Höchstens x Gruppen gleichzeitig im Gefecht (0 = Spiel: 4, weniger = schneller)", 0, 0, 10, 1);
             Num(Tools, "FarAIInterval", "Ferne Schiffe: KI-Takt in Sekunden (30 = Spiel-Standard, 60 = weniger CPU)", 30, 5, 300, 5);
             Bool(Tools, "OfficerWatchLog", "Log: jede Stunde Offiziere mit Energie und Dienst", false);
+            Bool(Tools, "QuietTooltipLog", "Tooltip-Schlüssel mitschreiben (toolkit-tooltip-keys.txt, zum Sperren)", false);
+            Bool(Tools, "QuietLog", "Log: jede leise/stumme Meldung und Stimme", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);

@@ -55,6 +55,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.GameFixes());
             Modules.Add(new Modules.Controls());
             Modules.Add(new Modules.Lookout());
+            Modules.Add(new Modules.QuietUIHost());
             Modules.Add(new Modules.Helm());
             Modules.Add(new Modules.SeaGun());
             Modules.Add(new Modules.Reticle());

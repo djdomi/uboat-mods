@@ -264,16 +264,6 @@ namespace UboatToolkit.Modules
         }
     }
 
-    // ---------- Mute the "lights" voice callouts ----------
-    [HarmonyPatch]
-    internal static class Extras_QuietPatch
-    {
-        private static System.Reflection.MethodBase TargetMethod() =>
-            AccessTools.GetDeclaredMethods(typeof(InteractiveCharacter)).FirstOrDefault(m => m.Name == "SayNow" && m.GetParameters().Length == 6 && m.GetParameters()[0].ParameterType == typeof(string));
-        private static bool Prefix(string statementId) =>
-            !(Settings.B("MuteLightCallouts") && (statementId == "Voice 158" || statementId == "Voice 159" || statementId == "Voice 160"));
-    }
-
     // ---------- Keep the chosen crew voice language (game resets it after some updates) ----------
     [HarmonyPatch(typeof(UserSettings), "DetermineDefaultVoice")]
     internal static class Extras_VoicePatch
