@@ -48,6 +48,8 @@ namespace UboatToolkit
             Num(QoL, "PeriscopeHeight", "Sehrohr: max. Ausfahrhöhe in m (0 = Spielwert) (#20)", 12, 0, 12, 0.5f);
             Bool(QoL, "SailorsNavTable", "Matrosen dürfen an die Kartenstation (#14)", true);
             Bool(QoL, "NoCrewCollisions", "Crew läuft durcheinander durch (#21)", true);
+            Bool(QoL, "CrewLod", "Crew-Detailstufen: Männer, die du nicht siehst, überlegen seltener (mehr FPS, Arbeit läuft normal weiter)", true);
+            Num(QoL, "CrewLodFrames", "  nicht sichtbare Männer überlegen nur jedes x. Bild (1 = jedes Bild)", 6, 1, 60, 1);
             Bool(QoL, "BallastDieselBlow", "Ballast: aufgetaucht Tanks mit Diesel-Abgas leerblasen (spart Pressluft) (#23)", true);
             Num(QoL, "BallastDieselBlowRate", "  Diesel-Ausblasen: % Tank pro Sekunde", 2, 0.5f, 20, 0.5f);
             Num(QoL, "BallastFastDive", "Ballast: schneller fluten beim Tauchen (1 = normal) (#23)", 1, 1, 5, 0.25f);
