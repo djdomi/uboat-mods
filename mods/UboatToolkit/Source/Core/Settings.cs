@@ -328,6 +328,15 @@ namespace UboatToolkit
             Num(QoL, "HotBunkManual", "  fester Faktor, wenn automatisch aus (1 = normal)", 1, 0.1f, 100, 0.5f);
             Num(QoL, "OfficerEndurance", "Offiziere ermüden an Stationen x-mal so schnell (1 = normal)", 1, 0.05f, 5, 0.05f);
             Num(QoL, "OfficerCards", "Offiziere spielen in der Freizeit Karten (Vorrang, 0 = aus)", 3, 0, 11, 1);
+            Bool(QoL, "ActiveSonar", "Aktives Sonar (Ping): findet alles in Reichweite sicher, Werte genau - macht uns aber lauter", true);
+            Num(QoL, "SonarRange", "  Reichweite (m)", 3000, 500, 20000, 100);
+            Num(QoL, "SonarArc", "  Suchwinkel (Grad, 360 = rundum)", 360, 10, 360, 5);
+            Num(QoL, "SonarPingSeconds", "  ein Ping wirkt x Sekunden", 8, 1, 60, 1);
+            Num(QoL, "SonarLoudness", "  so viel lauter sind wir beim Ping (für Gegner)", 0.5f, 0, 5, 0.05f);
+            Num(QoL, "SonarAutoSeconds", "  automatisch pingen alle x Sekunden unter Wasser (0 = nur per Taste)", 0, 0, 600, 5);
+            Bool(QoL, "SonarAutoQuiet", "  automatisch nicht bei Alarm (leise bleiben)", true);
+            Bool(QoL, "SonarSubmergedOnly", "  nur getaucht", true);
+            Bool(QoL, "SonarNeedsOperator", "  Horchraum muss besetzt sein", true);
             Bool(QoL, "AirByCrew", "Luft: volle Besatzung taucht immer gleich lange, egal wie groß", true);
             Num(QoL, "AirHours", "  Tauchzeit bei voller Besatzung (Stunden)", 11, 0.25f, 48, 0.25f);
             Bool(QoL, "AirPrisoners", "  Gefangene verbrauchen Luft mit", false);
@@ -491,6 +500,7 @@ namespace UboatToolkit
             Key("KeyRemoteTorpedo", "Fernschuss: Torpedo auf nächsten Gegner (Cheat muss an sein)", "Ctrl+Shift+F");
             Key("KeySinkConvoy", "Sink the convoy", "");
             Key("KeyHealAll", "Alle heilen", "");
+            Key("KeySonarPing", "Sonar-Ping", "Ctrl+Shift+S");
             Bool(KeysTab, "TelegraphBlockScopes", "Maschinen-Tasten am Sehrohr/UZO/Fernglas und in freier Kamera ignorieren", true);
             Bool(KeysTab, "CourseKeys", "Kurs- und Tiefen-Tasten (Pfeile, F/R mit Strg/Shift, Strg+P/C)", false);
             Bool(KeysTab, "CourseBlockScopes", "  am Sehrohr nur Pfeile, in freier Kamera keine", true);

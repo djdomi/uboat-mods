@@ -101,6 +101,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Boot & Technik
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Aktives Sonar (Ping per Taste oder automatisch): alles in Reichweite sicher gefunden, Werte genau, macht uns lauter | ActiveSonar, SonarRange, SonarArc, SonarPingSeconds, SonarLoudness, SonarAutoSeconds, SonarAutoQuiet, SonarSubmergedOnly, SonarNeedsOperator, KeySonarPing |
 | QoL | NEU: Realistische Sprungschicht 25-150 m, darunter schwerer zu orten + Meldung | SeaLayer, SeaLayerHearing, SeaLayerNote |
 | QoL | Luken schließen automatisch | AutoHatches |
 | QoL | Luken zeigen Luftdruck, Sperre + Druckausgleich (Tempo einstellbar, mit Lüftung schneller) | HatchPressure, HatchPressureLimit, HatchEqualize, HatchEqualizeSpeed, VentEqualizeFaster |
