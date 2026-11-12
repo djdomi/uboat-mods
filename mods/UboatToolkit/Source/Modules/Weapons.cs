@@ -59,6 +59,18 @@ namespace UboatToolkit.Modules
                 if (depress > 0f) minA = Mathf.Min(minA, -depress);
                 Util.SetField(gun, "minAngle", minA);
 
+                // Recoil (barrel jumps up after each shot, annoying when aiming yourself). 0 = none, 1 = game.
+                if (Util.IsPlayers(gun))
+                {
+                    float rec = Mathf.Clamp(Settings.F(p + "Recoil"), 0f, 1f);
+                    var tg = Traverse.Create(gun);
+                    foreach (var f in new[] { "minVerticalRecoil", "maxVerticalRecoil", "horizontalRecoil" })
+                    {
+                        var par = tg.Field(f).GetValue<Parameter>();
+                        if (par != null) par.GetScaleModifier(Util.ModifierName, true).Value = rec;
+                    }
+                }
+
                 // Engagement range in km (0 = game, ~12 km for the 88). The crew only picks targets inside it.
                 float km = Util.IsPlayers(gun) ? Settings.F(p + "Range") : 0f;
                 var rangeP = Traverse.Create(gun).Field("range").GetValue<Parameter>();
