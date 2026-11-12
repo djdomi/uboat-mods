@@ -48,7 +48,9 @@ namespace UboatToolkit.Modules.Warthog
             {
                 float speed = Vector3.Dot(rb.velocity, ship.transform.forward);
                 // more turning: the game turns the boat with the rudder; add (factor-1) of a rudder-like torque
-                float turn = ship.Turn; // -1..1
+                // game convention (Ship.FixedUpdate): Turn < 0 = turn to STARBOARD (positive yaw). 0.2.x used +Turn and
+                // pushed against the rudder -> "unsteerable". Yaw torque must be -Turn.
+                float turn = -ship.Turn; // -1..1, + = starboard
                 float extra = (Settings.F("WhFinTurn") - 1f) * turn * Mathf.Clamp(Mathf.Abs(speed) / 6f, 0f, 1.5f) * Mathf.Sign(speed == 0 ? 1 : speed);
                 if (Mathf.Abs(extra) > 0.001f) rb.AddTorque(ship.transform.up * extra * rb.inertiaTensor.y * 0.002f * k, ForceMode.Force);
                 // less roll: damp the roll part of the angular velocity
@@ -62,10 +64,15 @@ namespace UboatToolkit.Modules.Warthog
             float cmd = 0f;
             if (Keys.Held("KeyWhThrustLeft")) cmd -= 1f;
             if (Keys.Held("KeyWhThrustRight")) cmd += 1f;
-            if (cmd == 0f && Settings.B("WhThrusterWithRudder")) cmd = Mathf.Clamp(ship.Turn, -1f, 1f);
+            // same sign fix as the fins; astern the game mirrors Turn (rudder works reversed), thrusters do not -> undo it
+            if (cmd == 0f && Settings.B("WhThrusterWithRudder"))
+            {
+                float fwd = Vector3.Dot(rb.velocity, ship.transform.forward);
+                cmd = Mathf.Clamp(-ship.Turn * (fwd < -0.2f ? -1f : 1f), -1f, 1f);
+            }
 
             // hold the heading while our guns fire (recoil)
-            if (Settings.B("WhThrusterHoldFiring") && Time.time - LastGunShot < 3f && Mathf.Abs(ship.Turn) < 0.05f && cmd == 0f)
+            if (Settings.B("WhThrusterHoldFiring") && Time.time - LastGunShot < 3f && Mathf.Abs(ship.Turn) < 0.05f && Mathf.Abs(cmd) < 0.05f)
             {
                 if (float.IsNaN(heldHeading)) heldHeading = ship.transform.eulerAngles.y;
                 float err = Mathf.DeltaAngle(ship.transform.eulerAngles.y, heldHeading);
