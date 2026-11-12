@@ -64,12 +64,26 @@ namespace UboatToolkit.Modules
                     }
 
             // More sailors per officer.
+            // Auto: every sailor on board fits into an officer's group (sailors / officers, rounded up),
+            // and an officer never has more followers than he may lead (the "10/6" display).
             float max = Settings.F("MaxFollowers");
-            if (max > 0f || hadMax)
+            bool auto = Settings.B("FollowersAuto");
+            if (max > 0f || auto || hadMax)
             {
+                int officers = 0, sailors = 0;
+                foreach (var c in crew.Characters) { if (c == null) continue; if (c.IsOfficer) officers++; else sailors++; }
+                float share = officers > 0 ? Mathf.Ceil(sailors / (float)officers) : 0f;
                 foreach (var c in crew.Characters)
-                    if (c != null && c.IsOfficer) Util.SetParameter(c.Data.GetStatus<Authority>()?.FollowersLimit, max);
-                hadMax = max > 0f;
+                {
+                    if (c == null || !c.IsOfficer) continue;
+                    var a = c.Data.GetStatus<Authority>();
+                    if (a == null) continue;
+                    float want = max;
+                    if (auto) want = Mathf.Max(want, Mathf.Max(share, a.Followers.Count));
+                    if (auto && want > 0f && want <= a.FollowersLimit.GetValueExcludingModifier(Util.ModifierName) && max <= 0f) want = 0f;   // game value already enough
+                    Util.SetParameter(a.FollowersLimit, want);
+                }
+                hadMax = max > 0f || auto;
             }
         }
         private bool hadMax;

@@ -75,6 +75,7 @@ namespace UboatToolkit
             Bool(QoL, "AutoManEngines", "Maschinenraum automatisch besetzen, wenn ein Motor läuft", false);
             Bool(QoL, "AutoManHydrophone", "Horcher automatisch besetzen (getaucht oder bei Alarm)", true);
             Bool(QoL, "AutoManRadio", "Funkraum automatisch besetzen (wenn das Funkgerät empfangen kann)", true);
+            Bool(QoL, "FollowersAuto", "Matrosen pro Offizier automatisch: alle Matrosen an Bord passen in die Gruppen (kein 10/6 mehr)", true);
             Num(QoL, "MaxFollowers", "Matrosen pro Offizier höchstens (0 = Spiel-Wert)", 0, 0, 20, 1);
             Bool(QoL, "FollowersNoLimit", "Offiziere dürfen alle freien Matrosen mitnehmen (ohne 60-%-Grenze)", false);
             Bool(QoL, "NoStress", "Kein Stress in der Crew", false);
