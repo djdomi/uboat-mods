@@ -451,6 +451,7 @@ namespace UboatToolkit
             Bool(Tools, "SaveCatLog", "Log: Karriere-Reiter in der Spielstand-Liste", false);
             Bool(Tools, "ScopeLog", "Log: Sehrohr-Overlays laden", false);
             Num(Tools, "ScopeLogSlowMs", "  langsam ab ... ms", 20, 0, 1000, 5);
+            Bool(Tools, "TextureRaceLog", "Log: spätes Textur-Löschen (Zusammenfassung pro Minute)", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
