@@ -41,6 +41,10 @@ namespace UboatToolkit.Modules
             });
 
             Util.ScaleParameter(t.Field("hullCrackThreshold").GetValue<Parameter>(), Settings.B("CheatDeepDive") ? 100f : 1f);
+            // The game also has a separate "hull crush" timer (HullCrushController): below the boat's CrushDepth
+            // it counts down and then sets the hull to 0 = boom, even without any leaks. Push that depth far away.
+            Util.Safe("DeepDive.Crush", () =>
+                Util.ScaleParameter(ship.SandboxEntity.Parameters.GetParameter("CrushDepth"), Settings.B("CheatDeepDive") ? 100f : 1f));
 
             if (Settings.B("CheatFullFuel")) Util.Safe("FullFuel", () => FillFuel(ship));
             if (Settings.B("CheatFullBattery")) Fill(ship.Energy);

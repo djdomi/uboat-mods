@@ -42,6 +42,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.CrewFill());
             Modules.Add(new Modules.FadeReparent());
             Modules.Add(new Modules.NavRescue());
+            foreach (var m in UboatToolkit.Modules.Warthog.WarthogModules.All()) Modules.Add(m);
             Modules.Add(new Modules.CrewCheats());
             Modules.Add(new Modules.Inventory());
             Modules.Add(new Modules.Loading());
@@ -185,7 +186,7 @@ namespace UboatToolkit
             Imgui.TextAt(new Rect(r.xMax - 18, r.yMax - 20, 16, 18), "◢");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             // tabs: as wide as fits, second row when the window is narrow
-            var tabs = new[] { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden", Settings.KeysTab, Settings.Tools };
+            var tabs = new[] { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden", UboatToolkit.Modules.Warthog.WarthogSettings.Tab, Settings.KeysTab, Settings.Tools };
             int perRow = Mathf.Clamp(Mathf.FloorToInt((r.width - 20) / 90f), 1, tabs.Length);
             float tw = (r.width - 30) / perRow - 4;
             for (int i = 0; i < tabs.Length; i += perRow)
