@@ -128,6 +128,8 @@ namespace UboatToolkit
             Bool(QoL, "SeaLayer", "Realistische Sprungschicht (25-150 m je nach Wassertemperatur, darunter schwerer zu orten)", true);
             Bool(QoL, "SeaLayerHearing", "  Unter der Sprungschicht h\u00f6rt der eigene Horcher Schiffe oben schlechter", true);
             Bool(QoL, "SeaLayerNote", "  Kurze Meldung beim Unter-/\u00dcberqueren der Sprungschicht", true);
+            Bool(QoL, "FixUnreadableColliders", "Fix: Gegenstände mit gesperrter Kollisionsform (Bin, Clock, Folder) zählen wieder, keine rote Meldung", true);
+            Bool(QoL, "FixNavmeshSnap", "Fix: Matrosen finden Ziele knapp neben dem Laufweg (bis 5 m statt 1,5 m)", true);
             Bool(QoL, "SkipIntroTutorial", "Neue Karriere: Einf\u00fchrungs-Tutorial \u00fcberspringen", true);
             Bool(QoL, "FixFadeReparent", "Fehler-Fix: Einblend-Effekt von Figuren (z. B. Hafenarbeiter) beim Ein-/Ausschalten nicht mehr falsch umh\u00e4ngen", true);
             Bool(QoL, "NoPauseBlur", "Pause ohne Unsch\u00e4rfe und ohne dunkle Einblendung", false);
