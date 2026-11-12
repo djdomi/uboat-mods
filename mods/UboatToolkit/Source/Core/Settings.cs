@@ -10,7 +10,7 @@ namespace UboatToolkit
     // One setting. Bool settings use Value 0/1.
     public class Opt
     {
-        public string Key, Tab, Label;
+        public string Key, Tab, Label, Group = "";
         public bool IsBool, IsKey;
         public string Text = "";
         public float Value, Default, Min, Max, Step;
@@ -640,7 +640,72 @@ namespace UboatToolkit
         private static void Bool(string tab, string key, string label, bool def) => Add(new Opt { Tab = tab, Key = key, Label = label, IsBool = true, Default = def ? 1 : 0, Value = def ? 1 : 0, Min = 0, Max = 1, Step = 1 });
         private static void Num(string tab, string key, string label, float def, float min, float max, float step) => Add(new Opt { Tab = tab, Key = key, Label = label, Default = def, Value = def, Min = min, Max = max, Step = step });
         private static void Key(string key, string label, string def) => Add(new Opt { Tab = KeysTab, Key = key, Label = label, IsKey = true, Text = def });
-        private static void Add(Opt o) { All.Add(o); byKey[o.Key] = o; }
+        private static void Add(Opt o)
+        {
+            o.Group = GroupOf(o);
+            All.Add(o); byKey[o.Key] = o;
+        }
+
+        // Groups for the F10 menu (QoL + Cheat tabs). Sub-options (label starts with spaces) stay in
+        // the group of the option above them.
+        private static readonly string[][] groupRules =
+        {
+            new[] { "Fehler-Fixes", "fix", "fehlerschutz" },
+            new[] { "Crew & Gesundheit", "crew", "matros", "offizier", "kapitän", "kommandant", "verletz", "erste hilfe", "heil", "müde", "ermüd", "schlaf", "koje", "moral", "stress", "disziplin", "skill", "essen", "koch", "nahrung", "kranke", "sanit", "wache", "besatzung", "rekrut", "uniform", "regenkleid", "männer", "alarm" },
+            new[] { "Kampagne & Missionen", "rudel", "milchk", "patrouill", "auftrag", "erfolge", "achievement", "kampagne", "karriere" },
+            new[] { "Spielstand & Leistung", "spielst", "speicher", "ruckel", "rechenzeit", "fps", "leistung" },
+            new[] { "Hafen, Lager & Geld", "hafen", "häfen", "lager", "verlad", "stapel", "gewicht", "inventar", "storage", "stack", "kauf", "preis", "geld", "ruf", "werkstatt", "schrott", "ersatzteil", "upgrade", "erforsch", "forschung", "freischalt", "versorg" },
+            new[] { "Navigation, Karte & Zeit", "karte", "navigation", "kurs", "zeitraffer", "reise", "quick", "wetter", "land", "auf grund", "kollision", "teleport", "wegpunkt" },
+            new[] { "Sicht, Sensoren & Funk", "sonar", "horch", "radar", "sehrohr", "fernglas", "optik", "uzo", "sicht", "entdeck", "ausguck", "funk", "sensor", "licht", "heller", "scheinwerfer", "geräusch", "echolot" },
+            new[] { "Boot & Technik", "tauch", "ballast", "pump", "tiefe", "luft", "sauerstoff", "atemger", "lüftung", "druck", "leck", "schaden", "reparatur", "batterie", "diesel", "motor", "strom", "energie", "kraftstoff", "schnorchel", "luke", "rumpf", "wasser", "kompressor", "geschwindigkeit", "speed" },
+            new[] { "Waffen & Torpedos", "torpedo", "geschütz", "flak", "88mm", "kanone", "munition", "gun", "waffe", "treffer", "feuer", "schuss", "zielen", "streuung", "vorhalt" },
+            new[] { "Anzeige, Kamera & Menü", "kamera", "menü", "anzeige", "sound", "musik", "hinweis", "meldung", "log", "fenster", "schrift", "intro", "tutorial", "video", "unschärfe", "blur", "zeit" },
+        };
+        // Checked first (label start or exact word), before the keyword rules above.
+        private static readonly string[][] groupFirst =
+        {
+            new[] { "Waffen & Torpedos", "88mm", "flak", "ki-schützen", "deckgeschütz", "geschütz", "schussgeräusch", "torpedo", "rohr-anzeige", "zielhilfe" },
+            new[] { "Fehler-Fixes", "fehler-fix", "fehlerschutz" },
+            new[] { "Anzeige, Kamera & Menü", "schnittansicht", "ich-sicht", "kein sprung", "ansagen", "kriegstagebuch", "stationen (" },
+            new[] { "Boot & Technik", "strom sparen", "ballast", "schnorchel", "lüftung" },
+        };
+        private static Opt lastAdded;
+        private static string GroupOf(Opt o)
+        {
+            string g = "";
+            if (o.Tab == QoL || o.Tab == Cheat)
+            {
+                if (o.Label.StartsWith(" ") && lastAdded != null && lastAdded.Tab == o.Tab) g = lastAdded.Group;
+                else
+                {
+                    string text = (o.Key + " " + o.Label).ToLowerInvariant();
+                    string start = o.Label.ToLowerInvariant();
+                    foreach (var r in groupFirst)
+                        for (int j = 1; j < r.Length && g == ""; j++)
+                            if (start.StartsWith(r[j])) g = r[0];
+                    if (g != "") { }
+                    else if (o.Key.StartsWith("Fix") || o.Label.StartsWith("Fix")) g = groupRules[0][0];
+                    else
+                    {
+                        g = "Sonstiges";
+                        for (int i = 1; i < groupRules.Length && g == "Sonstiges"; i++)
+                            for (int j = 1; j < groupRules[i].Length; j++)
+                                if (text.Contains(groupRules[i][j])) { g = groupRules[i][0]; break; }
+                    }
+                }
+            }
+            lastAdded = o;
+            return g;
+        }
+
+        public static readonly string[] GroupOrder =
+        {
+            "Crew & Gesundheit", "Hafen, Lager & Geld", "Waffen & Torpedos", "Boot & Technik",
+            "Sicht, Sensoren & Funk", "Navigation, Karte & Zeit", "Kampagne & Missionen", "Spielstand & Leistung",
+            "Anzeige, Kamera & Menü", "Fehler-Fixes", "Sonstiges",
+        };
+
+        public static bool Changed(Opt o) => !o.IsKey && Math.Abs(o.Value - o.Default) > 0.0001f;
 
         public static bool B(string key) => byKey.TryGetValue(key, out var o) && o.On;
         public static float F(string key) => byKey.TryGetValue(key, out var o) ? o.Value : 0f;

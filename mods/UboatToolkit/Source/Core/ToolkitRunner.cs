@@ -138,6 +138,32 @@ namespace UboatToolkit
             if (dragMode == 2) { Settings.Set("MenuWidth", dragRect.width + d.x); Settings.Set("MenuHeight", dragRect.height + d.y); }
         }
 
+        private string search = "";
+        private bool onlyChanged;
+        private readonly HashSet<string> openGroups = new HashSet<string>();
+
+        private void DrawOpt(Opt o)
+        {
+                if (o.IsKey)
+                {
+                    Imgui.BeginH();
+                    Imgui.Label(o.Label + ":  " + (string.IsNullOrEmpty(o.Text) ? "(keine)" : o.Text), 450);
+                    if (Imgui.Button(Keys.Capturing == o ? "Taste drücken ... (Esc = Abbruch, Rück = keine)" : "Ändern", 200)) Keys.Capturing = o;
+                    Imgui.EndH();
+                }
+                else if (o.IsBool)
+                {
+                    o.Value = Imgui.Toggle(o.On, " " + o.Label) ? 1 : 0;
+                }
+                else
+                {
+                    Imgui.Label(o.Label + ":  " + o.Value.ToString("0.##", CultureInfo.InvariantCulture));
+                    float v = Imgui.Slider(Mathf.Clamp(o.Value, o.Min, o.Max), o.Min, o.Max, Mathf.Max(200f, MenuRect().width - 120));
+                    if (o.Step > 0) v = Mathf.Round(v / o.Step) * o.Step;
+                    if (Mathf.Abs(v - Mathf.Clamp(o.Value, o.Min, o.Max)) > 0.0001f) o.Value = v;
+                }
+                    }
+
         private void DrawGui()
         {
             if (Notice != null && Time.unscaledTime < NoticeUntil)
@@ -170,33 +196,53 @@ namespace UboatToolkit
                 Imgui.EndH();
             }
             Imgui.Space(6);
+            Imgui.BeginH();
+            Imgui.Label("Suche:", 60);
+            search = Imgui.TextField(search, 300);
+            if (Imgui.Button("x", 30)) search = "";
+            onlyChanged = Imgui.Toggle(onlyChanged, " nur geänderte zeigen");
+            if (Imgui.Button("alle auf", 90)) foreach (var g in Settings.GroupOrder) openGroups.Add(tab + "/" + g);
+            if (Imgui.Button("alle zu", 90)) openGroups.Clear();
+            Imgui.EndH();
             scroll = Imgui.BeginScroll(scroll);
             if (tab == "Crew") UboatToolkit.Modules.ExtraFeatures.DrawCrewTab();
             if (tab == "Torpedos") UboatToolkit.Modules.TorpedoTab.Draw();
             if (tab == "Karte") UboatToolkit.Modules.MapTab.Draw();
             if (tab == "Licht") UboatToolkit.Modules.LightTab.Draw();
             if (tab == "Schaden") UboatToolkit.Modules.DamageReport.Draw();
-            foreach (var o in Settings.All.Where(x => x.Tab == tab))
+            if (!string.IsNullOrEmpty(search) && search.Trim().Length >= 2)
             {
-                if (o.IsKey)
+                // Search over ALL tabs: shows where each hit lives.
+                string q = search.Trim().ToLowerInvariant();
+                int hits = 0;
+                foreach (var o in Settings.All)
                 {
-                    Imgui.BeginH();
-                    Imgui.Label(o.Label + ":  " + (string.IsNullOrEmpty(o.Text) ? "(keine)" : o.Text), 450);
-                    if (Imgui.Button(Keys.Capturing == o ? "Taste drücken ... (Esc = Abbruch, Rück = keine)" : "Ändern", 200)) Keys.Capturing = o;
-                    Imgui.EndH();
+                    if (!(o.Label + " " + o.Key).ToLowerInvariant().Contains(q)) continue;
+                    if (onlyChanged && !Settings.Changed(o)) continue;
+                    Imgui.Label("[" + o.Tab + (o.Group != "" ? " / " + o.Group : "") + "]");
+                    DrawOpt(o);
+                    hits++;
                 }
-                else if (o.IsBool)
+                if (hits == 0) Imgui.Label("Nichts gefunden.");
+            }
+            else if (tab == Settings.QoL || tab == Settings.Cheat)
+            {
+                foreach (var g in Settings.GroupOrder)
                 {
-                    o.Value = Imgui.Toggle(o.On, " " + o.Label) ? 1 : 0;
-                }
-                else
-                {
-                    Imgui.Label(o.Label + ":  " + o.Value.ToString("0.##", CultureInfo.InvariantCulture));
-                    float v = Imgui.Slider(Mathf.Clamp(o.Value, o.Min, o.Max), o.Min, o.Max, Mathf.Max(200f, MenuRect().width - 120));
-                    if (o.Step > 0) v = Mathf.Round(v / o.Step) * o.Step;
-                    if (Mathf.Abs(v - Mathf.Clamp(o.Value, o.Min, o.Max)) > 0.0001f) o.Value = v;
+                    var list = Settings.All.Where(x => x.Tab == tab && x.Group == g && (!onlyChanged || Settings.Changed(x))).ToList();
+                    if (list.Count == 0) continue;
+                    string key = tab + "/" + g;
+                    bool open = openGroups.Contains(key);
+                    int changed = list.Count(Settings.Changed);
+                    if (Imgui.Button((open ? "▼  " : "▶  ") + g + "   (" + list.Count + " Einstellungen" + (changed > 0 ? ", " + changed + " geändert" : "") + ")", Mathf.Max(300f, MenuRect().width - 60)))
+                    { if (open) openGroups.Remove(key); else openGroups.Add(key); }
+                    if (!open) continue;
+                    foreach (var o in list) DrawOpt(o);
+                    Imgui.Space(8);
                 }
             }
+            else
+                foreach (var o in Settings.All.Where(x => x.Tab == tab && (!onlyChanged || Settings.Changed(x)))) DrawOpt(o);
             Imgui.EndScroll();
             Imgui.BeginH();
             if (Imgui.Button("Speichern", 150)) Settings.Save();

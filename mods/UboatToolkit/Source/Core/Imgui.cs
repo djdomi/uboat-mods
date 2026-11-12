@@ -10,7 +10,7 @@ namespace UboatToolkit
     public static class Imgui
     {
         private static Type gui, layout, option;
-        private static MethodInfo label, toggle, slider, button, beginH, endH, beginScroll, endScroll, beginArea, endArea, box, guiLabel, width, space, drawTex;
+        private static MethodInfo textField, label, toggle, slider, button, beginH, endH, beginScroll, endScroll, beginArea, endArea, box, guiLabel, width, space, drawTex;
         private static PropertyInfo color;
         private static object noOptions;
         public static bool Ready;
@@ -26,6 +26,7 @@ namespace UboatToolkit
             MethodInfo L(string n, params Type[] p) => layout.GetMethod(n, BindingFlags.Public | BindingFlags.Static, null, p, null);
             var opts = option.MakeArrayType();
             label = L("Label", typeof(string), opts);
+            textField = L("TextField", typeof(string), opts);
             toggle = L("Toggle", typeof(bool), typeof(string), opts);
             slider = L("HorizontalSlider", typeof(float), typeof(float), typeof(float), opts);
             button = L("Button", typeof(string), opts);
@@ -53,6 +54,7 @@ namespace UboatToolkit
             return arr;
         }
 
+        public static string TextField(string t, float w = 0) => textField == null ? t : (string)textField.Invoke(null, new[] { t ?? "", Opts(w) });
         public static void Label(string t, float w = 0) => label.Invoke(null, new[] { t, Opts(w) });
         public static bool Toggle(bool v, string t) => (bool)toggle.Invoke(null, new object[] { v, t, noOptions });
         public static float Slider(float v, float min, float max, float w) => (float)slider.Invoke(null, new object[] { v, min, max, Opts(w) });
