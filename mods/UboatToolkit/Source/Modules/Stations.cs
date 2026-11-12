@@ -60,12 +60,15 @@ namespace UboatToolkit.Modules
 
             // Echo sounder as a sailor job: under water a free sailor goes there every x seconds and pings (game's own PingDeep action).
             float every = Settings.F("EchoSailorSeconds");
+            // The interval is game time; under time compression that meant a new sailor pulled from his work every few
+            // real seconds (log: "Echolot: X übernimmt" every 6 s, rotating names). Now also at least 60 real seconds apart.
             if (Settings.B("EchoSailor") && every > 0f && ship.SubmergedOrGoingToSubmerge && Time.time - lastPing > every
+                && Time.unscaledTime - lastPingReal > 60f
                 && !(Settings.B("EchoSailorQuiet") && ship.Alarmed))
                 foreach (var act in Util.Find<Activator>())
                     if (act != null && act.AssociatedEquipment is SoundRangingDevice && act.Users.Count == 0)
                     {
-                        if (Send(act, "Echolot", t => t is PingDeep)) lastPing = Time.time;
+                        if (Send(act, "Echolot", t => t is PingDeep)) { lastPing = Time.time; lastPingReal = Time.unscaledTime; }
                         break;
                     }
 
@@ -93,7 +96,7 @@ namespace UboatToolkit.Modules
             }
         }
         private bool hadMax;
-        private float lastPing = -9999f;
+        private float lastPing = -9999f, lastPingReal = -9999f;
 
         // Sends the nearest free sailor to do one action at this activator (for one-off jobs).
         private bool Send(Activator act, string label, System.Func<CharacterAction, bool> accept)

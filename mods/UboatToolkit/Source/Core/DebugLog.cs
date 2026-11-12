@@ -38,6 +38,17 @@ namespace UboatToolkit
             Write("SETTINGS", why + ": " + string.Join(", ", Settings.All.Select(o => o.Key + "=" + (o.IsKey ? o.Text : o.IsBool ? (o.On ? "an" : "aus") : o.Value.ToString("0.###")))));
         }
 
+        // Real frames per real second since the last STATE line. Time.smoothDeltaTime is game time: under time
+        // compression it showed "FPS=2" although the game ran smoothly.
+        private static int lastFrames = -1; private static float lastReal;
+        private static float RealFps()
+        {
+            int f = Time.frameCount; float t = Time.realtimeSinceStartup;
+            float fps = lastFrames >= 0 && t - lastReal > 0.5f ? (f - lastFrames) / (t - lastReal) : 1f / Mathf.Max(0.0001f, Time.unscaledDeltaTime);
+            lastFrames = f; lastReal = t;
+            return fps;
+        }
+
         public static void DumpState()
         {
             try
@@ -50,7 +61,7 @@ namespace UboatToolkit
                     return r == null ? n + "=?" : n + "=" + ((float)r.Amount).ToString("0.###");
                 }));
                 Write("STATE", "Tiefe=" + ship.TargetDepth.ToString("0.0") + " Alarm=" + ship.Alarmed + " Gejagt=" + ship.IsHunted +
-                               " Hafen=" + ship.Docked + " " + res + " FPS=" + (1f / Mathf.Max(0.0001f, Time.smoothDeltaTime)).ToString("0"));
+                               " Hafen=" + ship.Docked + " " + res + " FPS=" + RealFps().ToString("0") + " Zeitraffer=" + Time.timeScale.ToString("0.#"));
             }
             catch (Exception e) { Write("ERROR", "DumpState: " + e.Message); }
         }
