@@ -361,32 +361,3 @@ namespace UboatToolkit.Modules
         }
     }
 }
-
-namespace UboatToolkit.Modules
-{
-    // Periscope/UZO/binocular reticle light: on/off with a key while looking through, plus brightness.
-    public class Reticle : ModuleBase
-    {
-        internal static bool Lit = true;
-        public override void Frame()
-        {
-            if (!Keys.Down("KeyReticleLight")) return;
-            var cam = UnityEngine.Object.FindObjectOfType<UBOAT.Game.Scene.Camera.MainCamera>();
-            if (ScopeMemory.Ctrl(cam) == null) return;
-            Lit = !Lit;
-            ToolkitRunner.ShowNotice(Lit ? "Fadenkreuz-Licht an" : "Fadenkreuz-Licht aus", 2f);
-        }
-    }
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Items.Periscope), "ReticleIlluminationColor", HarmonyLib.MethodType.Getter)]
-    internal static class Extras_ReticlePatch
-    {
-        [HarmonyLib.HarmonyPriority(HarmonyLib.Priority.Last)]
-        private static void Postfix(ref UnityEngine.Color __result)
-        {
-            float m = Settings.F("ReticleBright");
-            if (!Reticle.Lit) m = 0f;
-            if (UnityEngine.Mathf.Approximately(m, 1f)) return;
-            __result = new UnityEngine.Color(__result.r * m, __result.g * m, __result.b * m, __result.a);
-        }
-    }
-}
