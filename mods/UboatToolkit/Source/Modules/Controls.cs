@@ -78,9 +78,7 @@ namespace UboatToolkit.Modules
             var all = port.Group?.Entities;
             if (all == null) return null;
             var hit = all.FirstOrDefault(x => x.Name != null && x.Name.ToLower().Contains("leave port"));
-            if (hit != null) return hit;
-            return all.Where(x => x.Name != null && x.Name.ToLower().Contains("undock") && (x.Position - port.Position).sqrMagnitude > 400f)
-                      .OrderByDescending(x => (x.Position - port.Position).sqrMagnitude).FirstOrDefault();
+            return hit;   // only the game's own "leave port" point; the far "undock" points could lie behind land
         }
     }
 
