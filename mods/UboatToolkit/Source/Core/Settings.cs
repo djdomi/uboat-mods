@@ -121,6 +121,10 @@ namespace UboatToolkit
             Bool(QoL, "NoEdgeScroll", "Kein Bild-Wegrutschen am Bildschirmrand (Schnittansicht + Deck-Sprung)", false);
             Bool(QoL, "FixCarrierConvoy", "Fix: Konvois mit Flugzeugtr\u00e4ger fahren normal (geparkte Flugzeuge bremsen nicht)", true);
             Bool(QoL, "FixScopeStall", "Fix: kein Ruckeln beim Zoomen von Sehrohr/UZO (Bilder bleiben geladen)", true);
+            Bool(QoL, "ScopeRetain", "  Overlays geladen halten", true);
+            Bool(QoL, "ScopePreload", "  bekannte Overlays im Hintergrund vorladen", true);
+            Bool(QoL, "ScopeUzoRefresh", "  UZO-Zoom (Zusatz-Mod) nur auffrischen statt neu starten", true);
+            Num(QoL, "ScopeMaxMb", "  höchstens ... MB festhalten", 768, 0, 4096, 64);
             Bool(QoL, "BerlinTime", "Alle Uhren zeigen Berliner Zeit (keine Zeitzonen-Meldungen)", false);
             Bool(QoL, "FixSpeedRange", "Fix: kein Tempo-/Reichweiten-Verlust bei hohem Zeitraffer (lernt Werte bei normaler Zeit)", true);
             Bool(QoL, "FixSkipperDead", "Fix: Kommandant tot/verwundet \u2192 Warnung vor dem Hafen + keine Gespr\u00e4che, die h\u00e4ngen", true);
@@ -445,6 +449,8 @@ namespace UboatToolkit
             Bool(Tools, "OrbitLog", "Log: Außenkamera unter Wasser", false);
             Bool(Tools, "StationLog", "Log: Stationen (Zoom, Drehknöpfe)", false);
             Bool(Tools, "SaveCatLog", "Log: Karriere-Reiter in der Spielstand-Liste", false);
+            Bool(Tools, "ScopeLog", "Log: Sehrohr-Overlays laden", false);
+            Num(Tools, "ScopeLogSlowMs", "  langsam ab ... ms", 20, 0, 1000, 5);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);

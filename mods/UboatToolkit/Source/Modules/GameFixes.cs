@@ -299,28 +299,4 @@ namespace UboatToolkit.Modules
         private static void Postfix(PauseOverlayUI __instance) { if (Settings.B("NoPauseBlur") && __instance.gameObject.activeSelf) __instance.gameObject.SetActive(false); }
     }
 
-    // --- Periscope/UZO zoom without stutter: overlay textures stay loaded instead of being reloaded every time.
-    [HarmonyPatch(typeof(PeriscopeIME), "ValidateOverlay")]
-    internal static class Fix_ScopeStall
-    {
-        private static readonly object keeper = new object();
-        private static readonly HashSet<object> kept = new HashSet<object>();
-        private static System.Reflection.FieldInfo[] fields;
-        private static void Postfix(PeriscopeIME __instance)
-        {
-            if (!Settings.B("FixScopeStall")) return;
-            Util.Safe("Fix.ScopeStall", () =>
-            {
-                if (fields == null)
-                    fields = typeof(PeriscopeIME).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)
-                        .Where(f => f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition().Name == "Resource`1" && f.FieldType.GetGenericArguments()[0] == typeof(Texture2D)).ToArray();
-                foreach (var f in fields)
-                {
-                    var res = Traverse.Create(f.GetValue(__instance)).Field("resource").GetValue() as DWS.Common.Resources.IResource;
-                    if (res == null || !kept.Add(res)) continue;
-                    res.AddUsage(keeper, false);
-                }
-            });
-        }
-    }
 }
