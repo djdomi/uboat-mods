@@ -170,6 +170,8 @@ namespace UboatToolkit.Modules.CrewAi
             l.Add(clone);
         }
 
+        internal static bool IsShared(Interactable it) { return it != null && _expanded.Contains(it.GetInstanceID()); }
+
         internal static bool TemplateAllows(InteractableSlot s)
         {
             if (s == null || _templateOf.Count == 0) return true;
