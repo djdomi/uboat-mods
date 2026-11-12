@@ -25,9 +25,18 @@ namespace UboatToolkit.Modules
         [Inject] internal static StoryFragmentsDatabase fragments;
         private PlayerShip lastShip;
 
+        private bool warned;
+        private float nextPortCheck;
+
         public override void Tick()
         {
             var ship = Util.PlayerShip;
+            if (ship != null && Settings.B("FixSkipperDead") && Time.unscaledTime > nextPortCheck)
+            {
+                nextPortCheck = Time.unscaledTime + 5f;
+                Util.Safe("Fixes.PortWarn", () => PortWarning(ship));
+            }
+            Util.Safe("Fixes.Officers", ExtraOfficers);
             if (ship == null || ship == lastShip) return;
             lastShip = ship;   // new game scene / save loaded
             Util.Safe("Fixes.Inject", () => InjectionFramework.Instance.InjectIntoAssembly(typeof(GameFixes).Assembly));
@@ -48,6 +57,34 @@ namespace UboatToolkit.Modules
                         names.Add(f.Id.Substring(f.Path.Length));
             int n = names.Count(vars.Remove);
             if (n > 0) Util.Log("Hafen-Dialog: " + n + " haengende Gespraechs-Markierungen entfernt");
+        }
+
+        // Before reaching a port: warn if the commander is dead or wounded (port talks need him).
+        private void PortWarning(PlayerShip ship)
+        {
+            bool nearPort = !ship.Docked && Util.Find<UBOAT.Game.Scene.Dock.DockArea>(5f)
+                .Any(d => d != null && (d.transform.position - ship.transform.position).sqrMagnitude < 3000f * 3000f);
+            if (!nearPort) { warned = false; return; }
+            if (warned || SkipperOk()) return;
+            warned = true;
+            string text = "Achtung: Kommandant tot oder verwundet! Vor dem Anlegen heilen (F10 > Cheat > Alle heilen), sonst gehen die Hafen-Gespr\u00e4che nicht.";
+            var bar = UnityEngine.Object.FindObjectOfType<NotificationBarUI>();
+            if (bar != null) bar.OpenNow("Icons/Notification Bar/Notification - 40 - Danger", text);
+            Util.Log(text);
+        }
+
+        // More officers allowed on board (runtime only, nothing is written into the save).
+        private Modifier officerMod;
+        private object officerCareer;
+        private void ExtraOfficers()
+        {
+            var c = Util.Career;
+            float want = Settings.F("ExtraOfficers");
+            if (c == null) return;
+            if (!ReferenceEquals(c, officerCareer)) { officerMod = null; officerCareer = c; }
+            if (want <= 0f) { if (officerMod != null) { officerMod.Remove(); officerMod = null; } return; }
+            if (officerMod == null) officerMod = c.OfficersOnBoardLimit.AddDeltaModifier("Toolkit Officers");
+            if (officerMod.Value != want) officerMod.Value = want;
         }
 
         internal static bool SkipperOk()
@@ -248,5 +285,17 @@ namespace UboatToolkit.Modules
             for (int i = 0; i < list.Count; i++)
                 if (list[i] != null && list[i].transform.IsChildOf(ship.transform)) { Fix_SpeedDrag.Handle(list[i]); break; }
         }
+    }
+
+    // --- Pause without blur and without the dark overlay.
+    [HarmonyPatch(typeof(PauseEffects), "SetPostProcessingWeight")]
+    internal static class Fix_PauseBlur
+    {
+        private static void Prefix(ref float f) { if (Settings.B("NoPauseBlur")) f = 0f; }
+    }
+    [HarmonyPatch(typeof(PauseOverlayUI), "ValidateState")]
+    internal static class Fix_PauseOverlay
+    {
+        private static void Postfix(PauseOverlayUI __instance) { if (Settings.B("NoPauseBlur") && __instance.gameObject.activeSelf) __instance.gameObject.SetActive(false); }
     }
 }

@@ -113,9 +113,14 @@ namespace UboatToolkit
             Bool(QoL, "TonnageBeforePatrol", "Patrouillen-Auftrag: Tonnage z\u00e4hlt schon auf dem Weg ins Gebiet", true);
             Bool(QoL, "MapActualDepth", "Karte: genaue Wassertiefe unter der Maus anzeigen", true);
             Bool(QoL, "TorpedoMix", "H\u00e4fen haben eine gleichm\u00e4\u00dfige Mischung aller Torpedo-Typen", false);
+            Bool(QoL, "SeaFloorAlways", "Meeresboden immer laden, wenn das Wasser flacher als ~300 m ist (nur Reise-System \u201eRealistisch\u201c)", true);
+            Bool(QoL, "SeaLayer", "Realistische Sprungschicht (25-150 m je nach Wassertemperatur, darunter schwerer zu orten)", true);
+            Bool(QoL, "SeaLayerHearing", "  Unter der Sprungschicht h\u00f6rt der eigene Horcher Schiffe oben schlechter", true);
+            Bool(QoL, "SeaLayerNote", "  Kurze Meldung beim Unter-/\u00dcberqueren der Sprungschicht", true);
+            Bool(QoL, "NoPauseBlur", "Pause ohne Unsch\u00e4rfe und ohne dunkle Einblendung", false);
             Bool(QoL, "BerlinTime", "Alle Uhren zeigen Berliner Zeit (keine Zeitzonen-Meldungen)", false);
             Bool(QoL, "FixSpeedRange", "Fix: kein Tempo-/Reichweiten-Verlust bei hohem Zeitraffer (lernt Werte bei normaler Zeit)", true);
-            Bool(QoL, "FixSkipperDead", "Fix: Kommandant tot/verwundet \u2192 keine Offiziers-Gespr\u00e4che, die ihn brauchen", true);
+            Bool(QoL, "FixSkipperDead", "Fix: Kommandant tot/verwundet \u2192 Warnung vor dem Hafen + keine Gespr\u00e4che, die h\u00e4ngen", true);
             Bool(QoL, "FixPortDialogue", "Fix: Hafen-Gespr\u00e4che h\u00e4ngen nicht mehr fest", true);
             Bool(QoL, "FixRadioRewards", "Fix: vergessene Belohnungen von Funk-Auftr\u00e4gen werden ausgezahlt", true);
             Bool(QoL, "LeakTwoSailors", "Lecks: abdichten wie mit zwei Matrosen", true);
@@ -209,6 +214,7 @@ namespace UboatToolkit
             Num(Cheat, "SinkConvoyTorpedoes", "  Torpedos pro Schiff", 3, 1, 10, 1);
             Bool(Cheat, "CheatRemoteTorpedo", "Fernschuss per Taste (auch aus der Koje): Torpedo auf nächsten Gegner", false);
             Bool(Cheat, "BackupBeforeCheats", "Backup-Spielstand, sobald ein Cheat eingeschaltet wird", true);
+            Num(Cheat, "ExtraOfficers", "Mehr Offiziere an Bord erlaubt (+x, 0 = Spiel)", 0, 0, 6, 1);
             Bool(Cheat, "CheatShowActive", "Aktive Cheats oben links anzeigen", true);
 
             // ---------- Tasten (frei belegbar) ----------

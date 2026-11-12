@@ -19,6 +19,11 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Zeitraffer & Navigation
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Meeresboden immer laden bei flachem Wasser (unter ~300 m) | SeaFloorAlways |
+| QoL | NEU: Berliner Zeit auf allen Uhren | BerlinTime |
+| QoL | NEU: Karte zeigt genaue Wassertiefe unter der Maus | MapActualDepth |
+| QoL | NEU: Kein Tempo-/Reichweiten-Verlust bei hohem Zeitraffer | FixSpeedRange |
+| QoL | NEU: Alarmtauchen automatisch bei feindlichem Flugzeug | AutoCrashDive |
 | QoL | Zeitraffer stoppt bei neuem Schiff oder Flugzeug | StopTimeOnShip, StopTimeOnAircraft |
 | QoL | Zeitraffer stoppt bei Schaden und Funkspruch | StopTimeOnDamage, StopTimeOnRadio |
 | QoL | Zeitraffer ignoriert Fischerboote, Verbündete, auf Wunsch Neutrale | IgnoreFishingBoats, IgnoreAlliedShips, IgnoreNeutralShips |
@@ -55,6 +60,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Volle Besatzung ab Start | FullCrewAtStart, FullCrewSize |
 | QoL | Wachen tauschen | SwapShiftsNow |
 | QoL | Tab „Crew“: Rollen per Klick, freie Skillpunkte | – |
+| Cheat | NEU: Mehr Offiziere an Bord erlaubt (+0 bis +6) | ExtraOfficers |
 | Cheat | NEU: Eine Fremdsprache = Sprachgenie (Linguist, alle Sprachen) | CheatLinguist |
 | Cheat | NEU: Alle heilen (Knopf + Taste) | CheatHealNow, KeyHealAll |
 | Cheat | NEU: Deck-Crew bleibt beim Tauchen draußen, schießt weiter, ertrinkt nie | CheatDeckCrewStays |
@@ -65,6 +71,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Boot & Technik
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Realistische Sprungschicht 25-150 m, darunter schwerer zu orten + Meldung | SeaLayer, SeaLayerHearing, SeaLayerNote |
 | QoL | Luken schließen automatisch | AutoHatches |
 | QoL | Luken zeigen Luftdruck, Sperre + Druckausgleich (Tempo einstellbar, mit Lüftung schneller) | HatchPressure, HatchPressureLimit, HatchEqualize, HatchEqualizeSpeed, VentEqualizeFaster |
 | QoL | Ballast: Diesel bläst aus, schneller fluten, Befehle immer da | BallastDieselBlow, BallastDieselBlowRate, BallastFastDive, BallastAlwaysAvailable |
@@ -88,6 +95,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Waffen & Torpedos
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Häfen haben eine gleichmäßige Torpedo-Mischung | TorpedoMix |
 | QoL | Torpedo-Rechner rechnet selbst | EasyTDC |
 | QoL | Torpedos schneller nachladen bis sofort | TorpedoLoadSpeed |
 | QoL | Alle leeren Rohre laden (Strg+Umschalt+R) | ReloadAllNow |
@@ -105,6 +113,9 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Hafen, Lager & Geld
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Hafen-Gespräche hängen nicht mehr fest | FixPortDialogue |
+| QoL | NEU: Kommandant tot/verwundet: Warnung vor dem Hafen, keine hängenden Gespräche | FixSkipperDead |
+| QoL | NEU: Knopf „Hafen verlassen“ direkt nach dem Ablegen | LeavePortButton |
 | QoL | Hafen: Verladen friert nicht ein, abbrechen, erzwingen, sofort | PortLoadingFix, PortLoadingStuckSeconds, CancelPortLoading, FixMyDamnShipment, InstantPortLoading |
 | QoL | Lager aufräumen | SortStorageNow |
 | Cheat | NEU: Lager wächst mit (fast voll = neue Plätze), Mindest-Plätze | AutoExpandStorage, AutoExpandStep, AutoExpandMax, StorageMinSlots |
@@ -119,6 +130,9 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Anzeigen & Erfolge
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Pause ohne Unschärfe und dunkle Einblendung | NoPauseBlur |
+| QoL | NEU: Vergessene Belohnungen von Funk-Aufträgen werden ausgezahlt | FixRadioRewards |
+| QoL | NEU: Patrouille: Tonnage zählt schon auf dem Weg | TonnageBeforePatrol |
 | QoL | Tacho + Kilometerzähler | Speedometer |
 | QoL | Karte: Restweg, Ankunft, Diesel-Reichweite | NavInfo |
 | QoL | Kriegstagebuch als Textdatei | WarDiary |
