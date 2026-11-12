@@ -114,7 +114,8 @@ namespace UboatToolkit
             Bool(QoL, "FixPoolAnimators", "Fix: Fehler \"Pooled instance ... enabled animators\" (z. B. Zeitungsständer)", true);
             Num(QoL, "DepthStep", "  Tiefen-Schritt in m (Shift = x10, Alt = x100, auch Mausrad an der Tiefenanzeige)", 1, 0.5f, 50, 0.5f);
             Bool(QoL, "DepthGauge", "Eigene Tiefenanzeige ohne 260-m-Grenze (Klick/Mausrad setzt Zieltiefe)", true);
-            Num(QoL, "DepthGaugeMax", "  Skala bis (m)", 500, 100, 5000, 50);
+            Bool(QoL, "DepthGaugeAutoZoom", "  Skala passt sich an (flaches Wasser = kurze Skala)", true);
+            Num(QoL, "DepthGaugeMax", "  Skala höchstens bis (m)", 500, 100, 5000, 50);
             Num(QoL, "DepthGaugeXPos", "  Position von links (% vom Bildschirm, 100 = ganz rechts am Rand)", 100, 0, 100, 1);
             Num(QoL, "DepthGaugeY", "  Position oben (% vom Bildschirm)", 35, 0, 90, 1);
             Num(QoL, "DepthGaugeSeconds", "  Verlauf über x Sekunden (echte Zeit)", 120, 30, 600, 10);

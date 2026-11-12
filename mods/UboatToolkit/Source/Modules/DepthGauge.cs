@@ -23,7 +23,20 @@ namespace UboatToolkit.Modules
 
         private static Rect Box() => new Rect(Mathf.Clamp(Screen.width * Settings.F("DepthGaugeXPos") / 100f, 0f, Screen.width - W), Mathf.Clamp(Screen.height * Settings.F("DepthGaugeY") / 100f, 0f, Screen.height - H), W, H);
         private static Rect Scale() { var r = Box(); return new Rect(r.x + 44, r.y + 26, 40, r.height - 70); }
-        private static float Max => Mathf.Max(50f, Settings.F("DepthGaugeMax"));
+        // Auto zoom: in shallow water the scale only goes a bit below the sea floor / the boat, in deep water up to the setting.
+        private static float Max
+        {
+            get
+            {
+                float cap = Mathf.Max(30f, Settings.F("DepthGaugeMax"));
+                var ship = Util.PlayerShip;
+                if (ship == null || float.IsNaN(lastBed) || !Settings.B("DepthGaugeAutoZoom")) return cap;
+                float need = Mathf.Max(lastBed, Mathf.Max(Current(ship), ship.TargetDepth)) * 1.25f;
+                float step = need <= 50f ? 10f : need <= 200f ? 25f : 50f;
+                return Mathf.Clamp(Mathf.Ceil(need / step) * step, 30f, cap);
+            }
+        }
+        private static bool dragging; private static Vector2 dragOff;
 
         private static float Step()
         {
@@ -62,6 +75,19 @@ namespace UboatToolkit.Modules
 
             if (Settings.B("DepthGauge"))
             {
+                // Drag the box by its title line; the position is saved in percent of the screen.
+                {
+                    var bx = Box(); var mp = Input.mousePosition; var pp = new Vector2(mp.x, Screen.height - mp.y);
+                    if (Input.GetMouseButtonDown(0) && new Rect(bx.x, bx.y, bx.width, 22).Contains(pp)) { dragging = true; dragOff = pp - bx.position; }
+                    if (dragging && Input.GetMouseButton(0))
+                    {
+                        var np = pp - dragOff;
+                        Settings.Set("DepthGaugeXPos", Mathf.Clamp(np.x / Screen.width * 100f, 0f, 100f));
+                        Settings.Set("DepthGaugeY", Mathf.Clamp(np.y / Screen.height * 100f, 0f, 100f));
+                    }
+                    if (dragging && !Input.GetMouseButton(0)) { dragging = false; Util.Safe("Depth.SavePos", Settings.Save); }
+                    if (dragging) return;
+                }
                 var sc = Scale();
                 var m = Input.mousePosition; var p = new Vector2(m.x, Screen.height - m.y);
                 var hit = new Rect(sc.x - 30, sc.y, sc.width + 60, sc.height);
@@ -174,7 +200,7 @@ namespace UboatToolkit.Modules
 
             if (!float.IsNaN(lastBed) && lastBed < max)
                 Imgui.Fill(new Rect(sc.x, Y(lastBed), sc.width, sc.yMax - Y(lastBed)), new Color(0.45f, 0.32f, 0.18f, 0.95f));
-            float tick = max <= 300 ? 50 : max <= 1000 ? 100 : 500;
+            float tick = max <= 60 ? 10 : max <= 150 ? 25 : max <= 300 ? 50 : max <= 1000 ? 100 : 500;
             for (float d = 0; d <= max + 0.1f; d += tick)
             {
                 Imgui.Fill(new Rect(sc.x - 6, Y(d), 6, 1), Color.gray);
