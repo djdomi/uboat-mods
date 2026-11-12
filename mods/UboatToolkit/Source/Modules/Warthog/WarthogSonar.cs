@@ -36,7 +36,7 @@ namespace UboatToolkit.Modules.Warthog
                 // surfaced / fast = as good as submerged / slow
                 if (passive && Settings.B("WhPassiveSame"))
                 {
-                    foreach (var f in new[] { "surfaceRangeModifier", "surfaceGroupRangeModifier", "shipVelocityRangeModifier", "shipVelocityGroupRangeModifier" })
+                    foreach (var f in new[] { "surfaceRangeModifier", "surfaceGroupRangeModifier" })   // velocity: see WarthogSonar_SameRange (set per frame by the game)
                     { var m = t.Field(f).GetValue<Modifier>(); if (m != null && m.Value < 1f) m.Value = 1f; }
                 }
                 // always on: no operator needed
@@ -129,5 +129,27 @@ namespace UboatToolkit.Modules.Warthog
             var loud = Traverse.Create(__instance).Field("loud").GetValue<Modifier>();
             if (loud != null && loud.Value != 0f) loud.Value = 0f;
         }
+    }
+
+    // "Surfaced/fast as good as submerged/slow": the game sets the speed modifiers EVERY FRAME while the speed changes
+    // (Hydrophone.UpdateShipVelocityModifier) and the surface modifier during a 0.5 s fade. Overwriting them once per
+    // tick made the listening range jump between two values = flickering range circle on the map. Now the value is
+    // corrected where the game sets it, so there is only one value.
+    [HarmonyPatch]
+    internal static class WarthogSonar_SameRange
+    {
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            var a = AccessTools.Method(typeof(Hydrophone), "SetShipVelocityModifiers"); if (a != null) yield return a;
+            var b = AccessTools.Method(typeof(Hydrophone), "SetSurfaceRangeModifier"); if (b != null) yield return b;
+        }
+        private static void Prefix(Hydrophone __instance, ref float __0)
+        {
+            if (__0 >= 1f) return;
+            if (!WarthogSonar.On || !Settings.B("WhPassive") || !Settings.B("WhPassiveSame") || !Util.IsPlayers(__instance)) return;
+            if (!logged) { logged = true; Util.Log("[Warthog] sonar: Abzug für Fahrt/aufgetaucht aufgehoben (" + __0.ToString("0.00") + " -> 1), Hörkreis bleibt ruhig"); }
+            __0 = 1f;
+        }
+        private static bool logged;
     }
 }

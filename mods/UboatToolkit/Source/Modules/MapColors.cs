@@ -308,9 +308,18 @@ namespace UboatToolkit.Modules
             var f = fn == null ? prefabFont : FindFont(fn);
             var m = mn == null ? prefabMat : FindFontMat(mn);
             if (f == null || m == null) { Util.Log("Karte: Schrift '" + fn + "' / '" + mn + "' nicht gefunden, Spiel-Schrift bleibt"); return mat != null; }
+            // A font only draws correctly with a material of ITS OWN atlas. Font set without a matching material
+            // (e.g. GridLabelFont=FrankRuhlLibre-Black SDF, material left at the game's) = the letters are cut out of
+            // the wrong atlas -> garbled blocks on the map. Then use the font's own material.
+            if (f != prefabFont && f.atlasTexture != null && m.HasProperty(ShaderUtilities.ID_MainTex) && m.GetTexture(ShaderUtilities.ID_MainTex) != f.atlasTexture)
+            {
+                if (fontMismatchLogged.Add(f.name + "|" + m.name)) Util.Log("Karte: Schrift '" + f.name + "' passt nicht zum Material '" + m.name + "', nehme das eigene Material der Schrift");
+                m = f.material;
+            }
             font = f; mat = m;
-            return true;
+            return mat != null;
         }
+        private static readonly HashSet<string> fontMismatchLogged = new HashSet<string>();
         private static TMP_FontAsset FindFont(string n)
         {
             var fonts = F<TMP_FontAsset[]>(Map, "fonts");
