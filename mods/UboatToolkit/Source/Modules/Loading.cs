@@ -82,7 +82,7 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             if (ship != null)
                 foreach (var s in Util.Find<Storage>())
-                    for (int i = 0; i < s.SlotCount; i++)
+                    for (int i = 0; i < Util.Slots(s); i++)
                     {
                         buffer.Clear();
                         if (s.GetTransportOrders(i, buffer)) foreach (var o in buffer) if (o != null) all.Add(o);
@@ -115,7 +115,7 @@ namespace UboatToolkit.Modules
 
             seen.Clear();
             foreach (var s in Util.Find<Storage>())
-                for (int i = 0; i < s.SlotCount; i++)
+                for (int i = 0; i < Util.Slots(s); i++)
                 {
                     buffer.Clear();
                     if (!s.GetTransportOrders(i, buffer)) continue;

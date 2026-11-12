@@ -56,7 +56,7 @@ namespace UboatToolkit.Modules
             foreach (var s in Util.Find<Storage>())
             {
                 if (s == v || s.IsShop) continue;
-                for (int i = s.SlotCount - 1; i >= 0; i--)
+                for (int i = Util.Slots(s) - 1; i >= 0; i--)
                     if (s.GetItemAt(i) is PotassiumAbsorber)
                     {
                         StorageUtility.TransferInstantly(s, i, v, 0, 1f);

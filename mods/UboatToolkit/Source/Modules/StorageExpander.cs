@@ -28,13 +28,13 @@ namespace UboatToolkit.Modules
             foreach (var n in names)
             {
                 var st = ship.GetEquipment<Storage>(n);
-                if (st == null) continue;
+                if (st == null || Util.Slots(st) == 0) continue;
                 int target = st.SlotCount;
                 if (min > 0 && target < min && n != "Kitchen") target = min;
                 if (grow)
                 {
                     int free = 0;
-                    for (int i = 0; i < st.SlotCount; i++) if (st[i] != null && st[i].Item == null) free++;
+                    for (int i = 0; i < Util.Slots(st); i++) if (st[i] != null && st[i].Item == null) free++;
                     if (free < step) target = Mathf.Max(target, st.SlotCount + step);
                 }
                 target = Mathf.Min(target, Mathf.Max(max, st.SlotCount));

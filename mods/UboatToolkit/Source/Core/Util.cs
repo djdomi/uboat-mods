@@ -31,6 +31,13 @@ namespace UboatToolkit
 
         private static float shipFoundAt;
 
+        // Number of slots of a storage, or 0 while the storage is not set up yet (would crash otherwise).
+        public static int Slots(UBOAT.Game.Scene.Items.Storage s)
+        {
+            if (s == null) return 0;
+            try { return s.SlotCount; } catch { return 0; }
+        }
+
         // True once the boat has existed for a few seconds: right after loading many parts are
         // still being built, and touching them then gives "Object reference not set" errors.
         public static bool ShipReady => PlayerShip != null && Time.unscaledTime - shipFoundAt >= 5f;

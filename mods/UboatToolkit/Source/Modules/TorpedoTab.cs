@@ -97,7 +97,7 @@ namespace UboatToolkit.Modules
                 if (rm == null) return;
                 StoredTorpedo t = null;
                 foreach (var s in BoatStorages())
-                    for (int i = 0; i < s.SlotCount && made < want; i++)
+                    for (int i = 0; i < Util.Slots(s) && made < want; i++)
                     {
                         if ((s.GetItemAt(i) as Object) != null || s.HasTransportOrders(i)) continue;
                         if (t == null)

@@ -81,7 +81,7 @@ namespace UboatToolkit.Modules
                 foreach (var s in Util.Find<Storage>())
                 {
                     if (s == target || s.IsShop) continue;
-                    for (int i = s.SlotCount - 1; i >= 0; i--)
+                    for (int i = Util.Slots(s) - 1; i >= 0; i--)
                     {
                         var cargo = s.GetItemAt(i) as Cargo;
                         if (cargo == null || cargo.TypeName != "Scrap") continue;

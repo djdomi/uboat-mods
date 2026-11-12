@@ -18,7 +18,7 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             if (!Settings.B("FullCrewAtStart") || failures >= 3) return;
-            if (Util.PlayerShip == null) return;                 // not in main menu / commander creation
+            if (!Util.ShipReady) return;                            // not in main menu / commander creation
             if (career == null) career = Util.Career;
             if (career == null) return;
             if (!Traverse.Create(career).Field("beforeFirstPatrol").GetValue<bool>()) return;
@@ -30,7 +30,7 @@ namespace UboatToolkit.Modules
             int added = 0;
             try
             {
-                while (have + added < target && added < 5)   // a few per second, so the game is not stalled
+                while (have + added < target && added < 2)   // two per second, so new men get placed in the boat properly, so the game is not stalled
                 {
                     var data = generator.GenerateCharacterData("German Sailor", PlayableCharacterData.Type.Sailor);
                     if (data == null) { failures++; break; }

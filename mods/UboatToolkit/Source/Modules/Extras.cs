@@ -117,7 +117,7 @@ namespace UboatToolkit.Modules
                 if (l.Torpedo != null) continue;
                 Storage best = null; int bestSlot = -1; float bestDist = float.MaxValue;
                 foreach (var s in storages)
-                    for (int i = 0; i < s.SlotCount; i++)
+                    for (int i = 0; i < Util.Slots(s); i++)
                     {
                         if (!(s.GetItemAt(i) is StoredTorpedo t) || t is StoredMinePacket || s.HasTransportOrders(i)) continue;
                         float dist = (s.transform.position - l.transform.position).sqrMagnitude;
@@ -168,10 +168,10 @@ namespace UboatToolkit.Modules
             foreach (var s in Util.Find<Storage>())
             {
                 if (s.GetComponentInParent<PlayableCharacter>() != null) continue;
-                for (int a = 0; a < s.SlotCount; a++)
+                for (int a = 0; a < Util.Slots(s); a++)
                 {
                     if (!(s.GetItemAt(a) is Cargo ca) || s.HasTransportOrders(a)) continue;
-                    for (int b = a + 1; b < s.SlotCount; b++)
+                    for (int b = a + 1; b < Util.Slots(s); b++)
                     {
                         if (!(s.GetItemAt(b) is Cargo cb) || cb.Data.Name != ca.Data.Name || s.HasTransportOrders(b)) continue;
                         float room = (float)ca.StackLimit - ca.Count;
@@ -182,10 +182,10 @@ namespace UboatToolkit.Modules
                         moves++;
                     }
                 }
-                for (int a = 0; a < s.SlotCount; a++)
+                for (int a = 0; a < Util.Slots(s); a++)
                 {
                     if (s.GetItemAt(a) != null || s.HasTransportOrders(a)) continue;
-                    for (int b = a + 1; b < s.SlotCount; b++)
+                    for (int b = a + 1; b < Util.Slots(s); b++)
                     {
                         var item = s.GetItemAt(b);
                         if (item == null || s.HasTransportOrders(b) || !s.IsItemAllowed(a, item)) continue;
