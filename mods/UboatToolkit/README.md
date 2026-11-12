@@ -60,7 +60,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Volle Besatzung ab Start | FullCrewAtStart, FullCrewSize |
 | QoL | Wachen tauschen | SwapShiftsNow |
 | QoL | Tab „Crew“: Rollen per Klick, freie Skillpunkte | – |
-| Cheat | NEU: Mehr Offiziere an Bord erlaubt (+0 bis +6) | ExtraOfficers |
+| Cheat | NEU: Mehr Offiziere an Bord erlaubt (+0 bis +12) | ExtraOfficers |
 | Cheat | NEU: Eine Fremdsprache = Sprachgenie (Linguist, alle Sprachen) | CheatLinguist |
 | Cheat | NEU: Alle heilen (Knopf + Taste) | CheatHealNow, KeyHealAll |
 | Cheat | NEU: Deck-Crew bleibt beim Tauchen draußen, schießt weiter, ertrinkt nie | CheatDeckCrewStays |

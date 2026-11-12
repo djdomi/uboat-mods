@@ -214,7 +214,7 @@ namespace UboatToolkit
             Num(Cheat, "SinkConvoyTorpedoes", "  Torpedos pro Schiff", 3, 1, 10, 1);
             Bool(Cheat, "CheatRemoteTorpedo", "Fernschuss per Taste (auch aus der Koje): Torpedo auf nächsten Gegner", false);
             Bool(Cheat, "BackupBeforeCheats", "Backup-Spielstand, sobald ein Cheat eingeschaltet wird", true);
-            Num(Cheat, "ExtraOfficers", "Mehr Offiziere an Bord erlaubt (+x, 0 = Spiel)", 0, 0, 6, 1);
+            Num(Cheat, "ExtraOfficers", "Mehr Offiziere an Bord erlaubt (+x, 0 = Spiel)", 0, 0, 12, 1);
             Bool(Cheat, "CheatShowActive", "Aktive Cheats oben links anzeigen", true);
 
             // ---------- Tasten (frei belegbar) ----------
