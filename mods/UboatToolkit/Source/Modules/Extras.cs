@@ -20,13 +20,7 @@ namespace UboatToolkit.Modules
         public override void Frame()
         {
             if (Util.PlayerShip == null) return;
-            if (Settings.B("DepthHotkeys"))
-            {
-                if (Keys.Down("KeyDepthDown10")) ChangeDepth(10f);
-                if (Keys.Down("KeyDepthUp10")) ChangeDepth(-10f);
-                if (Keys.Down("KeyDepthDown100")) ChangeDepth(100f);
-                if (Keys.Down("KeyDepthUp100")) ChangeDepth(-100f);
-            }
+            // depth keys: see DepthGauge (key alone / Shift x10 / Alt x100)
             if (Keys.Down("KeyReloadAll")) Util.Safe("ReloadAll", ReloadAll);
             if (Keys.Down("KeyQuickTravel") && Settings.B("CheatQuickTravel")) Util.Safe("QuickTravel", QuickTravel);
             if (Keys.Down("KeySortStorage")) Util.Safe("SortStorage", SortStorage);

@@ -76,6 +76,14 @@ namespace UboatToolkit
             drawTex.Invoke(null, new object[] { r, Texture2D.whiteTexture });
             color.SetValue(null, old, null);
         }
+        public static void Fill(Rect r, Color c)
+        {
+            if (drawTex == null || color == null) return;
+            var old = (Color)color.GetValue(null, null);
+            color.SetValue(null, c, null);
+            drawTex.Invoke(null, new object[] { r, Texture2D.whiteTexture });
+            color.SetValue(null, old, null);
+        }
         public static void TextAt(Rect r, string t) => guiLabel.Invoke(null, new object[] { r, t });
     }
 }

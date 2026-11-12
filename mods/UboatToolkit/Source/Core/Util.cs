@@ -126,6 +126,8 @@ namespace UboatToolkit
 
         private static readonly Dictionary<string, int> errorCounts = new Dictionary<string, int>();
 
+        public static T SafeGet<T>(Func<T> f, T fallback) { try { return f(); } catch { return fallback; } }
+
         public static void Safe(string what, Action a)
         {
             try { a(); }

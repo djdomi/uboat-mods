@@ -108,6 +108,20 @@ namespace UboatToolkit
             Num(QoL, "LowWarnPercent", "Warnung + Zeitraffer-Stopp bei Diesel/Batterie/Luft unter x % (0 = aus) (Idee 8)", 15, 0, 50, 5);
             Bool(QoL, "NavInfo", "Karte: Ankunftszeit + Restweg + Diesel-Reichweite oben links (Idee 7)", true);
             Bool(QoL, "DepthHotkeys", "Tiefe per Taste (Tasten im Tab „Tasten“) (Idee 10)", true);
+            Bool(QoL, "FixTooltipParent", "Fix: Fehler \"Default Tooltip ... GUI\" (Tooltip nicht unnötig umhängen)", true);
+            Bool(QoL, "FixPoolAnimators", "Fix: Fehler \"Pooled instance ... enabled animators\" (z. B. Zeitungsständer)", true);
+            Num(QoL, "DepthStep", "  Tiefen-Schritt in m (Shift = x10, Alt = x100, auch Mausrad an der Tiefenanzeige)", 1, 0.5f, 50, 0.5f);
+            Bool(QoL, "DepthGauge", "Eigene Tiefenanzeige ohne 260-m-Grenze (Klick/Mausrad setzt Zieltiefe)", true);
+            Num(QoL, "DepthGaugeMax", "  Skala bis (m)", 500, 100, 5000, 50);
+            Num(QoL, "DepthGaugeX", "  Position links (% vom Bildschirm)", 80, 0, 95, 1);
+            Num(QoL, "DepthGaugeY", "  Position oben (% vom Bildschirm)", 35, 0, 90, 1);
+            Num(QoL, "DepthGaugeSeconds", "  Verlauf über x Sekunden (echte Zeit)", 120, 30, 600, 10);
+            Bool(QoL, "AutoDepth", "Bodenabstand-Autopilot: hält Abstand zum Meeresgrund", false);
+            Num(QoL, "AutoDepthClearance", "  Wasser unter dem Kiel (m)", 1, 0.5f, 50, 0.5f);
+            Num(QoL, "AutoDepthLookAhead", "  Voraus schauen (m)", 400, 0, 2000, 50);
+            Num(QoL, "AutoDepthMin", "  Nie flacher als (m)", 12, 0, 50, 1);
+            Num(QoL, "AutoDepthMax", "  Nie tiefer als (m)", 300, 20, 5000, 10);
+            Bool(QoL, "AutoDepthBottom", "  Aufsetzen: sanft auf den Grund legen + Schleichfahrt", false);
             Bool(QoL, "ReloadAllNow", "  >> Alle leeren Rohre aus dem Lager laden (Idee 2)", false);
             Bool(QoL, "SwapShiftsNow", "  >> Wachen tauschen: Gruppen mit gleicher Aufgabe tauschen Schichten (Idee 4)", false);
             Bool(QoL, "SortStorageNow", "  >> Lager aufräumen: gleiche Sachen stapeln, nach vorne rücken (Idee 5)", false);
@@ -498,10 +512,10 @@ namespace UboatToolkit
 
             // ---------- Tasten (frei belegbar) ----------
             Key("KeyMenu", "Menü öffnen/schließen", "F10");
-            Key("KeyDepthDown10", "Tiefe +10 m (tiefer)", "Ctrl+PageDown");
-            Key("KeyDepthUp10", "Tiefe -10 m (höher)", "Ctrl+PageUp");
-            Key("KeyDepthDown100", "Tiefe +100 m (tiefer)", "Shift+PageDown");
-            Key("KeyDepthUp100", "Tiefe -100 m (höher)", "Shift+PageUp");
+            Key("KeyDepthDeeper", "Tiefe: tiefer (allein = Schritt, Shift = x10, Alt = x100)", "PageDown");
+            Key("KeyDepthShallower", "Tiefe: höher (allein = Schritt, Shift = x10, Alt = x100)", "PageUp");
+            Key("KeyAutoDepth", "Bodenabstand-Autopilot an/aus", "Ctrl+B");
+            Key("KeyAutoDepthBottom", "Aufsetzen auf den Grund an/aus", "Ctrl+Shift+B");
             Key("KeyReloadAll", "Alle leeren Rohre laden", "Ctrl+Shift+R");
             Key("KeyQuickTravel", "Schnellreise ans Kursziel (Cheat muss an sein)", "Ctrl+Shift+T");
             Key("KeyBackToWater", "Zurück ins Wasser", "Ctrl+Shift+W");

@@ -42,6 +42,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.CrewFill());
             Modules.Add(new Modules.FadeReparent());
             Modules.Add(new Modules.NavRescue());
+            Modules.Add(new Modules.DepthGauge());
             foreach (var m in UboatToolkit.Modules.Warthog.WarthogModules.All()) Modules.Add(m);
             Modules.Add(new Modules.CrewCheats());
             Modules.Add(new Modules.Inventory());
@@ -176,6 +177,7 @@ namespace UboatToolkit
                 var active = Settings.All.Where(o => o.Tab == Settings.Cheat && o.Key != "CheatShowActive" && (o.IsBool ? o.Value > 0f : o.Value != o.Default)).Select(o => o.Key.Replace("Cheat", "")).ToArray();
                 if (active.Length > 0) Imgui.TextAt(new Rect(8, 4, 900, 22), "Cheats: " + string.Join(", ", active));
             }
+            UboatToolkit.Modules.DepthGauge.Draw();
             UboatToolkit.Modules.UnderFire.Draw();
             if (!menuOpen) return;
             DragMenu();
