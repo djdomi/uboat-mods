@@ -20,71 +20,6 @@ using UBOAT.Game.UI.Periscope;
 
 namespace UboatToolkit.Modules
 {
-    // ---------- Periscope remembers view mode and zoom per periscope type ----------
-    internal static class ScopeMemory
-    {
-        internal static readonly Dictionary<string, int> View = new Dictionary<string, int>(), Zoom = new Dictionary<string, int>();
-        internal static PeriscopeController Ctrl(MainCamera cam) => cam?.GenericController?.ExternalController as PeriscopeController;
-        internal static bool restoring;
-    }
-    [HarmonyPatch(typeof(PeriscopeUI), "OnViewModeSelected")]
-    internal static class Extras_ScopeViewPatch
-    {
-        private static void Postfix(int index, MainCamera ___mainCamera)
-        {
-            var p = ScopeMemory.Ctrl(___mainCamera)?.Periscope;
-            if (p != null && !ScopeMemory.restoring) ScopeMemory.View[p.TypeName] = index;
-        }
-    }
-    [HarmonyPatch(typeof(PeriscopeUI), "OnZoomSelected")]
-    internal static class Extras_ScopeZoomPatch
-    {
-        private static void Postfix(int index, MainCamera ___mainCamera)
-        {
-            var p = ScopeMemory.Ctrl(___mainCamera)?.Periscope;
-            if (p != null && !ScopeMemory.restoring) ScopeMemory.Zoom[p.TypeName] = index;
-        }
-    }
-    [HarmonyPatch(typeof(PeriscopeUI), "OnEnable")]
-    internal static class Extras_ScopeRestorePatch
-    {
-        private static void Show(Component dd, int i)
-        {
-            if (dd == null || i < 0) return;
-            var t = Traverse.Create(dd);
-            if (t.Field("m_Value").GetValue<int>() == i) return;
-            t.Field("m_Value").SetValue(i);
-            t.Method("Refresh").GetValue();
-        }
-        private static void Postfix(PeriscopeUI __instance, MainCamera ___mainCamera, Component ___viewModeDropdown, Component ___zoomDropdown)
-        {
-            if (!Settings.B("ScopeRemember")) return;
-            Util.Safe("Extras.Scope", () =>
-            {
-                var c = ScopeMemory.Ctrl(___mainCamera);
-                var p = c?.Periscope;
-                if (p == null) return;
-                ScopeMemory.restoring = true;
-                try
-                {
-                    if (!p.IsBinocular && ScopeMemory.View.TryGetValue(p.TypeName, out int v))
-                    {
-                        AccessTools.Method(typeof(PeriscopeUI), "OnViewModeSelected").Invoke(__instance, new object[] { v });
-                        Show(___viewModeDropdown, v);
-                    }
-                    int n = p.FovPresets?.Length ?? 0;
-                    if (n > 0 && ScopeMemory.Zoom.TryGetValue(p.TypeName, out int z))
-                    {
-                        z = Mathf.Clamp(z, 0, n - 1);
-                        c.FovIndex = z;
-                        Show(___zoomDropdown, z);
-                    }
-                }
-                finally { ScopeMemory.restoring = false; }
-            });
-        }
-    }
-
     // ---------- Officers: new or promoted officers get a watch (6 h or 3 h), split evenly in two watches ----------
     // Only officers WITHOUT a schedule yet (all hours "any") are touched; a schedule you set stays.
     internal static class OfficerWatch
@@ -245,16 +180,48 @@ namespace UboatToolkit.Modules
             var r = AccessTools.TypeByName("DWS.Common.Tasks.IRunnable");
             return t == null || r == null ? null : AccessTools.Method(t, "Abort", new[] { r });
         }
-        private static bool Prefix(object __instance, object runnable, out object __state)
+        private struct St { public bool Holding; public object Runnable; public long Start; }
+        private static int skipped, waitedSlow, lastLog, errorLogged;
+        private static System.Reflection.PropertyInfo nameP;
+
+        private static string NameOf(object r)
         {
-            __state = null;
-            if (runnable == null || ReferenceEquals(current.GetValue(__instance), runnable)) return true;
-            if (Monitor.TryEnter(runnable)) { __state = runnable; return true; }
-            return !Settings.B("FixAbortStall");   // busy in the background: skip instead of freezing the game
+            try { if (nameP == null) nameP = AccessTools.TypeByName("DWS.Common.Tasks.IRunnable")?.GetProperty("Name"); return nameP != null ? (nameP.GetValue(r, null) as string ?? "?") : "?"; }
+            catch { return "?"; }
         }
-        private static Exception Finalizer(Exception __exception, object __state)
+
+        private static bool Prefix(object __instance, object runnable, out St __state)
         {
-            if (__state != null) try { Monitor.Exit(__state); } catch { }
+            __state = new St { Start = LoadClock.Now() };
+            try
+            {
+                if (runnable == null || ReferenceEquals(current.GetValue(__instance), runnable)) return true;
+                if (Monitor.TryEnter(runnable)) { __state.Holding = true; __state.Runnable = runnable; return true; }
+                if (!Settings.B("FixAbortStall")) { __state.Runnable = runnable; return true; }   // measure the vanilla wait for the log
+                int n = Interlocked.Increment(ref skipped);
+                int now = Environment.TickCount;
+                if (Settings.B("AbortStallLog") && (unchecked(now - lastLog) >= 1000 || n <= 3))
+                {
+                    lastLog = now;
+                    Util.Log("Stocken-Fix: laufende Hintergrund-Arbeit abgebrochen ohne zu warten: '" + NameOf(runnable) + "' (Sitzung: " + n + " Wartezeiten gespart).");
+                }
+                return false;   // busy in the background: skip instead of freezing the game
+            }
+            catch (Exception e)
+            {
+                if (Interlocked.Exchange(ref errorLogged, 1) == 0) Util.Log("Stocken-Fix: Fehler, nehme Spielverhalten (einmalig): " + e);
+                return true;
+            }
+        }
+
+        private static Exception Finalizer(Exception __exception, St __state)
+        {
+            if (__state.Holding) { try { Monitor.Exit(__state.Runnable); } catch { } }
+            else if (__state.Runnable != null && Settings.B("AbortStallLog"))
+            {
+                double ms = LoadClock.Seconds(LoadClock.Now() - __state.Start) * 1000.0;
+                if (ms >= 20.0) Util.Log("Stocken-Fix: Spiel WARTETE " + ms.ToString("0.0") + " ms auf '" + NameOf(__state.Runnable) + "' (Fix aus; Sitzung: " + Interlocked.Increment(ref waitedSlow) + ").");
+            }
             return __exception;
         }
     }

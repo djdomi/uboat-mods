@@ -164,7 +164,9 @@ namespace UboatToolkit
             Bool(QoL, "DgsKnockout", "  eigene Granaten können Feind-Kanonen ausschalten", true);
             Num(QoL, "DgsKnockoutPct", "    Schaden an der Kanone in %", 200, 50, 500, 25);
             Num(QoL, "DgsKnockoutRadius", "    Radius in Metern", 6, 1, 20, 1);
-            Bool(QoL, "ScopeRemember", "Sehrohr merkt sich Ansicht und Zoom (je Sehrohr)", false);
+            Bool(QoL, "ScopeRemember", "Sehrohr-Anzeige-Fix (Ansicht, Zoom, Stations-Knopf)", true);
+            Bool(QoL, "ScopeRememberView", "  Ansicht und Zoom je Sehrohr merken", true);
+            Bool(QoL, "ScopeStationLast", "  Stations-Knopf führt zum zuletzt benutzten Sehrohr", true);
             Bool(QoL, "RainGearWind", "Regenkleidung für die Wache an Deck (eigene Steuerung statt Spiel)", true);
             Num(QoL, "RainGearMode", "  Modus: 0 = nur bei Regen, 1 = immer an Deck, 2 = aus", 1, 0, 2, 1);
             Num(QoL, "RainGearRain", "  Mantel ab Regen-Stärke (bei Modus 0)", 0.05f, 0, 1, 0.05f);
@@ -452,6 +454,8 @@ namespace UboatToolkit
             Bool(Tools, "ScopeLog", "Log: Sehrohr-Overlays laden", false);
             Num(Tools, "ScopeLogSlowMs", "  langsam ab ... ms", 20, 0, 1000, 5);
             Bool(Tools, "TextureRaceLog", "Log: spätes Textur-Löschen (Zusammenfassung pro Minute)", false);
+            Bool(Tools, "AbortStallLog", "Log: Stocken-Fix (übersprungene Wartezeiten)", false);
+            Bool(Tools, "ScopeUiLog", "Log: Sehrohr-Anzeige (Ansicht/Zoom wiederhergestellt)", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
