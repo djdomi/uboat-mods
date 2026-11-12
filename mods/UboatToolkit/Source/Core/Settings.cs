@@ -87,6 +87,8 @@ namespace UboatToolkit
             Bool(QoL, "EmergencyOxygen", "  Notfall-Sauerstoff: etwas mehr als der Verbrauch, wenn die Luft sinkt", true);
             Bool(QoL, "FullCrewAtStart", "Volle Besatzung ab Start (vor der ersten Feindfahrt) (#37)", true);
             Num(QoL, "FullCrewSize", "  Gewünschte Besatzung (Männer, in der INI ohne Obergrenze)", 90, 10, 200, 1);
+            Bool(QoL, "UniqueCrewNames", "Eindeutige Crew-Namen: neue Männer bekommen einen Nachnamen, den noch keiner an Bord hat (größere Namensliste)", true);
+            Bool(QoL, "RenameDuplicateNames", "  >> Doppelte Namen jetzt ändern (einmal, für die jetzige Crew)", false);
             Bool(QoL, "StopTimeOnShip", "Zeitraffer stoppt bei neuem Schiff-Kontakt (Idee 1)", true);
             Bool(QoL, "StopTimeOnAircraft", "Zeitraffer stoppt bei Flugzeug (Idee 1)", true);
             Bool(QoL, "DamageReport", "Schadensbericht: was hat uns getroffen, wo und warum (F10-Reiter \"Schaden\" + Datei)", true);

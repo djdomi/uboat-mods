@@ -43,6 +43,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.FadeReparent());
             Modules.Add(new Modules.NavRescue());
             Modules.Add(new Modules.DepthGauge());
+            Modules.Add(new Modules.UniqueNames());
             foreach (var m in UboatToolkit.Modules.Warthog.WarthogModules.All()) Modules.Add(m);
             Modules.Add(new Modules.CrewCheats());
             Modules.Add(new Modules.Inventory());
