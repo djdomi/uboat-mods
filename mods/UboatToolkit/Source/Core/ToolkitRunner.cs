@@ -60,6 +60,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.SeaGun());
             Modules.Add(new Modules.StationCtl.StationHost());
             Modules.Add(new Modules.ScopePreloadHost());
+            Modules.Add(new Modules.CarrierConvoyHost());
             Modules.Add(new Modules.Reticle());
             Modules.Add(new Modules.GameTuning());
             Modules.Add(new Modules.PerfLogger());

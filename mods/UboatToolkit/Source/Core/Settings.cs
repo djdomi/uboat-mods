@@ -118,7 +118,8 @@ namespace UboatToolkit
             Bool(QoL, "SeaLayerHearing", "  Unter der Sprungschicht h\u00f6rt der eigene Horcher Schiffe oben schlechter", true);
             Bool(QoL, "SeaLayerNote", "  Kurze Meldung beim Unter-/\u00dcberqueren der Sprungschicht", true);
             Bool(QoL, "NoPauseBlur", "Pause ohne Unsch\u00e4rfe und ohne dunkle Einblendung", false);
-            Bool(QoL, "NoEdgeScroll", "Kein Bild-Wegrutschen am Bildschirmrand (Schnittansicht + Deck-Sprung)", false);
+            Bool(QoL, "NoEdgeScroll", "Schnittansicht rutscht nicht weg, wenn die Maus den Bildschirmrand berührt", false);
+            Bool(QoL, "NoEdgeDeck", "Kein Sprung zur Deck-Ansicht am oberen/unteren Bildschirmrand", false);
             Bool(QoL, "FixCarrierConvoy", "Fix: Konvois mit Flugzeugtr\u00e4ger fahren normal (geparkte Flugzeuge bremsen nicht)", true);
             Bool(QoL, "FixScopeStall", "Fix: kein Ruckeln beim Zoomen von Sehrohr/UZO (Bilder bleiben geladen)", true);
             Bool(QoL, "ScopeRetain", "  Overlays geladen halten", true);

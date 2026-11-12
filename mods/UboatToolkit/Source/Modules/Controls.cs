@@ -188,8 +188,8 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.SectionViewCameraController), "Update")]
     internal static class Controls_EdgeDeckPatch
     {
-        public static float Top() => Settings.B("NoEdgeScroll") ? 2f : 0.98f;
-        public static float Bottom() => Settings.B("NoEdgeScroll") ? -1f : 0.02f;
+        public static float Top() => Settings.B("NoEdgeDeck") ? 2f : 0.98f;
+        public static float Bottom() => Settings.B("NoEdgeDeck") ? -1f : 0.02f;
         private static IEnumerable<HarmonyLib.CodeInstruction> Transpiler(IEnumerable<HarmonyLib.CodeInstruction> code)
         {
             var list = code.ToList();
@@ -202,24 +202,4 @@ namespace UboatToolkit.Modules
         }
     }
 
-    // Convoys with a carrier: parked aircraft (speed 0) no longer hold the whole convoy back.
-    [HarmonyPatch(typeof(SandboxMobileGroup), "UpdateParametersFromMembers")]
-    internal static class Controls_CarrierConvoyPatch
-    {
-        private const EntityTypeCategory skip = EntityTypeCategory.NotDetectableDirectly | EntityTypeCategory.SonarDecoy | EntityTypeCategory.Pontoon | EntityTypeCategory.Iceberg | EntityTypeCategory.Wreckage | EntityTypeCategory.CarrierBorneAircraft;
-        private static void Postfix(SandboxMobileGroup __instance, ref float ___maxVelocity, bool allowAIUpdate)
-        {
-            if (!Settings.B("FixCarrierConvoy")) return;
-            var list = __instance.Entities;
-            if (list == null || !list.Any(e => e?.Blueprint != null && (e.Blueprint.Type.Category & EntityTypeCategory.CarrierBorneAircraft) != 0)) return;
-            float min = float.PositiveInfinity;
-            foreach (var e in list)
-                if (e?.Blueprint != null && (e.Blueprint.Type.Category & skip) == 0) min = Mathf.Min(min, (float)e.Velocity);
-            if (float.IsPositiveInfinity(min)) return;
-            float want = min * 0.0002777777f * (float)Traverse.Create(typeof(SandboxGroup)).Field("sandbox").GetValue<UBOAT.Game.Sandbox.Sandbox>().UnspawnedGroupVelocityScale;
-            if (want <= ___maxVelocity + 0.0001f) return;
-            ___maxVelocity = want;
-            if (allowAIUpdate && __instance.AI != null && !__instance.IsBeingDestroyed) __instance.AI.UpdateAI();
-        }
-    }
 }
