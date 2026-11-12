@@ -198,8 +198,11 @@ namespace UboatToolkit
                 var active = Settings.All.Where(o => o.Tab == Settings.Cheat && o.Key != "CheatShowActive" && (o.IsBool ? o.Value > 0f : o.Value != o.Default)).Select(o => o.Key.Replace("Cheat", "")).ToArray();
                 if (active.Length > 0) Imgui.TextAt(new Rect(8, 4, 900, 22), "Cheats: " + string.Join(", ", active));
             }
-            UboatToolkit.Modules.DepthGauge.Draw();
-            UboatToolkit.Modules.Warthog.WarthogThrusterGauge.Draw();
+            if (Util.InGameView())   // not over the port menu / ship selection / HQ etc.
+            {
+                UboatToolkit.Modules.DepthGauge.Draw();
+                UboatToolkit.Modules.Warthog.WarthogThrusterGauge.Draw();
+            }
             UboatToolkit.Modules.UnderFire.Draw();
             if (!menuOpen) return;
             DragMenu();

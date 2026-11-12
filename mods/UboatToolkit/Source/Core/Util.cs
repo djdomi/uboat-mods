@@ -67,6 +67,21 @@ namespace UboatToolkit
             return res;
         }
 
+        // true while the normal game view (boat, map, first person, manual device) is shown; false in port menus,
+        // ship selection, headquarters, dialogues, cutscenes and other fullscreen UIs: our gauges are not drawn there.
+        private static UBOAT.Game.UI.GameUI gameUi; private static float gameUiAt = -99f;
+        private static UBOAT.Game.UI.ShipSelectorUI shipSel; private static float shipSelAt = -99f;
+        public static bool InGameView()
+        {
+            if (gameUi == null && Time.unscaledTime - gameUiAt > 5f) { gameUiAt = Time.unscaledTime; gameUi = UnityEngine.Object.FindObjectOfType<UBOAT.Game.UI.GameUI>(); }
+            if (shipSel == null && Time.unscaledTime - shipSelAt > 5f) { shipSelAt = Time.unscaledTime; shipSel = UnityEngine.Object.FindObjectOfType<UBOAT.Game.UI.ShipSelectorUI>(true); }
+            if (shipSel != null && shipSel.isActiveAndEnabled) return false;   // ship selection open
+            if (gameUi == null) return true;
+            var m = gameUi.CurrentMode;
+            return m == UBOAT.Game.UI.GameUI.Mode.Normal || m == UBOAT.Game.UI.GameUI.Mode.Map || m == UBOAT.Game.UI.GameUI.Mode.FPP
+                || m == UBOAT.Game.UI.GameUI.Mode.FPPEx || m == UBOAT.Game.UI.GameUI.Mode.DeviceManualMode;
+        }
+
         public static bool IsPlayers(Component c)
         {
             var ship = PlayerShip;
