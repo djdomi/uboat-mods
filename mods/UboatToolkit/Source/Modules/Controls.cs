@@ -134,12 +134,20 @@ namespace UboatToolkit.Modules
 
         private static bool Prefix(ISandboxEntity entity, EntityBlueprintSlot slot, ref SandboxEquipment __result, WorldState ___worldState)
         {
-            if (!Settings.B("TorpedoMix") || slot == null || slot.EquipmentTag != "Torpedo") return true;
+            TorpedoTab.Load();
+            bool pick = TorpedoTab.PortPick.Count > 0;
+            if ((!Settings.B("TorpedoMix") && !pick) || slot == null || slot.EquipmentTag != "Torpedo") return true;
             var se = entity as SandboxEntity;
             if (se == null || se.Blueprint.Type.Category != EntityTypeCategory.Port || se.Country == null) return true;
             var pool = se.Country.GetReservesByTagID(slot.EquipmentTagID);
             if (pool == null) return true;
             var list = pool.Where(x => x?.ItemData != null).OrderBy(x => x.ItemData.Name).ToList();
+            if (pick)
+            {
+                var chosen = list.Where(x => TorpedoTab.PortPick.Contains(x.ItemData.Name)).ToList();
+                if (chosen.Count > 0) list = chosen;
+                else if (!Settings.B("TorpedoMix")) return true;
+            }
             if (list.Count == 0) return true;
             turn.TryGetValue(entity, out int n);
             turn[entity] = n + 1;

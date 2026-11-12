@@ -95,6 +95,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Waffen & Torpedos
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Tab „Torpedos“: Typen für den Hafen-Nachschub gezielt wählen | (Datei toolkit-torpedos.txt) |
 | QoL | NEU: Häfen haben eine gleichmäßige Torpedo-Mischung | TorpedoMix |
 | QoL | Torpedo-Rechner rechnet selbst | EasyTDC |
 | QoL | Torpedos schneller nachladen bis sofort | TorpedoLoadSpeed |
@@ -103,6 +104,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Vorgeflutet: Crew darf an 88 mm + Flak | AwashGuns |
 | QoL | 88 mm + Flak: Drehtempo, Schuss/Min, Magazin, Geschosstempo | DeckGun…, AAGun… |
 | QoL | KI-Schützen treffen besser, Flak auf Schiffe, Schussgeräusch-Grenze | GunnerAccuracy, AAvsShips, GunSoundGap |
+| Cheat | NEU: Tab „Torpedos“: gewählten Torpedo direkt ins Boot legen (1-30 Stück) | – |
 | Cheat | NEU: Zielerfassung genau (Tempo, Kurs, Entfernung) | CheatExactTargets |
 | Cheat | Torpedos unendlich, immer T5, keine Versager | CheatInfiniteTorpedoes, CheatAllT5, CheatNoDuds |
 | Cheat | Torpedos schneller | CheatTorpedoSpeed |
