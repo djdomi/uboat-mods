@@ -397,6 +397,19 @@ namespace UboatToolkit
             Key("KeySinkConvoy", "Sink the convoy", "");
             Key("KeyHealAll", "Alle heilen", "");
             Bool(KeysTab, "TelegraphBlockScopes", "Maschinen-Tasten am Sehrohr/UZO/Fernglas und in freier Kamera ignorieren", true);
+            Bool(KeysTab, "CourseKeys", "Kurs- und Tiefen-Tasten (Pfeile, F/R mit Strg/Shift, Strg+P/C)", false);
+            Bool(KeysTab, "CourseBlockScopes", "  am Sehrohr nur Pfeile, in freier Kamera keine", true);
+            Key("KeyCourseFine", "Kurs/Tiefe: fein (5° / 5 m)", "LeftControl");
+            Key("KeyCourseCoarse", "Kurs/Tiefe: grob (45° / 20 m)", "LeftShift");
+            Key("KeyCoursePort", "Kurs: nach Backbord", "LeftArrow");
+            Key("KeyCourseStarboard", "Kurs: nach Steuerbord", "RightArrow");
+            Key("KeyCourseAbout", "Kurs: wenden (180°)", "DownArrow");
+            Key("KeyCourseAmidships", "Ruder mittschiffs", "UpArrow");
+            Key("KeyCourseBlocker", "Kurs-Sperre (mit fein)", "CapsLock");
+            Key("KeyCourseDeeper", "Tiefer (mit fein/grob, beim Loslassen)", "F");
+            Key("KeyCourseShallower", "Flacher (mit fein/grob, beim Loslassen)", "R");
+            Key("KeyCoursePeriscope", "Sehrohrtiefe (mit fein; fein+grob = 20 m)", "P");
+            Key("KeyCourseMaxDepth", "größte sichere Tiefe (mit fein)", "C");
             Key("KeyGearStop", "Maschine: Stopp", "Alt+Alpha0");
             Key("KeyGear1", "Maschine: Voraus 1", "Alt+Alpha1");
             Key("KeyGear2", "Maschine: Voraus 2", "Alt+Alpha2");
@@ -459,6 +472,7 @@ namespace UboatToolkit
             Bool(Tools, "AbortStallLog", "Log: Stocken-Fix (übersprungene Wartezeiten)", false);
             Bool(Tools, "ScopeUiLog", "Log: Sehrohr-Anzeige (Ansicht/Zoom wiederhergestellt)", false);
             Bool(Tools, "TelegraphLog", "Log: Maschinen-Befehle per Taste", false);
+            Bool(Tools, "CourseLog", "Log: Kurs- und Tiefen-Tasten", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
