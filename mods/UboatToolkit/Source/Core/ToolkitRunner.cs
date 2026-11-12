@@ -171,7 +171,7 @@ namespace UboatToolkit
                 {
                     Imgui.BeginH();
                     Imgui.Label(o.Label + ":  " + (string.IsNullOrEmpty(o.Text) ? "(keine)" : o.Text), 450);
-                    if (Imgui.Button(Keys.Capturing == o ? "Taste drücken ... (Esc = Abbruch, Rück = keine)" : "Ändern", 200)) Keys.Capturing = o;
+                    if (Imgui.Button(Keys.Capturing == o ? "Taste drücken ... (Esc = Abbruch, Rück = keine)" : "Ändern", 200)) { Keys.Capturing = o; Imgui.ClearFocus(); }
                     Imgui.EndH();
                 }
                 else if (o.IsBool)
@@ -223,7 +223,9 @@ namespace UboatToolkit
             Imgui.Space(6);
             Imgui.BeginH();
             Imgui.Label("Suche:", 60);
-            search = Imgui.TextField(search, 300);
+            // while a key is being captured the search box is only shown, not editable (else the key is typed into it)
+            if (Keys.Capturing != null) { Imgui.ClearFocus(); Imgui.Label(string.IsNullOrEmpty(search) ? "-" : search, 300); }
+            else search = Imgui.TextField(search, 300);
             if (Imgui.Button("x", 30)) search = "";
             onlyChanged = Imgui.Toggle(onlyChanged, " nur geänderte zeigen");
             if (Imgui.Button("alle auf", 90)) foreach (var g in Settings.GroupOrder) openGroups.Add(tab + "/" + g);

@@ -54,6 +54,18 @@ namespace UboatToolkit
             return arr;
         }
 
+        // Take keyboard focus away from any text field (e.g. the search box), so a key pressed for
+        // "Taste ändern" is not typed into it.
+        private static PropertyInfo keyboardControl;
+        public static void ClearFocus()
+        {
+            try
+            {
+                if (keyboardControl == null) keyboardControl = Type.GetType("UnityEngine.GUIUtility, UnityEngine.IMGUIModule")?.GetProperty("keyboardControl", BindingFlags.Public | BindingFlags.Static);
+                if (keyboardControl != null && (int)keyboardControl.GetValue(null, null) != 0) keyboardControl.SetValue(null, 0, null);
+            }
+            catch { }
+        }
         public static string TextField(string t, float w = 0) => textField == null ? t : (string)textField.Invoke(null, new[] { t ?? "", Opts(w) });
         public static void Label(string t, float w = 0) => label.Invoke(null, new[] { Lang.T(t), Opts(w) });
         public static bool Toggle(bool v, string t) => (bool)toggle.Invoke(null, new object[] { v, Lang.T(t), noOptions });
