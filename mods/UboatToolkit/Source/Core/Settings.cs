@@ -303,6 +303,40 @@ namespace UboatToolkit
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
+
+            // ---------- Licht-Modi (Tab "Licht") ----------
+            Bool("Licht", "LightModes", "Licht-Modi an (Stil pro Schalter-Stellung, oben wählen)", false);
+            Bool("Licht", "LightWarm", "Warme Glühbirnen-Farbe für „warm“ (aus = Spiel-Weiß)", true);
+            Num("Licht", "LightLevelNormal", "Helligkeit „warm“ auf Stellung Normal in % (100 = Spiel)", 79, 0, 100, 1);
+            Num("Licht", "LightLevelNight", "Helligkeit „warm“ auf Stellung Rot/Blau (Nachtlicht) in % (0 = Licht aus)", 58, 0, 100, 1);
+            Num("Licht", "LightLevelEmerg", "Helligkeit „Notlicht“ in %", 65, 0, 100, 1);
+            Bool("Licht", "LightRedTower", "Nachtlicht: Turm bleibt rot (Nachtsicht der Wache)", false);
+            Bool("Licht", "LightCustomEmerg", "Eigene Notlicht-Farbe statt Spiel-Rot (Farbe oben)", false);
+            Num("Licht", "LightNightPerf", "Nachtlicht: Crew-Leistung minus x Punkte", 10, 0, 50, 5);
+            Num("Licht", "LightNightSleep", "Nachtlicht: Schlaf erholt x % schneller", 10, 0, 50, 5);
+            Num("Licht", "LightEmergPower", "Notlicht: E-Maschinen brauchen x % weniger Strom", 10, 0, 50, 5);
+            Bool("Licht", "LightAutoEmerg", "Licht-Automatik des Spiels: nach schwerem Schaden Notlicht", true);
+            Num("Licht", "LightDamage", "  schwerer Schaden ab x fehlender Haltbarkeit (alle Geräte zusammen)", 5, 1, 100, 1);
+            Num("Licht", "LightLeaks", "  oder mehr als x Lecks (außer in geräumten Abteilungen)", 3, 1, 20, 1);
+            Bool("Licht", "LightAutoSilent", "Auto-Schleichfahrt (auch am Lichtschalter umschaltbar)", false);
+            Num("Licht", "LightSwapDepth", "  Schleichfahrt an unter x m, aus darüber", 9, 5, 60, 1);
+            Bool("Licht", "LightSilentAlarmOnly", "  nur bei Alarm", true);
+            Bool("Licht", "LightLabels", "Schalter-Namen passend umbenennen (z. B. „Nacht“, „Notlicht“)", true);
+            Num("LichtStil", "LightStyleNormal", "Stil Stellung Normal (0 = Spiel, 1 = warm, 2 = Notlicht)", 1, 0, 2, 1);
+            Num("LichtStil", "LightStyleRed", "Stil Stellung Rot (0 = Spiel, 1 = warm, 2 = Notlicht)", 1, 0, 2, 1);
+            Num("LichtStil", "LightStyleBlue", "Stil Stellung Blau (0 = Spiel, 1 = warm, 2 = Notlicht)", 2, 0, 2, 1);
+            Num("LichtStil", "LightDayR", "Farbe LightDay R (0-255)", 255, 0, 255, 1);
+            Num("LichtStil", "LightDayG", "Farbe LightDay G (0-255)", 232, 0, 255, 1);
+            Num("LichtStil", "LightDayB", "Farbe LightDay B (0-255)", 184, 0, 255, 1);
+            Num("LichtStil", "LightNightR", "Farbe LightNight R (0-255)", 255, 0, 255, 1);
+            Num("LichtStil", "LightNightG", "Farbe LightNight G (0-255)", 214, 0, 255, 1);
+            Num("LichtStil", "LightNightB", "Farbe LightNight B (0-255)", 130, 0, 255, 1);
+            Num("LichtStil", "LightTowerR", "Farbe LightTower R (0-255)", 255, 0, 255, 1);
+            Num("LichtStil", "LightTowerG", "Farbe LightTower G (0-255)", 0, 0, 255, 1);
+            Num("LichtStil", "LightTowerB", "Farbe LightTower B (0-255)", 0, 0, 255, 1);
+            Num("LichtStil", "LightEmergR", "Farbe LightEmerg R (0-255)", 255, 0, 255, 1);
+            Num("LichtStil", "LightEmergG", "Farbe LightEmerg G (0-255)", 0, 0, 255, 1);
+            Num("LichtStil", "LightEmergB", "Farbe LightEmerg B (0-255)", 0, 0, 255, 1);
         }
 
         private static void Bool(string tab, string key, string label, bool def) => Add(new Opt { Tab = tab, Key = key, Label = label, IsBool = true, Default = def ? 1 : 0, Value = def ? 1 : 0, Min = 0, Max = 1, Step = 1 });

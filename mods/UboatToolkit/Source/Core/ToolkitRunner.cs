@@ -115,14 +115,15 @@ namespace UboatToolkit
             Imgui.Box(r, "UBOAT Toolkit  (F10 schließt)");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             Imgui.BeginH();
-            foreach (var t in new[] { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", Settings.KeysTab, Settings.Tools })
-                if (Imgui.Button((t == tab ? "> " : "") + t, 96)) tab = t;
+            foreach (var t in new[] { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", Settings.KeysTab, Settings.Tools })
+                if (Imgui.Button((t == tab ? "> " : "") + t, 84)) tab = t;
             Imgui.EndH();
             Imgui.Space(6);
             scroll = Imgui.BeginScroll(scroll);
             if (tab == "Crew") UboatToolkit.Modules.ExtraFeatures.DrawCrewTab();
             if (tab == "Torpedos") UboatToolkit.Modules.TorpedoTab.Draw();
             if (tab == "Karte") UboatToolkit.Modules.MapTab.Draw();
+            if (tab == "Licht") UboatToolkit.Modules.LightTab.Draw();
             foreach (var o in Settings.All.Where(x => x.Tab == tab))
             {
                 if (o.IsKey)
