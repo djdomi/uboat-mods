@@ -26,6 +26,15 @@ namespace UboatToolkit
             return k.C == Ctrl && k.S == Shift && k.A == Alt;
         }
 
+        // True while the bound key is held (modifier keys like LeftShift may be bound alone).
+        public static bool Held(string key)
+        {
+            var o = Settings.Get(key);
+            if (o == null || string.IsNullOrEmpty(o.Text) || Capturing != null) return false;
+            if (Enum.TryParse<KeyCode>(o.Text.Trim(), true, out var single)) return Input.GetKey(single);
+            return Parse(o.Text, out var code, out _, out _, out _) && Input.GetKey(code);
+        }
+
         public static bool Ctrl => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
         public static bool Shift => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
         public static bool Alt => Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr);

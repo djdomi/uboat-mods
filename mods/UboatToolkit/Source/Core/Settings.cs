@@ -198,7 +198,21 @@ namespace UboatToolkit
             Bool(QoL, "VoiceRepairVersion", "  kaputte „letzte Version“ reparieren (sonst neue Spielstände nicht ladbar)", true);
             Bool(QoL, "FixAbortStall", "Fix: kein Einfrieren, wenn Crew-Aussehen sich w\u00e4hrend Textur-Arbeit \u00e4ndert", true);
             Bool(QoL, "FixTextureRace", "Fix: Texturen werden etwas sp\u00e4ter gel\u00f6scht (weniger Abst\u00fcrze)", true);
-            Bool(QoL, "CamWheelZoom", "Kamera: Mausrad zoomt in Ich-Sicht und freier Kamera", true);
+            Bool(QoL, "CamWheelZoom", "Kamera: Mausrad-Zoom und weiche freie Kamera", true);
+            Num(QoL, "CamFreeFov", "  freie Kamera: Start-Blickwinkel", 70, 1, 150, 1);
+            Num(QoL, "CamFppMinFov", "  Ich-Sicht: engster Blickwinkel", 20, 1, 150, 1);
+            Num(QoL, "CamFreeMinFov", "  freie Kamera: engster Blickwinkel", 10, 1, 150, 1);
+            Num(QoL, "CamFreeMaxFov", "  freie Kamera: weitester Blickwinkel", 90, 1, 150, 1);
+            Num(QoL, "CamZoomPercent", "  freie Kamera: Zoom pro Rad-Raste (%)", 3, 0.1f, 50, 0.5f);
+            Num(QoL, "CamFastZoomMul", "  schneller Zoom mit Taste (x)", 4, 1, 20, 0.5f);
+            Bool(QoL, "CamSmoothMove", "  freie Kamera: weich anfahren und bremsen", true);
+            Num(QoL, "CamAccel", "    Anfahren (Sekunden)", 0.35f, 0, 3, 0.05f);
+            Num(QoL, "CamDecel", "    Bremsen (Sekunden)", 0.25f, 0, 3, 0.05f);
+            Num(QoL, "CamBank", "    Schräglage in Kurven (Grad)", 3, -15, 15, 0.5f);
+            Num(QoL, "CamMinAlt", "    tief über dem Wasser nicht zu langsam (ab Meter)", 6, 1, 500, 1);
+            Num(QoL, "CamLookSmooth", "    Umschauen glätten (Sekunden)", 0.08f, 0, 2, 0.02f);
+            Bool(QoL, "CamHideCursor", "  freie Kamera: Mauszeiger ausblenden", true);
+            Bool(QoL, "CamProtectScripted", "  bei Zwischensequenzen nicht eingreifen", true);
             Bool(QoL, "StationZoom", "Kamera: an Ger\u00e4ten (Horcher, Vorhaltrechner ...) zoomt Strg + Mausrad", true);
             Bool(QoL, "CamOrbitUnderwater", "Kamera: getaucht bleibt die Au\u00dfenkamera unter Wasser (realistisch)", false);
             Bool(QoL, "FixWolfpackRetry", "Fix: Wolfsrudel geht nicht verloren, wenn das BdU gerade funkt", true);
@@ -369,6 +383,8 @@ namespace UboatToolkit
             Key("KeyMaxDepth", "Tiefe: maximale sichere Tiefe", "Ctrl+C");
             Key("KeyHoldDepth", "Tiefe: aktuelle Tiefe halten", "Ctrl+H");
             Key("KeyReticleLight", "Fadenkreuz-Licht an/aus (im Sehrohr/Fernglas)", "F");
+            Key("KeyCamZoomReset", "Kamera: Zoom zurücksetzen", "R");
+            Key("KeyCamFastZoom", "Kamera: schneller Zoom (halten)", "LeftShift");
             Key("KeyHotspots", "Bremsen-Finder an/aus", "F11");
 
             // ---------- Tools ----------
@@ -391,6 +407,7 @@ namespace UboatToolkit
             Bool(Tools, "DgsLog", "Log: Deckgeschütz gesperrt wegen Seegang", false);
             Bool(Tools, "RainGearLog", "Log: Regenkleidung an/aus je Mann", false);
             Bool(Tools, "HatchLog", "Log: Luken-Durchgang Bild für Bild", false);
+            Bool(Tools, "CamLog", "Log: Kamera-Zoom", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);

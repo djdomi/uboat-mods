@@ -7,38 +7,6 @@ using UBOAT.Game.Scene.Environment;
 
 namespace UboatToolkit.Modules
 {
-    // Mouse wheel zoom in first person and free camera.
-    [HarmonyPatch(typeof(MainCamera), "Update")]
-    internal static class CameraTools_ZoomPatch
-    {
-        private static Camera cam;
-        private static CameraMode last;
-        private static float start = float.NaN, target = float.NaN, written = float.NaN;
-
-        private static void Postfix(MainCamera __instance)
-        {
-            CameraTools_StationZoomPatch.Check();
-            if (cam == null) cam = __instance.GetComponent<Camera>();
-            if (cam == null) return;
-            var mode = __instance.CurrentMode;
-            bool on = Settings.B("CamWheelZoom") && (mode == CameraMode.FPP || mode == CameraMode.FreeFly);
-            if (mode != last)
-            {
-                // leaving a zoomed view: give the lens back, only if we wrote it last
-                if (!float.IsNaN(start) && Mathf.Abs(cam.fieldOfView - written) < 0.01f && (last == CameraMode.FPP || last == CameraMode.FreeFly)) cam.fieldOfView = start;
-                last = mode; start = target = written = float.NaN;
-            }
-            if (!on) return;
-            if (float.IsNaN(start)) { start = cam.fieldOfView; target = start; }
-            else if (!float.IsNaN(written) && Mathf.Abs(cam.fieldOfView - written) > 0.5f) { start = target = cam.fieldOfView; written = float.NaN; return; }   // game/cutscene took the lens
-            float wheel = Keys.Ctrl || Keys.Shift || Keys.Alt ? 0f : Input.GetAxis("Mouse ScrollWheel");
-            if (wheel != 0f) target = Mathf.Clamp(target - wheel * 50f, 8f, mode == CameraMode.FPP ? start : Mathf.Max(start, 90f));
-            if (Mathf.Abs(cam.fieldOfView - target) < 0.01f && float.IsNaN(written)) return;
-            cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, target, Mathf.Clamp01(Time.unscaledDeltaTime * 12f));
-            written = cam.fieldOfView;
-        }
-    }
-
     // Instrument stations (hydrophone, TDC, ...): Ctrl + mouse wheel zooms in.
     [HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.DeviceControllers.BasicDeviceController), "UpdateController")]
     internal static class CameraTools_StationZoomPatch
