@@ -1,3 +1,4 @@
+using System.Linq;
 using UBOAT.Game.Core.Data;
 using UBOAT.Game.Scene.Entities;
 using UnityEngine;
@@ -55,6 +56,8 @@ namespace UboatToolkit.Modules.Warthog
             // Frame() runs in Update: forces added here are summed until the next physics step, so scale them per frame.
             float k = Mathf.Clamp(Time.deltaTime / Time.fixedDeltaTime, 0f, 4f);
 
+            SpinProps(ship, rb);
+
             // ---- fins
             if (Settings.B("WhFins"))
             {
@@ -102,6 +105,32 @@ namespace UboatToolkit.Modules.Warthog
             float torque = cmd * rb.inertiaTensor.y * Settings.F("WhThrusterPower") * 0.00175f;
             rb.AddTorque(ship.transform.up * torque * k, ForceMode.Force);
             SetEnergy(ship, Mathf.Abs(cmd) * Settings.F("WhThrusterEnergy") * 0.0001f);
+        }
+
+        // Our 4 visible propellers (WH_Prop_* hubs + WH_Blade_* blades in the hull model) are static meshes; the game's
+        // working propellers are the IXC ones hidden inside the hull. Spin ours with the boat's speed through the water,
+        // counter-rotating like real twin screws: starboard clockwise, port anticlockwise (seen from astern, going ahead).
+        private readonly System.Collections.Generic.List<(Transform hub, float sense)> props = new System.Collections.Generic.List<(Transform, float)>();
+        private object propsFor;
+        private void SpinProps(PlayerShip ship, Rigidbody rb)
+        {
+            if (propsFor != (object)ship)
+            {
+                propsFor = ship; props.Clear();
+                var all = ship.GetComponentsInChildren<Transform>(true);
+                foreach (var hub in all.Where(t => t.name.StartsWith("WH_Prop_")))
+                {
+                    string key = hub.name.Substring("WH_Prop_".Length);          // e.g. "Aft_S"
+                    foreach (var b in all.Where(t => t.name.StartsWith("WH_Blade_" + key)).ToList()) b.SetParent(hub, true);
+                    props.Add((hub, key.EndsWith("_S") ? 1f : -1f));
+                }
+                Util.Log("[Warthog] propellers: " + props.Count + " visible propellers will turn");
+            }
+            if (props.Count == 0) return;
+            float speed = Vector3.Dot(rb.velocity, ship.transform.forward);   // m/s, negative = astern
+            float rpm = Mathf.Clamp(speed * 25f, -260f, 260f);                // ~250 rpm at full speed, like the type IX
+            float deg = rpm * 6f * Time.deltaTime;                             // rpm -> degrees per frame
+            foreach (var p in props) if (p.hub != null) p.hub.Rotate(ship.transform.forward, deg * p.sense, Space.World);
         }
 
         private float nextWhy;
