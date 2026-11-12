@@ -107,20 +107,27 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(MapUI), "LateUpdate")]
     internal static class Controls_MapDepthPatch
     {
-        private static void Postfix(Component ___depthLabel, GameInput ___gameInput, TerrainController ___terrainController, Weather ___weather)
+        private static void Postfix(Component ___depthLabel, GameInput ___gameInput, TerrainController ___terrainController, Weather ___weather, UBOAT.Game.Sandbox.Sandbox ___sandbox)
         {
             if (!Settings.B("MapActualDepth") || ___depthLabel == null || ___gameInput == null || ___terrainController == null || ___weather == null) return;
             var grid = ___terrainController.MainGrid;
-            if (grid == null) return;
             var pos = ___gameInput.HoveredScenePosition;
-            float h = grid.GetInterpolatedHeight(pos.x, pos.z, float.NaN);
+            float h = grid != null ? grid.GetInterpolatedHeight(pos.x, pos.z, float.NaN) : float.NaN;
+            string word = "genau";
+            if (float.IsNaN(h) && ___sandbox != null)
+            {
+                // far away: world elevation map (good to a few metres)
+                h = WorldMaps.ElevationMap.GetAtWorldSpace(___sandbox.SceneToEncounterSpace(pos));
+                word = "ca.";
+            }
             if (float.IsNaN(h)) return;
             int depth = Mathf.RoundToInt(___weather.Sea.VerticalOffset - h);
+            if (depth <= 0) return;
             var prop = Traverse.Create(___depthLabel).Property("text");
             string t = prop.GetValue<string>() ?? "";
             int i = t.IndexOf("\n(");
             if (i >= 0) t = t.Substring(0, i);
-            prop.SetValue(t + "\n(genau: " + depth + " m)");
+            prop.SetValue(t + "\n(" + word + ": " + depth + " m)");
         }
     }
 
