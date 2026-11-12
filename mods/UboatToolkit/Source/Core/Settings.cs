@@ -128,7 +128,7 @@ namespace UboatToolkit
             Bool(QoL, "FixRadioRewards", "Fix: vergessene Belohnungen von Funk-Auftr\u00e4gen werden ausgezahlt", true);
             Num(QoL, "ReticleBright", "Fadenkreuz-Licht: Helligkeit (1 = Spiel)", 1, 0.2f, 3, 0.1f);
             Bool(QoL, "DeckGunSeaState", "Deckgesch\u00fctz: bei hohem Seegang langsamer laden, Sch\u00fcsse streuen mehr (ab Windst\u00e4rke 4)", true);
-            Bool(QoL, "ScopeRemember", "Sehrohr merkt sich Ansicht und Zoom (je Sehrohr)", true);
+            Bool(QoL, "ScopeRemember", "Sehrohr merkt sich Ansicht und Zoom (je Sehrohr)", false);
             Bool(QoL, "RainGearWind", "Wache zieht Regenkleidung auch bei Sturm/Gischt an (ab Windst\u00e4rke 6)", true);
             Bool(QoL, "OfficerWatches", "Neue/bef\u00f6rderte Offiziere bekommen 6-Stunden-Wachen (halb Dienst, halb Ruhe)", true);
             Bool(QoL, "FastHatch", "Ich-Sicht: mit Shift schneller durch Luken", true);
