@@ -152,6 +152,10 @@ namespace UboatToolkit
             Bool(Cheat, "CheatImmortalCrew", "Crew unsterblich + unverletzbar (keine Wunden, fällt nicht um)", false);
             Bool(Cheat, "CheatNoSupplyUse", "Vorräte gehen nie aus (Essen, Ersatzteile, Verbandskästen ...)", false);
             Bool(Cheat, "CheatNoWeight", "Munition + Gegenstände fast ohne Gewicht (0,0000001)", false);
+            Bool(Cheat, "AutoExpandStorage", "Lager wächst mit: fast voll = neue Plätze (Haupt-, Item-Lager, Küche)", false);
+            Num(Cheat, "AutoExpandStep", "  So viele Plätze pro Erweiterung", 2, 1, 10, 1);
+            Num(Cheat, "AutoExpandMax", "  Höchstens so viele Plätze pro Lager", 100, 10, 300, 10);
+            Num(Cheat, "StorageMinSlots", "  Lager mindestens x Plätze, sofort (0 = aus)", 0, 0, 200, 5);
             Num(Cheat, "CheatStackSize", "Lager: x mehr pro Platz stapeln (1 = normal, INI ohne Obergrenze)", 1, 1, 1000, 10);
             Num(Cheat, "CheatSensorRange", "Sensor-Reichweite x (Radar, Sonar, Horchgerät, Ausguck) (1 = normal)", 1, 1, 5, 0.5f);
             Bool(Cheat, "CheatDeepDive", "Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)", false);
@@ -167,6 +171,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatPriceFactor", "Preise im Hafen x (1 = normal, 0,01 = fast gratis)", 1, 0.01f, 1, 0.01f);
             Num(Cheat, "CheatRepairSpeed", "Reparieren x schneller (1 = normal, 1000 = ca. 1 Sek.)", 1, 1, 1000, 10);
             Num(Cheat, "CheatResearchSpeed", "Forschung/Aufgaben im Hauptquartier x schneller", 1, 1, 1000, 10);
+            Bool(Cheat, "DevConsole", "Entwickler-Konsole des Spiels einschalten (mit „Erfolge immer erlaubt“ ohne Achievement-Verlust)", false);
             Bool(Cheat, "CheatInstantResearch", "Forschung + Aufgaben im Hauptquartier sofort fertig", false);
             Bool(Cheat, "CheatResearchAll", "  >> Alles erforschen", false);
             Num(Cheat, "CheatAddReputationAmount", "  Punkte pro Klick (für die zwei Knöpfe unten)", 10, 1, 100, 1);

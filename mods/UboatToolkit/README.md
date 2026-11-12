@@ -107,6 +107,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 |---|---|---|
 | QoL | Hafen: Verladen friert nicht ein, abbrechen, erzwingen, sofort | PortLoadingFix, PortLoadingStuckSeconds, CancelPortLoading, FixMyDamnShipment, InstantPortLoading |
 | QoL | Lager aufräumen | SortStorageNow |
+| Cheat | NEU: Lager wächst mit (fast voll = neue Plätze), Mindest-Plätze | AutoExpandStorage, AutoExpandStep, AutoExpandMax, StorageMinSlots |
 | Cheat | NEU: Ruf-Punkte und Upgrade-Punkte per Klick dazu | CheatAddReputation, CheatAddUpgradePoints, CheatAddReputationAmount |
 | Cheat | NEU: Forschung sofort fertig, alles erforschen | CheatInstantResearch, CheatResearchAll |
 | Cheat | Vorräte gehen nie aus | CheatNoSupplyUse |
@@ -122,6 +123,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Karte: Restweg, Ankunft, Diesel-Reichweite | NavInfo |
 | QoL | Kriegstagebuch als Textdatei | WarDiary |
 | QoL | NEU: Erfolge immer erlaubt, auch nach Konsolen-Befehlen | AchievementsOn |
+| Cheat | NEU: Entwickler-Konsole des Spiels einschalten | DevConsole |
 | Cheat | NEU: Alle Steam-Erfolge freischalten | CheatAllAchievements |
 | Cheat | Aktive Cheats anzeigen, Backup vor Cheats | CheatShowActive, BackupBeforeCheats |
 

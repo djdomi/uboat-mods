@@ -21,6 +21,7 @@ namespace UboatToolkit.Modules
         {
             Apply(maxUnits, ref origUnits, Settings.F("MaxShipsPerGroup"));
             Apply(maxGroups, ref origGroups, Settings.F("MaxGroupsPerBattle"));
+
         }
 
         private static void Apply(UBOAT.Game.Core.Data.GameDataReference r, ref float orig, float want)
@@ -50,6 +51,24 @@ namespace UboatToolkit.Modules
             float ms = Settings.F("GcSliceMs");
             ulong want = ms > 0f ? (ulong)(ms * 1000000f) : originalSlice;
             if (GarbageCollector.incrementalTimeSliceNanoseconds != want) GarbageCollector.incrementalTimeSliceNanoseconds = want;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // Game's own developer console: only its "enabled" setting is answered with true (idea from the Custom Actions mod).
+    // With "achievements always allowed" using it costs no achievements.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.Data.GameDataReference), "GetBoolean", new System.Type[0])]
+    internal static class GameTuning_DevConsolePatch
+    {
+        private static object consoleRef;
+        private static void Postfix(UBOAT.Game.Core.Data.GameDataReference __instance, ref bool __result)
+        {
+            if (__result || !Settings.B("DevConsole")) return;
+            if (consoleRef == null)
+                consoleRef = HarmonyLib.AccessTools.Field(HarmonyLib.AccessTools.TypeByName("UBOAT.Game.UI.DevConsole.DevConsole"), "enableDeveloperConsole")?.GetValue(null);
+            if (ReferenceEquals(__instance, consoleRef)) __result = true;
         }
     }
 }
