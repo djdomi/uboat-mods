@@ -822,6 +822,9 @@ namespace UboatToolkit
             m["Flugzeuge beschießen ab x km"] = "Fire at aircraft from x km";
             m["Warthog: Strahlruder links"] = "Warthog: thruster left";
             m["Warthog: Strahlruder rechts"] = "Warthog: thruster right";
+            m["  >> Konvoi spawnen (Gegner-Konvoi taucht vor dir auf)"] = "  >> Spawn convoy (enemy convoy appears ahead of you)";
+            m["  Abstand voraus in km"] = "  Distance ahead in km";
+            m["Konvoi spawnen"] = "Spawn convoy";
             m["  nur bis Zeitraffer x (darüber kein Nachladen = keine Ruckler/Flicken)"] = "  only up to time compression x (above: no loading = no stutter/patches)";
             m["  Strahlruder-Anzeige (wie die Tiefen-Anzeige)"] = "  Thruster display (like the depth display)";
             m["    Anzeige: Position von links in %"] = "    Display: position from the left in %";

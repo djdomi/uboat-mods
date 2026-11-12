@@ -529,6 +529,8 @@ namespace UboatToolkit
             Bool(Cheat, "CheatSinkConvoy", "  >> Sink the convoy: alle Gegner-Schiffe in Reichweite bekommen Torpedos", false);
             Num(Cheat, "SinkConvoyRange", "  Reichweite in km", 20, 1, 100, 1);
             Num(Cheat, "SinkConvoyTorpedoes", "  Torpedos pro Schiff", 3, 1, 10, 1);
+            Bool(Cheat, "CheatSpawnConvoy", "  >> Konvoi spawnen (Gegner-Konvoi taucht vor dir auf)", false);
+            Num(Cheat, "SpawnConvoyKm", "  Abstand voraus in km", 15, 2, 100, 1);
             Bool(Cheat, "CheatRemoteTorpedo", "Fernschuss per Taste (auch aus der Koje): Torpedo auf nächsten Gegner", false);
             Bool(Cheat, "BackupBeforeCheats", "Backup-Spielstand, sobald ein Cheat eingeschaltet wird", true);
             Num(Cheat, "ExtraOfficers", "Mehr Offiziere an Bord erlaubt (+x, 0 = Spiel)", 0, 0, 12, 1);
@@ -550,6 +552,7 @@ namespace UboatToolkit
             Key("KeyCallMilkCow", "Milchkuh herholen", "");
             Key("KeyRemoteTorpedo", "Fernschuss: Torpedo auf nächsten Gegner (Cheat muss an sein)", "Ctrl+Shift+F");
             Key("KeySinkConvoy", "Sink the convoy", "");
+            Key("KeySpawnConvoy", "Konvoi spawnen", "");
             Key("KeyHealAll", "Alle heilen", "");
             Key("KeySonarPing", "Sonar-Ping", "Ctrl+Shift+S");
             Bool(KeysTab, "TelegraphBlockScopes", "Maschinen-Tasten am Sehrohr/UZO/Fernglas und in freier Kamera ignorieren", true);

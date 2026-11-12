@@ -26,6 +26,7 @@ namespace UboatToolkit.Modules
             if (Keys.Down("KeySortStorage")) Util.Safe("SortStorage", SortStorage);
             if (Keys.Down("KeySwapShifts")) Util.Safe("SwapShifts", SwapShifts);
             if (Keys.Down("KeyCallMilkCow")) Util.Safe("CallMilkCow", CallMilkCow);
+            if (Keys.Down("KeySpawnConvoy")) Util.Safe("SpawnConvoy", SpawnConvoy);
             if (Keys.Down("KeyBackToWater")) { var o = Settings.Get("BackToWaterNow"); if (o != null) o.Value = 1; }
         }
 
@@ -38,6 +39,7 @@ namespace UboatToolkit.Modules
             OneShot("CheatUnlockAll", UnlockAll);
             OneShot("CheatQuickTravelNow", QuickTravel);
             OneShot("CallMilkCow", CallMilkCow);
+            OneShot("CheatSpawnConvoy", SpawnConvoy);
 
             // Research at the headquarters x faster (instant = finishes within a second).
             Util.Safe("research", () => Util.ScaleParameter(ship.SandboxEntity?.Country?.Headquarters?.TaskExecutionPerformance,
@@ -253,6 +255,37 @@ namespace UboatToolkit.Modules
             w.SetPosition(target, true, true);
             w.Route.Clear();
             ToolkitRunner.ShowNotice("Schnellreise: am Ziel", 4f);
+        }
+
+        // Cheat: an enemy convoy appears ahead of the boat, the same way the game's own developer command "Spawn Convoy"
+        // does it (nearest convoy spawner, spawned instantly, placed x km in front, marked on the map).
+        private static void SpawnConvoy()
+        {
+            var w = Game.Wolfpack;
+            var sb = Traverse.Create(typeof(UBOAT.Game.UI.DevConsole.DevConsoleCommands)).Field("sandbox").GetValue<UBOAT.Game.Sandbox.Sandbox>();
+            if (w == null || sb == null) { ToolkitRunner.ShowNotice("Konvoi: Spiel noch nicht bereit", 4f); return; }
+            var sp = sb.GetNearestSpawner(w.Position, "Convoy", Country.Relation.Enemy);
+            if (sp == null)   // early war: spawners can be time-restricted; take the nearest enemy one anyway
+            {
+                float best = float.MaxValue;
+                foreach (var g in sb.GroupSpawners)
+                {
+                    if (g == null || g.SpawnType != "Convoy" || !g.Countries.Any(c => c.GetRelationWith(w.Country) == Country.Relation.Enemy)) continue;
+                    float d = (w.Position - (Vector2)g.transform.position).sqrMagnitude;
+                    if (d < best) { best = d; sp = g; }
+                }
+            }
+            if (sp == null) { ToolkitRunner.ShowNotice("Konvoi: kein Konvoi-Startpunkt gefunden", 4f); return; }
+            var grp = sp.SpawnInstantly(true);
+            if (grp == null) { ToolkitRunner.ShowNotice("Konvoi: Spiel hat keinen erzeugt", 4f); return; }
+            float km = Settings.F("SpawnConvoyKm");
+            grp.Position = w.Position + w.Up * km;
+            grp.UpdateGroup();
+            grp.UpdateGroupLowFrequency(false);
+            if (grp.AI != null) for (int i = 0; i < 3; i++) grp.AI.UpdateAI();
+            w.AddObservation(grp, GroupDetectionMethod.IndirectObservation).AddKnownData(GroupData.TransportType, 2f, true);
+            Util.Log("Konvoi gespawnt: " + grp.name + " aus " + sp.name + ", " + km + " km voraus");
+            ToolkitRunner.ShowNotice("Konvoi " + km.ToString("0") + " km voraus (auf der Karte)", 5f);
         }
 
         // Nearest supply U-boat comes to you (3 km away).
