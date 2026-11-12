@@ -41,7 +41,7 @@ namespace UboatToolkit.Modules
                     else if (radio && eq is PlayerShipRadio) Keep(act, "Funkraum");
                 }
 
-            bool guns = Settings.B("AutoManGuns") && ship.DeckDepth < 1f && ship.Alarmed;
+            bool guns = ship.DeckDepth < 1f && ((Settings.B("AutoManGuns") && ship.Alarmed) || Time.unscaledTime < UnderFire.ManGunsUntil);
             bool engines = Settings.B("AutoManEngines") && !ship.Docked;
             if (guns || engines)
                 foreach (var act in Util.Find<Activator>())

@@ -86,6 +86,15 @@ namespace UboatToolkit
             Num(QoL, "FullCrewSize", "  Gewünschte Besatzung (Männer, in der INI ohne Obergrenze)", 90, 10, 200, 1);
             Bool(QoL, "StopTimeOnShip", "Zeitraffer stoppt bei neuem Schiff-Kontakt (Idee 1)", true);
             Bool(QoL, "StopTimeOnAircraft", "Zeitraffer stoppt bei Flugzeug (Idee 1)", true);
+            Bool(QoL, "DamageReport", "Schadensbericht: was hat uns getroffen, wo und warum (F10-Reiter \"Schaden\" + Datei)", true);
+            Bool(QoL, "DamageReportNotify", "  bei jedem Treffer kurze Meldung im Spiel", true);
+            Num(QoL, "DamageReportMerge", "  gleiche Ursache innerhalb x Sekunden zusammenfassen", 5, 1, 60, 1);
+            Bool(QoL, "DamageReportPause", "  bei Treffer das Spiel pausieren", false);
+            Num(QoL, "UnderFireMode", "Unter Beschuss: 0 aus, 1 fragen \"Herr Kaleun, was tun wir?\", 2 Vorschlag automatisch ausführen", 1, 0, 2, 1);
+            Bool(QoL, "UnderFirePause", "  beim Fragen pausieren (aus = nur Symbol rechts am Rand)", true);
+            Num(QoL, "UnderFireIgnoreMin", "  Knopf \"ignorieren\": so viele Minuten (Meldungen werden gesammelt)", 5, 1, 60, 1);
+            Num(QoL, "UnderFireCooldown", "  gleicher Gegner erst wieder nach x Sekunden melden", 30, 5, 300, 5);
+            Bool(QoL, "UnderFireNeedSighting", "  nur melden, wenn die Ausguck den Schützen sehen", true);
             Bool(QoL, "StopTimeOnDamage", "Zeitraffer stoppt bei Schaden (Treffer, neues Leck)", true);
             Bool(QoL, "StopTimeOnRadio", "Zeitraffer stoppt bei Funkspruch", true);
             Bool(QoL, "IgnoreFishingBoats", "  Zeitraffer ignoriert Fischerboote", true);

@@ -32,6 +32,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.Navigation());
             Modules.Add(new Modules.Stations());
             Modules.Add(new Modules.CrewSkills());
+            Modules.Add(new Modules.DamageReport());
             Modules.Add(new Modules.Air());
             Modules.Add(new Modules.Pump());
             Modules.Add(new Modules.CrewFill());
@@ -115,14 +116,15 @@ namespace UboatToolkit
                 var active = Settings.All.Where(o => o.Tab == Settings.Cheat && o.Key != "CheatShowActive" && (o.IsBool ? o.Value > 0f : o.Value != o.Default)).Select(o => o.Key.Replace("Cheat", "")).ToArray();
                 if (active.Length > 0) Imgui.TextAt(new Rect(8, 4, 900, 22), "Cheats: " + string.Join(", ", active));
             }
+            UboatToolkit.Modules.UnderFire.Draw();
             if (!menuOpen) return;
 
             var r = new Rect(40, 40, 720, Mathf.Min(760, Screen.height - 80));
             Imgui.Box(r, "UBOAT Toolkit  (F10 schließt)");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             Imgui.BeginH();
-            foreach (var t in new[] { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", Settings.KeysTab, Settings.Tools })
-                if (Imgui.Button((t == tab ? "> " : "") + t, 84)) tab = t;
+            foreach (var t in new[] { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden", Settings.KeysTab, Settings.Tools })
+                if (Imgui.Button((t == tab ? "> " : "") + t, 76)) tab = t;
             Imgui.EndH();
             Imgui.Space(6);
             scroll = Imgui.BeginScroll(scroll);
@@ -130,6 +132,7 @@ namespace UboatToolkit
             if (tab == "Torpedos") UboatToolkit.Modules.TorpedoTab.Draw();
             if (tab == "Karte") UboatToolkit.Modules.MapTab.Draw();
             if (tab == "Licht") UboatToolkit.Modules.LightTab.Draw();
+            if (tab == "Schaden") UboatToolkit.Modules.DamageReport.Draw();
             foreach (var o in Settings.All.Where(x => x.Tab == tab))
             {
                 if (o.IsKey)

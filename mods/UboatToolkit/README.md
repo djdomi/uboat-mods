@@ -207,6 +207,9 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | NEU: Spielstände schneller laden | FastLoad |
 | QoL | NEU: Kein Ruckeln beim Zoomen von Sehrohr/UZO | FixScopeStall |
 | QoL | NEU: Kein Bild-Wegrutschen am Bildschirmrand | NoEdgeScroll |
+| QoL | NEU: Schadensbericht (was, wo, warum), optional Pause | DamageReport, DamageReportNotify, DamageReportMerge, DamageReportPause |
+| QoL | NEU: Unter Beschuss: "Herr Kaleun, was tun wir?" mit Vorschlag, oder automatisch | UnderFireMode, UnderFireNeedSighting, UnderFireCooldown |
+| QoL | NEU: ohne Pause nur Symbol rechts, x Minuten ignorieren | UnderFirePause, UnderFireIgnoreMin |
 | QoL | Schneller laden | FastLoading |
 | Tool | NEU: Cache aufräumen beim Start (alter Daten-Cache, Absturzberichte, Logs) | AutoCleanCache, AutoCleanDays |
 | Tool | Weniger Schiffe/Gruppen gleichzeitig in 3D | MaxShipsPerGroup, MaxGroupsPerBattle |
