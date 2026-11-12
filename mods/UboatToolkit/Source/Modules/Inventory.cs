@@ -13,6 +13,18 @@ namespace UboatToolkit.Modules
     {
         private float next;
 
+        // Sets the stack size of one item right away (used for new items too, so they do not
+        // wait for the next 5-second pass). At least "CheatMinStackSize" per slot.
+        public static void ApplyStack(Cargo c)
+        {
+            if (c == null || c.StackLimit == null) return;
+            float f = Mathf.Max(1f, Settings.F("CheatStackSize"));
+            float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
+            float baseLimit = Mathf.Max(1f, c.Data != null ? c.Data.StackLimit : 1f);
+            if (minStack > 0f) f = Mathf.Max(f, minStack / baseLimit);
+            Util.ScaleParameter(c.StackLimit, f);
+        }
+
         public override void Tick()
         {
             if (Time.unscaledTime < next) return;
@@ -33,14 +45,7 @@ namespace UboatToolkit.Modules
             foreach (var e in Util.Find<Equipment>())
             {
                 Util.ScaleParameter(e.Mass, noWeight ? 0.0000001f : 1f);
-                if (e is Cargo c)
-                {
-                    // At least "minStack" per slot: scale so the game's own limit reaches that number.
-                    float f = stack;
-                    float baseLimit = Mathf.Max(1f, c.Data != null ? c.Data.StackLimit : 1f);
-                    if (minStack > 0f) f = Mathf.Max(f, minStack / baseLimit);
-                    Util.ScaleParameter(c.StackLimit, f);
-                }
+                if (e is Cargo c) ApplyStack(c);
             }
         }
     }

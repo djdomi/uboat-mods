@@ -126,9 +126,12 @@ namespace UboatToolkit.Modules
                 var go = rm != null ? rm.InstantiatePrefab("Equipment/" + name) : null;
                 var c = go != null ? go.GetComponent<Cargo>() : null;
                 if (c == null) { if (go != null) Object.Destroy(go); return; }
+                Inventory.ApplyStack(c);
                 c.Count = amount;
                 foreach (var s in BoatStorages())
                 {
+                    // Stacks already lying there get the big stack size now, not up to 15 s later.
+                    for (int i = 0; i < Util.Slots(s); i++) Inventory.ApplyStack(s.GetItemAt(i) as Cargo);
                     for (int k = 0; k < 20 && c != null; k++)
                     {
                         float before = c.Count;
