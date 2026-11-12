@@ -44,7 +44,31 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             if (ship == null) return;
             for (int i = 0; i < gearKeys.Length; i++)
-                if (Keys.Down(gearKeys[i])) { Util.Safe("Controls.Gear", () => ship.OrderEngineGear(gears[i], false)); return; }
+            {
+                if (!Keys.Down(gearKeys[i])) continue;
+                if (InputBlocked()) return;                                  // typing in a text field, menu open ...
+                if (Settings.B("TelegraphBlockScopes") && AtScopeOrFreeCam()) return;   // no engine order by accident
+                int g = gears[i];
+                Util.Safe("Controls.Gear", () => ship.OrderEngineGear(g, false));
+                if (Settings.B("TelegraphLog")) Util.Log("Maschinen-Telegraf: " + gearKeys[i]);
+                return;
+            }
+        }
+
+        private static readonly System.Reflection.FieldInfo GameInputF = AccessTools.Field(typeof(UBOAT.Game.Scene.Camera.MainCamera), "gameInput");
+        private static UBOAT.Game.Core.Input.GameInput gameInput;
+        private static bool InputBlocked()
+        {
+            if (gameInput == null && GameInputF != null) gameInput = GameInputF.GetValue(null) as UBOAT.Game.Core.Input.GameInput;
+            return gameInput != null && gameInput.HasActiveBlockades();
+        }
+
+        private static bool AtScopeOrFreeCam()
+        {
+            var cam = UBOAT.Game.Scene.Camera.MainCamera.Instance;
+            if (cam == null) return false;
+            if (cam.CurrentMode == UBOAT.Game.Scene.CameraMode.FreeFly) return true;
+            return cam.GenericController != null && cam.GenericController.ExternalController is UBOAT.Game.Scene.Camera.ExternalControllers.PeriscopeController;
         }
 
         private void OnSeen(DirectObservationAddedEvent e)

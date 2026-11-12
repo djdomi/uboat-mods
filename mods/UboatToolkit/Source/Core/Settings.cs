@@ -396,6 +396,7 @@ namespace UboatToolkit
             Key("KeyRemoteTorpedo", "Fernschuss: Torpedo auf nächsten Gegner (Cheat muss an sein)", "Ctrl+Shift+F");
             Key("KeySinkConvoy", "Sink the convoy", "");
             Key("KeyHealAll", "Alle heilen", "");
+            Bool(KeysTab, "TelegraphBlockScopes", "Maschinen-Tasten am Sehrohr/UZO/Fernglas und in freier Kamera ignorieren", true);
             Key("KeyGearStop", "Maschine: Stopp", "Alt+Alpha0");
             Key("KeyGear1", "Maschine: Voraus 1", "Alt+Alpha1");
             Key("KeyGear2", "Maschine: Voraus 2", "Alt+Alpha2");
@@ -457,6 +458,7 @@ namespace UboatToolkit
             Bool(Tools, "TextureRaceLog", "Log: spätes Textur-Löschen (Zusammenfassung pro Minute)", false);
             Bool(Tools, "AbortStallLog", "Log: Stocken-Fix (übersprungene Wartezeiten)", false);
             Bool(Tools, "ScopeUiLog", "Log: Sehrohr-Anzeige (Ansicht/Zoom wiederhergestellt)", false);
+            Bool(Tools, "TelegraphLog", "Log: Maschinen-Befehle per Taste", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
