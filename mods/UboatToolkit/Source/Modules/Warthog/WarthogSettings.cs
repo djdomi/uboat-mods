@@ -87,7 +87,18 @@ namespace UboatToolkit.Modules.Warthog
             return IsWarthog(ship);
         }
 
-        public static bool IsWarthog(PlayerShip ship) => ship != null && ship.gameObject.name.StartsWith("Type XXX");
+        // By the game's entity type ("Type XXX (Player)"), and by the object name as a fallback.
+        public static bool IsWarthog(PlayerShip ship)
+        {
+            if (ship == null) return false;
+            try
+            {
+                var t = ship.SandboxEntity != null ? ship.SandboxEntity.Type : null;
+                if (t != null && t.Name != null && t.Name.StartsWith("Type XXX")) return true;
+            }
+            catch { }
+            return ship.gameObject.name.StartsWith("Type XXX");
+        }
     }
 
     // Modules to add in ToolkitRunner.Awake():  foreach (var m in WarthogModules.All()) Modules.Add(m);
