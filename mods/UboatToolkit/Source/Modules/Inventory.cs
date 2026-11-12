@@ -91,7 +91,9 @@ namespace UboatToolkit.Modules
             }
             foreach (var e in Util.Find<Equipment>())
             {
-                Util.ScaleParameter(e.Mass, noWeight ? 0.0000001f : 1f);
+                // Never for diesel: the game reads the fuel amount from its weight, so "no weight"
+                // made every tank show 0 kg and look empty, even right after refuelling.
+                Util.ScaleParameter(e.Mass, noWeight && !(e is Fuel) ? 0.0000001f : 1f);
                 if (e is Cargo c) ApplyStack(c);
             }
         }
