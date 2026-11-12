@@ -38,6 +38,9 @@ namespace UboatToolkit.Modules
             else if (now - lastT > 5f) rate = 0f;            // nothing changes: not closing in
 
             if (!tcc.TimeCompression || gameTime.ArtificialTimeScale <= 1.5f || rate <= 0f) return;
+            // LandDistance is in km. At high time compression the boat covers hundreds of km per real
+            // minute, so the "seconds" rule alone fired far out at sea. Only warn when land is really near.
+            if (d > Settings.F("AntiGroundingKm")) return;
             if (d / rate < Settings.F("AntiGroundingSeconds"))
             {
                 tcc.TimeCompression = false;
