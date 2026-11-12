@@ -116,6 +116,7 @@ namespace UboatToolkit
             Bool(QoL, "NavInfo", "Karte: Ankunftszeit + Restweg + Diesel-Reichweite oben links (Idee 7)", true);
             Bool(QoL, "DepthHotkeys", "Tiefe per Taste (Tasten im Tab „Tasten“) (Idee 10)", true);
             Bool(QoL, "FixTooltipParent", "Fix: Fehler \"Default Tooltip ... GUI\" (Tooltip nicht unnötig umhängen)", true);
+            Bool(QoL, "DiagTooltip", "Diagnose: Tooltips ins Log schreiben (leerer Kasten am Auge)", true);
             Bool(QoL, "FixSkillIcons", "Fix: Fehler \"Requested asset Icons/Skills/...\" (fehlende Skill-Bilder)", true);
             Bool(QoL, "FixCameraParent", "Fix: Fehler \"GameObject is already being activated or deactivated\" nach dem Charakter-Bildschirm", true);
             Bool(QoL, "FixMissingIcons", "Fix: Fehler \"Requested asset Icons/Activators/... / Icons/Equipment/...\" (fehlende Bilder von Depots und Gegenständen)", true);

@@ -97,3 +97,92 @@ namespace UboatToolkit.Modules
             __exception is System.NullReferenceException && Settings.B("FixFlames") ? null : __exception;
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Diagnosis "empty box next to the eye" (DoMe 2026-11-12): every game tooltip that opens is checked 0.4 s later
+    // and written to the log once per kind: who opened it, text, measured size, font, material and the alpha of box and
+    // text. Shows whether the text is empty, invisible (alpha 0), unmeasured (font/material) or the box is something else.
+    public class TooltipDiag : ModuleBase
+    {
+        private struct Pending { public UBOAT.Game.UI.FloatingTooltip T; public float At; public string From; }
+        private static readonly List<Pending> pending = new List<Pending>();
+        private static readonly HashSet<string> done = new HashSet<string>();
+        internal static string Caller = "?";
+        private static int count;
+        private static readonly FieldInfo contentsF = AccessTools.Field(typeof(UBOAT.Game.UI.FloatingTooltip), "contents");
+        private static readonly FieldInfo openF = AccessTools.Field(typeof(UBOAT.Game.UI.FloatingTooltip), "isOpen");
+
+        internal static void Opened(object t)
+        {
+            var ft = t as UBOAT.Game.UI.FloatingTooltip;
+            if (ft == null || !Settings.B("DiagTooltip") || count >= 40) return;
+            pending.Add(new Pending { T = ft, At = Time.unscaledTime + 0.4f, From = Caller });
+            Caller = "?";
+        }
+
+        public override void Frame()
+        {
+            if (pending.Count == 0) return;
+            float now = Time.unscaledTime;
+            for (int i = pending.Count - 1; i >= 0; i--)
+            {
+                var p = pending[i];
+                if (now < p.At) continue;
+                pending.RemoveAt(i);
+                try { Check(p); } catch (System.Exception e) { Util.Log("Tooltip-Diagnose: " + e.Message); }
+            }
+        }
+
+        private static void Check(Pending p)
+        {
+            if (p.T == null) return;
+            var c = contentsF != null ? contentsF.GetValue(p.T) as TMPro.TextMeshProUGUI : null;
+            var img = p.T.GetComponent<UnityEngine.UI.Image>();
+            string text = c != null ? (c.text ?? "") : "<kein Text-Feld>";
+            bool empty = c == null || text.Trim().Length == 0;
+            string key = p.From + "|" + empty + "|" + (c != null && c.font != null ? c.font.name : "-");
+            if (!done.Add(key) && p.From != "Auge") return;
+            count++;
+            var sb = new System.Text.StringBuilder();
+            sb.Append("Tooltip-Diagnose [").Append(p.From).Append("]: offen=").Append(openF != null ? openF.GetValue(p.T) : "?")
+              .Append(", aktiv=").Append(p.T.gameObject.activeInHierarchy);
+            var rt = p.T.transform as RectTransform;
+            if (rt != null) sb.Append(", Kasten=").Append(rt.rect.width.ToString("0")).Append("x").Append(rt.rect.height.ToString("0"));
+            if (img != null) sb.Append(", Kasten-Alpha=").Append(img.canvasRenderer.GetAlpha().ToString("0.00"));
+            if (c != null)
+            {
+                string one = text.Replace("\n", " / ").Replace("\r", "");
+                if (one.Length > 160) one = one.Substring(0, 160) + "...";
+                sb.Append(", Text(").Append(text.Length).Append(" Zeichen)='").Append(one).Append("'")
+                  .Append(", Text an=").Append(c.enabled).Append("/").Append(c.gameObject.activeInHierarchy)
+                  .Append(", Text-Alpha=").Append(c.canvasRenderer.GetAlpha().ToString("0.00"))
+                  .Append(", Farbe-A=").Append(c.color.a.ToString("0.00"))
+                  .Append(", Größe=").Append(c.fontSize.ToString("0.0"))
+                  .Append(", Schrift=").Append(c.font != null ? c.font.name : "KEINE")
+                  .Append(", Material=").Append(c.fontSharedMaterial != null ? c.fontSharedMaterial.name : "KEINES")
+                  .Append(", gemessen=").Append(c.preferredHeight.ToString("0"))
+                  .Append(", Zeichen sichtbar=").Append(c.textInfo != null ? c.textInfo.characterCount : -1)
+                  .Append(", Text-Rect=").Append(c.rectTransform.rect.width.ToString("0")).Append("x").Append(c.rectTransform.rect.height.ToString("0"));
+            }
+            Util.Log(sb.ToString());
+        }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.UI.FloatingTooltip), "OpenInternal")]
+    internal static class TooltipDiag_Open
+    {
+        private static void Postfix(object __result) { try { TooltipDiag.Opened(__result); } catch { } }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.UI.Resources.DetectabilityGUI), nameof(UBOAT.Game.UI.Resources.DetectabilityGUI.OnPointerEnter))]
+    internal static class TooltipDiag_Eye
+    {
+        private static void Prefix() { TooltipDiag.Caller = "Auge"; }
+        private static System.Exception Finalizer(System.Exception __exception)
+        {
+            if (__exception != null) Util.Log("Tooltip-Diagnose [Auge]: Spiel-Fehler beim Öffnen: " + __exception.GetType().Name + ": " + __exception.Message);
+            return __exception;
+        }
+    }
+}
