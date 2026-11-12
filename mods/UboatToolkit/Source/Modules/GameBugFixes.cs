@@ -254,3 +254,82 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // "GameObject is already being activated or deactivated" when the game saves while the port window is open:
+    // after every save SavingNotificationUI switches the whole game UI off and on; that disables the port window, whose
+    // OnDisable then calls GameUI.SetMode(Normal) = SetActive on the UI that is just being switched off -> Unity error,
+    // and the port window is left in "Normal" mode (closed state broken). Now SetMode is skipped while the game UI itself
+    // is being switched off; when it comes back on, the port window simply stays open.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.PortActivitiesUI), "OnDisable")]
+    internal static class Fix_PortWindowSaveToggle
+    {
+        private static float nextLog;
+        public static void SetMode(UBOAT.Game.UI.GameUI ui, UBOAT.Game.UI.GameUI.Mode mode)
+        {
+            if (ui != null && !ui.gameObject.activeSelf)
+            {
+                if (UnityEngine.Time.unscaledTime > nextLog) { nextLog = UnityEngine.Time.unscaledTime + 60f; Util.Log("Hafen-Fenster: Umschalten beim Speichern übersprungen (Unity-Fehler vermieden)"); }
+                return;
+            }
+            ui.SetMode(mode);
+        }
+
+        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
+        {
+            var target = HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.GameUI), "SetMode", new[] { typeof(UBOAT.Game.UI.GameUI.Mode) });
+            int n = 0;
+            foreach (var c in code)
+            {
+                if (c.operand as System.Reflection.MethodInfo == target) { c.opcode = System.Reflection.Emit.OpCodes.Call; c.operand = HarmonyLib.AccessTools.Method(typeof(Fix_PortWindowSaveToggle), nameof(SetMode)); n++; }
+                yield return c;
+            }
+            if (n == 0) Util.Log("Hafen-Fenster-Fix: SetMode nicht gefunden, Fix nicht aktiv");
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // 'Slot "Fuel 1" / "Hidden Goods 1" is defined for entity type "Large Freighter 01/02" in game data, but it's missing
+    // in the entity prefab': the game data gives these freighters cargo for slots their 3D model does not have, so the game
+    // logs an error and that cargo item is never placed on the ship. Now the missing slot is added at runtime, next to a
+    // similar slot of the same ship (e.g. "Hidden Goods 1" next to another "Goods" slot), and the cargo is placed there.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.SandboxEntity), "SpawnEquipment", new[] { typeof(UBOAT.Game.Sandbox.SandboxEquipment), typeof(bool) }, new[] { HarmonyLib.ArgumentType.Normal, HarmonyLib.ArgumentType.Ref })]
+    internal static class Fix_MissingCargoSlot
+    {
+        private static readonly System.Collections.Generic.HashSet<string> logged = new System.Collections.Generic.HashSet<string>();
+        private static readonly System.Collections.Generic.List<UBOAT.Game.Scene.Entities.ShipEquipmentSlot> buf = new System.Collections.Generic.List<UBOAT.Game.Scene.Entities.ShipEquipmentSlot>();
+
+        private static void Prefix(UBOAT.Game.Sandbox.SandboxEntity __instance, UBOAT.Game.Sandbox.SandboxEquipment equipment, ref bool sceneSlotsAlreadyBuffered)
+        {
+            try
+            {
+                var ent = __instance?.SpawnedEntity;
+                if (ent == null || equipment?.Slot == null) return;
+                string name = equipment.Slot.Name;
+                if (string.IsNullOrEmpty(name) || name == "Deck Goods A") return;
+                ent.GetComponentsInChildren(true, buf);
+                foreach (var s in buf) if (s != null && s.name == name) return;          // slot exists: nothing to do
+                string stem = name.TrimEnd('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ');
+                string word = stem.Contains(" ") ? stem.Substring(stem.LastIndexOf(' ') + 1) : stem;
+                UBOAT.Game.Scene.Entities.ShipEquipmentSlot like = null;
+                foreach (var s in buf) if (s != null && s.name.StartsWith(stem)) { like = s; break; }
+                if (like == null) foreach (var s in buf) if (s != null && s.name.Contains(word)) { like = s; break; }
+                if (like == null) foreach (var s in buf) if (s != null && s.GetComponentInParent<UBOAT.Game.Scene.Items.Storage>() != null) { like = s; break; }
+                if (like == null) return;   // nothing similar on this ship: leave it to the game
+                var go = new UnityEngine.GameObject(name);
+                go.layer = like.gameObject.layer;
+                go.transform.SetParent(like.transform.parent, false);
+                go.transform.localPosition = like.transform.localPosition + new UnityEngine.Vector3(0f, 0f, 0.8f);
+                go.transform.localRotation = like.transform.localRotation;
+                go.AddComponent<UBOAT.Game.Scene.Entities.ShipEquipmentSlot>();
+                sceneSlotsAlreadyBuffered = false;   // the game re-reads the ship's slots and now finds the new one
+                string type = Util.SafeGet(() => __instance.Type.Name, "?");
+                if (logged.Add(type + "/" + name)) Util.Log("Ladung: Platz \"" + name + "\" fehlte im Modell von " + type + ", neben \"" + like.name + "\" ergänzt");
+            }
+            catch (System.Exception e) { Util.Log("Ladung: Platz ergänzen fehlgeschlagen: " + e.Message); }
+        }
+    }
+}
