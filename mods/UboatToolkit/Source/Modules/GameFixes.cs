@@ -37,6 +37,7 @@ namespace UboatToolkit.Modules
                 Util.Safe("Fixes.PortWarn", () => PortWarning(ship));
             }
             Util.Safe("Fixes.Officers", ExtraOfficers);
+            Util.Safe("Fixes.Sailors", ExtraSailors);
             if (ship == null || ship == lastShip) return;
             lastShip = ship;   // new game scene / save loaded
             Util.Safe("Fixes.Inject", () => InjectionFramework.Instance.InjectIntoAssembly(typeof(GameFixes).Assembly));
@@ -85,6 +86,28 @@ namespace UboatToolkit.Modules
             if (want <= 0f) { if (officerMod != null) { officerMod.Remove(); officerMod = null; } return; }
             if (officerMod == null) officerMod = c.OfficersOnBoardLimit.AddDeltaModifier("Toolkit Officers");
             if (officerMod.Value != want) officerMod.Value = want;
+        }
+
+        // More sailors allowed on board. "Volle Crew" recruits up to FullCrewSize men, but the game
+        // only lets 20 sailors aboard a Type VII. With "SailorsFollowFullCrew" on, the sailor limit is
+        // raised so the whole wanted crew fits (FullCrewSize minus the officer places). Plus a manual
+        // extra. Runtime only, nothing is written into the save.
+        private Modifier sailorMod;
+        private object sailorCareer;
+        private void ExtraSailors()
+        {
+            var c = Util.Career;
+            if (c == null) return;
+            if (!ReferenceEquals(c, sailorCareer)) { sailorMod = null; sailorCareer = c; }
+            float game = c.SailorsOnBoardLimit.Value - (sailorMod != null ? sailorMod.Value : 0f);
+            float want = 0f;
+            if (Settings.B("SailorsFollowFullCrew") && Settings.B("FullCrewAtStart"))
+                want = Mathf.Max(0f, Settings.F("FullCrewSize") - c.OfficersOnBoardLimit.Value - 1f - game);   // -1 = commander
+            want += Mathf.Max(0f, Settings.F("ExtraSailors"));
+            if (want <= 0f) { if (sailorMod != null) { sailorMod.Remove(); sailorMod = null; } return; }
+            if (sailorMod == null) sailorMod = c.SailorsOnBoardLimit.AddDeltaModifier("Toolkit Sailors");
+            want = Mathf.Round(want);
+            if (sailorMod.Value != want) { sailorMod.Value = want; Util.Log("Matrosen an Bord: jetzt bis " + Mathf.RoundToInt(game + want) + " erlaubt"); }
         }
 
         internal static bool SkipperOk()
