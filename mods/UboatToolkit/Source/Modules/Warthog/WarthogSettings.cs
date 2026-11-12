@@ -29,6 +29,9 @@ namespace UboatToolkit.Modules.Warthog
             Bool("WhThrusterWithRudder", "  Strahlruder helfen automatisch beim Ruderlegen", true);
             Num("WhThrusterPower", "  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)", 6f, 0.5f, 30f, 0.5f);
             Num("WhThrusterEnergy", "  Strom pro Sekunde volle Leistung (Anteil Batterie x 0,0001)", 2f, 0f, 20f, 0.5f);
+            Bool("WhThrustGauge", "  Strahlruder-Anzeige (wie die Tiefen-Anzeige)", true);
+            Num("WhThrustGaugeX", "    Anzeige: Position von links in %", 2, 0, 95, 1);
+            Num("WhThrustGaugeY", "    Anzeige: Position von oben in %", 62, 0, 95, 1);
             Bool("WhThrusterHoldFiring", "  Kurs halten, während Geschütze feuern (gegen Rückstoß)", true);
 
             // --- Schnorchel

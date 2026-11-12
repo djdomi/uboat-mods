@@ -13,13 +13,18 @@ namespace UboatToolkit.Modules
     // - One-shot cheat: unlock every Steam achievement of the game.
     public class AchievementTools : ModuleBase
     {
+        private static readonly FieldInfo LockField = AccessTools.Field(typeof(PlayerCareer), "isPlaythroughLockedOutOfAchievements");
         public override void Tick()
         {
             if (Settings.B("AchievementsOn"))
             {
                 // Searching all objects every second cost 40-46 ms (part of the lag). The career is cached.
                 var pc = Util.Career;
-                if (pc != null) Traverse.Create(pc).Field("isPlaythroughLockedOutOfAchievements").SetValue(false);
+                if (pc != null && LockField != null && (bool)LockField.GetValue(pc))
+                {
+                    LockField.SetValue(pc, false);
+                    Util.Log("[Erfolge] Sperre im Spielstand entfernt (Konsole war benutzt)");
+                }
             }
 
             var o = Settings.Get("CheatAllAchievements");
@@ -50,5 +55,35 @@ namespace UboatToolkit.Modules
             __result = false;
             return false;
         }
+    }
+
+    // Diagnosis: the game only tracks achievements after this check passes (polled every 5 s). In DoMe's last two
+    // sessions it never passed (no "Starting N achievement objects" line), so no achievement could be earned.
+    // Log once per minute which condition is missing, and log every real unlock.
+    [HarmonyPatch(typeof(AchievementManager), "ListenForSteamDownload")]
+    internal static class AchievementTools_StartDiag
+    {
+        private static float next;
+        private static void Postfix(float __result)
+        {
+            if (!float.IsNaN(__result)) { if (Time.unscaledTime < next) return; next = Time.unscaledTime + 60f; }
+            string why = "";
+            Util.Safe("AchDiag", () =>
+            {
+                var st = AccessTools.TypeByName("Steamworks.SteamUserStats"); object steam = st != null ? st.GetMethod("RequestCurrentStats", Type.EmptyTypes)?.Invoke(null, null) : "?";
+                var com = Traverse.Create(typeof(AchievementManager)).Field("campaignObjectivesManager").GetValue();
+                int objectives = com != null ? Traverse.Create(com).Property("List").Property("Count").GetValue<int>() : -1;
+                var wp = Traverse.Create(typeof(AchievementManager)).Field("wolfpack").GetValue() as UnityEngine.Object;
+                why = "Steam-Statistik=" + steam + ", Kampagnenziele=" + objectives + ", Wolfpack=" + (wp != null);
+            });
+            Util.Log(float.IsNaN(__result) ? "[Erfolge] Erfolgs-Prüfung des Spiels läuft (" + why + ")" : "[Erfolge] Spiel prüft Erfolge noch NICHT: " + why);
+        }
+    }
+
+    [HarmonyPatch(typeof(AchievementManager), "OnAchievementComplete")]
+    internal static class AchievementTools_UnlockLog
+    {
+        private static void Postfix(IAchievement achievement) =>
+            Util.Log("[Erfolge] freigeschaltet: " + achievement?.Name + " (gesperrt=" + (Util.Career != null && Util.Career.IsPlaythroughLockedOutOfAchievements) + ")");
     }
 }

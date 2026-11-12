@@ -822,6 +822,9 @@ namespace UboatToolkit
             m["Flugzeuge beschießen ab x km"] = "Fire at aircraft from x km";
             m["Warthog: Strahlruder links"] = "Warthog: thruster left";
             m["Warthog: Strahlruder rechts"] = "Warthog: thruster right";
+            m["  Strahlruder-Anzeige (wie die Tiefen-Anzeige)"] = "  Thruster display (like the depth display)";
+            m["    Anzeige: Position von links in %"] = "    Display: position from the left in %";
+            m["    Anzeige: Position von oben in %"] = "    Display: position from the top in %";
             m["Warthog: Anker werfen / lichten"] = "Warthog: drop / raise anchor";
             m["Luken: alle Luken benutzbar (2. Turmluk, Seitentüren, Torpedoluken, Kombüse; aus = Spiel mit einem Luk)"] = "Hatches: all hatches usable (2nd tower hatch, side doors, torpedo hatches, galley; off = game's single hatch)";
             m["  Luken einzeln steuern (Liste oben im Reiter; aus = alle folgen Turmluk 1)"] = "  Control hatches one by one (list at the top of the tab; off = all follow tower hatch 1)";

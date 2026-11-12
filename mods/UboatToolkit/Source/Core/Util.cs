@@ -86,11 +86,18 @@ namespace UboatToolkit
 
         // PlayerCareer is a ScriptableObject, so FindObjectOfType may miss it; FindObjectsOfTypeAll always finds it.
         private static UBOAT.Game.Sandbox.PlayerCareer career;
+        private static float careerRetry;
         public static UBOAT.Game.Sandbox.PlayerCareer Career
         {
             get
             {
-                if (career == null) career = System.Linq.Enumerable.FirstOrDefault(Resources.FindObjectsOfTypeAll<UBOAT.Game.Sandbox.PlayerCareer>());
+                // FindObjectsOfTypeAll searches every loaded object (40-100 ms). While no career exists (menu, loading)
+                // it ran on every call; now at most every 10 s.
+                if (career == null && Time.unscaledTime >= careerRetry)
+                {
+                    careerRetry = Time.unscaledTime + 10f;
+                    career = System.Linq.Enumerable.FirstOrDefault(Resources.FindObjectsOfTypeAll<UBOAT.Game.Sandbox.PlayerCareer>());
+                }
                 return career;
             }
         }

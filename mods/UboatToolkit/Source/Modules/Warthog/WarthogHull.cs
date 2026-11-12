@@ -72,7 +72,7 @@ namespace UboatToolkit.Modules.Warthog
             }
 
             // ---- thrusters
-            if (!Settings.B("WhThrusters")) { heldHeading = float.NaN; return; }
+            if (!Settings.B("WhThrusters")) { heldHeading = float.NaN; WarthogThrusterGauge.Cmd = 0f; return; }
             float cmd = 0f;
             if (Keys.Held("KeyWhThrustLeft")) cmd -= 1f;
             if (Keys.Held("KeyWhThrustRight")) cmd += 1f;
@@ -93,6 +93,8 @@ namespace UboatToolkit.Modules.Warthog
             }
             else heldHeading = float.NaN;
 
+            WarthogThrusterGauge.Cmd = cmd;
+            WarthogThrusterGauge.Source = Mathf.Abs(cmd) < 0.01f ? "" : (Keys.Held("KeyWhThrustLeft") || Keys.Held("KeyWhThrustRight")) ? "Taste" : !float.IsNaN(heldHeading) ? "Kurs halten" : "Ruder";
             if (Mathf.Abs(cmd) < 0.01f) { SetEnergy(ship, 0f); return; }
             // bow pushes one way, stern the other = pure turning torque. 0.2.x/0.3.0 used a fixed 6 MNm: against the
             // 92 m boat's yaw inertia (~1e9 kg m^2) and the game's angular drag that was hardly noticeable ("Z/X do nothing").

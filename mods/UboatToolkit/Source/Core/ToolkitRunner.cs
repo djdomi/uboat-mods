@@ -198,6 +198,7 @@ namespace UboatToolkit
                 if (active.Length > 0) Imgui.TextAt(new Rect(8, 4, 900, 22), "Cheats: " + string.Join(", ", active));
             }
             UboatToolkit.Modules.DepthGauge.Draw();
+            UboatToolkit.Modules.Warthog.WarthogThrusterGauge.Draw();
             UboatToolkit.Modules.UnderFire.Draw();
             if (!menuOpen) return;
             DragMenu();
