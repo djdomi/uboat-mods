@@ -107,6 +107,8 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 |---|---|---|
 | QoL | Hafen: Verladen friert nicht ein, abbrechen, erzwingen, sofort | PortLoadingFix, PortLoadingStuckSeconds, CancelPortLoading, FixMyDamnShipment, InstantPortLoading |
 | QoL | Lager aufräumen | SortStorageNow |
+| Cheat | NEU: Ruf-Punkte und Upgrade-Punkte per Klick dazu | CheatAddReputation, CheatAddUpgradePoints, CheatAddReputationAmount |
+| Cheat | NEU: Forschung sofort fertig, alles erforschen | CheatInstantResearch, CheatResearchAll |
 | Cheat | Vorräte gehen nie aus | CheatNoSupplyUse |
 | Cheat | Fast ohne Gewicht, mehr pro Platz stapeln | CheatNoWeight, CheatStackSize |
 | Cheat | Mindest-Geld und Ruf | CheatMoney, CheatReputation |

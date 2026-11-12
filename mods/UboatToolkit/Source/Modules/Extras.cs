@@ -44,8 +44,24 @@ namespace UboatToolkit.Modules
             OneShot("CheatQuickTravelNow", QuickTravel);
             OneShot("CallMilkCow", CallMilkCow);
 
-            // Research at the headquarters x faster.
-            Util.Safe("research", () => Util.ScaleParameter(ship.SandboxEntity?.Country?.Headquarters?.TaskExecutionPerformance, Settings.F("CheatResearchSpeed")));
+            // Research at the headquarters x faster (instant = finishes within a second).
+            Util.Safe("research", () => Util.ScaleParameter(ship.SandboxEntity?.Country?.Headquarters?.TaskExecutionPerformance,
+                Settings.B("CheatInstantResearch") ? 1000000f : Settings.F("CheatResearchSpeed")));
+            OneShot("CheatResearchAll", () => ResearchAll(ship));
+            OneShot("CheatAddReputation", () =>
+            {
+                var c = Util.Career; if (c == null) return;
+                int add = Mathf.Max(1, (int)Settings.F("CheatAddReputationAmount"));
+                c.ReputationPoints += add;
+                ToolkitRunner.ShowNotice("+" + add + " Ruf-Punkte (jetzt " + c.ReputationPoints + ")", 4f);
+            });
+            OneShot("CheatAddUpgradePoints", () =>
+            {
+                var c = Util.Career; if (c == null) return;
+                int add = Mathf.Max(1, (int)Settings.F("CheatAddReputationAmount"));
+                c.ShipUpgradePoints += add;
+                ToolkitRunner.ShowNotice("+" + add + " Upgrade-Punkte (jetzt " + c.ShipUpgradePoints + ")", 4f);
+            });
 
             // Echo sounder pings by itself while submerged.
             if (Settings.B("CheatSonarPing"))
@@ -174,6 +190,20 @@ namespace UboatToolkit.Modules
             ToolkitRunner.ShowNotice("Lager aufgeräumt (" + moves + " Schritte)", 4f);
         }
 
+        // Every research task of the headquarters that is not running is finished at once (the game's own Finish = item researched).
+        private static void ResearchAll(PlayerShip ship)
+        {
+            var hq = ship.SandboxEntity?.Country?.Headquarters;
+            if (hq == null) return;
+            int n = 0;
+            foreach (var t in hq.Tasks.ToArray())
+                if (t is UBOAT.Game.Sandbox.HQ.Research r && !r.IsCompleted && (r.AssignedAgents == null || r.AssignedAgents.Length == 0))
+                { r.Finish(); n++; }
+            var db = Resources.FindObjectsOfTypeAll<EquipmentDatabase>().FirstOrDefault();
+            if (db != null) foreach (var e in db.GetEquipmentDirect()) if (e != null) e.Researched = true;
+            ToolkitRunner.ShowNotice("Erforscht: " + n + " Forschungen (laufende bleiben, gehen mit „sofort“ gleich fertig)", 6f);
+        }
+
         private static void UnlockAll()
         {
             int items = 0;
@@ -181,7 +211,7 @@ namespace UboatToolkit.Modules
             if (db != null)
                 foreach (var e in db.GetEquipmentDirect())
                     if (e != null && !e.Researched) { e.Researched = true; items++; }
-            var career = Object.FindObjectOfType<PlayerCareer>();
+            var career = Util.Career;
             if (career != null)
                 foreach (var b in new[] { "Type IIA", "Type IID", "Type VIIB", "Type VIIC", "Type VIIC41", "Type IXA", "Type IXC", "Type IXC40" })
                     career.UnlockShip(b, true);

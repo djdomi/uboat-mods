@@ -54,7 +54,7 @@ namespace UboatToolkit.Modules
             float money = Settings.F("CheatMoney"), rep = Settings.F("CheatReputation");
             if (money > 0f || rep > 0f)
             {
-                if (career == null) career = Object.FindObjectOfType<PlayerCareer>();
+                if (career == null) career = Util.Career;
                 if (career != null)
                 {
                     if (money > 0f && career.Budget < money) Util.SetField(career, "budget", Mathf.RoundToInt(money));

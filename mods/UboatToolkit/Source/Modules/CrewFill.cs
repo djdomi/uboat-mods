@@ -16,7 +16,7 @@ namespace UboatToolkit.Modules
         {
             if (!Settings.B("FullCrewAtStart")) return;
             if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
-            if (career == null) career = Object.FindObjectOfType<PlayerCareer>();
+            if (career == null) career = Util.Career;
             if (crew == null || career == null) return;
             if (!Traverse.Create(career).Field("beforeFirstPatrol").GetValue<bool>()) return;
 

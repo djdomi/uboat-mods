@@ -167,6 +167,11 @@ namespace UboatToolkit
             Num(Cheat, "CheatPriceFactor", "Preise im Hafen x (1 = normal, 0,01 = fast gratis)", 1, 0.01f, 1, 0.01f);
             Num(Cheat, "CheatRepairSpeed", "Reparieren x schneller (1 = normal, 1000 = ca. 1 Sek.)", 1, 1, 1000, 10);
             Num(Cheat, "CheatResearchSpeed", "Forschung/Aufgaben im Hauptquartier x schneller", 1, 1, 1000, 10);
+            Bool(Cheat, "CheatInstantResearch", "Forschung + Aufgaben im Hauptquartier sofort fertig", false);
+            Bool(Cheat, "CheatResearchAll", "  >> Alles erforschen", false);
+            Num(Cheat, "CheatAddReputationAmount", "  Punkte pro Klick (für die zwei Knöpfe unten)", 10, 1, 100, 1);
+            Bool(Cheat, "CheatAddReputation", "  >> Ruf-Punkte dazu (damit bezahlst du Forschung)", false);
+            Bool(Cheat, "CheatAddUpgradePoints", "  >> Upgrade-Punkte dazu", false);
             Bool(Cheat, "CheatUnlockAll", "  >> Alle Upgrades + alle Boote freischalten", false);
             Num(Cheat, "CheatTorpedoSpeed", "Torpedos x schneller (Rechner zielt mit, Treffer sicherer)", 1, 1, 5, 0.25f);
             Bool(Cheat, "CheatQuickTravel", "Schnellreise ans Kursziel per Taste (Tab „Tasten“)", false);

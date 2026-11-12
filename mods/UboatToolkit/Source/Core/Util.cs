@@ -70,6 +70,17 @@ namespace UboatToolkit
             m.Value = Mathf.Abs(baseValue) > 0.0001f ? target / baseValue : 1f;
         }
 
+        // PlayerCareer is a ScriptableObject, so FindObjectOfType may miss it; FindObjectsOfTypeAll always finds it.
+        private static UBOAT.Game.Sandbox.PlayerCareer career;
+        public static UBOAT.Game.Sandbox.PlayerCareer Career
+        {
+            get
+            {
+                if (career == null) career = System.Linq.Enumerable.FirstOrDefault(Resources.FindObjectsOfTypeAll<UBOAT.Game.Sandbox.PlayerCareer>());
+                return career;
+            }
+        }
+
         public static void ScaleParameter(Parameter p, float factor)
         {
             if (p == null) return;
