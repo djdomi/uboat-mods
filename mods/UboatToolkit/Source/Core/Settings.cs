@@ -468,6 +468,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatUndetectable", "Boot unentdeckbar (Sicht, Sonar, Horchgerät, Radar)", false);
             Bool(Cheat, "CheatPerfectAim", "Aimbot: 100 % Einschuss, keine Streuung, eigene Schüsse treffen mit Vorhalt (bis 30 Grad)", false);
             Bool(Cheat, "CheatInfiniteGunAmmo", "Deckgeschütz + Flak: Munition unendlich", false);
+            Bool(Cheat, "CheatSpecPoints", "Crew-Spezialisierungen (Tauchgang, Schleichfahrt, Disziplin): immer genug Punkte", false);
             Bool(Cheat, "CheatInfiniteTorpedoes", "Torpedos unendlich: Rohr lädt nach dem Schuss sofort neu (#26)", false);
             Bool(Cheat, "CheatAllT5", "  Nachgeladen wird immer ein T5 Zaunkönig (zielsuchend)", false);
             Bool(Cheat, "CheatNoDuds", "Keine Torpedo-Versager", false);

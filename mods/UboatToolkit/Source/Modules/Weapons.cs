@@ -114,10 +114,12 @@ namespace UboatToolkit.Modules
                 }
             }
 
+            // Was only applied when the switch changed, so after a boat change or loading a save the new boat
+            // never got it ("Flak hat keine unendliche Munition"). Now kept on the current boat every tick.
             bool infinite = Settings.B("CheatInfiniteGunAmmo");
-            if (infinite != lastInfinite)
+            if (infinite || lastInfinite)
             {
-                ship.InfiniteAmmunition = infinite;
+                if (ship.InfiniteAmmunition != infinite) ship.InfiniteAmmunition = infinite;
                 lastInfinite = infinite;
             }
         }
@@ -162,6 +164,24 @@ namespace UboatToolkit.Modules
             }
             Weapons_FirePatch.LastSound[id] = now;
             return true;
+        }
+    }
+
+    // With infinite ammo the game still fills a magazine only with what is in the ammo box (Reload: min(box, magazine)).
+    // An empty box therefore meant an empty gun even with the cheat on. Now the magazine is always full.
+    [HarmonyPatch]
+    internal static class Weapons_InfiniteReload
+    {
+        private static IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            yield return AccessTools.Method(typeof(Gun), nameof(Gun.Reload));
+            yield return AccessTools.Method(typeof(Gun), nameof(Gun.ReloadInstantly));
+        }
+        private static readonly AccessTools.FieldRef<Gun, int> AmmoCount = AccessTools.FieldRefAccess<Gun, int>("ammoCount");
+        private static void Postfix(Gun __instance)
+        {
+            if (!Settings.B("CheatInfiniteGunAmmo") || !Util.IsPlayers(__instance)) return;
+            AmmoCount(__instance) = Mathf.Max(1, (int)__instance.MagazineSize.Value);
         }
     }
 }

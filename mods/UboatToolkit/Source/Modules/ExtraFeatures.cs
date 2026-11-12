@@ -58,6 +58,15 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             EnergySaver(ship);
             Tubes();
+            // Crew specializations (diving / silent running / discipline, 10 each): always enough free points.
+            if (Settings.B("CheatSpecPoints"))
+                Util.Safe("SpecPoints", () =>
+                {
+                    var c = Crew();
+                    if (c == null) return;
+                    int need = Mathf.Max(0, 30 - c.SpecializationDivingPoints - c.SpecializationSilentRunningPoints - c.SpecializationDisciplinePoints);
+                    if (c.FreeSpecializationPoints < need) c.FreeSpecializationPoints = need;
+                });
             bool any = Settings.B("CheatSkillsAnyLevel");
             if (!any && skillLevels.Count > 0) SkillLevels(false);
             if (Time.unscaledTime < nextSkills) return;
