@@ -133,3 +133,57 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Every place in the game that asks a man's walk agent "how far is it still?" gets a safe version:
+    // if the agent is switched off or not on walkable ground right now, the answer is 0 instead of
+    // Unity's red "GetRemainingDistance can only be called on an active agent" line.
+    // (The game checks the ground once and then asks a few lines later, after the man may have been moved.)
+    [HarmonyLib.HarmonyPatch]
+    internal static class Fix_RemainingDistanceSafe
+    {
+        private static readonly System.Reflection.MethodInfo getter =
+            HarmonyLib.AccessTools.PropertyGetter(typeof(UnityEngine.AI.NavMeshAgent), "remainingDistance");
+        private static readonly System.Reflection.MethodInfo safe =
+            HarmonyLib.AccessTools.Method(typeof(Fix_RemainingDistanceSafe), nameof(Remaining));
+
+        public static float Remaining(UnityEngine.AI.NavMeshAgent a)
+        {
+            if (a == null || !a.isActiveAndEnabled || !a.isOnNavMesh) return 0f;
+            return a.remainingDistance;
+        }
+
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            var list = new System.Collections.Generic.List<System.Reflection.MethodBase>();
+            foreach (var t in new[] { typeof(UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator),
+                                      typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour),
+                                      typeof(UBOAT.Game.Scene.Characters.DockRecruitsInteractable) })
+                foreach (var m in HarmonyLib.AccessTools.GetDeclaredMethods(t))
+                {
+                    if (m.IsAbstract || m.ContainsGenericParameters) continue;
+                    try
+                    {
+                        foreach (var i in HarmonyLib.PatchProcessor.ReadMethodBody(m))
+                            if (i.Value is System.Reflection.MethodInfo mi && mi == getter) { list.Add(m); break; }
+                    }
+                    catch { }
+                }
+            return list;
+        }
+
+        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
+        {
+            foreach (var c in code)
+            {
+                if ((c.opcode == System.Reflection.Emit.OpCodes.Callvirt || c.opcode == System.Reflection.Emit.OpCodes.Call) && c.operand is System.Reflection.MethodInfo mi && mi == getter)
+                {
+                    c.opcode = System.Reflection.Emit.OpCodes.Call;
+                    c.operand = safe;
+                }
+                yield return c;
+            }
+        }
+    }
+}

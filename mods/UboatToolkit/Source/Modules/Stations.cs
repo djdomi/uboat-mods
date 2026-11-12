@@ -122,7 +122,7 @@ namespace UboatToolkit.Modules
         private void Keep(Activator act, string label)
         {
             if (act == null || !act.isActiveAndEnabled) return;
-            if (act.Users.Count > 0)
+            if (act.Users.Count > 0 || OnTheWay(act))
             {
                 emptySince.Remove(act);
                 if (assignedAt.TryGetValue(act, out float at) && Time.time - at > 120f) { backoff.Remove(act); assignedAt.Remove(act); }
@@ -174,6 +174,23 @@ namespace UboatToolkit.Modules
                      i.ActionTemplate is HydrophoneUseAction || i.ActionTemplate is SailorRadioUsageAction))
                     return i.ActionTemplate;
             return null;
+        }
+
+        // Someone is already walking there for this station. Without this check a second man was sent
+        // while the first was still on his way; with two men at the radio the game ends the job for both
+        // (SailorRadioUsageAction: more than one user -> complete) and both walked off again.
+        private bool OnTheWay(Activator act)
+        {
+            foreach (var h in crew.Characters)
+            {
+                if (h == null) continue;
+                var a = h.Action;
+                if (a != null && a.Activator == act) return true;
+                var q = h.ActionQueue;
+                if (q != null && q.Actions != null)
+                    foreach (var qa in q.Actions) if (qa != null && qa.Activator == act) return true;
+            }
+            return false;
         }
 
         private static bool IsFree(PlayableCharacter h)
