@@ -59,9 +59,24 @@ namespace UboatToolkit.Modules
                 if (depress > 0f) minA = Mathf.Min(minA, -depress);
                 Util.SetField(gun, "minAngle", minA);
 
+                // Engagement range in km (0 = game, ~12 km for the 88). The crew only picks targets inside it.
+                float km = Util.IsPlayers(gun) ? Settings.F(p + "Range") : 0f;
+                var rangeP = Traverse.Create(gun).Field("range").GetValue<Parameter>();
+                if (!(gun.IsAntiAircraftWeapon && UboatToolkit.Modules.Warthog.WarthogWeapons.On)) Util.SetParameter(rangeP, km > 0f ? km * 1000f : 0f);
+
                 // Muzzle velocity: own value in m/s (0 = game) times the multiplier.
                 float mps = Settings.F(p + "ShellMps");
-                Util.SetField(gun, "shellSpeed", (mps > 0f ? mps : Util.Original<float>(gun, "shellSpeed")) * (speed > 0f ? speed : 1f));
+                float v = (mps > 0f ? mps : Util.Original<float>(gun, "shellSpeed")) * (speed > 0f ? speed : 1f);
+                // So the shells really reach that far: at least the speed that throws a shell km*1000 m at the
+                // gun's highest elevation (max 45 deg), plus 40 % for air drag.
+                if (km > 0f)
+                {
+                    // the sign of "up" differs between guns, so take the smaller limit (safe side: shells rather too fast)
+                    float elev = Mathf.Clamp(Mathf.Min(Mathf.Abs(Util.Original<float>(gun, "maxAngle")), Mathf.Abs(Util.Original<float>(gun, "minAngle"))), 15f, 45f);
+                    float need = Mathf.Sqrt(km * 1000f * 9.81f / Mathf.Sin(2f * elev * Mathf.Deg2Rad)) * 1.4f;
+                    v = Mathf.Max(v, need);
+                }
+                Util.SetField(gun, "shellSpeed", v);
 
                 // Fire rate: own rounds per minute (0 = game) and then times the rate multiplier.
                 float rateMul = Mathf.Max(0.01f, Settings.F(p + "RateMul") > 0f ? Settings.F(p + "RateMul") : 1f);
