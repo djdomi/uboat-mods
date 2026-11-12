@@ -426,6 +426,7 @@ namespace UboatToolkit
             Num(QoL, "GunnerNightPenalty", "KI-Schützen: Zusatz-Streuung, wenn Ziel nicht mit Augen gesehen, in % (100 = Spiel)", 50, 0, 100, 10);
             Num(QoL, "HorcherRange", "Horcher besetzt: hört so viel % weiter (0 = Spiel)", 25, 0, 100, 5);
             Num(QoL, "HorcherBearing", "Horcher besetzt: Peilung so viel % genauer (0 = Spiel)", 30, 0, 90, 5);
+            Bool(QoL, "NoShellPush", "Granaten schleudern getroffene Schiffe nicht weg (Schaden bleibt voll)", true);
             Num(QoL, "DeckGunRange", "88mm: KI-Schützen greifen bis x km an (0 = Spielwert ~12 km; Granaten werden dafür schnell genug)", 30, 0, 100, 1);
             Num(QoL, "AAGunRange", "Flak: KI-Schützen greifen bis x km an (0 = Spielwert)", 0, 0, 50, 0.5f);
             Num(QoL, "DeckGunDepress", "88mm: so viele Grad nach unten neigen (0 = Spielwert)", 0, 0, 30, 1);

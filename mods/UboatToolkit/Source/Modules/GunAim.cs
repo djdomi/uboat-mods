@@ -76,6 +76,16 @@ namespace UboatToolkit.Modules
                 float speed = Traverse.Create(__instance).Field("shellSpeed").GetValue<float>();
                 if (gameSpeed > 0f) kinetic = Mathf.Clamp(mass * speed / (gameMass * gameSpeed), 0.01f, 10000f);
             }
+            // The shell is a real physics body: heavier/faster shells shoved the hit ship away (one was knocked
+            // off the map). Damage comes from the values above, so the body only keeps the game's own push
+            // (mass x speed). Trajectory is unchanged: gravity and drag do not depend on mass.
+            if (rb != null && gameMass > 0f && Settings.B("NoShellPush"))
+            {
+                float gs = Util.Original<float>(__instance, "shellSpeed");
+                float sp = Traverse.Create(__instance).Field("shellSpeed").GetValue<float>();
+                float maxMass = sp > 0f && gs > 0f ? gameMass * gs / sp : gameMass;
+                rb.mass = Mathf.Max(0.0001f, Mathf.Min(rb.mass, maxMass));
+            }
             Scale(__result, "damage", dmgMul * kinetic);
             Scale(__result, "crewDamage", crewMul * kinetic);
         }
