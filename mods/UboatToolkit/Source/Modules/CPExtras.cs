@@ -116,32 +116,95 @@ namespace UboatToolkit.Modules
         }
     }
 
-    // ---------- Officers: new or promoted officers get a 6-hour watch, half on duty, half resting ----------
+    // ---------- Officers: new or promoted officers get a watch (6 h or 3 h), split evenly in two watches ----------
+    // Only officers WITHOUT a schedule yet (all hours "any") are touched; a schedule you set stays.
     internal static class OfficerWatch
     {
-        internal static void Assign(PlayerCrew crew, PlayableCharacter c)
+        private static readonly System.Reflection.FieldInfo SlotsF = AccessTools.Field(typeof(Schedule), "behaviourByHour");
+        private static readonly System.Reflection.FieldInfo ClockF = AccessTools.Field(typeof(Schedule), "gameTime");
+        private static readonly System.Reflection.MethodInfo RefreshM = AccessTools.Method(typeof(Schedule), "GameTimeOnHourChanged");
+        internal static PlayerCrew Crew;
+        private static int lastHourKey = -1;
+        private static System.Reflection.PropertyInfo nowP;
+
+        private static int Hours => Mathf.RoundToInt(Settings.F("OfficerWatchHours")) == 3 ? 3 : 6;
+        private static byte[] Pattern(int hours, int watch)
         {
-            if (!Settings.B("OfficerWatches") || crew == null || c == null || !c.IsOfficer || c.IsSkipper || c.Schedule == null) return;
-            int[] count = new int[2];
+            var p = new byte[24];
+            for (int h = 0; h < 24; h++) p[h] = (byte)(((h / hours + watch) % 2 == 0) ? Schedule.Behaviour.Work : Schedule.Behaviour.Sleep);
+            return p;
+        }
+        private static byte[] Read(Schedule s) { var b = new byte[24]; for (int h = 0; h < 24; h++) b[h] = (byte)s[h]; return b; }
+        private static bool Same(byte[] a, byte[] b) { for (int i = 0; i < 24; i++) if (a[i] != b[i]) return false; return true; }
+        private static bool AllAny(byte[] b) { foreach (var x in b) if (x != (byte)Schedule.Behaviour.Any) return false; return true; }
+
+        internal static bool AlreadyAboard(PlayerCrew crew, PlayableCharacterData data)
+        {
+            if (crew == null || data == null) return true;
+            for (int i = 0; i < crew.Count; i++) if (crew[i] != null && crew[i].Data == data) return true;
+            return false;
+        }
+
+        internal static void Assign(PlayerCrew crew, PlayableCharacter c, string why)
+        {
+            if (!Settings.B("OfficerWatches") || crew == null || c == null || !c.IsOfficer || c.Schedule == null || SlotsF == null) return;
+            var s = c.Schedule;
+            if (!AllAny(Read(s))) { Util.Log("Wachen: " + c.Name + " (" + why + ") hat schon einen Plan - bleibt so"); return; }
+            int hours = Hours;
+            byte[] w0 = Pattern(hours, 0), w1 = Pattern(hours, 1);
+            int n0 = 0, n1 = 0;
             foreach (var o in crew.Officers ?? new PlayableCharacter[0])
             {
-                if (o == null || o == c || o.Schedule == null) continue;
-                int w = WatchOf(o.Schedule);
-                if (w >= 0) count[w]++;
+                if (o == null || ReferenceEquals(o, c) || o.Schedule == null) continue;
+                var b = Read(o.Schedule);
+                if (Same(b, w0)) n0++; else if (Same(b, w1)) n1++;
             }
-            int mine = count[1] < count[0] ? 1 : 0;
-            for (int h = 0; h < 24; h++) c.Schedule[h] = (h / 6) % 2 == mine ? Schedule.Behaviour.Work : Schedule.Behaviour.Sleep;
+            int watch = n0 <= n1 ? 0 : 1;
+            var pattern = watch == 0 ? w0 : w1;
+            var slots = SlotsF.GetValue(s) as Schedule.Behaviour[];
+            if (slots == null || slots.Length < 24) return;
+            for (int h = 0; h < 24; h++) slots[h] = (Schedule.Behaviour)pattern[h];
+            bool now = ClockF != null && ClockF.GetValue(s) != null && RefreshM != null;
+            if (now) RefreshM.Invoke(s, null);
+            Util.Log("Wachen: " + c.Name + " (" + why + "): " + hours + "-h-Wachen, Wache " + (watch == 0 ? "A" : "B") + " im Dienst " + OnDuty(pattern) + (now ? "" : " (ab nächster Stunde)"));
         }
-        private static int WatchOf(Schedule s)
+
+        private static string OnDuty(byte[] p)
         {
-            for (int w = 0; w < 2; w++)
+            var sb = new System.Text.StringBuilder();
+            int start = -1;
+            for (int h = 0; h <= 24; h++)
             {
-                bool ok = true;
-                for (int h = 0; h < 24 && ok; h++) ok = s[h] == ((h / 6) % 2 == w ? Schedule.Behaviour.Work : Schedule.Behaviour.Sleep);
-                if (ok) return w;
+                bool on = h < 24 && p[h] == (byte)Schedule.Behaviour.Work;
+                if (on && start < 0) start = h;
+                if (!on && start >= 0) { if (sb.Length > 0) sb.Append(", "); sb.Append(start.ToString("00")).Append('-').Append(h.ToString("00")); start = -1; }
             }
-            return -1;
+            return sb.ToString();
         }
+
+        // Optional hourly log of the officers (energy and duty), switch in the Tools tab.
+        internal static void LogHour(Schedule s)
+        {
+            if (!Settings.B("OfficerWatchLog") || Crew == null || ClockF == null) return;
+            object clock = ClockF.GetValue(s);
+            if (clock == null) return;
+            if (nowP == null) nowP = AccessTools.Property(clock.GetType(), "CurrentDateTime");
+            if (nowP == null) return;
+            var now = (DateTime)nowP.GetValue(clock, null);
+            int key = now.DayOfYear * 24 + now.Hour;
+            if (key == lastHourKey) return;
+            lastHourKey = key;
+            var sb = new System.Text.StringBuilder("Wachen ").Append(now.Hour.ToString("00")).Append(" Uhr:");
+            foreach (var o in Crew.Officers ?? new PlayableCharacter[0])
+            {
+                if (o == null) continue;
+                sb.Append(' ').Append(o.Name).Append(' ').Append(o.Energy.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+                if (o.Schedule != null) sb.Append(' ').Append(o.Schedule[now.Hour]);
+                sb.Append(';');
+            }
+            Util.Log(sb.ToString());
+        }
+
         internal static bool Loading()
         {
             try { var sm = ScriptableObjectSingleton.LoadSingleton<SavesManager>(); return sm != null && sm.IsLoading; } catch { return false; }
@@ -150,10 +213,14 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(PlayerCrew), "AddCharacter", new[] { typeof(PlayableCharacterData) })]
     internal static class Extras_OfficerNewPatch
     {
-        private static void Postfix(PlayerCrew __instance, PlayableCharacter __result)
+        private static void Prefix(PlayerCrew __instance, PlayableCharacterData characterData, out bool __state)
         {
-            if (OfficerWatch.Loading()) return;
-            Util.Safe("Extras.Watch", () => OfficerWatch.Assign(__instance, __result));
+            __state = false;
+            try { __state = Settings.B("OfficerWatches") && !OfficerWatch.Loading() && !OfficerWatch.AlreadyAboard(__instance, characterData); } catch { }
+        }
+        private static void Postfix(PlayerCrew __instance, PlayableCharacter __result, bool __state)
+        {
+            if (__state) Util.Safe("Extras.Watch", () => OfficerWatch.Assign(__instance, __result, "neu an Bord"));
         }
     }
     [HarmonyPatch(typeof(PlayerCrew), "Character_Promoted")]
@@ -161,9 +228,23 @@ namespace UboatToolkit.Modules
     {
         private static void Postfix(PlayerCrew __instance, PlayableCharacterData characterData)
         {
-            if (OfficerWatch.Loading()) return;
-            Util.Safe("Extras.Watch", () => OfficerWatch.Assign(__instance, __instance.GetCharacter(characterData)));
+            if (!Settings.B("OfficerWatches") || characterData == null || OfficerWatch.Loading()) return;
+            Util.Safe("Extras.Watch", () =>
+            {
+                for (int i = 0; i < __instance.Count; i++)
+                    if (__instance[i] != null && __instance[i].Data == characterData) { OfficerWatch.Assign(__instance, __instance[i], "befördert"); return; }
+            });
         }
+    }
+    [HarmonyPatch(typeof(PlayerCrew), "AddCharacter", new[] { typeof(PlayableCharacter) })]
+    internal static class Extras_OfficerCrewPatch
+    {
+        private static void Postfix(PlayerCrew __instance) { OfficerWatch.Crew = __instance; }
+    }
+    [HarmonyPatch(typeof(Schedule), "GameTimeOnHourChanged")]
+    internal static class Extras_OfficerHourPatch
+    {
+        private static void Postfix(Schedule __instance) { if (Settings.B("OfficerWatches")) Util.Safe("Extras.WatchLog", () => OfficerWatch.LogHour(__instance)); }
     }
 
     // ---------- First person: running through hatches is faster (hold Shift) ----------

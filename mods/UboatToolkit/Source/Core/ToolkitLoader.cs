@@ -36,6 +36,7 @@ namespace UboatToolkit
                     }
                 }
                 DebugLog.Write("START", "Patches ok: " + ok + ", fehlgeschlagen: " + bad);
+                try { UboatToolkit.Modules.VoiceRepair.Run(); } catch (Exception ve) { Debug.Log(Tag + " voice: " + ve.Message); }
                 var go = new GameObject(Tag);
                 go.AddComponent<ToolkitRunner>();
                 UnityEngine.Object.DontDestroyOnLoad(go);
