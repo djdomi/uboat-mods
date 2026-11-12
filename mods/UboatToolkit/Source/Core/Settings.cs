@@ -417,6 +417,8 @@ namespace UboatToolkit
             Bool(QoL, "InstantPortLoading", "Hafen: alles sofort im Boot, keine Wartezeit", true);
             Num(QoL, "RebreatherDurability", "Atemgeräte halten x-mal länger", 2, 1, 10, 0.5f);
             Bool(QoL, "MilkCowsAtStart", "Milchkühe ab Spielstart unterwegs (#25)", true);
+            Bool(QoL, "MilkCowRadio", "  Funk-Nachschub: nächste Milchkuh kommt in Reichweite", true);
+            Num(QoL, "MilkCowRadioKm", "    Abstand in km", 30, 5, 500, 5);
             Bool(QoL, "EasyTDC", "Torpedo-Rechner einfach: Lösung wird automatisch berechnet + angezeigt (#17)", true);
             Num(QoL, "DeckGunTurnSpeed", "88mm: Dreh-/Neige-Tempo (1 = normal) (#27)", 1, 0.5f, 10, 0.5f);
             Num(QoL, "DeckGunRPM", "88mm: Schuss pro Minute (0 = Spielwert) (#27)", 0, 0, 120, 5);

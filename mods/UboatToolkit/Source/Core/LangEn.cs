@@ -387,6 +387,8 @@ namespace UboatToolkit
             m["Hafen: alles sofort im Boot, keine Wartezeit"] = "Port: everything in the boat instantly, no waiting";
             m["Atemgeräte halten x-mal länger"] = "Breathing apparatus lasts x times longer";
             m["Milchkühe ab Spielstart unterwegs (#25)"] = "Milk cows on the way from game start (#25)";
+            m["  Funk-Nachschub: nächste Milchkuh kommt in Reichweite"] = "  Radio resupply: nearest milk cow comes within reach";
+            m["    Abstand in km"] = "    Distance in km";
             m["Torpedo-Rechner einfach: Lösung wird automatisch berechnet + angezeigt (#17)"] = "Simple torpedo calculator: solution is calculated + shown automatically (#17)";
             m["88mm: Dreh-/Neige-Tempo (1 = normal) (#27)"] = "88mm: traverse/elevation speed (1 = normal) (#27)";
             m["88mm: Schuss pro Minute (0 = Spielwert) (#27)"] = "88mm: rounds per minute (0 = game value) (#27)";

@@ -187,3 +187,45 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Fix NullReferenceException in TimeCompressionExtendedUI.OnEnable/OnDisable and
+    // TorpedoSalvoPreviewUI.ValidateQueuedUpdate: right after a boat change (or on a boat without the torpedo
+    // panel) the game's "current torpedo launchers panel" is still empty, and these methods ask it whether it is
+    // open. Now an empty panel simply counts as closed, and the rest of each method runs normally.
+    [HarmonyLib.HarmonyPatch]
+    internal static class Fix_LaunchersUiMissing
+    {
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            yield return HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.TimeCompressionExtendedUI), "OnEnable");
+            yield return HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.TimeCompressionExtendedUI), "OnDisable");
+            yield return HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.TorpedoSalvoPreviewUI), "ValidateQueuedUpdate");
+        }
+
+        public static bool Active(UBOAT.Game.UI.Periscope.TorpedoLaunchersUI ui) => ui != null && ui.gameObject.activeInHierarchy;
+        public static bool Opened(UBOAT.Game.UI.Periscope.TorpedoLaunchersUI ui) => ui != null && ui.IsOpened;
+
+        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
+        {
+            var getUi = HarmonyLib.AccessTools.PropertyGetter(typeof(UBOAT.Game.UI.GameUI), "CurrentTorpedoLaunchersUI");
+            var getGo = HarmonyLib.AccessTools.PropertyGetter(typeof(UnityEngine.Component), "gameObject");
+            var getAct = HarmonyLib.AccessTools.PropertyGetter(typeof(UnityEngine.GameObject), "activeInHierarchy");
+            var getOpen = HarmonyLib.AccessTools.PropertyGetter(typeof(UBOAT.Game.UI.Periscope.TorpedoLaunchersUI), "IsOpened");
+            var list = new System.Collections.Generic.List<HarmonyLib.CodeInstruction>(code);
+            for (int i = 0; i < list.Count - 1; i++)
+            {
+                if (!(list[i].operand is System.Reflection.MethodInfo m) || m != getUi) continue;
+                var n = list[i + 1].operand as System.Reflection.MethodInfo;
+                if (n == getOpen) { list[i + 1].opcode = System.Reflection.Emit.OpCodes.Call; list[i + 1].operand = HarmonyLib.AccessTools.Method(typeof(Fix_LaunchersUiMissing), nameof(Opened)); }
+                else if (n == getGo && i + 2 < list.Count && list[i + 2].operand as System.Reflection.MethodInfo == getAct)
+                {
+                    list[i + 1].opcode = System.Reflection.Emit.OpCodes.Call; list[i + 1].operand = HarmonyLib.AccessTools.Method(typeof(Fix_LaunchersUiMissing), nameof(Active));
+                    list[i + 2].opcode = System.Reflection.Emit.OpCodes.Nop; list[i + 2].operand = null;
+                }
+            }
+            return list;
+        }
+    }
+}
