@@ -118,6 +118,7 @@ namespace UboatToolkit.Modules
         {
             // Weapons_FirePatch.Current is set only while one of OUR guns fires.
             if (Weapons_FirePatch.Current == null) return 0.022f;
+            if (Settings.B("CheatPerfectAim")) return 0f;
             return 0.022f * Mathf.Max(0f, Settings.F("GunnerNightPenalty")) / 100f;
         }
     }

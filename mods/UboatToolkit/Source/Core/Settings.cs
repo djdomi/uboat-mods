@@ -352,12 +352,27 @@ namespace UboatToolkit
             Num(QoL, "GunnerNightPenalty", "KI-Schützen: Zusatz-Streuung, wenn Ziel nicht mit Augen gesehen, in % (100 = Spiel)", 50, 0, 100, 10);
             Num(QoL, "HorcherRange", "Horcher besetzt: hört so viel % weiter (0 = Spiel)", 25, 0, 100, 5);
             Num(QoL, "HorcherBearing", "Horcher besetzt: Peilung so viel % genauer (0 = Spiel)", 30, 0, 90, 5);
+            Num(QoL, "DeckGunDepress", "88mm: so viele Grad nach unten neigen (0 = Spielwert)", 0, 0, 30, 1);
+            Num(QoL, "DeckGunShellMps", "88mm: Mündungsgeschwindigkeit in m/s (0 = Spielwert, dann x Geschossgeschwindigkeit)", 0, 0, 5000, 50);
+            Num(QoL, "DeckGunRateMul", "88mm: Feuerrate x (1 = normal, wirkt auch auf Schuss pro Minute)", 1, 0.25f, 10, 0.25f);
+            Num(QoL, "DeckGunShellMass", "88mm: Geschossgewicht in kg (0 = Spielwert)", 0, 0, 5000, 5);
+            Num(QoL, "DeckGunShellMassMul", "88mm: Geschossgewicht x (1 = normal)", 1, 0.1f, 100, 0.5f);
+            Num(QoL, "DeckGunShellDamageMul", "88mm: Schaden x (1 = normal; Schaden hängt im Spiel NICHT am Gewicht)", 1, 0.1f, 100, 0.5f);
+            Num(QoL, "AAGunDepress", "Flak: so viele Grad nach unten neigen (0 = Spielwert)", 0, 0, 30, 1);
+            Num(QoL, "AAGunShellMps", "Flak: Mündungsgeschwindigkeit in m/s (0 = Spielwert, dann x Geschossgeschwindigkeit)", 0, 0, 5000, 50);
+            Num(QoL, "AAGunRateMul", "Flak: Feuerrate x (1 = normal, wirkt auch auf Schuss pro Minute)", 1, 0.25f, 10, 0.25f);
+            Num(QoL, "AAGunShellMass", "Flak: Geschossgewicht in kg (0 = Spielwert)", 0, 0, 5000, 5);
+            Num(QoL, "AAGunShellMassMul", "Flak: Geschossgewicht x (1 = normal)", 1, 0.1f, 100, 0.5f);
+            Num(QoL, "AAGunShellDamageMul", "Flak: Schaden x (1 = normal; Schaden hängt im Spiel NICHT am Gewicht)", 1, 0.1f, 100, 0.5f);
+            Bool(QoL, "AAGunLike88", "Flak so stark wie die 88: dreht so schnell und neigt so tief", false);
+            Num(QoL, "GunAimAssist", "Zielhilfe beim Selbstzielen: Schiff bis x Grad neben dem Rohr wird mit Vorhalt getroffen (0 = aus)", 0, 0, 15, 1);
             Bool(QoL, "AAvsShips", "Flak schießt automatisch auch auf Schiffe", false);
             Num(QoL, "GunSoundGap", "Schussgeräusch höchstens alle x Sek. (0 = aus, gegen Tonprobleme)", 0.12f, 0, 1, 0.02f);
 
             // ---------- Cheats (single player) ----------
             Num(Cheat, "CheatPeriscopeHeight", "Sehrohr bis zu x m ausfahren (0 = aus) (Cheat #34)", 0, 0, 100, 1);
             Bool(Cheat, "CheatUndetectable", "Boot unentdeckbar (Sicht, Sonar, Horchgerät, Radar)", false);
+            Bool(Cheat, "CheatPerfectAim", "Aimbot: 100 % Einschuss, keine Streuung, eigene Schüsse treffen mit Vorhalt (bis 30 Grad)", false);
             Bool(Cheat, "CheatInfiniteGunAmmo", "Deckgeschütz + Flak: Munition unendlich", false);
             Bool(Cheat, "CheatInfiniteTorpedoes", "Torpedos unendlich: Rohr lädt nach dem Schuss sofort neu (#26)", false);
             Bool(Cheat, "CheatAllT5", "  Nachgeladen wird immer ein T5 Zaunkönig (zielsuchend)", false);

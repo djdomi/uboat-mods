@@ -121,6 +121,9 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Waffen & Torpedos
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Zielhilfe beim Selbstzielen (Vorhalt wie die Crew) | GunAimAssist |
+| QoL | NEU: Flak so stark wie die 88 (Drehtempo, Neigung) | AAGunLike88 |
+| QoL | NEU: 88 + Flak: nach unten neigen, Mündungsgeschwindigkeit m/s, Feuerrate x, Geschossgewicht kg/x, Schaden x | DeckGunDepress, AAGunDepress, …ShellMps, …RateMul, …ShellMass, …ShellMassMul, …ShellDamageMul |
 | QoL | NEU: Geschütz-Kreisel: KI gleicht Wellen sofort aus, eigenes Zielen bleibt auf dem Punkt | GunGyroCrew, GunGyroManual |
 | QoL | NEU: KI-Schützen: schneller einschießen, beim Zielwechsel mehr behalten, nachts weniger Streuung | GunnerRangingSpeed, GunnerKeepRanging, GunnerNightPenalty |
 | QoL | NEU: Geräte: Umschauen, Zoom, Fadenkreuz, Drehknöpfe direkt, AOB live | StLookMode, StMinFov, StDialDirect, StAobLive |
@@ -145,6 +148,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | Vorgeflutet: Crew darf an 88 mm + Flak | AwashGuns |
 | QoL | 88 mm + Flak: Drehtempo, Schuss/Min, Magazin, Geschosstempo | DeckGun…, AAGun… |
 | QoL | KI-Schützen treffen besser, Flak auf Schiffe, Schussgeräusch-Grenze | GunnerAccuracy, AAvsShips, GunSoundGap |
+| Cheat | NEU: Aimbot: 100 % Einschuss, keine Streuung, eigene Schüsse mit Vorhalt | CheatPerfectAim |
 | Cheat | NEU: Tab „Torpedos“: Munition (88 mm, Flak usw.) direkt ins Lager legen (10-1000) | – |
 | Cheat | NEU: Tab „Torpedos“: gewählten Torpedo direkt ins Boot legen (1-30 Stück) | – |
 | Cheat | NEU: Zielerfassung genau (Tempo, Kurs, Entfernung) | CheatExactTargets |

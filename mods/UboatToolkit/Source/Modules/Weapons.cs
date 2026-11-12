@@ -19,11 +19,25 @@ namespace UboatToolkit.Modules
         private bool lastInfinite;
         private readonly HashSet<int> aaSwitched = new HashSet<int>();
 
+        private Gun deck88;
+
+        // Seconds between shots: from RPM (or the game's own value) divided by the rate multiplier. 0 = game value.
+        private static float Gap(Parameter p, float rpm, float rateMul)
+        {
+            if (p == null) return 0f;
+            if (rpm <= 0f && Mathf.Abs(rateMul - 1f) < 0.001f) return 0f;
+            float baseGap = rpm > 0f ? 60f / rpm : p.GetValueExcludingModifier(Util.ModifierName);
+            return Mathf.Max(0.001f, baseGap / rateMul);
+        }
+
         public static string Prefix(Gun gun) => gun.IsAntiAircraftWeapon ? "AAGun" : "DeckGun";
 
         public override void Tick()
         {
             var ship = Util.PlayerShip;
+            deck88 = null;
+            foreach (var g in Util.Find<Gun>())
+                if (g != null && !g.IsAntiAircraftWeapon && Util.IsPlayers(g)) { deck88 = g; break; }
             foreach (var gun in Util.Find<Gun>())
             {
                 string p = Prefix(gun);
@@ -32,13 +46,29 @@ namespace UboatToolkit.Modules
                 float mag = Settings.F(p + "Magazine");
                 float speed = Settings.F(p + "ShellSpeed");
 
-                Util.SetField(gun, "rotationSpeed", Util.Original<float>(gun, "rotationSpeed") * (turn > 0f ? turn : 1f));
-                Util.SetField(gun, "shellSpeed", Util.Original<float>(gun, "shellSpeed") * (speed > 0f ? speed : 1f));
+                // Turn speed: the AA may take the 88's speed if that is faster ("Flak wie 88").
+                float rot = Util.Original<float>(gun, "rotationSpeed");
+                bool like88 = gun.IsAntiAircraftWeapon && Settings.B("AAGunLike88") && deck88 != null;
+                if (like88) rot = Mathf.Max(rot, Util.Original<float>(deck88, "rotationSpeed"));
+                Util.SetField(gun, "rotationSpeed", rot * (turn > 0f ? turn : 1f));
 
-                float shotGap = rpm > 0f ? 60f / rpm : 0f;
+                // Lowest elevation (negative = barrel points down). 0 = game value.
+                float minA = Util.Original<float>(gun, "minAngle");
+                if (like88) minA = Mathf.Min(minA, Util.Original<float>(deck88, "minAngle"));
+                float depress = Settings.F(p + "Depress");
+                if (depress > 0f) minA = Mathf.Min(minA, -depress);
+                Util.SetField(gun, "minAngle", minA);
+
+                // Muzzle velocity: own value in m/s (0 = game) times the multiplier.
+                float mps = Settings.F(p + "ShellMps");
+                Util.SetField(gun, "shellSpeed", (mps > 0f ? mps : Util.Original<float>(gun, "shellSpeed")) * (speed > 0f ? speed : 1f));
+
+                // Fire rate: own rounds per minute (0 = game) and then times the rate multiplier.
+                float rateMul = Mathf.Max(0.01f, Settings.F(p + "RateMul") > 0f ? Settings.F(p + "RateMul") : 1f);
+                var series = Traverse.Create(gun).Field("seriesTimeOffset").GetValue<Parameter>();
                 Util.SetParameter(gun.MagazineSize, mag >= 1f ? Mathf.Round(mag) : 0f);
-                Util.SetParameter(Traverse.Create(gun).Field("seriesTimeOffset").GetValue<Parameter>(), shotGap);
-                Util.SetParameter(gun.ReloadTime, shotGap);
+                Util.SetParameter(series, Gap(series, rpm, rateMul));
+                Util.SetParameter(gun.ReloadTime, Gap(gun.ReloadTime, rpm, rateMul));
 
                 // AA guns of the player normally only pick aircraft as automatic targets.
                 if (gun.IsAntiAircraftWeapon)
