@@ -54,7 +54,17 @@ namespace UboatToolkit.Modules
 
         private static void Postfix(Gun __instance, Shell __result)
         {
-            if (__result == null || !Util.IsPlayers(__instance)) return;
+            if (__result == null) return;
+            if (!Util.IsPlayers(__instance))
+            {
+                // Shells come from a shared pool: one we fired earlier (x100 damage, heavier body) could be re-used by an
+                // ENEMY gun and hit us with our own multipliers. Enemy shells always fly with the game's own values.
+                Scale(__result, "damage", 1f); Scale(__result, "crewDamage", 1f);
+                var erb = __result.GetComponent<Rigidbody>();
+                var emp = Traverse.Create(__result).Field("mass").GetValue<UBOAT.Game.Core.Data.Parameter>();
+                if (erb != null && emp != null && emp.Value > 0f && Mathf.Abs(erb.mass - emp.Value) > 0.0001f) erb.mass = emp.Value;
+                return;
+            }
             string p = Weapons.Prefix(__instance);
             float kg = Settings.F(p + "ShellMass"), massMul = Settings.F(p + "ShellMassMul");
             float dmgMul = Settings.F(p + "ShellDamageMul"), crewMul = Settings.F(p + "ShellCrewDamageMul");
