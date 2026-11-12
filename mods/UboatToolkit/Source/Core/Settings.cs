@@ -205,6 +205,10 @@ namespace UboatToolkit
             Bool(QoL, "VoiceRepairVersion", "  kaputte „letzte Version“ reparieren (sonst neue Spielstände nicht ladbar)", true);
             Bool(QoL, "FixAbortStall", "Fix: kein Einfrieren, wenn Crew-Aussehen sich w\u00e4hrend Textur-Arbeit \u00e4ndert", true);
             Bool(QoL, "FixTextureRace", "Fix: Texturen werden etwas sp\u00e4ter gel\u00f6scht (weniger Abst\u00fcrze)", true);
+            Bool(QoL, "FixSupplyPriceMenu", "Fix für Mod \"Supply Price Editor\": sucht das Hauptmenü nicht mehr jedes Bild (weniger Ruckeln auf See)", true);
+            Bool(QoL, "FixUniformRebuild", "Fix für Mod \"Realistic Uniforms Revival\": keine unnötigen Uniform-Neuaufbauten", true);
+            Bool(QoL, "FixBifrost", "Fix für Mod \"Projekt Bifrost\": Anzeigen gedrosselt (weniger Ruckeln)", true);
+            Bool(QoL, "FixBifrostDepthCharge", "  Wasserbomben-Zähler-Fehler verhindern", true);
             Bool(QoL, "CamWheelZoom", "Kamera: Mausrad-Zoom und weiche freie Kamera", true);
             Num(QoL, "CamFreeFov", "  freie Kamera: Start-Blickwinkel", 70, 1, 150, 1);
             Num(QoL, "CamFppMinFov", "  Ich-Sicht: engster Blickwinkel", 20, 1, 150, 1);
@@ -473,6 +477,8 @@ namespace UboatToolkit
             Bool(Tools, "ScopeUiLog", "Log: Sehrohr-Anzeige (Ansicht/Zoom wiederhergestellt)", false);
             Bool(Tools, "TelegraphLog", "Log: Maschinen-Befehle per Taste", false);
             Bool(Tools, "CourseLog", "Log: Kurs- und Tiefen-Tasten", false);
+            Bool(Tools, "UniformLog", "Log: Uniform-Fix (pro Minute)", false);
+            Bool(Tools, "BifrostUiLog", "Log: Bifrost UI-Pfade einmal ins Log", true);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
