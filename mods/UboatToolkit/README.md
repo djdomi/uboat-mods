@@ -129,6 +129,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
 | QoL | Schneller laden | FastLoading |
+| Tool | NEU: Cache aufräumen beim Start (alter Daten-Cache, Absturzberichte, Logs) | AutoCleanCache, AutoCleanDays |
 | Tool | Weniger Schiffe/Gruppen gleichzeitig in 3D | MaxShipsPerGroup, MaxGroupsPerBattle |
 | Tool | Ferne Schiffe: KI seltener | FarAIInterval |
 | Tool | Speicher aufräumen, GC-Zeit, Spiel-Log klein | MemoryCleanMinutes, GcSliceMs, GameLogFilter |

@@ -26,3 +26,49 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Disk cache cleanup, once per game start: old cached data sheets (.dat, the game rebuilds them when needed),
+    // old crash reports and old mod logs older than X days are deleted. Save games are never touched.
+    public class CacheCleaner : ModuleBase
+    {
+        private bool done;
+
+        public override void Tick()
+        {
+            if (done || !Settings.B("AutoCleanCache")) return;
+            done = true;
+            Util.Safe("CacheCleaner", () =>
+            {
+                var limit = System.DateTime.Now.AddDays(-Mathf.Max(1f, Settings.F("AutoCleanDays")));
+                string root = Application.persistentDataPath;
+                int n = 0; long bytes = 0;
+                n += Clean(System.IO.Path.Combine(root, "Data Sheets"), "*.dat", limit, ref bytes);
+                n += Clean(System.IO.Path.Combine(Settings.Folder, "logs"), "*.*", limit, ref bytes, keep: "kriegstagebuch.txt");
+                n += Clean(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Deep Water Studio", "UBOAT", "Crashes"), "*.*", limit, ref bytes);
+                if (n > 0) Util.Log("Cache aufgeräumt: " + n + " Dateien, " + (bytes / 1048576) + " MB");
+            });
+        }
+
+        private static int Clean(string dir, string pattern, System.DateTime limit, ref long bytes, string keep = null)
+        {
+            if (!System.IO.Directory.Exists(dir)) return 0;
+            int n = 0;
+            foreach (var f in System.IO.Directory.GetFiles(dir, pattern, System.IO.SearchOption.AllDirectories))
+            {
+                try
+                {
+                    var fi = new System.IO.FileInfo(f);
+                    if (keep != null && fi.Name == keep) continue;
+                    if (fi.LastWriteTime > limit) continue;
+                    bytes += fi.Length;
+                    fi.Delete();
+                    n++;
+                }
+                catch { }
+            }
+            return n;
+        }
+    }
+}

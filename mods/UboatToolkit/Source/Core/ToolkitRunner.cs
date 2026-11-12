@@ -50,6 +50,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.SensorCheats());
             Modules.Add(new Modules.HealAll());
             Modules.Add(new Modules.MemoryCleaner());
+            Modules.Add(new Modules.CacheCleaner());
             Modules.Add(new Modules.GameTuning());
             Modules.Add(new Modules.PerfLogger());
             Modules.Add(new Modules.QueueProfiler());
