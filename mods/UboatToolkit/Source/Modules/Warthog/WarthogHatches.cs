@@ -60,7 +60,7 @@ namespace UboatToolkit.Modules.Warthog
                 foreach (var room in new[] { ("Bow Torpedo Room", "Torpedoluk vorn"), ("Stern Torpedo Room", "Torpedoluk achtern") })
                 {
                     var r = interior.Find(room.Item1); if (r == null) continue;
-                    var th = r.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == "Torpedo Loading Hatch");
+                    var th = r.GetComponentsInChildren<Transform>(true).FirstOrDefault(x => x.name == "Torpedo Loading Hatch");
                     if (th == null) continue;
                     var t = new Luke { Name = room.Item2 };
                     t.Holes.AddRange(th.GetComponentsInChildren<ExternalPressure>(true));
