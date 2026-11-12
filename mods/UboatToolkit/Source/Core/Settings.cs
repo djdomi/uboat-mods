@@ -322,8 +322,10 @@ namespace UboatToolkit
             Bool(QoL, "HotBunkAuto", "Zu wenig Kojen: Schlaf erholt schneller (automatisch berechnet)", true);
             Num(QoL, "HotBunkHours", "  Schlaf pro Mann und Tag (Stunden)", 8, 1, 24, 1);
             Num(QoL, "HotBunkUse", "  erreichbare Kojen-Auslastung", 0.70f, 0.1f, 1f, 0.05f);
-            Num(QoL, "HotBunkMax", "  höchstens x-mal schneller", 3, 1, 10, 0.1f);
-            Num(QoL, "HotBunkManual", "  fester Faktor, wenn automatisch aus (1 = normal)", 1, 0.1f, 10, 0.1f);
+            Num(QoL, "HotBunkMax", "  höchstens x-mal schneller", 10, 1, 100, 0.5f);
+            Num(QoL, "HotBunkBoost", "  zusätzlich x-mal schneller (immer, in jeder Koje)", 3, 1, 100, 0.5f);
+            Bool(QoL, "HotBunkSailors", "  gilt auch für Matrosen", true);
+            Num(QoL, "HotBunkManual", "  fester Faktor, wenn automatisch aus (1 = normal)", 1, 0.1f, 100, 0.5f);
             Num(QoL, "OfficerEndurance", "Offiziere ermüden an Stationen x-mal so schnell (1 = normal)", 1, 0.05f, 5, 0.05f);
             Num(QoL, "OfficerCards", "Offiziere spielen in der Freizeit Karten (Vorrang, 0 = aus)", 3, 0, 11, 1);
             Bool(QoL, "AirByCrew", "Luft: volle Besatzung taucht immer gleich lange, egal wie groß", true);

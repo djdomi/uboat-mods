@@ -53,7 +53,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 | QoL | NEU: Fehlerschutz für 9 Spielfehler + Einschiffen ohne Ruckler | GuardNoQueue, GuardCards, GuardEnemyLauncher, GuardCeiling, GuardPortraits, GuardSchedule, GuardSquadType, BoardingQueue |
 | QoL | NEU: Dichtes Packen = größere Stapel statt Extra-Platz | TightPackPerMan |
 | QoL | NEU: Luft und Essen hängen nicht an der Besatzungsgröße (optional Gefangene) | AirByCrew, AirHours, AirPrisoners, AirPrisonerPenalty, FoodByCrew, FoodRefCrew |
-| QoL | NEU: Überzählige Offiziere schlafen in Mannschaftskojen, Kojen-Mangel = schneller erholen, Ausdauer, Kartenspiel | OfficerOverflowSleep, OfficerRestBelow, OfficerWakeAt, OfficerIdleBefore, HotBunkAuto, HotBunkHours, HotBunkUse, HotBunkMax, HotBunkManual, OfficerEndurance, OfficerCards |
+| QoL | NEU: Überzählige Offiziere schlafen in Mannschaftskojen, Kojen-Mangel = schneller erholen, Ausdauer, Kartenspiel | OfficerOverflowSleep, OfficerRestBelow, OfficerWakeAt, OfficerIdleBefore, HotBunkAuto, HotBunkHours, HotBunkUse, HotBunkMax, HotBunkBoost, HotBunkSailors, HotBunkManual, OfficerEndurance, OfficerCards |
 | QoL | NEU: Horcher besetzt: hört weiter, peilt genauer | HorcherRange, HorcherBearing |
 | QoL | NEU: Horcher und Funkraum automatisch besetzen | AutoManHydrophone, AutoManRadio |
 | QoL | NEU: Luken: Varianten, Lauf-/Sprint-Tempo | HatchVariant, HatchSprintSpeed, HatchWalkSpeed, HatchMaxSpeed |

@@ -65,6 +65,12 @@ namespace UboatToolkit.Modules
         {
             var data = pc.Data;
             if (data == null) return;
+            if (data.CharacterType == PlayableCharacterData.Type.Sailor && Settings.B("HotBunkSailors"))
+            {
+                Bed sb = null; try { sb = pc.InteractableSlot != null ? pc.InteractableSlot.Interactable as Bed : null; } catch { }
+                if (pc.EnergyGain != null) SetScale(pc.EnergyGain, HotMod, sb != null ? (sb.AvailableForSailors ? fCrew : fOff) : 1f);
+                return;
+            }
             if (data.CharacterType != PlayableCharacterData.Type.Officer)
             {
                 if (men.TryGetValue(pc, out var old)) { Detach(pc, old); men.Remove(pc); Neutral(pc); }
@@ -135,15 +141,18 @@ namespace UboatToolkit.Modules
         {
             int bOff = 0, bCrew = 0, nOff = 0, nCrew = 0;
             try { bOff = ship.OfficerBeds?.Length ?? 0; bCrew = ship.Beds?.Length ?? 0; } catch { }
+            // shared bunks (several men per bunk) count as several places
+            if (CrewAi.BedSharingToggles.Enabled) bCrew *= CrewAi.BedSharingToggles.MenPerBunk;
             foreach (var pc in chars)
             {
                 if (pc == null || pc.Data == null) continue;
                 if (pc.Data.CharacterType == PlayableCharacterData.Type.Sailor) nCrew++;
                 else if (pc.Data.CharacterType == PlayableCharacterData.Type.Officer) nOff++;
             }
-            float max = Mathf.Clamp(Settings.F("HotBunkMax"), 1f, 10f);
+            float max = Mathf.Clamp(Settings.F("HotBunkMax"), 1f, 100f), boost = Mathf.Clamp(Settings.F("HotBunkBoost"), 1f, 100f);
             if (Settings.B("HotBunkAuto")) { fOff = Factor(nOff, bOff, max); fCrew = Factor(nCrew, bCrew, max); }
             else fOff = fCrew = Mathf.Clamp(Settings.F("HotBunkManual"), 0.1f, max);
+            fOff *= boost; fCrew *= boost;
         }
 
         private static float Factor(int n, int b, float max)
