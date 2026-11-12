@@ -42,7 +42,7 @@ namespace UboatToolkit.Modules
 
             Util.ScaleParameter(t.Field("hullCrackThreshold").GetValue<Parameter>(), Settings.B("CheatDeepDive") ? 100f : 1f);
 
-            if (Settings.B("CheatFullFuel")) Fill(ship.Fuel);
+            if (Settings.B("CheatFullFuel")) Util.Safe("FullFuel", () => FillFuel(ship));
             if (Settings.B("CheatFullBattery")) Fill(ship.Energy);
             if (Settings.B("CheatFullAir")) Fill(ship.Oxygen);
             if (Settings.B("CheatFullDiscipline"))
@@ -68,6 +68,20 @@ namespace UboatToolkit.Modules
                     if (money > 0f && career.Budget < money) Util.SetField(career, "budget", Mathf.RoundToInt(money));
                     if (rep > 0f && career.ReputationPoints < rep) career.ReputationPoints = Mathf.RoundToInt(rep);
                 }
+            }
+        }
+
+        // The diesel % is computed by the game from the fuel lying in the tanks, so filling only the
+        // number would be undone at once. Fill the tanks themselves.
+        private static void FillFuel(UBOAT.Game.Scene.Entities.PlayerShip ship)
+        {
+            var srcs = ship.FuelSources;
+            if (srcs == null) return;
+            foreach (var f in srcs)
+            {
+                if (f == null || f.Storage == null || f.Data == null || f.Data.Mass <= 0f) continue;
+                double full = f.Storage.ItemsMassLimit / f.Data.Mass;
+                if (full > 0 && f.DoubleCount < full) f.DoubleCount = full;
             }
         }
 

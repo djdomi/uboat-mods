@@ -40,7 +40,10 @@ namespace UboatToolkit.Modules
                 var t = Traverse.Create(s);
                 bool origIgnore = Util.Original<bool>(s, "ignoreStackLimits");
                 t.Field("ignoreStackLimits").SetValue(stack > 1f || minStack > 0f || origIgnore);
-                Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noWeight ? 1000000f : 1f);
+                // Never for diesel tanks: the game shows fuel % as (fuel mass / tank mass limit), so a bigger
+                // limit made the tank read 0 % and the boat "out of fuel" although it was full.
+                bool fuelTank = s.StorageType != null && s.StorageType.StartsWith("Fuel");
+                Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noWeight && !fuelTank ? 1000000f : 1f);
             }
             foreach (var e in Util.Find<Equipment>())
             {
