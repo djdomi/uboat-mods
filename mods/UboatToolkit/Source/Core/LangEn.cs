@@ -455,6 +455,7 @@ namespace UboatToolkit
             m["Sensor-Reichweite x (Radar, Sonar, Horchgerät, Ausguck) (1 = normal)"] = "Sensor range x (radar, sonar, hydrophone, lookout) (1 = normal)";
             m["Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)"] = "No water pressure damage at depth (hull holds)";
             m["Rumpf verliert keine Gesundheit"] = "Hull loses no health";
+            m["Eigene Granaten und Flak beschädigen das eigene Boot und die Crew nicht"] = "Own shells and flak do not damage your own boat or crew";
             m["Diesel wird nicht verbraucht (Tank bleibt voll)"] = "Diesel is not used (tank stays full)";
             m["Batterie bleibt voll"] = "Battery stays full";
             m["Luft unter Wasser unbegrenzt"] = "Unlimited air underwater";

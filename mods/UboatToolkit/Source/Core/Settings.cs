@@ -491,6 +491,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatSensorRange", "Sensor-Reichweite x (Radar, Sonar, Horchgerät, Ausguck) (1 = normal)", 1, 1, 5, 0.5f);
             Bool(Cheat, "CheatDeepDive", "Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)", false);
             Bool(Cheat, "CheatNoHullDamage", "Rumpf verliert keine Gesundheit", false);
+            Bool(Cheat, "CheatOwnShellsSafe", "Eigene Granaten und Flak beschädigen das eigene Boot und die Crew nicht", true);
             Bool(Cheat, "CheatFullFuel", "Diesel wird nicht verbraucht (Tank bleibt voll)", false);
             Bool(Cheat, "CheatFullBattery", "Batterie bleibt voll", false);
             Bool(Cheat, "CheatFullAir", "Luft unter Wasser unbegrenzt", false);
