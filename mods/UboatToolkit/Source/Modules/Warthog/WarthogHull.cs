@@ -26,6 +26,7 @@ namespace UboatToolkit.Modules.Warthog
             Scale(ship.HydrophoneDetectability, on ? Settings.F("WhHydroNoise") : 1f, "Warthog Coating");
             Scale(ship.VerticalSteersPerformance, on && Settings.B("WhFins") ? Settings.F("WhFinDepth") : 1f, "Warthog Fins");
             if (on && WarthogSettings.IsWarthog(ship)) MirrorBadge(ship);
+            if (WarthogSettings.IsWarthog(ship)) SpeedFactor(ship, on ? Settings.F("WhSpeedFactor") : 1f);
             // berth position (used by the game at the next docking): forward shift + side shift away from the pier
             if (on && WarthogSettings.IsWarthog(ship))
             {
@@ -33,6 +34,31 @@ namespace UboatToolkit.Modules.Warthog
                 var cur = Util.SafeGet(() => HarmonyLib.Traverse.Create(ship).Field("dockOffset").GetValue<Vector3>(), want);
                 if ((cur - want).sqrMagnitude > 0.0001f) { HarmonyLib.Traverse.Create(ship).Field("dockOffset").SetValue(want); Util.Log("[Warthog] dock: berth offset " + want); }
             }
+        }
+
+        // speed factor (0.3.6, DoMe: optional, default 1.0): the game's propellers push with power * powerMultiplier *
+        // maxPower; top speed grows about with the square root of the thrust -> maxPower x factor^2 = speed x factor.
+        // Propellers are cached per boat (no component search every tick); plain reflection, no generic field refs.
+        private static readonly System.Reflection.FieldInfo MaxPowerF = HarmonyLib.AccessTools.Field(typeof(UBOAT.Game.Scene.Items.Propeller), "maxPower");
+        private readonly System.Collections.Generic.Dictionary<UBOAT.Game.Scene.Items.Propeller, float> basePower = new System.Collections.Generic.Dictionary<UBOAT.Game.Scene.Items.Propeller, float>();
+        private UBOAT.Game.Scene.Items.Propeller[] speedProps;
+        private object speedShip;
+        private float lastFactor = -1f;
+        private void SpeedFactor(PlayerShip ship, float f)
+        {
+            if (MaxPowerF == null) return;
+            f = Mathf.Clamp(f, 0.5f, 2f);
+            if (speedProps == null || !ReferenceEquals(speedShip, ship)) { speedProps = ship.GetComponentsInChildren<UBOAT.Game.Scene.Items.Propeller>(true); speedShip = ship; basePower.Clear(); lastFactor = -1f; }
+            int n = 0;
+            foreach (var p in speedProps)
+            {
+                if (p == null) continue;
+                if (!basePower.TryGetValue(p, out var b)) { b = (float)MaxPowerF.GetValue(p); basePower[p] = b; }
+                float want = b * f * f;
+                if ((float)MaxPowerF.GetValue(p) != want) { MaxPowerF.SetValue(p, want); n++; }
+            }
+            if (n > 0 && f != lastFactor) Util.Log("[Warthog] speed factor " + f.ToString("0.00") + " -> " + n + " propeller(s), thrust x" + (f * f).ToString("0.00"));
+            lastFactor = f;
         }
 
         static void Scale(Parameter p, float f, string name)

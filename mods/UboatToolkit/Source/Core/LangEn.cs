@@ -792,6 +792,7 @@ namespace UboatToolkit
             m["  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)"] = "  Strength (6 = about 0.6 deg/s² turning acceleration)";
             m["  Strom pro Sekunde volle Leistung (Anteil Batterie x 0,0001)"] = "  Power per second at full output (share of battery x 0.0001)";
             m["  Kurs halten, während Geschütze feuern (gegen Rückstoß)"] = "  Hold course while the guns fire (against recoil)";
+            m["Geschwindigkeit: Faktor auf die Schraubenleistung (1,0 = wie gebaut)"] = "Speed: factor on propeller power (1.0 = as built)";
             m["  Shift + Z/X: ganzes Boot seitwärts (Anlegen); Z/X ohne Shift: auf der Stelle drehen"] = "  Shift + Z/X: whole boat sideways (docking); Z/X without Shift: turn on the spot";
             m["  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)"] = "  Bow thruster alone (-100 = port, +100 = starboard, 0 = off)";
             m["  Heck-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)"] = "  Stern thruster alone (-100 = port, +100 = starboard, 0 = off)";

@@ -58,19 +58,26 @@ namespace UboatToolkit.Modules.Warthog
                     if (d.Links.Count > 0 || d.Holes.Count > 0) All.Add(d);
                 }
                 // torpedo-loading hatches (leak points of the torpedo rooms)
-                foreach (var room in new[] { ("Bow Torpedo Room", "Torpedoluk vorn"), ("Stern Torpedo Room", "Torpedoluk achtern") })
+                foreach (var room in new[] { ("Bow Torpedo Room", "Torpedoluk vorn", "(Torpedo Hatch Fore)"), ("Stern Torpedo Room", "Torpedoluk achtern", "(Torpedo Hatch Aft)") })
                 {
                     var r = interior.Find(room.Item1); if (r == null) continue;
                     var th = r.GetComponentsInChildren<Transform>(true).FirstOrDefault(x => x.name == "Torpedo Loading Hatch");
                     if (th == null) continue;
                     var t = new Luke { Name = room.Item2 };
                     t.Holes.AddRange(th.GetComponentsInChildren<ExternalPressure>(true));
+                    // 0.3.6: ladder room <-> deck through this hatch (built into the bundle, off while the hatch is shut)
+                    foreach (var l in interior.GetComponentsInChildren<OffMeshLink>(true)) if (l.name.EndsWith(room.Item3)) t.Links.Add(l);
                     All.Add(t);
                 }
             }
             if (l2.Hatch != null) All.Insert(1, l2);
             var galley = Traverse.Create(ship).Field("cargoLoadingHatch").GetValue<Hatch>();
-            if (galley != null && galley != main) All.Add(new Luke { Name = "Kombüsenluk", Hatch = galley });
+            if (galley != null && galley != main)
+            {
+                var g = new Luke { Name = "Kombüsenluk", Hatch = galley };
+                if (interior != null) foreach (var l in interior.GetComponentsInChildren<OffMeshLink>(true)) if (l.name.EndsWith("(Galley)")) g.Links.Add(l);
+                All.Add(g);
+            }
             Util.Log("[Warthog] hatch: " + All.Count + " hatches: " + string.Join(", ", All.Select(x => x.Name)));
         }
 
