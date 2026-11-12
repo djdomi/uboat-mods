@@ -250,6 +250,10 @@ namespace UboatToolkit
             Num(QoL, "WolfpackBoats", "  höchstens x Boote pro Rudel", 6, 2, 8, 1);
             Num(QoL, "WolfpackGrt", "  erstes Rudel-Ziel: x BRT", 10000, 1000, 50000, 1000);
             Bool(QoL, "FastLoad", "Spielst\u00e4nde schneller laden (Bild ruckelt beim Laden etwas mehr)", true);
+            Num(QoL, "FastLoadBudgetMs", "  Rechenzeit pro Bild beim Laden (ms, Spiel = 16)", 100, 16, 1000, 10);
+            Num(QoL, "FastLoadMaxActions", "  Schritte pro Bild (Spiel = 500)", 5000, 500, 100000, 500);
+            Bool(QoL, "FastLoadNoGc", "  beim Laden kein Speicher-Aufräumen (spart Zeit)", true);
+            Num(QoL, "FastLoadGcCapMb", "    außer Speicher über ... MB", 3000, 500, 32000, 250);
             Bool(QoL, "SaveGroupCareer", "Spielstand-Liste: Spielst\u00e4nde einer Karriere stehen zusammen", true);
             Num(QoL, "LookoutRange", "Ausguck: Sichtweite f\u00fcr Schiffe (1 = Spiel, weniger Bonus bei schlechter Sicht)", 1.5f, 1, 2.5f, 0.1f);
             Bool(QoL, "LookoutSmoke", "Ausguck: Rauch fahrender Schiffe sieht man fr\u00fcher, gestoppte Schiffe bleiben sichtbar", true);
