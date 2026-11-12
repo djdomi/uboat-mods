@@ -23,9 +23,10 @@ namespace UboatToolkit.Modules.Warthog
         {
             var ship = Util.PlayerShip;
             if (ship == null || !On) return;
-            if (Time.unscaledTime - scanAt > 3f) { parts = Object.FindObjectsOfType<AntiSubmarineNetPart>(); scanAt = Time.unscaledTime; }
+            // scene-wide search ~40 ms ("Langsam: WarthogNetCutter.Tick 45 ms"): every 15 s is enough, nets do not move
+            if (Time.unscaledTime - scanAt > 15f) { parts = Object.FindObjectsOfType<AntiSubmarineNetPart>(); scanAt = Time.unscaledTime; }
             if (parts.Length == 0) return;
-            var shipCols = ship.GetComponentsInChildren<Collider>(true);
+            Collider[] shipCols = null;   // all colliders of the 92 m boat: fetched only when a new net piece comes near
             foreach (var p in parts)
             {
                 if (p == null || !p.gameObject.activeInHierarchy) continue;
@@ -36,6 +37,7 @@ namespace UboatToolkit.Modules.Warthog
                 if (dist > 250f) continue;
                 if (ignored.Add(p.GetInstanceID()))
                 {
+                    if (shipCols == null) shipCols = ship.GetComponentsInChildren<Collider>(true);
                     foreach (var c in cols) foreach (var s in shipCols) if (c && s) Physics.IgnoreCollision(c, s, true);
                     Util.Log("[Warthog] net: " + p.name + " ahead (" + dist.ToString("0") + " m) - collisions off, saw ready");
                 }

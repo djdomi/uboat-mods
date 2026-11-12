@@ -74,7 +74,7 @@ namespace UboatToolkit.Modules.Warthog
 
         private void ReportPlanes(PlayerShip ship)
         {
-            if (Time.unscaledTime - planesAt > 5f) { planes = Object.FindObjectsOfType<Aircraft>(); planesAt = Time.unscaledTime; }
+            if (Time.unscaledTime - planesAt > 10f) { planes = Object.FindObjectsOfType<Aircraft>(); planesAt = Time.unscaledTime; }
             float detect = Settings.F("WhAirDetect") * 1000f;
             var now = new HashSet<int>();
             foreach (var p in planes)

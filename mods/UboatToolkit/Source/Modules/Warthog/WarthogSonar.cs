@@ -62,7 +62,7 @@ namespace UboatToolkit.Modules.Warthog
             var hs = Util.Find<Hydrophone>();
             if (hs.Length == 0) return;
             var h = hs[0];
-            if (Time.unscaledTime - shipsAt > 5f) { ships = Object.FindObjectsOfType<Ship>(); shipsAt = Time.unscaledTime; }
+            if (Time.unscaledTime - shipsAt > 15f) { ships = Object.FindObjectsOfType<Ship>(); shipsAt = Time.unscaledTime; }
             var now = new HashSet<int>();
             foreach (var s in ships)
             {

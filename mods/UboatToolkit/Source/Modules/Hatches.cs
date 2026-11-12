@@ -9,6 +9,7 @@ namespace UboatToolkit.Modules
     public class Hatches : ModuleBase
     {
         private bool lastDanger;
+        private CharacterSwitchCloseHatchesUI ui;
 
         public override void Tick()
         {
@@ -16,7 +17,7 @@ namespace UboatToolkit.Modules
             bool danger = ship.SubmergedOrGoingToSubmerge || ship.IsHunted;
             if (Settings.B("AutoHatches") && danger && !lastDanger)
             {
-                var ui = Object.FindObjectOfType<CharacterSwitchCloseHatchesUI>(true);
+                if (ui == null) ui = Object.FindObjectOfType<CharacterSwitchCloseHatchesUI>(true);   // scene-wide search once, not at every dive
                 if (ui != null)
                 {
                     var t = Traverse.Create(ui);
