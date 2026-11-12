@@ -168,6 +168,23 @@ namespace UboatToolkit
             Bool(QoL, "LookoutSmoke", "Ausguck: Rauch fahrender Schiffe sieht man fr\u00fcher, gestoppte Schiffe bleiben sichtbar", true);
             Num(QoL, "NightBright", "Nacht drau\u00dfen heller (%, 0 = Spiel)", 0, 0, 300, 10);
             Num(QoL, "InteriorBright", "Boot innen heller (%, 0 = Spiel)", 0, 0, 300, 10);
+            Bool(QoL, "NightOptics", "Optik-Belichtung pro Sehrohr/UZO/Fernglas (nimmt dem Beobachtungs-Sehrohr den Extra-Hellbonus)", false);
+            Num(QoL, "NightAttackEv", "  Angriffs-Sehrohr Belichtung in EV (unter dem Spiel-Bild)", -1.3f, -4, 1, 0.1f);
+            Num(QoL, "NightObservationEv", "  Beobachtungs-Sehrohr Belichtung in EV (0 = Extra-Bonus weg)", 0, -4, 1, 0.1f);
+            Bool(QoL, "NightUzoBinoGrading", "  auch UZO und Fernglas eigene Belichtung", false);
+            Num(QoL, "NightUzoEv", "    UZO Belichtung in EV", 0, -4, 1, 0.1f);
+            Num(QoL, "NightBinoEv", "    Fernglas Belichtung in EV", 0, -4, 1, 0.1f);
+            Num(QoL, "NightOpticStrength", "  Glas-Charakter Stärke in % (Dunst am Tag, Farbverlust nachts)", 100, 0, 200, 5);
+            Num(QoL, "NightAttackGlass", "  Glas-Anteil Angriffs-Sehrohr in %", 100, 0, 100, 5);
+            Num(QoL, "NightObservationGlass", "  Glas-Anteil Beobachtungs-Sehrohr in %", 35, 0, 100, 5);
+            Num(QoL, "NightReticleComp", "  Fadenkreuz-Ausgleich in % (hält das Fadenkreuz trotz dunklerem Bild lesbar)", 100, 0, 200, 5);
+            Num(QoL, "NightOpticDayLift", "  Dunst bei Tag (Schwarzwert-Anhebung, 0-100)", 30, 0, 100, 5);
+            Num(QoL, "NightOpticColourLoss", "  Farbverlust bei Nacht (0-100)", 45, 0, 100, 5);
+            Num(QoL, "NightGainAttack", "  Nacht-Anpassung Angriffs-Sehrohr in % (100 = Spiel)", 100, 0, 300, 10);
+            Num(QoL, "NightGainObservation", "  Nacht-Anpassung Beobachtungs-Sehrohr in %", 100, 0, 300, 10);
+            Num(QoL, "NightGainUzo", "  Nacht-Anpassung UZO in %", 100, 0, 300, 10);
+            Num(QoL, "NightGainBino", "  Nacht-Anpassung Fernglas in %", 100, 0, 300, 10);
+            Num(QoL, "NightGainOther", "  Nacht-Anpassung alle anderen Ansichten in %", 100, 0, 300, 10);
             Bool(QoL, "CrewNoEatAlarm", "Crew: bei Alarm nur essen, wenn sehr hungrig", true);
             Bool(QoL, "CrewBowRunCap", "Crew: beim Alarmtauchen laufen h\u00f6chstens 8 Mann zum Bug", true);
             Bool(QoL, "CrewNearestBed", "Crew: m\u00fcde M\u00e4nner nehmen die n\u00e4chste freie Koje", true);
@@ -325,6 +342,7 @@ namespace UboatToolkit
             Bool(Tools, "OfficerWatchLog", "Log: jede Stunde Offiziere mit Energie und Dienst", false);
             Bool(Tools, "QuietTooltipLog", "Tooltip-Schlüssel mitschreiben (toolkit-tooltip-keys.txt, zum Sperren)", false);
             Bool(Tools, "QuietLog", "Log: jede leise/stumme Meldung und Stimme", false);
+            Bool(Tools, "NightLog", "Log: Nacht-Belichtung und Ansicht", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
@@ -389,7 +407,7 @@ namespace UboatToolkit
                     if (o.IsKey) { o.Text = line.Substring(eq + 1).Trim(); continue; }
                     var v = line.Substring(eq + 1).Trim().ToLowerInvariant();
                     if (o.IsBool) o.Value = (v == "1" || v == "true" || v == "on" || v == "ja") ? 1 : 0;
-                    else if (float.TryParse(v.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var f)) o.Value = Mathf.Max(0f, f); // no upper cap: INI may go beyond the menu range
+                    else if (float.TryParse(v.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var f)) o.Value = o.Min < 0f ? Mathf.Max(o.Min, f) : Mathf.Max(0f, f); // no upper cap: INI may go beyond the menu range
                 }
                 // Write back so new settings from a mod update appear in the file.
                 Save();
