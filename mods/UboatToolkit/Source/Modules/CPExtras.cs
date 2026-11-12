@@ -85,37 +85,6 @@ namespace UboatToolkit.Modules
         }
     }
 
-    // ---------- Watch crew wear rain gear in strong wind / spray too (Beaufort 6+) ----------
-    [HarmonyPatch(typeof(EquipRainCoats), "DoUpdate")]
-    internal static class Extras_RainGearPatch
-    {
-        private static bool Prefix(ref float __result, Weather ___weather, PlayerCrew ___playerCrew, UBOAT.Game.Scene.Entities.PlayerShip ___playerShip, MainCamera ___mainCamera)
-        {
-            if (!Settings.B("RainGearWind") || ___weather == null || ___playerShip == null || ___playerCrew == null) return true;
-            if ((float)___weather.Rain >= 0.05f || ___weather.SeaCondition < 6f || ___playerShip.IsSheltered) return true;   // game handles rain and calm
-            if (___mainCamera != null && ___mainCamera.CurrentMode == CameraMode.Map) { __result = 0f; return false; }
-            for (int i = ___playerCrew.Count - 1; i >= 0; i--)
-            {
-                var c = ___playerCrew[i];
-                if (c == null || !c.isActiveAndEnabled || c.Data == null || c.Data.CharacterType == PlayableCharacterData.Type.Captive || c.IsImpersonated) continue;
-                var layer = c.Navigator.Layer;
-                bool outside = layer == NavMeshLayer.UboatExterior || layer == NavMeshLayer.World;
-                if (outside && c.IsSlotFree("Rain Coat"))
-                {
-                    c.LoadWearableIfNotAlreadyLoadedAsync("Rain Coat", UnityEngine.Random.value < 0.5f ? "Character/Other/Rain Coat Black" : "Character/Other/Rain Coat Gray");
-                    if (!c.IsSkipper) c.LoadWearableIfNotAlreadyLoadedAsync("Rain Coat Cap", "Character/Other/Rain Coat Cap");
-                }
-                else if (!outside)
-                {
-                    var w = c.GetWearableAt("Rain Coat"); if (w != null) c.RemoveWearable(w);
-                    var w2 = c.GetWearableAt("Rain Coat Cap"); if (w2 != null) c.RemoveWearable(w2);
-                }
-            }
-            __result = 5f;
-            return false;
-        }
-    }
-
     // ---------- Officers: new or promoted officers get a watch (6 h or 3 h), split evenly in two watches ----------
     // Only officers WITHOUT a schedule yet (all hours "any") are touched; a schedule you set stays.
     internal static class OfficerWatch

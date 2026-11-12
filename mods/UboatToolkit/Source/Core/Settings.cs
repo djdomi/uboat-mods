@@ -161,7 +161,15 @@ namespace UboatToolkit
             Num(QoL, "DgsKnockoutPct", "    Schaden an der Kanone in %", 200, 50, 500, 25);
             Num(QoL, "DgsKnockoutRadius", "    Radius in Metern", 6, 1, 20, 1);
             Bool(QoL, "ScopeRemember", "Sehrohr merkt sich Ansicht und Zoom (je Sehrohr)", false);
-            Bool(QoL, "RainGearWind", "Wache zieht Regenkleidung auch bei Sturm/Gischt an (ab Windst\u00e4rke 6)", true);
+            Bool(QoL, "RainGearWind", "Regenkleidung für die Wache an Deck (eigene Steuerung statt Spiel)", true);
+            Num(QoL, "RainGearMode", "  Modus: 0 = nur bei Regen, 1 = immer an Deck, 2 = aus", 1, 0, 2, 1);
+            Num(QoL, "RainGearRain", "  Mantel ab Regen-Stärke (bei Modus 0)", 0.05f, 0, 1, 0.05f);
+            Num(QoL, "RainGearCapRain", "  Südwester ab Regen-Stärke", 0.05f, 0, 1, 0.05f);
+            Num(QoL, "RainGearCapWind", "  Südwester ab Windstärke", 6, 0, 12, 0.5f);
+            Bool(QoL, "RainGearImpersonated", "  auch den Mann anziehen, durch den du schaust", true);
+            Bool(QoL, "RainGearSkipperCap", "  Kommandant trägt auch Südwester", true);
+            Bool(QoL, "RainGearSheltered", "  auch im Hafen/geschützt anziehen", false);
+            Num(QoL, "RainGearInterval", "  Prüfen alle ... Sekunden", 2, 0.25f, 10, 0.25f);
             Bool(QoL, "OfficerWatches", "Neue/bef\u00f6rderte Offiziere bekommen 6-Stunden-Wachen (halb Dienst, halb Ruhe)", true);
             Num(QoL, "OfficerWatchHours", "  Wachlänge in Stunden (6 oder 3)", 6, 3, 6, 3);
             Bool(QoL, "FastHatch", "Ich-Sicht: mit Shift schneller durch Luken", true);
@@ -374,6 +382,7 @@ namespace UboatToolkit
             Bool(Tools, "QuietLog", "Log: jede leise/stumme Meldung und Stimme", false);
             Bool(Tools, "NightLog", "Log: Nacht-Belichtung und Ansicht", false);
             Bool(Tools, "DgsLog", "Log: Deckgeschütz gesperrt wegen Seegang", false);
+            Bool(Tools, "RainGearLog", "Log: Regenkleidung an/aus je Mann", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
