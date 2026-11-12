@@ -222,6 +222,7 @@ namespace UboatToolkit
             Bool(QoL, "FixUniformRebuild", "Fix für Mod \"Realistic Uniforms Revival\": keine unnötigen Uniform-Neuaufbauten", true);
             Bool(QoL, "FixBifrost", "Fix für Mod \"Projekt Bifrost\": Anzeigen gedrosselt (weniger Ruckeln)", true);
             Bool(QoL, "FixBifrostDepthCharge", "  Wasserbomben-Zähler-Fehler verhindern", true);
+            Bool(QoL, "FixMissingWearables", "Fix für Mods mit fehlender Kleidung (z.B. \"Cap NCO\"): fehlendes Teil wird weggelassen statt Fehlermeldung", true);
             Bool(QoL, "CamWheelZoom", "Kamera: Mausrad-Zoom und weiche freie Kamera", true);
             Num(QoL, "CamFreeFov", "  freie Kamera: Start-Blickwinkel", 70, 1, 150, 1);
             Num(QoL, "CamFppMinFov", "  Ich-Sicht: engster Blickwinkel", 20, 1, 150, 1);

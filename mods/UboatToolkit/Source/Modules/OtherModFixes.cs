@@ -384,3 +384,35 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Fix for mods that give characters clothes which do not exist in the game (seen: "Cap NCO" from
+    // "officers-and-sailors-better-ncos"). The game then writes two red errors per character and the
+    // piece stays empty anyway. Here a missing accessory is simply left out, without the errors.
+    [HarmonyPatch]
+    internal static class MissingWearable_Patch
+    {
+        private static DWS.Common.Resources.ResourceManager rm;
+        private static readonly HashSet<string> reported = new HashSet<string>();
+
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            yield return AccessTools.Method(typeof(Character), "LoadWearable", new[] { typeof(string), typeof(bool) });
+            yield return AccessTools.Method(typeof(Character), "LoadWearableAsync", new[] { typeof(string), typeof(bool) });
+        }
+
+        private static bool Prefix(string path)
+        {
+            try
+            {
+                if (!Settings.B("FixMissingWearables") || path == null || !path.StartsWith("Character/Accessories/")) return true;
+                if (rm == null) rm = Traverse.Create(typeof(Character)).Field("resourceManager").GetValue<DWS.Common.Resources.ResourceManager>();
+                if (rm == null || rm.AssetExists(path)) return true;
+                if (reported.Add(path)) Util.Log("Kleidung fehlt im Spiel, wird weggelassen: " + path);
+                return false;   // LoadWearable then returns null, same as the game does after its error
+            }
+            catch { return true; }
+        }
+    }
+}
