@@ -254,7 +254,7 @@ namespace UboatToolkit
             Num(QoL, "FastLoadMaxActions", "  Schritte pro Bild (Spiel = 500)", 5000, 500, 100000, 500);
             Bool(QoL, "FastLoadNoGc", "  beim Laden kein Speicher-Aufräumen (spart Zeit)", true);
             Num(QoL, "FastLoadGcCapMb", "    außer Speicher über ... MB", 3000, 500, 32000, 250);
-            Bool(QoL, "SaveGroupCareer", "Spielstand-Liste: Spielst\u00e4nde einer Karriere stehen zusammen", true);
+            Bool(QoL, "SaveGroupCareer", "Spielstand-Liste: Reiter je Karriere (Spielstände einer Karriere zusammen)", true);
             Num(QoL, "LookoutRange", "Ausguck: Sichtweite f\u00fcr Schiffe (1 = Spiel, weniger Bonus bei schlechter Sicht)", 1.5f, 1, 2.5f, 0.1f);
             Bool(QoL, "LookoutSmoke", "Ausguck: Rauch fahrender Schiffe sieht man fr\u00fcher, gestoppte Schiffe bleiben sichtbar", true);
             Num(QoL, "NightBright", "Nacht drau\u00dfen heller (%, 0 = Spiel)", 0, 0, 300, 10);
@@ -444,6 +444,7 @@ namespace UboatToolkit
             Bool(Tools, "CamLog", "Log: Kamera-Zoom", false);
             Bool(Tools, "OrbitLog", "Log: Außenkamera unter Wasser", false);
             Bool(Tools, "StationLog", "Log: Stationen (Zoom, Drehknöpfe)", false);
+            Bool(Tools, "SaveCatLog", "Log: Karriere-Reiter in der Spielstand-Liste", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);

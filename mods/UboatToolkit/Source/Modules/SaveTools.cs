@@ -203,40 +203,4 @@ namespace UboatToolkit.Modules
             return s;
         }
     }
-
-    // Load/save list: saves of the same commander (career) stand together, newest career first.
-    [HarmonyPatch(typeof(GameStateBaseUI), "FetchSaves")]
-    internal static class SaveTools_GroupPatch
-    {
-        private static readonly Dictionary<string, KeyValuePair<long, string>> cache = new Dictionary<string, KeyValuePair<long, string>>();
-
-        private static string Career(SavesManager.GameStateData d)
-        {
-            long t = d.WriteDate.Ticks;
-            if (cache.TryGetValue(d.Path, out var kv) && kv.Key == t) return kv.Value;
-            string who = "?";
-            try { var x = d.ReadExtendedData(); who = (x?.SkipperName ?? "?") + "|" + (x?.ShipName ?? ""); } catch { }
-            cache[d.Path] = new KeyValuePair<long, string>(t, who);
-            return who;
-        }
-
-        private static void Postfix(ref SavesManager.GameStateData[] ___saves, ref GameStateItemUI[] ___items)
-        {
-            if (!Settings.B("SaveGroupCareer") || ___saves == null || ___items == null || ___saves.Length != ___items.Length || ___saves.Length < 2) return;
-            var saves = ___saves; var items = ___items;
-            Util.Safe("SaveTools.Group", () =>
-            {
-                var idx = Enumerable.Range(0, saves.Length).ToList();
-                var key = idx.ToDictionary(i => i, i => Career(saves[i]));
-                var first = new Dictionary<string, int>();
-                foreach (var i in idx) if (!first.ContainsKey(key[i])) first[key[i]] = i;   // list is newest first
-                var order = idx.OrderBy(i => first[key[i]]).ThenBy(i => i).ToList();
-                var s2 = order.Select(i => saves[i]).ToArray();
-                var it2 = order.Select(i => items[i]).ToArray();
-                for (int i = 0; i < it2.Length; i++) if (it2[i] != null) it2[i].transform.SetSiblingIndex(i);
-                Array.Copy(s2, saves, s2.Length);
-                Array.Copy(it2, items, it2.Length);
-            });
-        }
-    }
 }
