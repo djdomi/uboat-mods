@@ -48,7 +48,7 @@ namespace UboatToolkit.Modules
                 var c = Util.Career; if (c == null) return;
                 int add = Mathf.Max(1, (int)Settings.F("CheatAddReputationAmount"));
                 c.ReputationPoints += add;
-                ToolkitRunner.ShowNotice("+" + add + " Ruf-Punkte (jetzt " + c.ReputationPoints + ")", 4f);
+                ToolkitRunner.ShowNotice("+" + add + " Ansehen (jetzt " + c.ReputationPoints + ")", 4f);
             });
             OneShot("CheatAddUpgradePoints", () =>
             {
