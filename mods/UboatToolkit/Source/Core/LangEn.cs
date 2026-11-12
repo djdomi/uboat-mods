@@ -837,6 +837,7 @@ namespace UboatToolkit
             m[" davon liefen gerade)"] = " of them were running)";
             m["Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum nötig"] = "Research without requirements: no earlier research, no date needed";
             m["  Lager: gleiche Sachen automatisch zu einem Stapel zusammenlegen"] = "  Storage: automatically merge identical items into one stack";
+            m["Zweites Turmluk + Seitentüren Deck <-> Turm (Crew nimmt den kürzesten Weg)"] = "Second tower hatch + side doors deck <-> tower (crew takes the shortest way)";
             return m;
         }
     }

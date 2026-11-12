@@ -19,6 +19,7 @@ namespace UboatToolkit.Modules.Warthog
             // --- Rumpf
             Num("WhRubberCoating", "Gummibeschichtung: Sonar-Ortbarkeit x (1 = ohne, 0 = unsichtbar)", 0.3f, 0f, 1f, 0.05f);
             Num("WhHydroNoise", "Gummibeschichtung: Horch-Ortbarkeit x (1 = normal)", 0.6f, 0f, 1f, 0.05f);
+            Bool("WhSecondHatch", "Zweites Turmluk + Seitentüren Deck <-> Turm (Crew nimmt den kürzesten Weg)", true);
             Bool("WhFins", "Finnen: engere Kurven, weniger Rollen, schneller Tiefe wechseln", true);
             Num("WhFinTurn", "  Kurven: Drehkraft x", 1.6f, 1f, 4f, 0.1f);
             Num("WhFinRoll", "  Rollen: Dämpfung x", 2.5f, 1f, 6f, 0.1f);
@@ -92,6 +93,6 @@ namespace UboatToolkit.Modules.Warthog
     // Modules to add in ToolkitRunner.Awake():  foreach (var m in WarthogModules.All()) Modules.Add(m);
     public static class WarthogModules
     {
-        public static IModule[] All() => new IModule[] { new WarthogHull(), new WarthogPumps(), new WarthogPower(), new WarthogAir(), new WarthogSonar(), new WarthogSnorkel(), new WarthogWeapons(), new WarthogTorpedoes() };
+        public static IModule[] All() => new IModule[] { new WarthogHull(), new WarthogPumps(), new WarthogPower(), new WarthogAir(), new WarthogSonar(), new WarthogSnorkel(), new WarthogWeapons(), new WarthogTorpedoes(), new WarthogHatches() };
     }
 }
