@@ -52,7 +52,7 @@ namespace UboatToolkit.Modules
             float min = Settings.F("AutoSaveMinutes");
             if (min <= 0f) { nextAutosave = -1f; return; }
             if (nextAutosave < 0f) { nextAutosave = Time.unscaledTime + min * 60f; return; }
-            if (Time.unscaledTime < nextAutosave || !Game.CanSave()) return;
+            if (Time.unscaledTime < nextAutosave || !Game.CanSave() || PortWindowOpen()) return;
             nextAutosave = Time.unscaledTime + min * 60f;
             var saver = Game.Tasks?.GetRunningTask<AutoSaver>();
             if (saver == null) return;
@@ -64,7 +64,7 @@ namespace UboatToolkit.Modules
         {
             int n = Settings.All.Count(o => o.Tab == Settings.Cheat && o.Key != "CheatShowActive" && (o.IsBool ? o.On : o.Value != o.Default));
             if (lastCheatCount >= 0 && n > lastCheatCount && Settings.B("BackupBeforeCheats")
-                && Time.unscaledTime - lastBackup > 600f && Game.CanSave())
+                && Time.unscaledTime - lastBackup > 600f && Game.CanSave() && !PortWindowOpen())
             {
                 lastBackup = Time.unscaledTime;
                 Game.Saves.Save("UboatToolkit_Backup");
@@ -96,6 +96,14 @@ namespace UboatToolkit.Modules
                 ToolkitRunner.ShowNotice("Warnung: " + label + " nur noch " + (v * 100f).ToString("0") + " %", 10f);
             }
             else if (v > lim + 0.05f) warned[res] = false;
+        }
+
+        // Saving while the port window (shop, crew, storage) is open makes the game rebuild its UI while the
+        // window closes -> "GameObject is already being activated or deactivated". Wait until it is closed.
+        private static bool PortWindowOpen()
+        {
+            try { return UnityEngine.Object.FindObjectOfType<UBOAT.Game.UI.PortActivitiesUI>() != null; }
+            catch { return false; }
         }
     }
 }

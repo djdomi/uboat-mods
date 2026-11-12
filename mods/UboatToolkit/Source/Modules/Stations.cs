@@ -15,6 +15,12 @@ namespace UboatToolkit.Modules
     {
         private PlayerCrew crew;
         private readonly Dictionary<Activator, float> emptySince = new Dictionary<Activator, float>();
+        // Against "X takes over" every few seconds: if the last man left again quickly, wait longer
+        // before sending the next one (30 s, 60 s, ... up to 10 min). Resets once a man stays 2 minutes.
+        private readonly Dictionary<Activator, float> assignedAt = new Dictionary<Activator, float>();
+        private readonly Dictionary<Activator, float> backoff = new Dictionary<Activator, float>();
+        private readonly HashSet<Activator> warned = new HashSet<Activator>();
+        private readonly Dictionary<Activator, float> waitUntil = new Dictionary<Activator, float>();
         private readonly List<CharacterActionInfo> infos = new List<CharacterActionInfo>();
 
         public override void Tick()
@@ -31,7 +37,7 @@ namespace UboatToolkit.Modules
 
             // Hydrophone: under water or alarm. Radio room: whenever the radio can receive.
             bool hydro = Settings.B("AutoManHydrophone") && (ship.SubmergedOrGoingToSubmerge || ship.Alarmed);
-            bool radio = Settings.B("AutoManRadio");
+            bool radio = Settings.B("AutoManRadio") && !ship.Docked;   // in port nobody needs to listen
             if (hydro || radio)
                 foreach (var act in Util.Find<Activator>())
                 {
@@ -116,8 +122,26 @@ namespace UboatToolkit.Modules
         private void Keep(Activator act, string label)
         {
             if (act == null || !act.isActiveAndEnabled) return;
-            if (act.Users.Count > 0) { emptySince.Remove(act); return; }
-            if (!emptySince.TryGetValue(act, out float since)) { emptySince[act] = Time.time; return; }
+            if (act.Users.Count > 0)
+            {
+                emptySince.Remove(act);
+                if (assignedAt.TryGetValue(act, out float at) && Time.time - at > 120f) { backoff.Remove(act); assignedAt.Remove(act); }
+                return;
+            }
+            if (!emptySince.TryGetValue(act, out float since))
+            {
+                emptySince[act] = Time.time;
+                if (assignedAt.TryGetValue(act, out float at) && Time.time - at < 120f)
+                {
+                    float b = backoff.TryGetValue(act, out float old) ? Mathf.Min(600f, old * 2f) : 30f;
+                    backoff[act] = b;
+                    waitUntil[act] = Time.time + b;
+                    if (b >= 600f && !warned.Contains(act)) { warned.Add(act); Util.Log(label + ": Leute verlassen den Platz immer wieder, warte jetzt 10 min"); }
+                }
+                assignedAt.Remove(act);
+                return;
+            }
+            if (waitUntil.TryGetValue(act, out float until) && Time.time < until) return;
             if (Time.time - since < Settings.F("StationDelay")) return;
 
             PlayableCharacter best = null; CharacterAction tmpl = null; float bestD = float.MaxValue;
@@ -135,6 +159,7 @@ namespace UboatToolkit.Modules
             best.StopCurrentAction(true);
             best.StartAction(act, a);
             emptySince.Remove(act);
+            assignedAt[act] = Time.time;
             Util.Log(label + ": " + best.Name + " übernimmt");
         }
 

@@ -21,7 +21,7 @@ namespace UboatToolkit.Modules
             "UBOAT.Game.UI.ActivatorDetailsUI", "UBOAT.Game.UI.DeviceInfoUI", "UBOAT.Game.UI.Storage.StorageTabUI",
             "UBOAT.Game.UI.Storage.StorageWindow", "UBOAT.Game.UI.Storage.StorageUICount", "UBOAT.Game.UI.Storage.StorageSlotUI",
             "UBOAT.Game.UI.Banners.BaseActivatorBanner", "UBOAT.Game.UI.CharacterSelectionUI",
-            "UBOAT.Game.UI.StoryPlayerCharacterUI", "UBOAT.Game.UI.StoryPlayerCharacterSlotUI" };
+            "UBOAT.Game.UI.StoryPlayerCharacterUI", "UBOAT.Game.UI.StoryPlayerCharacterSlotUI", "UBOAT.Game.UI.EquipmentUpgradeItemUI" };
 
         private static bool IsCall(object operand) => operand is MethodInfo m && m.Name == "RetrieveAsset"
             && m.IsGenericMethod && m.GetGenericArguments()[0] == typeof(Sprite) && m.GetParameters().Length == 3;
