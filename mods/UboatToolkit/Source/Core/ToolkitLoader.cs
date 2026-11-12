@@ -20,6 +20,7 @@ namespace UboatToolkit
                 Settings.Load();
                 DebugLog.Write("START", "UBOAT Toolkit wird geladen, Unity " + Application.unityVersion + ", Spiel " + Application.version);
                 DebugLog.DumpSettings("Start");
+                try { UboatToolkit.Modules.CacheCheck.Install(); } catch (Exception ce) { Debug.Log(Tag + " cache check: " + ce.Message); }
                 Harmony = new Harmony("djdomi.uboat.toolkit");
                 // Patch class by class: if one game method changed, only that feature fails, the rest still works.
                 int ok = 0, bad = 0;

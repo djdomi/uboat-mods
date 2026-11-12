@@ -296,6 +296,8 @@ namespace UboatToolkit
             Num(Tools, "GcSliceMs", "Speicher-Müllabfuhr: max. ms pro Bild (0 = Spielwert, kleiner = weniger Ruckler)", 0, 0, 10, 0.5f);
             Bool(Tools, "AutoCleanCache", "Cache aufräumen beim Spielstart: alte Daten-Cache, Absturzberichte, Mod-Logs (Spielstände nie)", true);
             Num(Tools, "AutoCleanDays", "  Dateien älter als x Tage", 14, 1, 90, 1);
+            Bool(Tools, "CacheCheck", "Mod-Cache prüfen: Mods, die das Spiel still ablehnen würde, neu bauen lassen (wirkt beim nächsten Start)", true);
+            Bool(Tools, "CacheCheckFirst", "  erst mit der Spiel-Prüfung testen (aus = jeden Start alle Mods neu bauen, langsam)", true);
             Num(Tools, "MemoryCleanMinutes", "Speicher aufräumen alle x Minuten (gegen wachsenden RAM, 0 = aus)", 30, 0, 120, 5);
             Num(Tools, "MaxShipsPerGroup", "Höchstens x Schiffe pro Konvoi gleichzeitig in 3D (0 = Spiel: 28, weniger = schneller)", 0, 0, 60, 1);
             Num(Tools, "MaxGroupsPerBattle", "Höchstens x Gruppen gleichzeitig im Gefecht (0 = Spiel: 4, weniger = schneller)", 0, 0, 10, 1);
