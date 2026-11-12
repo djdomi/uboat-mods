@@ -131,13 +131,14 @@ namespace UboatToolkit.Modules
                     foreach (var o in buffer) if (o != null) seen.Add(o);
                 }
 
-            int done = 0;
+            int done = 0, nDone = 0, nTransit = 0, nInside = 0, nBusy = 0;
             float stuckAfter = Settings.F("PortLoadingStuckSeconds");
             foreach (var o in seen)
             {
-                if (o.IsCompleted || o.CountLeft <= 0f || o.CountInTransit > 0f) continue;
+                if (o.IsCompleted || o.CountLeft <= 0f) { nDone++; continue; }
+                if (o.CountInTransit > 0f) { nTransit++; continue; }
                 bool portToBoat = !IsShip(o.SourceStorage, ship) || !IsShip(o.TargetStorage, ship);
-                if (!portToBoat) continue;
+                if (!portToBoat) { nInside++; continue; }
 
                 bool idle = o.CharacterAction == null;
                 bool stuck = false;
@@ -146,7 +147,7 @@ namespace UboatToolkit.Modules
                     if (progress.TryGetValue(o, out var p) && p.Key == o.CountLeft) stuck = Time.unscaledTime - p.Value > stuckAfter;
                     else progress[o] = new KeyValuePair<float, float>(o.CountLeft, Time.unscaledTime);
                 }
-                if (!idle && !stuck && !firstPatrol) continue;
+                if (!idle && !stuck && !firstPatrol) { nBusy++; continue; }
 
                 Util.Safe("Loading", () => StorageUtility.ResolveTransportOrderInstantly(o));
                 progress.Remove(o);
@@ -156,7 +157,8 @@ namespace UboatToolkit.Modules
             else if (seen.Count > 0 && Time.unscaledTime >= nextDiag)
             {
                 nextDiag = Time.unscaledTime + 30f;
-                Util.Log("Verladen: " + seen.Count + " Aufträge gefunden, keiner erledigt (angedockt " + ship.Docked + ", vor erster Feindfahrt " + firstPatrol + ")");
+                Util.Log("Verladen: " + seen.Count + " Aufträge gefunden, keiner erledigt (angedockt " + ship.Docked + ", vor erster Feindfahrt " + firstPatrol
+                    + "; fertig " + nDone + ", wird getragen " + nTransit + ", nur im Boot umräumen " + nInside + ", Crew arbeitet dran " + nBusy + ")");
             }
         }
 
