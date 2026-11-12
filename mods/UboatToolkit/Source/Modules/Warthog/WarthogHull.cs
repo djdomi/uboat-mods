@@ -149,7 +149,8 @@ namespace UboatToolkit.Modules.Warthog
         {
             UBOAT.Game.Scene.Entities.ShipEquipmentSlot slot = null;
             foreach (var s in ship.GetComponentsInChildren<UBOAT.Game.Scene.Entities.ShipEquipmentSlot>(true)) if (s.name == "Badge") { slot = s; break; }
-            var item = slot != null && slot.transform.childCount > 0 ? slot.transform.GetChild(slot.transform.childCount - 1).gameObject : null;
+            // the badge the game placed in the slot (its Item), not just the slot's last child (that can be e.g. "Banner Attachment Point")
+            var item = slot != null && slot.Item != null ? slot.Item.gameObject : null;
             int id = item != null ? item.GetInstanceID() : 0;
             if (id == badgeOf && (badgeCopy != null) == (item != null)) return;
             if (badgeCopy != null) Object.Destroy(badgeCopy);
