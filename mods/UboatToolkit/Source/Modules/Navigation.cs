@@ -15,7 +15,7 @@ namespace UboatToolkit.Modules
         private SandboxPlayerWolfpack wolfpack;
         private TimeCompressionController tcc;
         private GameTime gameTime;
-        private float lastD = -1f, lastT, rate, nextCheck;
+        private float lastD = -1f, lastT, rate, nextCheck, quietUntil;
 
         public override void Frame()
         {
@@ -40,11 +40,12 @@ namespace UboatToolkit.Modules
             if (!tcc.TimeCompression || gameTime.ArtificialTimeScale <= 1.5f || rate <= 0f) return;
             // LandDistance is in km. At high time compression the boat covers hundreds of km per real
             // minute, so the "seconds" rule alone fired far out at sea. Only warn when land is really near.
-            if (d > Settings.F("AntiGroundingKm")) return;
+            if (d > Settings.F("AntiGroundingKm") || now < quietUntil) return;
             if (d / rate < Settings.F("AntiGroundingSeconds"))
             {
                 tcc.TimeCompression = false;
                 rate = 0f;
+                quietUntil = now + 30f;   // no repeat right away
                 ToolkitRunner.ShowNotice("Land voraus! Zeitraffer gestoppt.");
             }
         }
