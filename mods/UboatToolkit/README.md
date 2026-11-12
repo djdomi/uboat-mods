@@ -121,6 +121,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Waffen & Torpedos
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Geschütz-Kreisel: KI gleicht Wellen sofort aus, eigenes Zielen bleibt auf dem Punkt | GunGyroCrew, GunGyroManual |
 | QoL | NEU: KI-Schützen: schneller einschießen, beim Zielwechsel mehr behalten, nachts weniger Streuung | GunnerRangingSpeed, GunnerKeepRanging, GunnerNightPenalty |
 | QoL | NEU: Geräte: Umschauen, Zoom, Fadenkreuz, Drehknöpfe direkt, AOB live | StLookMode, StMinFov, StDialDirect, StAobLive |
 | QoL | NEU: Sehrohr-Knopf öffnet das zuletzt benutzte Sehrohr | ScopeStationLast |

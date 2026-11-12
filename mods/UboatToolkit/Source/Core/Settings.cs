@@ -345,6 +345,8 @@ namespace UboatToolkit
             Num(QoL, "DeckGunShellSpeed", "88mm: Geschossgeschwindigkeit (1 = normal)", 1, 0.5f, 5, 0.25f);
             Num(QoL, "AAGunShellSpeed", "Flak: Geschossgeschwindigkeit (1 = normal)", 1, 0.5f, 5, 0.25f);
             Num(QoL, "GunnerAccuracy", "KI-Schützen: Treffsicherheit (0 = Spiel, 1 = keine Streuung)", 0, 0, 1, 0.1f);
+            Bool(QoL, "GunGyroCrew", "Geschütz-Kreisel: KI-Schützen gleichen Wellen sofort aus (kein Nachzittern)", true);
+            Bool(QoL, "GunGyroManual", "Geschütz-Kreisel: wenn du selbst zielst, bleibt der Zielpunkt trotz Wellen stehen", true);
             Num(QoL, "GunnerRangingSpeed", "KI-Schützen: schneller einschießen (1 = Spiel)", 2, 1, 5, 0.25f);
             Num(QoL, "GunnerKeepRanging", "KI-Schützen: beim Zielwechsel so viel % vom Einschießen behalten (55 = Spiel)", 75, 0, 100, 5);
             Num(QoL, "GunnerNightPenalty", "KI-Schützen: Zusatz-Streuung, wenn Ziel nicht mit Augen gesehen, in % (100 = Spiel)", 50, 0, 100, 10);
