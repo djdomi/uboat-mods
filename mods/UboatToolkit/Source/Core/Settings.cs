@@ -494,6 +494,8 @@ namespace UboatToolkit
             Num(Cheat, "CheatAddReputationAmount", "  Punkte pro Klick (für die zwei Knöpfe unten)", 10, 1, 1000000, 1);
             Bool(Cheat, "CheatAddReputation", "  >> Ruf-Punkte dazu (damit bezahlst du Forschung)", false);
             Bool(Cheat, "CheatAddUpgradePoints", "  >> Upgrade-Punkte dazu", false);
+            Num(Cheat, "CheatAddSailorsAmount", "Matrosen pro Klick (für den Knopf darunter)", 5, 1, 200, 1);
+            Bool(Cheat, "CheatAddSailors", "  >> Matrosen anwerben (neue Männer kommen an Bord)", false);
             Bool(Cheat, "CheatUnlockAll", "  >> Alle Upgrades + alle Boote freischalten", false);
             Num(Cheat, "CheatTorpedoSpeed", "Torpedos x schneller (Rechner zielt mit, Treffer sicherer)", 1, 1, 5, 0.25f);
             Bool(Cheat, "CheatQuickTravel", "Schnellreise ans Kursziel per Taste (Tab „Tasten“)", false);

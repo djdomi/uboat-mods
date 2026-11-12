@@ -16,8 +16,11 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             if (Settings.B("AchievementsOn"))
-                foreach (var pc in Resources.FindObjectsOfTypeAll<PlayerCareer>())
-                    if (pc != null) Traverse.Create(pc).Field("isPlaythroughLockedOutOfAchievements").SetValue(false);
+            {
+                // Searching all objects every second cost 40-46 ms (part of the lag). The career is cached.
+                var pc = Util.Career;
+                if (pc != null) Traverse.Create(pc).Field("isPlaythroughLockedOutOfAchievements").SetValue(false);
+            }
 
             var o = Settings.Get("CheatAllAchievements");
             if (o != null && o.On) { o.Value = 0; Util.Safe("AllAchievements", UnlockAll); }

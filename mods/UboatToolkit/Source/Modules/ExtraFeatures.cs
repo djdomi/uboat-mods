@@ -20,22 +20,44 @@ namespace UboatToolkit.Modules
         private bool energySaved;
         public static string TubeLine;
 
+        // Searching all loaded objects for these took 150-200 ms each second (lag every few seconds).
+        // They are found once and kept; the skill cheats only need to run every 10 seconds.
+        private static CharacterClasses classesCache;
+        private static PlayerCrew crewCache;
+        private static float nextSkills;
+
+        private static IEnumerable<CharacterClass> Classes()
+        {
+            if (classesCache == null) classesCache = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault();
+            return classesCache?.GetClassesDirect();
+        }
+
+        private static PlayerCrew Crew()
+        {
+            if (crewCache == null) crewCache = Object.FindObjectOfType<PlayerCrew>();
+            return crewCache;
+        }
+
         public override void Tick()
         {
             var ship = Util.PlayerShip;
             EnergySaver(ship);
             Tubes();
+            bool any = Settings.B("CheatSkillsAnyLevel");
+            if (!any && skillLevels.Count > 0) SkillLevels(false);
+            if (Time.unscaledTime < nextSkills) return;
+            nextSkills = Time.unscaledTime + 10f;
             if (Settings.B("CheatAllSkills")) AllSkills();
-            SkillLevels(Settings.B("CheatSkillsAnyLevel"));
+            if (any) SkillLevels(true);
             if (Settings.B("CheatLinguist")) Linguists();
         }
 
         // Everyone who speaks one foreign language ("... Speaker") also gets "Linguist" (all languages).
         private static void Linguists()
         {
-            var classes = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault()?.GetClassesDirect();
+            var classes = Classes();
             var ling = classes?.SelectMany(c => c.Skills).FirstOrDefault(x => x != null && x.Name == "Linguist");
-            var crew = Object.FindObjectOfType<PlayerCrew>();
+            var crew = Crew();
             if (ling == null || crew?.Characters == null) return;
             foreach (var ch in crew.Characters)
             {
@@ -58,9 +80,9 @@ namespace UboatToolkit.Modules
                 return;
             }
             var list = new List<CharacterSkill>();
-            var classes = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault()?.GetClassesDirect();
+            var classes = Classes();
             if (classes != null) list.AddRange(classes.SelectMany(c => c.Skills));
-            var crew = Object.FindObjectOfType<PlayerCrew>();
+            var crew = Crew();
             if (crew?.Characters != null)
                 foreach (var ch in crew.Characters)
                     if (ch?.Data?.AvailableSkills != null) list.AddRange(ch.Data.AvailableSkills);
@@ -111,10 +133,10 @@ namespace UboatToolkit.Modules
         // Cheat: every officer may choose skills of all classes.
         private static void AllSkills()
         {
-            var classes = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault()?.GetClassesDirect();
+            var classes = Classes();
             if (classes == null) return;
             var all = classes.SelectMany(c => c.Skills).GroupBy(s => s.Name).Select(g => g.First()).ToList();
-            var crew = Object.FindObjectOfType<PlayerCrew>();
+            var crew = Crew();
             if (crew?.Characters == null) return;
             foreach (var ch in crew.Characters)
             {
@@ -134,7 +156,7 @@ namespace UboatToolkit.Modules
 
         public static void DrawCrewTab()
         {
-            var crew = Object.FindObjectOfType<PlayerCrew>();
+            var crew = Crew();
             if (Util.PlayerShip == null || crew?.Characters == null) { Imgui.Label("Nur im Spiel verfügbar."); return; }
             var db = Traverse.Create(typeof(UBOAT.Game.Scene.Tasks.ExpandedSchedulesController)).Field("characterRolesDatabase").GetValue() as ICharacterRolesDatabase;
             Imgui.Label("Offiziere: Rolle mit Klick wechseln. „Skills bearbeiten“ öffnet den Skill-Editor (alle Skills aller Klassen).");
@@ -166,7 +188,7 @@ namespace UboatToolkit.Modules
         private static PlayableCharacterData editSkills;
         private static void SkillEditor(PlayableCharacterData d)
         {
-            var classes = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault()?.GetClassesDirect();
+            var classes = Classes();
             if (classes == null) { Imgui.Label("  Skill-Liste nicht gefunden."); return; }
             var all = classes.SelectMany(c => c.Skills).Where(x => x != null).GroupBy(x => x.Name).Select(g => g.First()).OrderBy(x => x.Name).ToList();
             var owned = d.Statuses.OfType<CharacterSkill>().ToList();

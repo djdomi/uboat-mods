@@ -62,13 +62,19 @@ namespace UboatToolkit.Modules
     [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.Data.GameDataReference), "GetBoolean", new System.Type[0])]
     internal static class GameTuning_DevConsolePatch
     {
-        private static object consoleRef;
+        private static System.Reflection.FieldInfo consoleField;
+        private static bool consoleLooked;   // look the field up once: the type search scans every assembly
         private static void Postfix(UBOAT.Game.Core.Data.GameDataReference __instance, ref bool __result)
         {
             if (__result || !Settings.B("DevConsole")) return;
-            if (consoleRef == null)
-                consoleRef = HarmonyLib.AccessTools.Field(HarmonyLib.AccessTools.TypeByName("UBOAT.Game.UI.DevConsole.DevConsole"), "enableDeveloperConsole")?.GetValue(null);
-            if (ReferenceEquals(__instance, consoleRef)) __result = true;
+            if (!consoleLooked)
+            {
+                consoleLooked = true;
+                var t = HarmonyLib.AccessTools.TypeByName("UBOAT.Game.UI.DevConsole.DevConsole");
+                consoleField = t == null ? null : HarmonyLib.AccessTools.Field(t, "enableDeveloperConsole");
+            }
+            var consoleRef = consoleField?.GetValue(null);
+            if (consoleRef != null && ReferenceEquals(__instance, consoleRef)) __result = true;
         }
     }
 }

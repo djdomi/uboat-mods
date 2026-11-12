@@ -15,8 +15,16 @@ namespace UboatToolkit.Modules
         private CharacterGenerator generator;
         private int failures;
 
+        private int pendingSailors;
+
         public override void Tick()
         {
+            if (Settings.B("CheatAddSailors"))
+            {
+                Settings.Set("CheatAddSailors", 0);
+                pendingSailors += Mathf.Max(1, Mathf.RoundToInt(Settings.F("CheatAddSailorsAmount")));
+            }
+            if (pendingSailors > 0) Util.Safe("AddSailors", AddSailors);
             if (!Settings.B("FullCrewAtStart") || failures >= 3) return;
             if (!Util.ShipReady) return;                            // not in main menu / commander creation
             if (career == null) career = Util.Career;
@@ -40,6 +48,23 @@ namespace UboatToolkit.Modules
             }
             catch (System.Exception e) { failures++; Util.Log("Volle Crew: Fehler beim Anwerben (" + failures + "/3): " + e.Message); }
             if (added > 0) Util.Log("Volle Crew: " + added + " Matrosen angeworben, jetzt " + (have + added) + " von " + target);
+        }
+    
+        // Cheat button: recruit N sailors at any time, two per second (same way as above).
+        private void AddSailors()
+        {
+            if (!Util.ShipReady) return;
+            if (career == null) career = Util.Career;
+            if (generator == null) generator = Resources.FindObjectsOfTypeAll<CharacterGenerator>().FirstOrDefault();
+            if (career == null || generator == null) return;
+            for (int i = 0; i < 2 && pendingSailors > 0; i++)
+            {
+                var data = generator.GenerateCharacterData("German Sailor", PlayableCharacterData.Type.Sailor);
+                if (data == null) { pendingSailors = 0; ToolkitRunner.ShowNotice("Matrosen anwerben fehlgeschlagen", 4f); return; }
+                career.AddCharacter(data);
+                pendingSailors--;
+            }
+            if (pendingSailors == 0) ToolkitRunner.ShowNotice("Neue Matrosen sind an Bord", 4f);
         }
     }
 }
