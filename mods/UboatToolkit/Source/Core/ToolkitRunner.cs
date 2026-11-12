@@ -52,6 +52,8 @@ namespace UboatToolkit
             Modules.Add(new Modules.StorageExpander());
             Modules.Add(new Modules.MemoryCleaner());
             Modules.Add(new Modules.CacheCleaner());
+            Modules.Add(new Modules.GameFixes());
+            Modules.Add(new Modules.Controls());
             Modules.Add(new Modules.GameTuning());
             Modules.Add(new Modules.PerfLogger());
             Modules.Add(new Modules.QueueProfiler());
