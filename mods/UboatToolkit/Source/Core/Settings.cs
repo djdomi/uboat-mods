@@ -50,6 +50,7 @@ namespace UboatToolkit
             Bool(QoL, "NoCrewCollisions", "Crew läuft durcheinander durch (#21)", true);
             Bool(QoL, "CrewLod", "Crew-Detailstufen: Männer, die du nicht siehst, überlegen seltener (mehr FPS, Arbeit läuft normal weiter)", true);
             Num(QoL, "CrewLodFrames", "  nicht sichtbare Männer überlegen nur jedes x. Bild (1 = jedes Bild)", 6, 1, 60, 1);
+            Num(QoL, "CrewLodIdleFrames", "  Männer ohne Arbeit (stehen, ruhen, rauchen, schlafen) überlegen nur jedes x. Bild, auch sichtbar (1 = aus)", 10, 1, 60, 1);
             Bool(QoL, "BallastDieselBlow", "Ballast: aufgetaucht Tanks mit Diesel-Abgas leerblasen (spart Pressluft) (#23)", true);
             Num(QoL, "BallastDieselBlowRate", "  Diesel-Ausblasen: % Tank pro Sekunde", 2, 0.5f, 20, 0.5f);
             Num(QoL, "BallastFastDive", "Ballast: schneller fluten beim Tauchen (1 = normal) (#23)", 1, 1, 5, 0.25f);

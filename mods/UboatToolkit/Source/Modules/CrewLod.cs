@@ -16,7 +16,7 @@ namespace UboatToolkit.Modules
     public class CrewLod : ModuleBase
     {
         internal static bool On;
-        internal static int Frames = 1;
+        internal static int Frames = 1, IdleFrames = 1;
         internal static bool Busy;   // alarm / emergency
         private float next;
 
@@ -26,6 +26,7 @@ namespace UboatToolkit.Modules
             next = Time.unscaledTime + 0.5f;
             On = Settings.B("CrewLod");
             Frames = Mathf.Max(1, Mathf.RoundToInt(Settings.F("CrewLodFrames")));
+            IdleFrames = Mathf.Max(1, Mathf.RoundToInt(Settings.F("CrewLodIdleFrames")));
             var ship = Util.PlayerShip;
             Busy = ship != null && (ship.Alarmed || ship.Emergency);
         }
@@ -35,17 +36,42 @@ namespace UboatToolkit.Modules
         // true = skip the thinking this frame
         internal static bool Skip(CharacterAI ai)
         {
-            if (!On || Frames <= 1 || Busy || ai == null || Time.timeScale <= 0f) return false;
+            if (!On || Busy || ai == null || Time.timeScale <= 0f) return false;
             if (!owner.TryGetValue(ai, out var ch))
             {
                 if (owner.Count > 3000) owner.Clear();
                 ch = ai.GetComponent<InteractiveCharacter>();
                 owner[ai] = ch;
             }
-            if (ch == null || ch.IsVisible) return false;
+            if (ch == null) return false;
+            int n = Frames;
+            if (ch.IsVisible)
+            {
+                // Visible men only when they are idle (standing around, resting, smoking, chatting, sleeping):
+                // they notice a new job a fraction of a second later, nobody else is affected.
+                if (IdleFrames <= 1 || !Idle(ai)) return false;
+                n = IdleFrames;
+            }
+            else if (Idle(ai)) n = Mathf.Max(n, IdleFrames);
+            if (n <= 1) return false;
             int id = ai.GetInstanceID();
             if (id < 0) id = -id;
-            return (Time.frameCount + id) % Frames != 0;
+            return (Time.frameCount + id) % n != 0;
+        }
+
+        // Idle = something is active, and everything active is free time (idle, rest, smoke, chat, sleep).
+        private static bool Idle(CharacterAI ai)
+        {
+            var act = ai.GetActiveBehavioursDirect();
+            if (act == null || act.Count == 0) return false;
+            for (int i = 0; i < act.Count; i++)
+            {
+                var b = act[i];
+                if (b == null) return false;
+                if (!(b is UBOAT.Game.Core.AI.Behaviours.IdleBehaviour || b is UBOAT.Game.Core.AI.Behaviours.IRelaxBehaviour)) return false;
+                if (b.State != AIBehaviourState.Active) return false;
+            }
+            return true;
         }
     }
 

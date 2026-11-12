@@ -840,6 +840,7 @@ namespace UboatToolkit
             m["Zweites Turmluk + Seitentüren Deck <-> Turm (Crew nimmt den kürzesten Weg)"] = "Second tower hatch + side doors deck <-> tower (crew takes the shortest way)";
             m["Crew-Detailstufen: Männer, die du nicht siehst, überlegen seltener (mehr FPS, Arbeit läuft normal weiter)"] = "Crew detail levels: men you cannot see think less often (more FPS, work goes on normally)";
             m["  nicht sichtbare Männer überlegen nur jedes x. Bild (1 = jedes Bild)"] = "  men out of sight think only every x-th frame (1 = every frame)";
+            m["  Männer ohne Arbeit (stehen, ruhen, rauchen, schlafen) überlegen nur jedes x. Bild, auch sichtbar (1 = aus)"] = "  men without work (standing, resting, smoking, sleeping) think only every x-th frame, even when visible (1 = off)";
             return m;
         }
     }
