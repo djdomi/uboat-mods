@@ -206,6 +206,7 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Leistung & Tools
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: F10-Menü größer, dunkler Hintergrund (einstellbar), Titel ziehen = verschieben, Ecke ziehen = Größe, Reiter brechen um | MenuOpacity, MenuWidth, MenuHeight, MenuX, MenuY |
 | QoL | NEU: Fixes für andere Mods: Preis-Menü, Uniformen, Bifrost (nur aktiv, wenn installiert) | FixSupplyPriceMenu, FixUniformRebuild, FixBifrost |
 | QoL | NEU: Fix: Sehrohr ruckelt beim ersten Öffnen nicht | FixScopeStall, ScopePreload |
 | QoL | NEU: Laden: Zeit-Budget, keine Müllabfuhr beim Laden | FastLoadBudgetMs, FastLoadNoGc |
