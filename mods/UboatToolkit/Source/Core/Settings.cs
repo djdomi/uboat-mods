@@ -118,6 +118,9 @@ namespace UboatToolkit
             Bool(QoL, "SeaLayerHearing", "  Unter der Sprungschicht h\u00f6rt der eigene Horcher Schiffe oben schlechter", true);
             Bool(QoL, "SeaLayerNote", "  Kurze Meldung beim Unter-/\u00dcberqueren der Sprungschicht", true);
             Bool(QoL, "NoPauseBlur", "Pause ohne Unsch\u00e4rfe und ohne dunkle Einblendung", false);
+            Bool(QoL, "NoEdgeScroll", "Kein Bild-Wegrutschen am Bildschirmrand (Schnittansicht + Deck-Sprung)", false);
+            Bool(QoL, "FixCarrierConvoy", "Fix: Konvois mit Flugzeugtr\u00e4ger fahren normal (geparkte Flugzeuge bremsen nicht)", true);
+            Bool(QoL, "FixScopeStall", "Fix: kein Ruckeln beim Zoomen von Sehrohr/UZO (Bilder bleiben geladen)", true);
             Bool(QoL, "BerlinTime", "Alle Uhren zeigen Berliner Zeit (keine Zeitzonen-Meldungen)", false);
             Bool(QoL, "FixSpeedRange", "Fix: kein Tempo-/Reichweiten-Verlust bei hohem Zeitraffer (lernt Werte bei normaler Zeit)", true);
             Bool(QoL, "FixSkipperDead", "Fix: Kommandant tot/verwundet \u2192 Warnung vor dem Hafen + keine Gespr\u00e4che, die h\u00e4ngen", true);
@@ -232,6 +235,16 @@ namespace UboatToolkit
             Key("KeyRemoteTorpedo", "Fernschuss: Torpedo auf nächsten Gegner (Cheat muss an sein)", "Ctrl+Shift+F");
             Key("KeySinkConvoy", "Sink the convoy", "");
             Key("KeyHealAll", "Alle heilen", "");
+            Key("KeyGearStop", "Maschine: Stopp", "Alt+Alpha0");
+            Key("KeyGear1", "Maschine: Voraus 1", "Alt+Alpha1");
+            Key("KeyGear2", "Maschine: Voraus 2", "Alt+Alpha2");
+            Key("KeyGear3", "Maschine: Voraus 3", "Alt+Alpha3");
+            Key("KeyGear4", "Maschine: Voraus 4", "Alt+Alpha4");
+            Key("KeyGear5", "Maschine: Voraus 5 (\u00c4u\u00dferste)", "Alt+Alpha5");
+            Key("KeyGearBack1", "Maschine: Zur\u00fcck 1", "Ctrl+Alt+Alpha1");
+            Key("KeyGearBack2", "Maschine: Zur\u00fcck 2", "Ctrl+Alt+Alpha2");
+            Key("KeyGearBack3", "Maschine: Zur\u00fcck 3", "Ctrl+Alt+Alpha3");
+            Key("KeyGearBack4", "Maschine: Zur\u00fcck 4", "Ctrl+Alt+Alpha4");
             Key("KeyHotspots", "Bremsen-Finder an/aus", "F11");
 
             // ---------- Tools ----------

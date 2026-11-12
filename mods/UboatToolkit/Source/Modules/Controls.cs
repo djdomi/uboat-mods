@@ -36,6 +36,17 @@ namespace UboatToolkit.Modules
             if (Settings.B("LeavePortButton")) Util.Safe("Controls.LeavePort", () => LeavePort(ship));
         }
 
+        // Engine telegraph on keys (Tasten tab).
+        private static readonly string[] gearKeys = { "KeyGearStop", "KeyGear1", "KeyGear2", "KeyGear3", "KeyGear4", "KeyGear5", "KeyGearBack1", "KeyGearBack2", "KeyGearBack3", "KeyGearBack4" };
+        private static readonly int[] gears = { 0, 1, 2, 3, 4, 5, -2, -3, -4, -5 };
+        public override void Frame()
+        {
+            var ship = Util.PlayerShip;
+            if (ship == null) return;
+            for (int i = 0; i < gearKeys.Length; i++)
+                if (Keys.Down(gearKeys[i])) { Util.Safe("Controls.Gear", () => ship.OrderEngineGear(gears[i], false)); return; }
+        }
+
         private void OnSeen(DirectObservationAddedEvent e)
         {
             if (!Settings.B("AutoCrashDive")) return;
@@ -164,6 +175,51 @@ namespace UboatToolkit.Modules
             eq.Initialize();
             __result = eq;
             return false;
+        }
+    }
+
+    // No scrolling of the section view when the mouse touches the screen edge.
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.SectionViewCameraController), "ParseMouse")]
+    internal static class Controls_EdgeScrollPatch
+    {
+        private static void Prefix(ref bool ___wasOnCentralPartOfScreen) { if (Settings.B("NoEdgeScroll")) ___wasOnCentralPartOfScreen = false; }
+    }
+    // No jump to deck view when the mouse touches the top/bottom edge.
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.SectionViewCameraController), "Update")]
+    internal static class Controls_EdgeDeckPatch
+    {
+        public static float Top() => Settings.B("NoEdgeScroll") ? 2f : 0.98f;
+        public static float Bottom() => Settings.B("NoEdgeScroll") ? -1f : 0.02f;
+        private static IEnumerable<HarmonyLib.CodeInstruction> Transpiler(IEnumerable<HarmonyLib.CodeInstruction> code)
+        {
+            var list = code.ToList();
+            var top = list.Where(c => c.opcode == System.Reflection.Emit.OpCodes.Ldc_R4 && c.operand is float f && f == 0.98f).ToList();
+            var bottom = list.Where(c => c.opcode == System.Reflection.Emit.OpCodes.Ldc_R4 && c.operand is float f && f == 0.02f).ToList();
+            if (top.Count != 1 || bottom.Count != 1) return list;   // game changed: leave untouched
+            top[0].opcode = System.Reflection.Emit.OpCodes.Call; top[0].operand = AccessTools.Method(typeof(Controls_EdgeDeckPatch), "Top");
+            bottom[0].opcode = System.Reflection.Emit.OpCodes.Call; bottom[0].operand = AccessTools.Method(typeof(Controls_EdgeDeckPatch), "Bottom");
+            return list;
+        }
+    }
+
+    // Convoys with a carrier: parked aircraft (speed 0) no longer hold the whole convoy back.
+    [HarmonyPatch(typeof(SandboxMobileGroup), "UpdateParametersFromMembers")]
+    internal static class Controls_CarrierConvoyPatch
+    {
+        private const EntityTypeCategory skip = EntityTypeCategory.NotDetectableDirectly | EntityTypeCategory.SonarDecoy | EntityTypeCategory.Pontoon | EntityTypeCategory.Iceberg | EntityTypeCategory.Wreckage | EntityTypeCategory.CarrierBorneAircraft;
+        private static void Postfix(SandboxMobileGroup __instance, ref float ___maxVelocity, bool allowAIUpdate)
+        {
+            if (!Settings.B("FixCarrierConvoy")) return;
+            var list = __instance.Entities;
+            if (list == null || !list.Any(e => e?.Blueprint != null && (e.Blueprint.Type.Category & EntityTypeCategory.CarrierBorneAircraft) != 0)) return;
+            float min = float.PositiveInfinity;
+            foreach (var e in list)
+                if (e?.Blueprint != null && (e.Blueprint.Type.Category & skip) == 0) min = Mathf.Min(min, (float)e.Velocity);
+            if (float.IsPositiveInfinity(min)) return;
+            float want = min * 0.0002777777f * (float)Traverse.Create(typeof(SandboxGroup)).Field("sandbox").GetValue<UBOAT.Game.Sandbox.Sandbox>().UnspawnedGroupVelocityScale;
+            if (want <= ___maxVelocity + 0.0001f) return;
+            ___maxVelocity = want;
+            if (allowAIUpdate && __instance.AI != null && !__instance.IsBeingDestroyed) __instance.AI.UpdateAI();
         }
     }
 }

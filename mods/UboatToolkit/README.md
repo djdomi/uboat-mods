@@ -19,6 +19,8 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Zeitraffer & Navigation
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Konvois mit Flugzeugträger fahren normal | FixCarrierConvoy |
+| QoL | NEU: Maschinen-Telegraf auf Tasten (Alt+0 bis Alt+5, Strg+Alt+1-4 zurück) | KeyGearStop, KeyGear1-5, KeyGearBack1-4 |
 | QoL | NEU: Meeresboden immer laden bei flachem Wasser (unter ~300 m) | SeaFloorAlways |
 | QoL | NEU: Berliner Zeit auf allen Uhren | BerlinTime |
 | QoL | NEU: Karte zeigt genaue Wassertiefe unter der Maus | MapActualDepth |
@@ -147,6 +149,8 @@ Sortiert nach Bereich. Alles einzeln schaltbar im F10-Menü und in der INI.
 ### Leistung & Tools
 | Art | Funktion | Schlüssel in der INI |
 |---|---|---|
+| QoL | NEU: Kein Ruckeln beim Zoomen von Sehrohr/UZO | FixScopeStall |
+| QoL | NEU: Kein Bild-Wegrutschen am Bildschirmrand | NoEdgeScroll |
 | QoL | Schneller laden | FastLoading |
 | Tool | NEU: Cache aufräumen beim Start (alter Daten-Cache, Absturzberichte, Logs) | AutoCleanCache, AutoCleanDays |
 | Tool | Weniger Schiffe/Gruppen gleichzeitig in 3D | MaxShipsPerGroup, MaxGroupsPerBattle |
