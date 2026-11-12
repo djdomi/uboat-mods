@@ -35,6 +35,7 @@ namespace UboatToolkit.Modules.Warthog
         internal static readonly List<Luke> All = new List<Luke>();
         private static object cachedFor;
         private bool lastOn = true;
+        private bool rawMain, stableMain; private float rawSince;
 
         private static void Collect(PlayerShip ship)
         {
@@ -96,7 +97,13 @@ namespace UboatToolkit.Modules.Warthog
             if (on != lastOn) { Util.Log("[Warthog] hatch: all hatches " + (on ? "ON" : "OFF (game: single hatch)")); lastOn = on; }
             var main = ship.ExteriorHatch;
             bool mustClose = Util.SafeGet(() => ship.ShouldExteriorHatchBeClosed, false);
-            bool mainOpen = main != null && !main.Locked;
+            bool rawOpen = main != null && !main.Locked;
+            // 0.3.1: the other hatches follow Turmluk 1 only once it has stayed open/closed for 1.5 s (the game opens and
+            // shuts the tower hatch for a moment e.g. after switching boats -> all hatches flapped). Diving/alarm
+            // (mustClose below) still closes everything at once.
+            if (rawOpen != rawMain) { rawMain = rawOpen; rawSince = Time.unscaledTime; }
+            if (Time.unscaledTime - rawSince >= 1.5f) stableMain = rawOpen;
+            bool mainOpen = stableMain;
             foreach (var l in All)
             {
                 if (l.IsMain) continue;
