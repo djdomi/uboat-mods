@@ -100,3 +100,36 @@ namespace UboatToolkit.Modules
         private static System.Exception Finalizer(System.Exception __exception) => __exception is System.NullReferenceException ? null : __exception;
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Skip the start videos (studio + publisher logo) and go straight to the main menu.
+    // Works from the moment the mod is loaded; the very first Unity logo comes before any mod and cannot be skipped.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.IntroScene), "Update")]
+    internal static class SkipStartupIntros
+    {
+        private static bool done;
+        private static void Prefix(UBOAT.Game.UI.IntroScene __instance)
+        {
+            if (done) return;
+            try
+            {
+                if (!Settings.B("SkipStartupIntros")) { done = true; return; }
+                var t = HarmonyLib.Traverse.Create(__instance);
+                if (System.Convert.ToInt32(t.Field("launchMode").GetValue()) != 0) { done = true; return; }   // only normal start
+                var warn = t.Field("gameFilesCorruptedWarning").GetValue<UnityEngine.GameObject>();
+                if (warn != null && warn.activeSelf) return;                                                   // let the player read that
+                if (t.Field("sceneResource").GetValue() == null) return;                                       // menu not requested yet
+                int stage = t.Field("stage").GetValue<int>();
+                if (stage > 1) { done = true; return; }
+                var vp = t.Field("videoPlayer").GetValue();
+                if (vp != null) HarmonyLib.AccessTools.Method(vp.GetType(), "Stop")?.Invoke(vp, null);
+                t.Field("wasPlaying").SetValue(true);
+                t.Field("stage").SetValue(1);   // the game's own code now opens the main menu this frame
+                done = true;
+                Util.Log("Start-Intros übersprungen");
+            }
+            catch (System.Exception e) { done = true; Util.Log("Start-Intros: " + e.Message); }
+        }
+    }
+}

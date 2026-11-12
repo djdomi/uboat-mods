@@ -841,6 +841,8 @@ namespace UboatToolkit
             m["Crew-Detailstufen: Männer, die du nicht siehst, überlegen seltener (mehr FPS, Arbeit läuft normal weiter)"] = "Crew detail levels: men you cannot see think less often (more FPS, work goes on normally)";
             m["  nicht sichtbare Männer überlegen nur jedes x. Bild (1 = jedes Bild)"] = "  men out of sight think only every x-th frame (1 = every frame)";
             m["  Männer ohne Arbeit (stehen, ruhen, rauchen, schlafen) überlegen nur jedes x. Bild, auch sichtbar (1 = aus)"] = "  men without work (standing, resting, smoking, sleeping) think only every x-th frame, even when visible (1 = off)";
+            m["Start-Videos (Logos) beim Spielstart überspringen"] = "Skip the start videos (logos) when the game starts";
+            m["Start-Intros übersprungen"] = "Start videos skipped";
             return m;
         }
     }
