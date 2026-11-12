@@ -36,36 +36,4 @@ namespace UboatToolkit.Modules
             start = float.NaN; last = null;
         }
     }
-
-    // Submerged with the orbit camera: the camera stays below the water surface (you are "blind" down there).
-    [HarmonyPatch(typeof(SectionViewCameraController), "UpdateTransformNormalMode")]
-    internal static class CameraTools_OrbitPatch
-    {
-        private static float ceiling = float.NaN;
-        private static Weather weather;
-
-        private static void Prefix(SectionViewCameraController __instance)
-        {
-            if (float.IsNaN(ceiling) || __instance.DistancePresetIndex != 3) return;
-            var r = __instance.FarCameraRotation;
-            if (r.y > ceiling) { r.y = ceiling; __instance.FarCameraRotation = r; }
-        }
-
-        private static void Postfix(SectionViewCameraController __instance, PlayerShip ___playerShip)
-        {
-            var ship = ___playerShip;
-            if (!Settings.B("CamOrbitUnderwater") || ship == null || __instance.DistancePresetIndex != 3 || ship.DeckDepth < 3f) { ceiling = float.NaN; return; }
-            if (weather == null) weather = Object.FindObjectOfType<Weather>();
-            var cam = Camera.main;
-            if (weather == null || cam == null) { ceiling = float.NaN; return; }
-            float sea = weather.Sea.VerticalOffset;
-            float y = cam.transform.position.y;
-            float dt = Mathf.Min(Time.unscaledDeltaTime, 0.09f);
-            float now = __instance.FarCameraRotation.y;
-            if (float.IsNaN(ceiling)) ceiling = 25f;
-            if (y > sea - 1.5f) ceiling = Mathf.Min(ceiling, now) - 90f * dt;
-            else if (y < sea - 4f) ceiling += 20f * dt;
-            ceiling = Mathf.Clamp(ceiling, -100f, 25f);
-        }
-    }
 }

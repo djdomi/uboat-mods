@@ -215,6 +215,12 @@ namespace UboatToolkit
             Bool(QoL, "CamProtectScripted", "  bei Zwischensequenzen nicht eingreifen", true);
             Bool(QoL, "StationZoom", "Kamera: an Ger\u00e4ten (Horcher, Vorhaltrechner ...) zoomt Strg + Mausrad", true);
             Bool(QoL, "CamOrbitUnderwater", "Kamera: getaucht bleibt die Au\u00dfenkamera unter Wasser (realistisch)", false);
+            Num(QoL, "OrbitMargin", "  Abstand unter der Wasseroberfläche (m)", 1.5f, 0, 10, 0.25f);
+            Num(QoL, "OrbitGrace", "  Sehrohr gerade über Wasser: Kamera frei für ... Sekunden", 1.5f, 0, 10, 0.25f);
+            Num(QoL, "OrbitGain", "  Nachführ-Stärke", 1, 0.1f, 5, 0.1f);
+            Num(QoL, "OrbitTrack", "  Nachführen (Grad pro Sekunde)", 90, 1, 360, 5);
+            Num(QoL, "OrbitRelax", "  Freigeben (Grad pro Sekunde)", 30, 1, 360, 5);
+            Bool(QoL, "OrbitAnticipate", "  Mausbewegung nach oben vorher abfangen", true);
             Bool(QoL, "FixWolfpackRetry", "Fix: Wolfsrudel geht nicht verloren, wenn das BdU gerade funkt", true);
             Bool(QoL, "Wolfpack", "Wolfsrudel-Einstellungen an (Datum, Chance, Boote, Ziel-BRT unten)", false);
             Num(QoL, "WolfpackFrom", "  Rudel ab: 0 = Sep 1940, 1 = Jul 1940, 2 = Nov 1940, 3 = Jan 1941, 4 = 8. Mai 1941 (Spiel)", 0, 0, 4, 1);
@@ -408,6 +414,7 @@ namespace UboatToolkit
             Bool(Tools, "RainGearLog", "Log: Regenkleidung an/aus je Mann", false);
             Bool(Tools, "HatchLog", "Log: Luken-Durchgang Bild für Bild", false);
             Bool(Tools, "CamLog", "Log: Kamera-Zoom", false);
+            Bool(Tools, "OrbitLog", "Log: Außenkamera unter Wasser", false);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
