@@ -22,7 +22,9 @@ namespace UboatToolkit.Modules
             if (child == null) return;
             if (!Settings.B("FixTooltipParent")) { child.SetParent(parent, keep); return; }
             if (child.parent == parent) return;
-            FadeReparent.Set(child, parent, keep);
+            // Must happen right now: the game sizes and positions the tooltip on the next lines. Moving it a frame
+            // later left an empty box (DoMe 2026-11-12, visibility panel). Only the redundant move is skipped.
+            child.SetParent(parent, keep);
         }
 
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
