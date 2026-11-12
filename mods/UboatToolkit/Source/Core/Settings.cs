@@ -63,6 +63,7 @@ namespace UboatToolkit
             Bool(QoL, "AutoWorkshop", "Werkstatt automatisch: Schrott wird eingeräumt, Ersatzteile werden gebaut (#31)", true);
             Bool(QoL, "AntiGrounding", "Zeitraffer stoppt, bevor das Boot auf Land fährt (#32)", true);
             Num(QoL, "AntiGroundingSeconds", "  Warnzeit in Sekunden (echte Zeit) vor dem Land", 10, 3, 60, 1);
+            Num(QoL, "AntiGroundingMaxX", "  Zeitraffer dann begrenzen auf x (1 = ganz aus)", 60, 1, 1000, 1);
             Num(QoL, "AntiGroundingKm", "  nur warnen, wenn Land näher als (km)", 5, 0.5f, 50, 0.5f);
             Bool(QoL, "KeepDepthStation", "Tiefenruder immer besetzt: freier Matrose geht hin (#34)", true);
             Bool(QoL, "KeepNavTable", "Kartentisch immer besetzt (spart Diesel): freier Matrose geht hin (#35)", true);

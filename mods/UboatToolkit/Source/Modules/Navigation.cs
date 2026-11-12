@@ -15,10 +15,13 @@ namespace UboatToolkit.Modules
         private SandboxPlayerWolfpack wolfpack;
         private TimeCompressionController tcc;
         private GameTime gameTime;
-        private float lastD = -1f, lastT, rate, nextCheck, quietUntil;
+        private float lastD = -1f, lastT, rate, nextCheck, quietUntil, limitedAt;
+        private bool limited;
+        private static readonly object BlockKey = new object();
 
         public override void Frame()
         {
+            if (!Settings.B("AntiGrounding") && limited && tcc != null) { Util.Safe("Nav.Unlimit", () => tcc.RemoveTimeCompressionBlockade(BlockKey)); limited = false; }
             if (!Settings.B("AntiGrounding") || Time.unscaledTime < nextCheck) return;
             nextCheck = Time.unscaledTime + 0.2f;
             if (wolfpack == null) wolfpack = Traverse.Create(typeof(UBOAT.Game.UI.Notifications.ShallowAreaNotification)).Field("wolfpack").GetValue<SandboxPlayerWolfpack>();
@@ -37,16 +40,27 @@ namespace UboatToolkit.Modules
             }
             else if (now - lastT > 5f) rate = 0f;            // nothing changes: not closing in
 
+            // Lift our own speed limit again once land is far enough away or we stopped closing in.
+            if (limited && (d > Settings.F("AntiGroundingKm") * 1.5f || (rate <= 0f && now - limitedAt > 10f)))
+            { Util.Safe("Nav.Unlimit", () => tcc.RemoveTimeCompressionBlockade(BlockKey)); limited = false; }
+
             if (!tcc.TimeCompression || gameTime.ArtificialTimeScale <= 1.5f || rate <= 0f) return;
             // LandDistance is in km. At high time compression the boat covers hundreds of km per real
             // minute, so the "seconds" rule alone fired far out at sea. Only warn when land is really near.
             if (d > Settings.F("AntiGroundingKm") || now < quietUntil) return;
             if (d / rate < Settings.F("AntiGroundingSeconds"))
             {
-                tcc.TimeCompression = false;
                 rate = 0f;
                 quietUntil = now + 30f;   // no repeat right away
-                ToolkitRunner.ShowNotice("Land voraus! Zeitraffer gestoppt.");
+                float cap = Settings.F("AntiGroundingMaxX");
+                if (cap <= 1f) { tcc.TimeCompression = false; ToolkitRunner.ShowNotice("Land voraus! Zeitraffer gestoppt."); }
+                else
+                {
+                    // Step down instead of off: the game's own limit mechanism (like near harbours), max x cap.
+                    Util.Safe("Nav.Limit", () => tcc.SetTimeCompressionBlockade(BlockKey, cap));
+                    limited = true; limitedAt = now;
+                    ToolkitRunner.ShowNotice("Land voraus! Zeitraffer auf x" + cap.ToString("F0") + " begrenzt.");
+                }
             }
         }
 
