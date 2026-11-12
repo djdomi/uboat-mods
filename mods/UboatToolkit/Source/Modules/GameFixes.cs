@@ -300,3 +300,18 @@ namespace UboatToolkit.Modules
     }
 
 }
+
+namespace UboatToolkit.Modules
+{
+    // New career: skip the intro tutorial (switch "SkipIntroTutorial", default on).
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.Missions.StartScript), "StartIntroTutorial")]
+    internal static class GameFixes_SkipIntroTutorialPatch
+    {
+        private static bool Prefix()
+        {
+            if (!Settings.B("SkipIntroTutorial")) return true;
+            Util.Log("Einführungs-Tutorial übersprungen");
+            return false;
+        }
+    }
+}

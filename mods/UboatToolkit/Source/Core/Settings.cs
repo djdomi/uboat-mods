@@ -128,6 +128,7 @@ namespace UboatToolkit
             Bool(QoL, "SeaLayer", "Realistische Sprungschicht (25-150 m je nach Wassertemperatur, darunter schwerer zu orten)", true);
             Bool(QoL, "SeaLayerHearing", "  Unter der Sprungschicht h\u00f6rt der eigene Horcher Schiffe oben schlechter", true);
             Bool(QoL, "SeaLayerNote", "  Kurze Meldung beim Unter-/\u00dcberqueren der Sprungschicht", true);
+            Bool(QoL, "SkipIntroTutorial", "Neue Karriere: Einf\u00fchrungs-Tutorial \u00fcberspringen", true);
             Bool(QoL, "NoPauseBlur", "Pause ohne Unsch\u00e4rfe und ohne dunkle Einblendung", false);
             Bool(QoL, "NoEdgeScroll", "Schnittansicht rutscht nicht weg, wenn die Maus den Bildschirmrand berührt", false);
             Bool(QoL, "NoEdgeDeck", "Kein Sprung zur Deck-Ansicht am oberen/unteren Bildschirmrand", false);
