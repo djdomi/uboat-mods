@@ -20,7 +20,6 @@ namespace UboatToolkit.Modules
     {
         private const string FoodMod = "Toolkit Food Norm";
         private Kitchen kitchen;
-        private readonly Dictionary<UBOAT.Game.Sandbox.SandboxEquipmentData, float> baseStack = new Dictionary<UBOAT.Game.Sandbox.SandboxEquipmentData, float>();
         private int lastPack = int.MinValue;
 
         public override void Tick()
@@ -65,6 +64,8 @@ namespace UboatToolkit.Modules
             if (Math.Abs(mod.Value - scale) > 1e-6f) mod.Value = scale;
         }
 
+        private static void Inventory_Stack(int delta) { StackData.PackBonus = delta; StackData.Apply(); }
+
         private void Pack()
         {
             int per = Mathf.RoundToInt(Settings.F("TightPackPerMan"));
@@ -76,23 +77,8 @@ namespace UboatToolkit.Modules
                             if (pc != null && pc.Data != null && pc.Data.HasStatus(typeof(UBOAT.Game.Scene.Characters.Skills.TightPacking))) holders++;
             int delta = per * holders;
             if (delta == lastPack) return;
-            var db = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Sandbox.Devices.EquipmentDatabase>();
-            var bps = db != null ? db.GetEquipmentDirect() : null;
-            if (bps == null) return;
-            foreach (var d in bps)
-            {
-                if (d == null) continue;
-                if (!baseStack.TryGetValue(d, out float b)) { b = d.StackLimit; baseStack[d] = b; }
-                if (b <= 1f) continue;
-                d.StackLimit = b + delta;
-            }
             lastPack = delta;
-            foreach (var c in UnityEngine.Object.FindObjectsOfType<Cargo>())
-            {
-                if (c == null || c.Data == null || c.Data.StackLimit <= 1f || c.StackLimit == null) continue;
-                var m = c.StackLimit.GetDeltaModifier("Base", true);
-                if (m != null && Math.Abs(m.Value - c.Data.StackLimit) > 0.0001f) m.Value = c.Data.StackLimit;
-            }
+            Inventory_Stack(delta);
             if (holders > 0) Util.Log("Dichtes Packen: " + holders + " Mann, Stapel +" + delta);
         }
     }

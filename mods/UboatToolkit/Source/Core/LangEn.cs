@@ -836,6 +836,7 @@ namespace UboatToolkit
             m[" Forschungen ("] = " research items (";
             m[" davon liefen gerade)"] = " of them were running)";
             m["Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum nötig"] = "Research without requirements: no earlier research, no date needed";
+            m["  Lager: gleiche Sachen automatisch zu einem Stapel zusammenlegen"] = "  Storage: automatically merge identical items into one stack";
             return m;
         }
     }
