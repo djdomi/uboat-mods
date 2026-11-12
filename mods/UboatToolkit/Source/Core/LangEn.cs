@@ -555,7 +555,7 @@ namespace UboatToolkit
             m["Kamera: schneller Zoom (halten)"] = "Camera: fast zoom (hold)";
             m["Station: Mauszeiger frei/fest"] = "Station: mouse cursor free/locked";
             m["Station: halten zum Umschauen (Modus 1)"] = "Station: hold to look around (mode 1)";
-            m["Bremsen-Finder an/aus (F11 allein öffnet den Fehlerbericht des Spiels)"] = "Slowdown finder on/off (F11 alone opens the game's bug report)";
+            m["Bremsen-Finder an/aus"] = "Slowdown finder on/off";
             m["Menü: Hintergrund-Deckkraft (1 = ganz dunkel)"] = "Menu: background opacity (1 = fully dark)";
             m["Menü: Breite in Pixeln (oder rechte untere Ecke ziehen)"] = "Menu: width in pixels (or drag the bottom right corner)";
             m["Menü: Höhe in Pixeln (0 = ganze Bildschirmhöhe)"] = "Menu: height in pixels (0 = full screen height)";
@@ -830,6 +830,7 @@ namespace UboatToolkit
             m["Backup gespeichert (UboatToolkit_Backup), Cheat ist an."] = "Backup saved (UboatToolkit_Backup), cheat is on.";
             m["Warnung: "] = "Warning: ";
             m[" nur noch "] = " only";
+            m["    >> Bremsen-Finder jetzt starten/stoppen (misst 1 Minute, dann Liste ins Log)"] = "    >> Start/stop slowdown finder now (measures 1 minute, then list into the log)";
             return m;
         }
     }

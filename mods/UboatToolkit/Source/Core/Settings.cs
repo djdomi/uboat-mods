@@ -585,7 +585,7 @@ namespace UboatToolkit
             Key("KeyCamFastZoom", "Kamera: schneller Zoom (halten)", "LeftShift");
             Key("KeyStationCursor", "Station: Mauszeiger frei/fest", "LeftAlt");
             Key("KeyStationDragLook", "Station: halten zum Umschauen (Modus 1)", "Mouse3");
-            Key("KeyHotspotFinder", "Bremsen-Finder an/aus (F11 allein öffnet den Fehlerbericht des Spiels)", "Ctrl+F11");
+            Key("KeyHotspotFinder2", "Bremsen-Finder an/aus", "Ctrl+Shift+H");
 
             // ---------- Tools ----------
             Num(Tools, "Language", "Sprache / Language: 0 = wie das Spiel / like the game (Deutsch nur bei deutschem Spiel, sonst English), 1 = Deutsch, 2 = English", 0, 0, 2, 1);
@@ -631,6 +631,7 @@ namespace UboatToolkit
             Bool(Tools, "BifrostUiLog", "Log: Bifrost UI-Pfade einmal ins Log", true);
             Bool(Tools, "PerfLogger", "Performance-Logger (schreibt CSV, kostet wenig Leistung)", false);
             Bool(Tools, "PerfHotspots", "  Bremsen-Finder (Taste im Tab „Tasten“, kostet Leistung)", false);
+            Bool(Tools, "PerfHotspotsNow", "    >> Bremsen-Finder jetzt starten/stoppen (misst 1 Minute, dann Liste ins Log)", false);
             Bool(Tools, "PerfQueue", "  Bremsen-Finder Spiel-Warteschlange (findet die echten Bremsen, kostet Leistung)", false);
 
             // ---------- Licht-Modi (Tab "Licht") ----------
