@@ -88,7 +88,7 @@ namespace UboatToolkit.Modules
                 if ((bool)checkAssembly.Invoke(engine, args)) return null;
                 var lines = args[1] == null ? null : reportLines.Invoke(args[1], new object[] { false }) as string[];
                 if (lines == null || lines.Length == 0) return "Prüfung nicht bestanden (keine Details)";
-                return lines.Length == 1 ? lines[0] : lines[0] + " (und " + (lines.Length - 1) + " weitere)";
+                return lines.Length == 1 ? lines[0] : lines.Length + " Verstöße: " + string.Join(" | ", lines);   // all of them, so a mod author can fix every one in one go
             }
             finally { (engine as IDisposable)?.Dispose(); }
         }
