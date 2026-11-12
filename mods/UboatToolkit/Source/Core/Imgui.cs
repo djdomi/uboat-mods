@@ -55,10 +55,10 @@ namespace UboatToolkit
         }
 
         public static string TextField(string t, float w = 0) => textField == null ? t : (string)textField.Invoke(null, new[] { t ?? "", Opts(w) });
-        public static void Label(string t, float w = 0) => label.Invoke(null, new[] { t, Opts(w) });
-        public static bool Toggle(bool v, string t) => (bool)toggle.Invoke(null, new object[] { v, t, noOptions });
+        public static void Label(string t, float w = 0) => label.Invoke(null, new[] { Lang.T(t), Opts(w) });
+        public static bool Toggle(bool v, string t) => (bool)toggle.Invoke(null, new object[] { v, Lang.T(t), noOptions });
         public static float Slider(float v, float min, float max, float w) => (float)slider.Invoke(null, new object[] { v, min, max, Opts(w) });
-        public static bool Button(string t, float w = 0) => (bool)button.Invoke(null, new[] { t, Opts(w) });
+        public static bool Button(string t, float w = 0) => (bool)button.Invoke(null, new[] { Lang.T(t), Opts(w) });
         public static void BeginH() => beginH.Invoke(null, new[] { noOptions });
         public static void EndH() => endH.Invoke(null, null);
         public static Vector2 BeginScroll(Vector2 pos) => (Vector2)beginScroll.Invoke(null, new object[] { pos, noOptions });
@@ -66,7 +66,7 @@ namespace UboatToolkit
         public static void BeginArea(Rect r) => beginArea.Invoke(null, new object[] { r });
         public static void EndArea() => endArea.Invoke(null, null);
         public static void Space(float px) => space.Invoke(null, new object[] { px });
-        public static void Box(Rect r, string t) => box.Invoke(null, new object[] { r, t });
+        public static void Box(Rect r, string t) => box.Invoke(null, new object[] { r, Lang.T(t) });
         // Solid dark background (alpha 0..1), so the menu stays readable over the game.
         public static void Backdrop(Rect r, float alpha)
         {
@@ -84,6 +84,6 @@ namespace UboatToolkit
             drawTex.Invoke(null, new object[] { r, Texture2D.whiteTexture });
             color.SetValue(null, old, null);
         }
-        public static void TextAt(Rect r, string t) => guiLabel.Invoke(null, new object[] { r, t });
+        public static void TextAt(Rect r, string t) => guiLabel.Invoke(null, new object[] { r, Lang.T(t) });
     }
 }

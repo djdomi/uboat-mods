@@ -130,7 +130,7 @@ namespace UboatToolkit
         public static string Notice;
         public static string InfoLine;
         public static float NoticeUntil;
-        public static void ShowNotice(string text, float seconds = 6f) { Notice = text; NoticeUntil = Time.unscaledTime + seconds; Util.Log(text); }
+        public static void ShowNotice(string text, float seconds = 6f) { Notice = Lang.T(text); NoticeUntil = Time.unscaledTime + seconds; Util.Log(text); }
 
         // Menu position and size (saved in the INI), moved by dragging the title, resized by the bottom-right corner.
         private static int dragMode; private static Vector2 dragStart; private static Rect dragRect;
@@ -240,7 +240,7 @@ namespace UboatToolkit
                 int hits = 0;
                 foreach (var o in Settings.All)
                 {
-                    if (!(o.Label + " " + o.Key).ToLowerInvariant().Contains(q)) continue;
+                    if (!(o.Label + " " + Lang.T(o.Label) + " " + o.Key).ToLowerInvariant().Contains(q)) continue;
                     if (onlyChanged && !Settings.Changed(o)) continue;
                     Imgui.Label("[" + o.Tab + (o.Group != "" ? " / " + o.Group : "") + "]");
                     DrawOpt(o);

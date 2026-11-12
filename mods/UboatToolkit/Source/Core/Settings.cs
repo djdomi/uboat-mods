@@ -588,6 +588,7 @@ namespace UboatToolkit
             Key("KeyHotspotFinder", "Bremsen-Finder an/aus (F11 allein öffnet den Fehlerbericht des Spiels)", "Ctrl+F11");
 
             // ---------- Tools ----------
+            Num(Tools, "Language", "Sprache / Language: 0 = wie das Spiel / like the game (Deutsch nur bei deutschem Spiel, sonst English), 1 = Deutsch, 2 = English", 0, 0, 2, 1);
             Num(Tools, "MenuOpacity", "Menü: Hintergrund-Deckkraft (1 = ganz dunkel)", 0.92f, 0f, 1f, 0.02f);
             Num(Tools, "MenuWidth", "Menü: Breite in Pixeln (oder rechte untere Ecke ziehen)", 1000f, 500f, 3840f, 10f);
             Num(Tools, "MenuHeight", "Menü: Höhe in Pixeln (0 = ganze Bildschirmhöhe)", 0f, 0f, 2160f, 10f);
