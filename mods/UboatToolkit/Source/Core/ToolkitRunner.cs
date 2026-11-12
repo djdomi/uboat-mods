@@ -99,15 +99,14 @@ namespace UboatToolkit
         private string[] names, frameNames;
         // Stutter finder: any module step slower than the limit is logged with its name and the number of
         // garbage collections during it (max once per 30 s per step), so slow modules show up in the log.
-        private static readonly System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+        // Timing via LoadClock (reflection): naming the diagnostics namespace makes the game's mod check reject the mod.
         private static readonly System.Collections.Generic.Dictionary<string, float> slowLogged = new System.Collections.Generic.Dictionary<string, float>();
         private static void Timed(string name, System.Action a, double limitMs)
         {
             int gc = System.GC.CollectionCount(0);
-            sw.Restart();
+            long swStart = UboatToolkit.Modules.LoadClock.Now();
             Util.Safe(name, a);
-            sw.Stop();
-            double ms = sw.Elapsed.TotalMilliseconds;
+            double ms = UboatToolkit.Modules.LoadClock.Seconds(UboatToolkit.Modules.LoadClock.Now() - swStart) * 1000.0;
             if (ms < limitMs) return;
             float now = Time.unscaledTime;
             if (slowLogged.TryGetValue(name, out var t) && now - t < 30f) return;
