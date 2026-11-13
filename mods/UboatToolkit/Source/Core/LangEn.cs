@@ -868,6 +868,8 @@ namespace UboatToolkit
             m[" davon liefen gerade)"] = " of them were running)";
             m["Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum nötig"] = "Research without requirements: no earlier research, no date needed";
             m["  Lager: gleiche Sachen automatisch zu einem Stapel zusammenlegen"] = "  Storage: automatically merge identical items into one stack";
+            m["  Lager: auch Sachen stapeln, die im Spiel nur einzeln gehen (alle Waren außer Diesel)"] = "  Storage: also stack items the game keeps single (all goods except diesel)";
+            m["  Händler im Hafen hat von jeder Ware mindestens so viel (0 = wie im Spiel)"] = "  Port dealer has at least this many of every good (0 = game value)";
             m["Zweites Turmluk + Seitentüren Deck <-> Turm (Crew nimmt den kürzesten Weg)"] = "Second tower hatch + side doors deck <-> tower (crew takes the shortest way)";
             m["Crew-Detailstufen: Männer, die du nicht siehst, überlegen seltener (mehr FPS, Arbeit läuft normal weiter)"] = "Crew detail levels: men you cannot see think less often (more FPS, work goes on normally)";
             m["  nicht sichtbare Männer überlegen nur jedes x. Bild (1 = jedes Bild)"] = "  men out of sight think only every x-th frame (1 = every frame)";

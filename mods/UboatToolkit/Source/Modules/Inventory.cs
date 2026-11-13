@@ -62,6 +62,28 @@ namespace UboatToolkit.Modules
             Util.ScaleParameter(c.StackLimit, f);
         }
 
+        // Cheat: the dealer in port has at least "CheatShopStock" of every stackable item (DoMe 2026-11-13: buy slider
+        // stopped at the dealer's 15 decoys although one storage place holds 100000). Only while docked, every 5 s.
+        private static int shopLogged;
+        private static void ShopStock()
+        {
+            float want = Settings.F("CheatShopStock");
+            var ship = Util.PlayerShip;
+            if (want <= 0f || ship == null || !ship.Docked) return;
+            int n = 0;
+            foreach (var st in UnityEngine.Object.FindObjectsOfType<Storage>())
+            {
+                if (st == null || !st.IsShop) continue;
+                for (int i = Util.Slots(st) - 1; i >= 0; i--)
+                {
+                    var c = st.GetItemAt(i) as Cargo;
+                    if (c == null || c.Data == null || c.Data.StackLimit <= 1f || c is Fuel) continue;
+                    if (c.Count < want) { c.Count = want; n++; }
+                }
+            }
+            if (n > 0 && shopLogged++ < 5) Util.Log("Händler: " + n + " Waren auf " + want + " Stück aufgefüllt");
+        }
+
         public override void Tick()
         {
             if (Time.unscaledTime < next) return;
@@ -83,6 +105,7 @@ namespace UboatToolkit.Modules
                 Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noWeight && !fuelTank ? 1000000f : 1f);
             }
             StackData.Apply();
+            Util.Safe("ShopStock", ShopStock);
             if (Settings.B("CheatMergeStacks") && Time.unscaledTime >= nextMerge)
             {
                 nextMerge = Time.unscaledTime + 15f;
@@ -99,6 +122,7 @@ namespace UboatToolkit.Modules
         }
     }
 
+    // (ShopStock is a member of Inventory, see below)
     // One place that writes the stack size into the item database (all stackable items, e.g. medkits 5 -> 100000).
     // Stack cheat: base x "CheatStackSize", at least "CheatMinStackSize". Tight packing skill adds its bonus on top.
     // Switched off = the game's own value again.
@@ -113,7 +137,8 @@ namespace UboatToolkit.Modules
         {
             float f = Mathf.Max(1f, Settings.F("CheatStackSize"));
             float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
-            string key = f + "/" + minStack + "/" + PackBonus;
+            bool all = Settings.B("CheatStackAll") && (f > 1f || minStack > 0f);
+            string key = f + "/" + minStack + "/" + PackBonus + "/" + all;
             if (key == last) return;
             var db = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Sandbox.Devices.EquipmentDatabase>();
             var bps = db != null ? db.GetEquipmentDirect() : null;
@@ -123,13 +148,25 @@ namespace UboatToolkit.Modules
             {
                 if (d == null) continue;
                 if (!baseStack.TryGetValue(d, out float b)) { b = d.StackLimit; baseStack[d] = b; }
-                if (b <= 1f) continue;
-                float v = Mathf.Max(b * f, minStack) + PackBonus;
+                // single items (game stack 1): only plain goods (Cargo types, not diesel) and only with "CheatStackAll";
+                // switched off = back to the game's 1
+                if (b <= 1f && !(all && PlainGoods(d)))
+                {
+                    if (Mathf.Abs(d.StackLimit - b) > 0.0001f) { d.StackLimit = b; n++; }
+                    continue;
+                }
+                float v = Mathf.Max(Mathf.Max(b, 1f) * f, minStack) + PackBonus;
                 if (Mathf.Abs(d.StackLimit - v) > 0.0001f) { d.StackLimit = v; n++; }
             }
             last = key;
             foreach (var c in UnityEngine.Object.FindObjectsOfType<Cargo>()) Inventory.ApplyStack(c);
-            Util.Log("Stapel: " + n + " Gegenstaende neu (x" + f + ", mind. " + minStack + ", Packen +" + PackBonus + ")");
+            Util.Log("Stapel: " + n + " Gegenstaende neu (x" + f + ", mind. " + minStack + ", Packen +" + PackBonus + ", Einzel-Sachen " + (all ? "auch" : "nein") + ")");
+        }
+
+        private static bool PlainGoods(UBOAT.Game.Sandbox.SandboxEquipmentData d)
+        {
+            var t = d.Type;
+            return t != null && typeof(UBOAT.Game.Scene.Items.Cargo).IsAssignableFrom(t) && !typeof(UBOAT.Game.Scene.Items.Fuel).IsAssignableFrom(t);
         }
     }
 }

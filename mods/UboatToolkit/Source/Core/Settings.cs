@@ -491,6 +491,8 @@ namespace UboatToolkit
             Num(Cheat, "CheatStackSize", "Lager: x mehr pro Platz stapeln (1 = normal, INI ohne Obergrenze)", 1, 1, 1000, 10);
             Num(Cheat, "CheatMinStackSize", "  Lager: mindestens so viele pro Platz (0 = aus)", 100000, 0, 1000000, 1000);
             Bool(Cheat, "CheatMergeStacks", "  Lager: gleiche Sachen automatisch zu einem Stapel zusammenlegen", true);
+            Bool(Cheat, "CheatStackAll", "  Lager: auch Sachen stapeln, die im Spiel nur einzeln gehen (alle Waren außer Diesel)", true);
+            Num(Cheat, "CheatShopStock", "  Händler im Hafen hat von jeder Ware mindestens so viel (0 = wie im Spiel)", 100000, 0, 1000000, 1000);
             Num(Cheat, "CheatSensorRange", "Sensor-Reichweite x (Radar, Sonar, Horchgerät, Ausguck) (1 = normal)", 1, 1, 5, 0.5f);
             Bool(Cheat, "CheatDeepDive", "Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)", false);
             Bool(Cheat, "CheatNoHullDamage", "Rumpf verliert keine Gesundheit", false);
