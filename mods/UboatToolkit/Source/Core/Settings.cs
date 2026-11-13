@@ -241,6 +241,10 @@ namespace UboatToolkit
             Num(QoL, "HatchMaxSpeed", "  höchstes Animations-Tempo", 3, 1, 5, 0.25f);
             Num(QoL, "HatchRunTail", "  nach der Luke weiterlaufen (Sekunden)", 0.35f, 0, 2, 0.05f);
             Bool(QoL, "MuteLightCallouts", "Ansagen zum Lichtwechsel stumm", false);
+            Bool(QoL, "VoiceLimit", "Stimmen begrenzen: gleiche Ansage höchstens alle x Sekunden, kurze Warteschlange (weniger Gequassel + weniger Ruckeln)", true);
+            Num(QoL, "VoiceRepeatSec", "  gleiche Ansage frühestens nach x Sekunden wieder", 20, 0, 120, 5);
+            Num(QoL, "VoiceMaxQueue", "  höchstens x Ansagen warten (mehr werden verworfen)", 3, 1, 20, 1);
+            Bool(QoL, "VoiceMuteGunCalls", "  Geschütz-Ansagen (Zielen / Feuer!) stumm", true);
             Bool(QoL, "QuietUI", "Ruhige Oberfläche an (Einstellungen darunter, Meldungs-Stufen in toolkit-notifications.txt)", false);
             Bool(QoL, "QuietNames", "  Crew-Namen nur beim Zeigen oder Auswählen", true);
             Bool(QoL, "QuietShowHover", "    Name beim Zeigen mit der Maus", true);
