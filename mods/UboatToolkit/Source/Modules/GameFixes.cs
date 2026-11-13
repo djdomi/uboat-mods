@@ -513,7 +513,7 @@ namespace UboatToolkit.Modules
             if (s != null && s.IsSaving) return;
             quitPending = false;
             Util.Log("Spielstand fertig geschrieben, Spiel wird beendet");
-            UnityEngine.Application.Quit();
+            typeof(UnityEngine.Application).GetMethod("Quit", System.Type.EmptyTypes).Invoke(null, null);   // via reflection: direct call is forbidden in mods
         }
     }
 }

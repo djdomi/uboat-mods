@@ -103,14 +103,13 @@ namespace UboatToolkit
                     warthogMod = 0;
                     try
                     {
+                        // No System.AppDomain here (the game forbids it in mod code): Harmony lists the loaded types.
                         var own = typeof(Util).Assembly;
-                        foreach (var a in System.AppDomain.CurrentDomain.GetAssemblies())
+                        foreach (var t in HarmonyLib.AccessTools.AllTypes())
                         {
-                            System.Type[] ts;
-                            try { ts = a.GetTypes(); } catch { continue; }
-                            if (a == own) continue;
-                            foreach (var t in ts) if (t.Namespace == "Warthog" || t.Namespace == "UboatToolkit.Modules.Warthog" || (t.Namespace != null && t.Namespace.StartsWith("Warthog."))) { warthogMod = 1; break; }
-                            if (warthogMod == 1) break;
+                            if (t == null || t.Assembly == own) continue;
+                            var ns = t.Namespace;
+                            if (ns == "Warthog" || ns == "UboatToolkit.Modules.Warthog" || (ns != null && ns.StartsWith("Warthog."))) { warthogMod = 1; break; }
                         }
                     }
                     catch { }
