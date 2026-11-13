@@ -131,6 +131,7 @@ namespace UboatToolkit.Modules
                 Write("hotspots", "off");
             }
             hotspotsOn = on;
+            UboatToolkit.ToolkitRunner.ShowNotice(on ? "Bremsen-Finder AN (kostet selbst Leistung) - Strg+Shift+H schaltet aus" : "Bremsen-Finder AUS", 5f);
         }
 
         private static void Before(out double __state) { __state = Time.realtimeSinceStartupAsDouble; }
