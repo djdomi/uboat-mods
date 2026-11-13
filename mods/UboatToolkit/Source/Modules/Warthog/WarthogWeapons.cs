@@ -53,10 +53,11 @@ namespace UboatToolkit.Modules.Warthog
         private static readonly System.Reflection.FieldInfo BarrelsField = AccessTools.Field(typeof(Gun), "barrels");
         private static readonly System.Reflection.FieldInfo RecoilField = AccessTools.Inner(typeof(Gun), "Barrel") != null ? AccessTools.Field(AccessTools.Inner(typeof(Gun), "Barrel"), "RecoilTarget") : null;
         private static readonly Dictionary<int, System.Array> fullBarrels = new Dictionary<int, System.Array>();
+        private static readonly Dictionary<int, List<GameObject>> outer = new Dictionary<int, List<GameObject>>();
 
         private static void Barrels(Gun g, bool on)
         {
-            if (BarrelsField == null || RecoilField == null) return;
+            if (BarrelsField == null) return;
             int id = g.GetInstanceID();
             if (!fullBarrels.TryGetValue(id, out var full))
             {
@@ -65,14 +66,22 @@ namespace UboatToolkit.Modules.Warthog
                 fullBarrels[id] = full;
             }
             bool all = !on || Settings.B("WhOverkill") || IsFlak(g);   // flak is always a quad mount
+            // firing barrels: twin = the middle two (1, 2), Overkill = all four
             var want = all ? full : System.Array.CreateInstance(full.GetType().GetElementType(), 2);
             if (!all) { want.SetValue(full.GetValue(1), 0); want.SetValue(full.GetValue(2), 1); }
             if (((System.Array)BarrelsField.GetValue(g)).Length != want.Length) BarrelsField.SetValue(g, want);
-            foreach (int i in new[] { 0, 3 })
+            // 0.3.9: visible outer barrels found by NAME ("WH Barrel 1" / "WH Barrel 4"), built by the Unity builder for our
+            // turrets and by WarthogMod.dll for the guns the game spawns into "Deck Gun" / "Aft Deck Gun".
+            // RecoilTarget is empty on some mounts -> 0.3.0-0.3.8 showed mixed 2/4 barrels or a quad with one missing.
+            // Cached per gun; rebuilt when a cached object was destroyed (gun respawned).
+            if (!outer.TryGetValue(id, out var outs) || outs.Exists(x => x == null))
             {
-                var t = RecoilField.GetValue(full.GetValue(i)) as Transform;
-                if (t != null && t.gameObject.activeSelf != all) t.gameObject.SetActive(all);
+                outs = new List<GameObject>();
+                foreach (var t in g.GetComponentsInChildren<Transform>(true))
+                    if (t.name == "WH Barrel 1" || t.name == "WH Barrel 4") outs.Add(t.gameObject);
+                outer[id] = outs;
             }
+            foreach (var o in outs) if (o.activeSelf != all) o.SetActive(all);
             if (!IsFlak(g) && g.Calibre.Value > 80f)
             {
                 bool c88 = on && Settings.B("WhCaliber88");   // exactly 88 mm, else the gun's own 105 mm
