@@ -452,4 +452,25 @@ namespace UboatToolkit.Modules
             if (!logged) { logged = true; Util.Log("Entwickler-Konsole geschlossen (Spiel läuft als Development Build: " + UnityEngine.Debug.isDebugBuild + ")"); }
         }
     }
+
+    // Diagnosis (DoMe 2026-11-13: "end patrol -> port takes forever"): logs every scene unload/load with time since
+    // the previous one, so the log shows how long a transition really took.
+    public class SceneTiming : ModuleBase
+    {
+        private static bool hooked;
+        private static float last = -1f;
+        private static void Mark(string what, string scene)
+        {
+            float now = UnityEngine.Time.realtimeSinceStartup;
+            Util.Log("Szene " + what + ": " + scene + (last >= 0f ? " (+" + (now - last).ToString("0.0") + " s)" : ""));
+            last = now;
+        }
+        public override void Frame()
+        {
+            if (hooked) return;
+            hooked = true;
+            UnityEngine.SceneManagement.SceneManager.sceneUnloaded += s => Mark("entladen", s.name);
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) => Mark("geladen", s.name + " " + m);
+        }
+    }
 }

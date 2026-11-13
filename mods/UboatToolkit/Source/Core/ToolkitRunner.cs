@@ -49,6 +49,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.CameraParentFixModule());
             Modules.Add(new Modules.TooltipDiag());
             Modules.Add(new Modules.DevConsoleHide());
+            Modules.Add(new Modules.SceneTiming());
             foreach (var m in UboatToolkit.Modules.Warthog.WarthogModules.All()) Modules.Add(m);
             Modules.Add(new Modules.CrewCheats());
             Modules.Add(new Modules.Inventory());
