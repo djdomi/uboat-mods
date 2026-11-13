@@ -55,6 +55,8 @@ namespace UboatToolkit.Modules
             ship.SetTargetDepth(t, true, false);
         }
 
+        private bool lastPilotOn;
+
         public override void Frame()
         {
             var ship = Util.PlayerShip;
@@ -139,7 +141,16 @@ namespace UboatToolkit.Modules
             if (now < nextPilot) return;
             nextPilot = now + 0.5f;
             lastBed = Util.SafeGet(() => Seabed(ship, 0f), float.NaN);
-            if (!Settings.B("AutoDepth")) { pilotText = ""; return; }
+            bool pilotOn = Settings.B("AutoDepth");
+            if (pilotOn != lastPilotOn)
+            {
+                lastPilotOn = pilotOn;
+                ToolkitRunner.ShowNotice("Bodenabstand-Autopilot " + (pilotOn ? "AN (Strg+B schaltet aus)" : "AUS"), 4f);
+                Util.Log("Bodenabstand-Autopilot " + (pilotOn ? "an" : "aus"));
+            }
+            if (!pilotOn) { pilotText = ""; return; }
+            // Player wants to surface or is in port: the autopilot never pushes the boat down then.
+            if (ship.Docked || ship.DepthPreset == DepthPreset.Surface) { pilotText = "Autopilot pausiert (Auftauchen/Hafen)"; return; }
 
             float keel = KeelOffset(ship);
             if (Settings.B("AutoDepthBottom"))
