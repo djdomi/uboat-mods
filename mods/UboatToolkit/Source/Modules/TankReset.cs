@@ -6,7 +6,7 @@ using UBOAT.Game.Scene.Entities;
 
 namespace UboatToolkit.Modules
 {
-    // Emergency key: empty all ballast tanks, set trim tanks to half, log the tank state before/after.
+    // Emergency key: empty all ballast tanks, empty trim tanks too, log the tank state before/after.
     public class TankReset : ModuleBase
     {
         public override void Frame()
@@ -25,13 +25,13 @@ namespace UboatToolkit.Modules
                 foreach (var ct in tanks)
                 {
                     if (ct?.Tank == null) continue;
-                    var cap = Traverse.Create(ct.Tank).Property("Capacity").GetValue();
-                    double c = cap == null ? ct.Tank.Water : Convert.ToDouble(cap);
-                    ct.Tank.Water = c * 0.5;
+                    
+                    
+                    ct.Tank.Water = 0.0;
                 }
             }
             Util.Log("Not-Taste Tanks: nachher " + State(ship));
-            UboatToolkit.ToolkitRunner.ShowNotice("Alle Tauchzellen leer, Trimmtanks halb voll", 5f);
+            UboatToolkit.ToolkitRunner.ShowNotice("Alle Tauchzellen leer, Trimmtanks leer (Notauftauchen)", 5f);
         }
 
         private static string State(PlayerShip ship)

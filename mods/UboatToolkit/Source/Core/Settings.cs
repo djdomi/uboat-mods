@@ -634,7 +634,7 @@ namespace UboatToolkit
             Key("KeyStationCursor", "Station: Mauszeiger frei/fest", "LeftAlt");
             Key("KeyStationDragLook", "Station: halten zum Umschauen (Modus 1)", "Mouse3");
             Key("KeyHotspotFinder2", "Bremsen-Finder an/aus", "Ctrl+Shift+H");
-            Key("KeyTanksEmpty", "Not-Taste: alle Tauchzellen leer, Trimmtanks halb", "Ctrl+Alt+T");
+            Key("KeyTanksEmpty", "Not-Taste: alle Tauchzellen leer, Trimmtanks leer (Notauftauchen)", "Ctrl+Alt+T");
 
             // ---------- Tools ----------
             Num(Tools, "Language", "Sprache / Language: 0 = wie das Spiel / like the game (Deutsch nur bei deutschem Spiel, sonst English), 1 = Deutsch, 2 = English", 0, 0, 2, 1);
