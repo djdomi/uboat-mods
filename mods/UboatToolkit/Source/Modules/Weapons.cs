@@ -55,9 +55,13 @@ namespace UboatToolkit.Modules
                 // Lowest elevation (negative = barrel points down). 0 = game value.
                 float minA = Util.Original<float>(gun, "minAngle");
                 if (like88) minA = Mathf.Min(minA, Util.Original<float>(deck88, "minAngle"));
-                float depress = Settings.F(p + "Depress");
-                if (depress > 0f) minA = Mathf.Min(minA, -depress);
                 Util.SetField(gun, "minAngle", minA);
+                // Lowest aim (game/Unity: x angle positive = barrel DOWN, so the DOWN limit is maxAngle; minAngle is the UP
+                // limit). Up to 0.2.63 this wrongly changed minAngle, so "Flak tiefer neigen" had no effect.
+                float depress = Util.IsPlayers(gun) ? Settings.F(p + "Depress") : 0f;
+                if (gun.IsAntiAircraftWeapon && UboatToolkit.Modules.Warthog.WarthogWeapons.On) depress = Mathf.Max(depress, Settings.F("WhFlakDepression"));
+                float maxA = Util.Original<float>(gun, "maxAngle");
+                Util.SetField(gun, "maxAngle", depress > 0f ? Mathf.Max(maxA, depress) : maxA);
 
                 // Recoil (barrel jumps up after each shot, annoying when aiming yourself). 0 = none, 1 = game.
                 if (Util.IsPlayers(gun))

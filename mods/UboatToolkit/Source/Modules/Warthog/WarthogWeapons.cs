@@ -39,7 +39,7 @@ namespace UboatToolkit.Modules.Warthog
                 if (g == null) continue;
                 if (!IsFlak(g)) continue;
                 float orig = Util.Original<float>(g, "maxAngle");
-                Util.SetField(g, "maxAngle", on ? Mathf.Max(orig, Settings.F("WhFlakDepression")) : orig);
+                Util.SetField(g, "maxAngle", Mathf.Max(orig, Mathf.Max(on ? Settings.F("WhFlakDepression") : 0f, Util.IsPlayers(g) ? Settings.F("AAGunDepress") : 0f)));
                 var range = Traverse.Create(g).Field("range").GetValue<UBOAT.Game.Core.Data.Parameter>();
                 Util.SetParameter(range, on ? Settings.F("WhAirEngage") * 1000f : 0f);
             }

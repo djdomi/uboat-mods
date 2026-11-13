@@ -448,7 +448,7 @@ namespace UboatToolkit
             Num(QoL, "AAGunRecoil", "Flak: Rückstoß nach oben (0 = keiner, 1 = Spiel)", 0, 0, 1, 0.1f);
             Num(QoL, "DeckGunRange", "88mm: KI-Schützen greifen bis x km an (0 = Spielwert ~12 km; Granaten werden dafür schnell genug)", 30, 0, 100, 1);
             Num(QoL, "AAGunRange", "Flak: KI-Schützen greifen bis x km an (0 = Spielwert)", 0, 0, 50, 0.5f);
-            Num(QoL, "DeckGunDepress", "88mm: so viele Grad nach unten neigen (0 = Spielwert)", 0, 0, 30, 1);
+            Num(QoL, "DeckGunDepress", "88mm: so viele Grad nach unten neigen (0 = Spielwert)", 0, 0, 60, 1);
             Num(QoL, "DeckGunShellMps", "88mm: Mündungsgeschwindigkeit in m/s (0 = Spielwert, dann x Geschossgeschwindigkeit)", 0, 0, 5000, 50);
             Num(QoL, "DeckGunRateMul", "88mm: Feuerrate x (1 = normal, wirkt auch auf Schuss pro Minute)", 1, 0.25f, 10, 0.25f);
             Num(QoL, "DeckGunShellMass", "88mm: Geschossgewicht in kg (0 = Spielwert)", 0, 0, 5000, 5);
@@ -456,7 +456,7 @@ namespace UboatToolkit
             Num(QoL, "DeckGunShellDamageMul", "88mm: Schaden am Schiff x (1 = normal)", 1, 0.1f, 100, 0.5f);
             Num(QoL, "DeckGunShellCrewDamageMul", "88mm: Schaden an der Besatzung x (1 = normal)", 1, 0.1f, 100, 0.5f);
             Bool(QoL, "DeckGunKineticDamage", "88mm: Schaden wächst mit Gewicht x Geschwindigkeit (wie früher)", false);
-            Num(QoL, "AAGunDepress", "Flak: so viele Grad nach unten neigen (0 = Spielwert)", 0, 0, 30, 1);
+            Num(QoL, "AAGunDepress", "Flak: so viele Grad nach unten neigen (0 = Spielwert)", 30, 0, 60, 1);
             Num(QoL, "AAGunShellMps", "Flak: Mündungsgeschwindigkeit in m/s (0 = Spielwert, dann x Geschossgeschwindigkeit)", 0, 0, 5000, 50);
             Num(QoL, "AAGunRateMul", "Flak: Feuerrate x (1 = normal, wirkt auch auf Schuss pro Minute)", 1, 0.25f, 10, 0.25f);
             Num(QoL, "AAGunShellMass", "Flak: Geschossgewicht in kg (0 = Spielwert)", 0, 0, 5000, 5);
