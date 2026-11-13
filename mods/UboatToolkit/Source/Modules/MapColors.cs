@@ -302,8 +302,10 @@ namespace UboatToolkit.Modules
         private static bool FontPair(string skin, out TMP_FontAsset font, out Material mat)
         {
             font = prefabFont; mat = prefabMat;
+            string fn = On ? MapCfg.PerSkin("GridLabelFont", skin) : null, mn = On ? MapCfg.PerSkin("GridLabelFontMaterial", skin) : null;
+            if (fontInfoLogged.Add("state|" + skin + "|" + On + "|" + fn + "|" + mn))
+                Util.Log("Karte: Stil '" + skin + "', Lesbarkeit an: " + On + ", Schrift-Wunsch '" + (fn ?? "-") + "' / '" + (mn ?? "-") + "', Spiel-Schrift '" + (prefabFont != null ? prefabFont.name : "-") + "' / '" + (prefabMat != null ? prefabMat.name : "-") + "'");
             if (!On) return mat != null;
-            string fn = MapCfg.PerSkin("GridLabelFont", skin), mn = MapCfg.PerSkin("GridLabelFontMaterial", skin);
             if (fn == null && mn == null) return mat != null;
             var f = fn == null ? prefabFont : FindFont(fn);
             var m = mn == null ? prefabMat : FindFontMat(mn);
@@ -311,7 +313,11 @@ namespace UboatToolkit.Modules
             // A font only draws correctly with a material of ITS OWN atlas. Font set without a matching material
             // (e.g. GridLabelFont=FrankRuhlLibre-Black SDF, material left at the game's) = the letters are cut out of
             // the wrong atlas -> garbled blocks on the map. Then use the font's own material.
-            if (f != prefabFont && f.atlasTexture != null && m.HasProperty(ShaderUtilities.ID_MainTex) && m.GetTexture(ShaderUtilities.ID_MainTex) != f.atlasTexture)
+            var tex = m.HasProperty(ShaderUtilities.ID_MainTex) ? m.GetTexture(ShaderUtilities.ID_MainTex) : null;
+            if (fontInfoLogged.Add(f.name + "|" + m.name))
+                Util.Log("Karte: Planquadrat-Schrift '" + f.name + "' (wie Spiel: " + (f == prefabFont) + ", Atlas '" + (f.atlasTexture != null ? f.atlasTexture.name : "-") + "'), Material '" + m.name +
+                         "' (Atlas '" + (tex != null ? tex.name : "-") + "', passt: " + (tex == f.atlasTexture) + "), Spiel-Schrift '" + (prefabFont != null ? prefabFont.name : "-") + "' / '" + (prefabMat != null ? prefabMat.name : "-") + "'");
+            if (f.atlasTexture != null && tex != null && tex != f.atlasTexture)
             {
                 if (fontMismatchLogged.Add(f.name + "|" + m.name)) Util.Log("Karte: Schrift '" + f.name + "' passt nicht zum Material '" + m.name + "', nehme das eigene Material der Schrift");
                 m = f.material;
@@ -320,6 +326,7 @@ namespace UboatToolkit.Modules
             return mat != null;
         }
         private static readonly HashSet<string> fontMismatchLogged = new HashSet<string>();
+        private static readonly HashSet<string> fontInfoLogged = new HashSet<string>();
         private static TMP_FontAsset FindFont(string n)
         {
             var fonts = F<TMP_FontAsset[]>(Map, "fonts");

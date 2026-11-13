@@ -14,18 +14,18 @@ namespace UboatToolkit.Modules
     // - Hull armour: damage to your boat and crew is reduced (explosions, shells, torpedoes, depth charges, ramming).
     public class SensorCheats : ModuleBase
     {
+        // "Hydrophone hears fully surfaced / fast": see HydroSame below (no per-tick overwrite any more).
+        private readonly System.Collections.Generic.Dictionary<Hydrophone, bool> state = new System.Collections.Generic.Dictionary<Hydrophone, bool>();
         public override void Tick()
         {
-            if (!Settings.B("CheatHydrophoneAlways")) return;
             foreach (var h in Util.Find<Hydrophone>())
             {
                 if (h == null) continue;
-                var t = Traverse.Create(h);
-                foreach (var f in new[] { "surfaceRangeModifier", "surfaceGroupRangeModifier", "shipVelocityRangeModifier", "shipVelocityGroupRangeModifier" })
-                {
-                    var m = t.Field(f).GetValue<Modifier>();
-                    if (m != null && m.Value < 1f) m.Value = 1f;
-                }
+                bool want = HydroSame.Wanted(h);
+                state.TryGetValue(h, out var was);
+                if (want == was) continue;
+                state[h] = want;
+                if (want) HydroSame.Force(h); else HydroSame.Restore(h);
             }
         }
     }
@@ -120,5 +120,69 @@ namespace UboatToolkit.Modules
                 drop.Clear();
             }
         }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // Hydrophone "as good surfaced and fast as submerged and slow" (cheat CheatHydrophoneAlways, Warthog WhPassiveSame).
+    // The game eases the speed penalty EVERY FRAME (Hydrophone.UpdateShipVelocityModifier) and fades the surface penalty
+    // over 0.5 s. Overwriting the modifiers once per tick made the range jump between two values = the two green range
+    // circles on the map flickered. The old fix patched SetShipVelocityModifiers, a 6-line method the JIT inlines, so it
+    // never ran (no log line in DoMe's log 2026-11-13). Now the game's TARGET values are set to 1 in the bigger methods
+    // that decide them, so the game itself settles on 1 and there is only one value.
+    internal static class HydroSame
+    {
+        private static readonly System.Reflection.FieldInfo targetF = AccessTools.Field(typeof(Hydrophone), "shipVelocityModifierTargetValue");
+        private static readonly System.Reflection.FieldInfo tweenF = AccessTools.Field(typeof(Hydrophone), "rangeModifierTween");
+        private static readonly string[] Mods = { "surfaceRangeModifier", "surfaceGroupRangeModifier", "shipVelocityRangeModifier", "shipVelocityGroupRangeModifier" };
+        private static bool logged;
+
+        internal static bool Wanted(Hydrophone h)
+        {
+            if (h == null || !Util.IsPlayers(h)) return false;
+            if (Settings.B("CheatHydrophoneAlways")) return true;
+            return Warthog.WarthogSonar.On && Settings.B("WhPassive") && Settings.B("WhPassiveSame");
+        }
+
+        internal static void Force(Hydrophone h)
+        {
+            try
+            {
+                if (targetF != null) targetF.SetValue(h, 1f);
+                var tw = tweenF != null ? tweenF.GetValue(h) : null;
+                if (tw != null) { Traverse.Create(tw).Method("Abort").GetValue(); tweenF.SetValue(h, null); }
+                var t = Traverse.Create(h);
+                foreach (var f in Mods) { var m = t.Field(f).GetValue<Modifier>(); if (m != null && m.Value != 1f) m.Value = 1f; }
+                if (!logged) { logged = true; Util.Log("Horcher: Abzug für Fahrt/aufgetaucht aufgehoben, Hörkreis fest (" + h.name + ")"); }
+            }
+            catch (System.Exception e) { Util.Log("Horcher: " + e.Message); }
+        }
+
+        // switched off again: let the game compute its own values
+        internal static void Restore(Hydrophone h)
+        {
+            try
+            {
+                var t = Traverse.Create(h);
+                t.Method("ValidateVelocityModifier").GetValue();
+                if (h.ParentEntity is UBOAT.Game.Scene.Entities.PlayableSubmarine) t.Method("SurfaceRangeModifierParameter_Changed", new[] { typeof(Parameter) }, new object[] { null }).GetValue();
+            }
+            catch (System.Exception e) { Util.Log("Horcher zurück: " + e.Message); }
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class HydroSame_Patches
+    {
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            foreach (var n in new[] { "ValidateVelocityModifier", "UpdateShipVelocityModifier", "Submarine_SubmergeStateChanged", "SurfaceRangeModifierParameter_Changed", "OnSandboxRepresentationSet" })
+            {
+                var m = AccessTools.Method(typeof(Hydrophone), n);
+                if (m != null) yield return m; else Util.Log("Horcher: Spiel-Methode " + n + " fehlt");
+            }
+        }
+        private static void Postfix(Hydrophone __instance) { if (HydroSame.Wanted(__instance)) HydroSame.Force(__instance); }
     }
 }

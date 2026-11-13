@@ -16,8 +16,6 @@ namespace UboatToolkit.Modules.Warthog
     {
         internal static bool On => WarthogSettings.Active(Util.PlayerShip);
         private readonly HashSet<int> known = new HashSet<int>();
-        private Ship[] ships = new Ship[0];
-        private float shipsAt = -99f;
         private Modifier energy;
 
         public override void Tick()
@@ -33,12 +31,7 @@ namespace UboatToolkit.Modules.Warthog
                 // range slider
                 h.DetectionRange.GetScaleModifier("Warthog Range", true).Value = passive ? Settings.F("WhPassiveRange") : 1f;
                 h.GroupDetectionRange.GetScaleModifier("Warthog Range", true).Value = passive ? Settings.F("WhPassiveRange") : 1f;
-                // surfaced / fast = as good as submerged / slow
-                if (passive && Settings.B("WhPassiveSame"))
-                {
-                    foreach (var f in new[] { "surfaceRangeModifier", "surfaceGroupRangeModifier" })   // velocity: see WarthogSonar_SameRange (set per frame by the game)
-                    { var m = t.Field(f).GetValue<Modifier>(); if (m != null && m.Value < 1f) m.Value = 1f; }
-                }
+                // surfaced / fast = as good as submerged / slow: done where the game sets these values (HydroSame in SensorCheats.cs)
                 // always on: no operator needed
                 if (passive && !h.enabled) h.SetDisableFlag(DeviceDisableFlag.Unmanned, false);
             }
@@ -62,10 +55,12 @@ namespace UboatToolkit.Modules.Warthog
             var hs = Util.Find<Hydrophone>();
             if (hs.Length == 0) return;
             var h = hs[0];
-            if (Time.unscaledTime - shipsAt > 15f) { ships = Object.FindObjectsOfType<Ship>(); shipsAt = Time.unscaledTime; }
+            // the game's own list of all active ships/observers (no FindObjectsOfType: that cost 40-70 ms every 15 s)
+            var obs = Observator.observators;
             var now = new HashSet<int>();
-            foreach (var s in ships)
+            for (int i = obs.Count - 1; i >= 0; i--)
             {
+                var s = obs[i] as Ship;
                 if (s == null || s == ship || s is Aircraft) continue;
                 float d = Vector3.Distance(ship.transform.position, s.transform.position);
                 if (d > h.DetectionRange.Value) continue;
@@ -129,27 +124,5 @@ namespace UboatToolkit.Modules.Warthog
             var loud = Traverse.Create(__instance).Field("loud").GetValue<Modifier>();
             if (loud != null && loud.Value != 0f) loud.Value = 0f;
         }
-    }
-
-    // "Surfaced/fast as good as submerged/slow": the game sets the speed modifiers EVERY FRAME while the speed changes
-    // (Hydrophone.UpdateShipVelocityModifier) and the surface modifier during a 0.5 s fade. Overwriting them once per
-    // tick made the listening range jump between two values = flickering range circle on the map. Now the value is
-    // corrected where the game sets it, so there is only one value.
-    [HarmonyPatch]
-    internal static class WarthogSonar_SameRange
-    {
-        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
-        {
-            var a = AccessTools.Method(typeof(Hydrophone), "SetShipVelocityModifiers"); if (a != null) yield return a;
-            var b = AccessTools.Method(typeof(Hydrophone), "SetSurfaceRangeModifier"); if (b != null) yield return b;
-        }
-        private static void Prefix(Hydrophone __instance, ref float __0)
-        {
-            if (__0 >= 1f) return;
-            if (!WarthogSonar.On || !Settings.B("WhPassive") || !Settings.B("WhPassiveSame") || !Util.IsPlayers(__instance)) return;
-            if (!logged) { logged = true; Util.Log("[Warthog] sonar: Abzug für Fahrt/aufgetaucht aufgehoben (" + __0.ToString("0.00") + " -> 1), Hörkreis bleibt ruhig"); }
-            __0 = 1f;
-        }
-        private static bool logged;
     }
 }
