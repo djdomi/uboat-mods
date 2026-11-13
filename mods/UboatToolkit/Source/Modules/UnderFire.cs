@@ -64,8 +64,8 @@ namespace UboatToolkit.Modules
                 if (current != null && windowOpen) { current = a; return; }  // window already open: show the newest
                 current = a;
                 // More than 2 messages within 30 s: no pause (only the box at the edge).
-                float t = Time.unscaledTime;
-                recent.Add(t); recent.RemoveAll(x => t - x > 30f);
+                float tNow = Time.unscaledTime;
+                recent.Add(tNow); recent.RemoveAll(x => tNow - x > 30f);
                 Open(Settings.B("UnderFirePause") && recent.Count <= 2);
             }
             catch (Exception ex) { Util.Log("Beschuss: " + ex.Message); }
