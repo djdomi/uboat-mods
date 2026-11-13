@@ -82,6 +82,14 @@ namespace UboatToolkit.Modules.Warthog
                 outer[id] = outs;
             }
             foreach (var o in outs) if (o.activeSelf != all) o.SetActive(all);
+            // No named barrels (older Warthog or another boat): old way via the barrels' recoil objects, so the Toolkit
+            // works with any Warthog version and needs none (DoMe: mods must run side by side, no dependencies).
+            if (outs.Count == 0 && RecoilField != null)
+                foreach (int i in new[] { 0, 3 })
+                {
+                    var t = RecoilField.GetValue(full.GetValue(i)) as Transform;
+                    if (t != null && t.gameObject.activeSelf != all) t.gameObject.SetActive(all);
+                }
             if (!IsFlak(g) && g.Calibre.Value > 80f)
             {
                 bool c88 = on && Settings.B("WhCaliber88");   // exactly 88 mm, else the gun's own 105 mm
