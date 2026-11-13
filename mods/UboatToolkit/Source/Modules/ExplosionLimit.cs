@@ -28,7 +28,7 @@ namespace UboatToolkit.Modules
 
         // Smoothed frames per second (real time).
         private static float fps = 60f, lastT;
-        private static float Fps()
+        internal static float Fps()
         {
             float t = Time.unscaledTime, dt = Time.unscaledDeltaTime;
             if (t != lastT && dt > 0f) { lastT = t; fps = Mathf.Lerp(fps, 1f / dt, 0.2f); }

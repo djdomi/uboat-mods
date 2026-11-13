@@ -29,10 +29,18 @@ namespace UboatToolkit.Modules
             if (Settings.B("VoiceMuteGunCalls") && (statementId1 == "Artillery Aim" || statementId1 == "Fire!")) return Drop();
             float now = Time.unscaledTime;
             float gap = Settings.F("VoiceRepeatSec");
+            int maxQ = Mathf.Max(1, Mathf.RoundToInt(Settings.F("VoiceMaxQueue")));
+            if (Settings.B("ExplosionAuto"))
+            {
+                // Dynamic like the explosions: fluid = more voices allowed, low FPS = fewer.
+                float load = Mathf.Clamp01(ExplosionLimit_Patch.Fps() / Mathf.Max(1f, Settings.F("ExplosionTargetFps")));
+                gap = Mathf.Lerp(gap * 3f, gap * 0.5f, load);
+                maxQ = Mathf.Max(1, Mathf.RoundToInt(Mathf.Lerp(1f, maxQ * 2f, load)));
+            }
             if (gap > 0f && lastSaid.TryGetValue(statementId1, out var t) && now - t < gap) return Drop();
             if (ticketsF == null) ticketsF = AccessTools.Field(__instance.GetType(), "tickets");
             var q = ticketsF?.GetValue(__instance) as System.Collections.ICollection;
-            if (q != null && q.Count >= Mathf.Max(1, Mathf.RoundToInt(Settings.F("VoiceMaxQueue")))) return Drop();
+            if (q != null && q.Count >= maxQ) return Drop();
             lastSaid[statementId1] = now;
             return true;
         }
