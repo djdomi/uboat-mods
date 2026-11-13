@@ -22,6 +22,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.AutoDetail());
             Modules.Add(new Modules.DiveAngle());
             Modules.Add(new Modules.TankReset());
+            Modules.Add(new Modules.PortMines());
             Modules.Add(new Modules.Lighting());
             Modules.Add(new Modules.Hatches());
             Modules.Add(new Modules.Optics());
