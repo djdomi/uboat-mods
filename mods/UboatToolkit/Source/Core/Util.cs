@@ -82,6 +82,15 @@ namespace UboatToolkit
                 || m == UBOAT.Game.UI.GameUI.Mode.FPPEx || m == UBOAT.Game.UI.GameUI.Mode.DeviceManualMode;
         }
 
+        // "Type XXX" = the Warthog boat type (string check only, no reference to the Warthog mod); used to keep the
+        // Toolkit's hands off things the Warthog mod manages itself.
+        public static bool IsTypeXXX(PlayerShip ship)
+        {
+            if (ship == null) return false;
+            try { var t = ship.SandboxEntity != null ? ship.SandboxEntity.Type : null; if (t != null && t.Name != null) return t.Name.StartsWith("Type XXX"); } catch { }
+            return ship.gameObject.name.StartsWith("Type XXX");
+        }
+
         public static bool IsPlayers(Component c)
         {
             var ship = PlayerShip;

@@ -50,7 +50,6 @@ namespace UboatToolkit
             Modules.Add(new Modules.TooltipDiag());
             Modules.Add(new Modules.DevConsoleHide());
             Modules.Add(new Modules.SceneTiming());
-            foreach (var m in UboatToolkit.Modules.Warthog.WarthogModules.All()) Modules.Add(m);
             Modules.Add(new Modules.CrewCheats());
             Modules.Add(new Modules.Inventory());
             Modules.Add(new Modules.Loading());
@@ -204,7 +203,6 @@ namespace UboatToolkit
             if (Util.InGameView())   // not over the port menu / ship selection / HQ etc.
             {
                 UboatToolkit.Modules.DepthGauge.Draw();
-                UboatToolkit.Modules.Warthog.WarthogThrusterGauge.Draw();
             }
             UboatToolkit.Modules.UnderFire.Draw();
             if (!menuOpen) return;
@@ -216,7 +214,7 @@ namespace UboatToolkit
             Imgui.TextAt(new Rect(r.xMax - 18, r.yMax - 20, 16, 18), "◢");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             // tabs: as wide as fits, second row when the window is narrow
-            var tabList = new List<string> { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden", UboatToolkit.Modules.Warthog.WarthogSettings.Tab };
+            var tabList = new List<string> { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden" };
             foreach (var kv in AddonTabs.Tabs) if (!tabList.Contains(kv.Key)) tabList.Add(kv.Key);
             tabList.Add(Settings.KeysTab); tabList.Add(Settings.Tools);
             var tabs = tabList.ToArray();
@@ -242,12 +240,11 @@ namespace UboatToolkit
             Imgui.EndH();
             scroll = Imgui.BeginScroll(scroll);
             if (tab == "Crew") UboatToolkit.Modules.ExtraFeatures.DrawCrewTab();
-            if (tab == UboatToolkit.Modules.Warthog.WarthogSettings.Tab) UboatToolkit.Modules.Warthog.WarthogTab.Draw();
             if (tab == "Torpedos") UboatToolkit.Modules.TorpedoTab.Draw();
             if (tab == "Karte") UboatToolkit.Modules.MapTab.Draw();
             if (tab == "Licht") UboatToolkit.Modules.LightTab.Draw();
             if (tab == "Schaden") UboatToolkit.Modules.DamageReport.Draw();
-            if (tab != UboatToolkit.Modules.Warthog.WarthogSettings.Tab) AddonTabs.Draw(tab);
+            AddonTabs.Draw(tab);
             if (!string.IsNullOrEmpty(search) && search.Trim().Length >= 2)
             {
                 // Search over ALL tabs: shows where each hit lives.

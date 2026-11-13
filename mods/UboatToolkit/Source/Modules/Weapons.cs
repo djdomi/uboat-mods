@@ -59,9 +59,8 @@ namespace UboatToolkit.Modules
                 // Lowest aim (game/Unity: x angle positive = barrel DOWN, so the DOWN limit is maxAngle; minAngle is the UP
                 // limit). Up to 0.2.63 this wrongly changed minAngle, so "Flak tiefer neigen" had no effect.
                 float depress = Util.IsPlayers(gun) ? Settings.F(p + "Depress") : 0f;
-                if (gun.IsAntiAircraftWeapon && UboatToolkit.Modules.Warthog.WarthogWeapons.On) depress = Mathf.Max(depress, Settings.F("WhFlakDepression"));
                 float maxA = Util.Original<float>(gun, "maxAngle");
-                Util.SetField(gun, "maxAngle", depress > 0f ? Mathf.Max(maxA, depress) : maxA);
+                if (!Util.IsTypeXXX(ship)) Util.SetField(gun, "maxAngle", depress > 0f ? Mathf.Max(maxA, depress) : maxA);   // Warthog mod owns its guns
 
                 // Recoil (barrel jumps up after each shot, annoying when aiming yourself). 0 = none, 1 = game.
                 if (Util.IsPlayers(gun))
@@ -78,7 +77,7 @@ namespace UboatToolkit.Modules
                 // Engagement range in km (0 = game, ~12 km for the 88). The crew only picks targets inside it.
                 float km = Util.IsPlayers(gun) ? Settings.F(p + "Range") : 0f;
                 var rangeP = Traverse.Create(gun).Field("range").GetValue<Parameter>();
-                if (!(gun.IsAntiAircraftWeapon && UboatToolkit.Modules.Warthog.WarthogWeapons.On)) Util.SetParameter(rangeP, km > 0f ? km * 1000f : 0f);
+                if (!(gun.IsAntiAircraftWeapon && Util.IsTypeXXX(ship))) Util.SetParameter(rangeP, km > 0f ? km * 1000f : 0f);
 
                 // Muzzle velocity: own value in m/s (0 = game) times the multiplier.
                 float mps = Settings.F(p + "ShellMps");
