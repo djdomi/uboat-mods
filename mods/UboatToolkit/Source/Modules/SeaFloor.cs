@@ -58,6 +58,21 @@ namespace UboatToolkit.Modules
         }
 
         // Real loaded seabed under the boat, NaN when not known.
+        // Water depth from the game's world elevation map (good to a few metres) when the tile under the boat has no
+        // built terrain (deeper than ~650 m). Same source as the map's depth under the mouse.
+        internal static float MapDepthUnderShip()
+        {
+            try
+            {
+                var ship = Util.PlayerShip;
+                var sb = Util.Find<UBOAT.Game.Sandbox.Sandbox>(30f).FirstOrDefault();
+                if (ship == null || sb == null) return float.NaN;
+                float h = WorldMaps.ElevationMap.GetAtWorldSpace(sb.SceneToEncounterSpace(ship.transform.position));
+                return float.IsNaN(h) || h >= 0f ? float.NaN : -h;
+            }
+            catch { return float.NaN; }
+        }
+
         internal static float SeabedDepthUnderShip()
         {
             var ship = Util.PlayerShip;

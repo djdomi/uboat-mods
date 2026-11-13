@@ -72,7 +72,11 @@ namespace UboatToolkit.Modules
         {
             float floor = SeaFloor.SeabedDepthUnderShip();
             bool deep = float.IsNaN(floor) || floor > 60f;
-            string depthTxt = float.IsNaN(floor) ? "Wassertiefe unbekannt" : "Wassertiefe " + Mathf.RoundToInt(floor) + " m";
+            float minFloor = float.IsNaN(floor) ? SeaFloor.MapDepthUnderShip() : float.NaN;
+            string depthTxt = (!float.IsNaN(floor) ? "Wassertiefe " + Mathf.RoundToInt(floor) + " m"
+                              : !float.IsNaN(minFloor) ? "Wassertiefe ca. " + Mathf.RoundToInt(minFloor) + " m"
+                              : "Wassertiefe unbekannt") + ", wir auf " + Mathf.RoundToInt(Mathf.Max(0f, ship.Depth)) + " m";
+            if (float.IsNaN(floor) && !float.IsNaN(minFloor)) deep = minFloor > 60f;
             if (ship.SubmergedOrGoingToSubmerge) { why = "Wir sind schon unter Wasser - wegdrehen und schnell weg."; return Act.Evade; }
             if (at is Aircraft)
             {
