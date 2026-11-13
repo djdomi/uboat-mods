@@ -142,7 +142,7 @@ namespace UboatToolkit.Modules
             string text = c != null ? (c.text ?? "") : "<kein Text-Feld>";
             bool empty = c == null || text.Trim().Length == 0;
             string key = p.From + "|" + empty + "|" + (c != null && c.font != null ? c.font.name : "-");
-            if (!done.Add(key) && p.From != "Auge") return;
+            if (!done.Add(key) && p.From != "Auge" && !empty) return;
             count++;
             var sb = new System.Text.StringBuilder();
             sb.Append("Tooltip-Diagnose [").Append(p.From).Append("]: offen=").Append(openF != null ? openF.GetValue(p.T) : "?")
@@ -183,6 +183,67 @@ namespace UboatToolkit.Modules
         {
             if (__exception != null) Util.Log("Tooltip-Diagnose [Auge]: Spiel-Fehler beim Öffnen: " + __exception.GetType().Name + ": " + __exception.Message);
             return __exception;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // Empty tooltip box (DoMe 2026-11-13: eye icon, also on the stock IXC): a game "Tooltip" whose text is empty
+    // (missing translation or update function returning "") still opened the box. Now: an empty text opens nothing,
+    // and the object path + key are logged once so the missing text can be found.
+    [HarmonyPatch(typeof(UBOAT.Game.UI.Tooltip), "Open")]
+    internal static class UiFixes_EmptyTooltip
+    {
+        private static readonly FieldInfo localeF = AccessTools.Field(typeof(UBOAT.Game.UI.Tooltip), "locale");
+        private static readonly HashSet<string> logged = new HashSet<string>();
+
+        internal static string PathOf(Transform t)
+        {
+            string path = t != null ? t.name : "?";
+            for (int i = 0; i < 4 && t != null && t.parent != null; i++) { t = t.parent; path = t.name + "/" + path; }
+            return path;
+        }
+
+        private static bool Prefix(UBOAT.Game.UI.Tooltip __instance, string ___localizationKey, System.Func<string> ___updateFunction)
+        {
+            try
+            {
+                string text = null, key = ___localizationKey;
+                if (___updateFunction != null) { text = ___updateFunction(); if (text == null) return true; key = "(Funktion)"; }
+                else if (key != null && localeF != null)
+                {
+                    var loc = localeF.GetValue(null);
+                    string k = key.EndsWith("/") ? key + __instance.name : key;
+                    text = loc != null ? Traverse.Create(loc).Method("get_Item", new[] { typeof(string) }, new object[] { k }).GetValue<string>() : null;
+                    key = k;
+                }
+                else return true;
+                string path = PathOf(__instance.transform);
+                TooltipDiag.Caller = "Tooltip " + path + " key=" + key;
+                if (text != null && text.Trim().Length > 0) return true;
+                if (logged.Add(path + "|" + key)) Util.Log("Tooltip ohne Text unterdrückt: " + path + ", Schlüssel '" + key + "'");
+                return !Settings.B("FixEmptyTooltip");
+            }
+            catch (System.Exception e) { Util.Log("Tooltip-Prüfung: " + e.Message); return true; }
+        }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.UI.PlainTooltip), nameof(UBOAT.Game.UI.PlainTooltip.Open))]
+    internal static class UiFixes_PlainTooltipDiag
+    {
+        private static readonly HashSet<string> logged = new HashSet<string>();
+        private static void Postfix(UBOAT.Game.UI.PlainTooltip __instance, RectTransform target, string contents)
+        {
+            try
+            {
+                if (!Settings.B("DiagTooltip")) return;
+                string path = UiFixes_EmptyTooltip.PathOf(target != null ? target.transform : __instance.transform);
+                bool empty = contents == null || contents.Trim().Length == 0;
+                if (logged.Add(path + "|" + empty))
+                    Util.Log("Tooltip-Diagnose [Plain " + path + "]: Text(" + (contents == null ? -1 : contents.Length) + " Zeichen)='" + (contents ?? "").Replace("\n", " / ") + "'");
+            }
+            catch { }
         }
     }
 }
