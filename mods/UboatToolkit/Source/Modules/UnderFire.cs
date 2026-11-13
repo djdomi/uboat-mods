@@ -187,8 +187,11 @@ namespace UboatToolkit.Modules
             }
             if (current == null) return;
             // Small box at the right edge (game keeps running): click or key.
-            Imgui.BeginArea(new Rect(Screen.width - 330, Screen.height / 2f - 110, 320, 230));
-            Imgui.Label("⚠ " + current.Clock + " " + current.Text + (current.Count > 1 ? " (x" + current.Count + ")" : ""), 315);
+            if (windowOpen) { Cursor.visible = true; Cursor.lockState = CursorLockMode.None; }
+            var box = new Rect(Screen.width - 340, Screen.height / 2f - 125, 330, 250);
+            Imgui.Box(box, "Herr Kaleun, was tun wir?");
+            Imgui.BeginArea(new Rect(box.x + 6, box.y + 24, box.width - 12, box.height - 28));
+            Imgui.Label(current.Clock + " " + current.Text + (current.Count > 1 ? " (x" + current.Count + ")" : ""), 315);
             for (int i = 0; i < ActName.Length; i++)
                 if (Imgui.Button("[" + KeyText(ActKeys[i]) + "] " + ActName[i] + (i == (int)current.Advice ? " ★" : ""), 315))
                 { var a = current; Close(); current = null; if (i != (int)Act.Nothing) Do((Act)i, a); Imgui.EndArea(); return; }
