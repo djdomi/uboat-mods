@@ -137,3 +137,19 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // "Crew never tired": also the game's own tired check (Fatigue skill, updated every second per man) always says rested,
+    // and the man's energy is refilled right there (Tick alone missed men between ticks / new men).
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Skills.Fatigue), "UpdateFatigue")]
+    internal static class Cheats_NeverTiredPatch
+    {
+        private static void Prefix(UBOAT.Game.Scene.Characters.Skills.Fatigue __instance)
+        {
+            if (!Settings.B("CheatCrewNeverTired")) return;
+            var c = __instance.Character;
+            if (c != null) c.Energy = 1f;
+        }
+    }
+}
