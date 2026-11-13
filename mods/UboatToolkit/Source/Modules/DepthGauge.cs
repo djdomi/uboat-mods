@@ -190,7 +190,12 @@ namespace UboatToolkit.Modules
                     Game.StopTimeCompression("Zu flach für den Bodenabstand! Grund bei " + bed.ToString("F0") + " m");
                 }
             }
-            if (Mathf.Abs(ship.TargetDepth - target) > 0.5f) SetTarget(ship, target);
+            if (Mathf.Abs(ship.TargetDepth - target) > 0.5f)
+            {
+                Util.Log("Bodenabstand: Grund=" + bed.ToString("F1") + " Kiel-Versatz=" + keel.ToString("F1") + " Ziel=" + target.ToString("F1")
+                    + " altesZiel=" + ship.TargetDepth.ToString("F1") + " Depth=" + ship.Depth.ToString("F1") + " Offset=" + ship.VerticalOriginOffset.ToString("F1") + " Unterkante=" + ship.BottomDepth.ToString("F1"));
+                SetTarget(ship, target);
+            }
             pilotText = "Autopilot: Ziel " + target.ToString("F0") + " m, Grund " + bed.ToString("F0") + " m";
         }
 
