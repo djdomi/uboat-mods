@@ -54,3 +54,28 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // DoMe's idea: far ships only "virtual". The game already has this: groups outside the simulation distance are not
+    // spawned as real ships (they stay on the map/sensors as sandbox groups). Under the target FPS this distance is
+    // reduced step by step (down to AutoVirtualMin), so far groups go virtual; when FPS recover it goes back to the game value.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.Data.GameplaySettings), "SimulationDistanceMultiplier", HarmonyLib.MethodType.Getter)]
+    internal static class AutoDetail_VirtualShipsPatch
+    {
+        private static float smooth = 1f, lastT = -1f;
+        private static void Postfix(ref float __result)
+        {
+            if (!Settings.B("ExplosionAuto") || !Settings.B("AutoVirtualShips")) return;
+            float t = UnityEngine.Time.unscaledTime;
+            if (t != lastT)
+            {
+                lastT = t;
+                float load = UnityEngine.Mathf.Clamp01(ExplosionLimit_Patch.Fps() / UnityEngine.Mathf.Max(1f, Settings.F("ExplosionTargetFps")));
+                float want = UnityEngine.Mathf.Lerp(UnityEngine.Mathf.Clamp(Settings.F("AutoVirtualMin"), 0.2f, 1f), 1f, load);
+                smooth = UnityEngine.Mathf.MoveTowards(smooth, want, 0.02f * UnityEngine.Time.unscaledDeltaTime);   // slow: 0.1 per 5 s, no flicker
+            }
+            __result *= smooth;
+        }
+    }
+}

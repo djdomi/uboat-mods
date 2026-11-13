@@ -241,6 +241,8 @@ namespace UboatToolkit
             Num(QoL, "HatchMaxSpeed", "  höchstes Animations-Tempo", 3, 1, 5, 0.25f);
             Num(QoL, "HatchRunTail", "  nach der Luke weiterlaufen (Sekunden)", 0.35f, 0, 2, 0.05f);
             Bool(QoL, "MuteLightCallouts", "Ansagen zum Lichtwechsel stumm", false);
+            Bool(QoL, "AutoVirtualShips", "Auto-Detail: bei wenig FPS ferne Schiffe nur virtuell führen (bleiben auf Karte/Sensoren, werden nicht voll berechnet)", true);
+            Num(QoL, "AutoVirtualMin", "  kleinster Simulations-Abstand bei sehr wenig FPS (1 = Spiel, 0.5 = halb)", 0.5f, 0.2f, 1f, 0.1f);
             Bool(QoL, "ExplosionLimit", "Explosions-Effekte begrenzen: kleiner + höchstens x pro Sekunde (Schaden bleibt gleich)", true);
             Bool(QoL, "ExplosionAuto", "Automatische Detailstufe nach Bildrate (Explosionen + Stimmen): flüssig = voll, je weniger FPS desto sparsamer", true);
             Num(QoL, "ExplosionTargetFps", "  Ziel-FPS für die Automatik", 40, 15, 120, 5);
