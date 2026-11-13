@@ -558,6 +558,8 @@ namespace UboatToolkit
             Key("KeyDepthShallower", "Tiefe: höher (allein = Schritt, Shift = x10, Alt = x100)", "PageUp");
             Key("KeyAutoDepth", "Bodenabstand-Autopilot an/aus", "Ctrl+B");
             Key("KeyAutoDepthBottom", "Aufsetzen auf den Grund an/aus", "Ctrl+Shift+B");
+            Key("KeySpeedFaster", "Tempo-Cheat: schneller (+0,5)", "Ctrl+PageUp");
+            Key("KeySpeedSlower", "Tempo-Cheat: langsamer (-0,5)", "Ctrl+PageDown");
             Key("KeyReloadAll", "Alle leeren Rohre laden", "Ctrl+Shift+R");
             Key("KeyQuickTravel", "Schnellreise ans Kursziel (Cheat muss an sein)", "Ctrl+Shift+T");
             Key("KeyBackToWater", "Zurück ins Wasser", "Ctrl+Shift+W");

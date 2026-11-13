@@ -70,6 +70,18 @@ namespace UboatToolkit.Modules
                     Util.Safe("Depth.Key", () => { SetTarget(ship, ship.TargetDepth + s); ToolkitRunner.ShowNotice("Zieltiefe " + ship.TargetDepth.ToString("F0") + " m", 2f); });
                 }
             }
+            // Speed factor right at the gauge (DoMe: no trip to F10 for long transits / overtaking a convoy)
+            bool faster = Keys.Down("KeySpeedFaster"), slower = Keys.Down("KeySpeedSlower");
+            if (faster || slower)
+            {
+                var o = Settings.Get("CheatSpeed");
+                if (o != null)
+                {
+                    o.Value = Mathf.Clamp(Mathf.Round((o.Value + (faster ? 0.5f : -0.5f)) * 2f) / 2f, 1f, 5f);
+                    Settings.Save();
+                    ToolkitRunner.ShowNotice("Tempo x" + o.Value.ToString("0.0") + (o.Value <= 1f ? " (normal)" : ""), 2f);
+                }
+            }
             if (Keys.Down("KeyAutoDepth")) { var o = Settings.Get("AutoDepth"); if (o != null) { o.Value = o.Value > 0 ? 0 : 1; ToolkitRunner.ShowNotice("Bodenabstand-Autopilot " + (o.Value > 0 ? "AN" : "AUS"), 3f); } }
             if (Keys.Down("KeyAutoDepthBottom")) { var o = Settings.Get("AutoDepthBottom"); if (o != null) { o.Value = o.Value > 0 ? 0 : 1; ToolkitRunner.ShowNotice(o.Value > 0 ? "Aufsetzen auf den Grund" : "Aufsetzen beendet", 3f); } }
 
@@ -223,6 +235,7 @@ namespace UboatToolkit.Modules
             Imgui.Fill(new Rect(sc.x, Y(Current(ship)) - 2, sc.width, 4), Color.white);
             Imgui.TextAt(new Rect(r.x + 6, r.yMax - 42, r.width - 12, 20), float.IsNaN(lastBed) ? "Grund: ?" : "Grund " + lastBed.ToString("F0") + " m, frei " + (lastBed - ship.BottomDepth).ToString("F0") + " m");
             Imgui.TextAt(new Rect(r.x + 6, r.yMax - 22, r.width - 12, 20), pilotText);
+            Imgui.TextAt(new Rect(r.x + 6, r.yMax + 2, r.width - 12, 20), "Tempo x" + Settings.F("CheatSpeed").ToString("0.0") + "  (Strg+Bild hoch/runter)");
         }
     }
 }

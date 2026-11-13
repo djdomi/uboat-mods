@@ -515,6 +515,8 @@ namespace UboatToolkit
             m["Tiefe: höher (allein = Schritt, Shift = x10, Alt = x100)"] = "Depth: shallower (alone = step, Shift = x10, Alt = x100)";
             m["Bodenabstand-Autopilot an/aus"] = "Bottom-distance autopilot on/off";
             m["Aufsetzen auf den Grund an/aus"] = "Settle on the seabed on/off";
+            m["Tempo-Cheat: schneller (+0,5)"] = "Speed cheat: faster (+0.5)";
+            m["Tempo-Cheat: langsamer (-0,5)"] = "Speed cheat: slower (-0.5)";
             m["Alle leeren Rohre laden"] = "Load all empty tubes";
             m["Schnellreise ans Kursziel (Cheat muss an sein)"] = "Quick travel to course target (cheat must be on)";
             m["Zurück ins Wasser"] = "Back into the water";
