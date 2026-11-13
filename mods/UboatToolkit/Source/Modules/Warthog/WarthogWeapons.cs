@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using HarmonyLib;
 using UBOAT.Game.Scene.Entities;
@@ -22,19 +23,27 @@ namespace UboatToolkit.Modules.Warthog
 
         internal static bool IsFlak(Gun g) => g != null && g.Calibre.Value > 0f && g.Calibre.Value <= 40f;
 
+        // 0.3.9 performance (log: Tick 40-43 ms): guns searched once per second, outer barrels cached per gun
+        private float nextTick;
+        private Gun[] guns = new Gun[0];
+        private float gunsAt = -99f;
         public override void Tick()
         {
+            if (Time.unscaledTime < nextTick) return;
+            nextTick = Time.unscaledTime + 1f;
             var ship = Util.PlayerShip;
             bool on = On;
-            foreach (var g in Util.Find<Gun>())
+            if (Time.unscaledTime - gunsAt > 5f) { guns = Util.Find<Gun>().ToArray(); gunsAt = Time.unscaledTime; }
+            foreach (var g in guns)
             {
+                if (g == null) continue;
                 if (!IsFlak(g)) continue;
                 float orig = Util.Original<float>(g, "maxAngle");
                 Util.SetField(g, "maxAngle", on ? Mathf.Max(orig, Settings.F("WhFlakDepression")) : orig);
                 var range = Traverse.Create(g).Field("range").GetValue<UBOAT.Game.Core.Data.Parameter>();
                 Util.SetParameter(range, on ? Settings.F("WhAirEngage") * 1000f : 0f);
             }
-            foreach (var g in Util.Find<Gun>()) Barrels(g, on);
+            foreach (var g in guns) if (g != null) Barrels(g, on);
             if (on) { Settings.Set("GunGyroCrew", 1); Settings.Set("GunGyroManual", 1); }
             if (on) ReportPlanes(ship); else reported.Clear();
         }

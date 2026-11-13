@@ -34,6 +34,8 @@ namespace UboatToolkit.Modules.Warthog
             Num("WhThrustGaugeY", "    Anzeige: Position von oben in %", 62, 0, 95, 1);
             Bool("WhThrusterHoldFiring", "  Kurs halten, während Geschütze feuern (gegen Rückstoß)", true);
             Num("WhSpeedFactor", "Geschwindigkeit: Faktor auf die Schraubenleistung (1,0 = wie gebaut)", 1f, 0.5f, 2f, 0.05f);
+            Num("WhDiveSpeed", "Tauch-/Steiggeschwindigkeit: Faktor auf die Tiefenruder-Kraft (1,0 = wie ein IXC, auch in großer Tiefe)", 4f, 0.25f, 10f, 0.25f);
+            Num("WhCrushDepth", "Zerstörungstiefe in m (befohlene Tiefe wird auf 100 m darüber begrenzt)", 3000f, 500f, 6000f, 100f);
             Bool("WhThrustShiftSide", "  Shift + Z/X: ganzes Boot seitwärts (Anlegen); Z/X ohne Shift: auf der Stelle drehen", true);
             Num("WhThrustBowManual", "  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);
             Num("WhThrustSternManual", "  Heck-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);

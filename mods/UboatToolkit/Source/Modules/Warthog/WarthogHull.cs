@@ -27,6 +27,8 @@ namespace UboatToolkit.Modules.Warthog
             Scale(ship.VerticalSteersPerformance, on && Settings.B("WhFins") ? Settings.F("WhFinDepth") : 1f, "Warthog Fins");
             if (on && WarthogSettings.IsWarthog(ship)) MirrorBadge(ship);
             if (WarthogSettings.IsWarthog(ship)) SpeedFactor(ship, on ? Settings.F("WhSpeedFactor") : 1f);
+            if (WarthogSettings.IsWarthog(ship)) DiveSpeed(ship, on ? Settings.F("WhDiveSpeed") : 0f);
+            if (on && WarthogSettings.IsWarthog(ship)) CrushLimit(ship, Settings.F("WhCrushDepth"));
             // berth position (used by the game at the next docking): forward shift + side shift away from the pier
             if (on && WarthogSettings.IsWarthog(ship))
             {
@@ -59,6 +61,61 @@ namespace UboatToolkit.Modules.Warthog
             }
             if (n > 0 && f != lastFactor) Util.Log("[Warthog] speed factor " + f.ToString("0.00") + " -> " + n + " propeller(s), thrust x" + (f * f).ToString("0.00"));
             lastFactor = f;
+        }
+
+        // 0.3.9 dive / rise speed (DoMe: "far too slow, the curve flattens at ~97 m"). Game (PlayableSubmarine): with the
+        // ballast flooded the boat is about neutral and the DIVING PLANES make the depth change, with a FIXED force:
+        //   F = rudder * (3.6 + |v| * 1.15) * balance * depthFalloff * 10 * VerticalSteersForceScale
+        //   depthFalloff = 0.2 + 0.8 * exp(-(deckDepth - 12) * 0.02)  -> 1.0 at 12 m, 0.35 at 97 m, 0.2 below ~400 m
+        // Not scaled with mass: our 1826 t boat (IXC 866 t) gets half the acceleration, and below 100 m a third or less.
+        // Here: force x (mass ratio) x (1 / depthFalloff) x slider. Near the ordered depth (under 30 m away) the extra
+        // slider part fades out, so the depth keeping does not overshoot. Force only (VerticalSteersForceScale) - the pitch
+        // torque stays the game's, the boat keeps its normal dive angle.
+        private float lastDive = -1f;
+        private void DiveSpeed(PlayerShip ship, float slider)
+        {
+            var p = Util.SafeGet(() => ship.VerticalSteersForceScale, null);
+            if (p == null) return;
+            float f = 1f;
+            if (slider > 0f && ship.RigidBody != null)
+            {
+                float massK = Mathf.Clamp(ship.RigidBody.mass / 866000f, 1f, 4f);
+                float deck = Util.SafeGet(() => ship.DeckDepth, 0f);
+                float falloff = 0.2f + 0.8f * Mathf.Exp(Mathf.Min(0f, (deck - 12f) * -0.02f));
+                float err = Util.SafeGet(() => Mathf.Abs(ship.TargetDepth - ship.Depth), 100f);
+                float near = Mathf.Clamp01((err - 8f) / 22f);   // 0 within 8 m of the ordered depth, 1 beyond 30 m
+                float s = Mathf.Lerp(1f, Mathf.Clamp(slider, 0.25f, 10f), near);
+                f = Mathf.Clamp(massK / falloff * s, 0.25f, 60f);
+            }
+            Scale(p, f, "Warthog Dive");
+            if (Mathf.Abs(f - lastDive) > 0.5f * Mathf.Max(1f, lastDive * 0.25f)) { Util.Log("[Warthog] dive: diving-plane force x" + f.ToString("0.0") + " (slider " + slider.ToString("0.00") + ", deck depth " + Util.SafeGet(() => ship.DeckDepth, 0f).ToString("0") + " m)"); lastDive = f; }
+        }
+
+        // 0.3.9 crush depth (game: HullCrushController implodes the boat after a timeout once it is below the entity
+        // parameter "CrushDepth"; the sheet value of Type XXX is -3000). Slider WhCrushDepth scales it, and the ORDERED
+        // depth is clamped to 100 m above it, so the player can never order a depth that kills the boat silently.
+        private static readonly System.Reflection.FieldInfo TargetDepthF = HarmonyLib.AccessTools.Field(typeof(PlayableSubmarine), "targetDepth");
+        private float sheetCrush = float.NaN; private float lastClampLog = -99f;
+        private void CrushLimit(PlayerShip ship, float wantMeters)
+        {
+            var p = Util.SafeGet(() => ship.SandboxEntity.Parameters.GetParameter("CrushDepth"), null);
+            if (p == null) return;
+            if (float.IsNaN(sheetCrush))
+            {
+                float mod = Util.SafeGet(() => p.GetScaleModifier("Warthog Crush Depth", true).Value, 1f);
+                float raw = Mathf.Abs(Util.SafeGet(() => (float)p, 0f)) / Mathf.Max(0.0001f, mod);
+                sheetCrush = raw > 1f ? raw : 3000f;
+            }
+            Scale(p, Mathf.Max(100f, wantMeters) / sheetCrush, "Warthog Crush Depth");
+            float crush = Mathf.Abs(Util.SafeGet(() => (float)p, -wantMeters));
+            float limit = crush - 100f;
+            float ordered = Util.SafeGet(() => ship.TargetDepth, 0f);
+            if (TargetDepthF != null && ordered > limit)
+            {
+                float td = (float)TargetDepthF.GetValue(ship);
+                TargetDepthF.SetValue(ship, td + (ordered - limit));   // TargetDepth = -targetDepth + offset
+                if (Time.unscaledTime - lastClampLog > 10f) { lastClampLog = Time.unscaledTime; Util.Log("[Warthog] depth: ordered " + ordered.ToString("0") + " m is below the crush depth limit, set to " + limit.ToString("0") + " m (crush " + crush.ToString("0") + " m, F10 > Warthog > Zerstörungstiefe)"); }
+            }
         }
 
         static void Scale(Parameter p, float f, string name)
