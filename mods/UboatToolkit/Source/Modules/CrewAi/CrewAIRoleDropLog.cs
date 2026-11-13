@@ -105,6 +105,15 @@ namespace UboatToolkit.Modules.CrewAi
                     bool keep = RoleDropToggles.KeepRunningJobs && who != null && !sleepJob && !sleepShift &&
                                 !float.IsNaN(score) && score > 0.001f &&
                                 (bestAction.Action == null || score >= bestAction.Profit - RoleDropToggles.TieTolerance);
+                    // A man at a station (hydrophone, engines, guns, helm ...) never leaves it just to carry things from storage
+                    // (DoMe 2026-11-13: crew "flattert"; log showed CarryItemsAction at 'Main Storage' outscoring stations). Port: carrying wins.
+                    if (!keep && RoleDropToggles.KeepRunningJobs && who != null && !sleepJob && !sleepShift && !float.IsNaN(score) && score > 0.001f
+                        && bestAction.Action != null && bestAction.Action.GetType().Name == "CarryItemsAction" && a.GetType().Name != "CarryItemsAction"
+                        && a.Activator != null && a.Activator.AssociatedEquipment != null)
+                    {
+                        var ps = Util.PlayerShip;
+                        if (ps != null && !ps.Docked) keep = true;
+                    }
 
                     if (keep)
                     {
