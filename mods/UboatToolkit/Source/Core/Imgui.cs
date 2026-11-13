@@ -69,7 +69,25 @@ namespace UboatToolkit
         public static string TextField(string t, float w = 0) => textField == null ? t : (string)textField.Invoke(null, new[] { t ?? "", Opts(w) });
         public static void Label(string t, float w = 0) => label.Invoke(null, new[] { Lang.T(t), Opts(w) });
         public static bool Toggle(bool v, string t) => (bool)toggle.Invoke(null, new object[] { v, Lang.T(t), noOptions });
-        public static float Slider(float v, float min, float max, float w) => (float)slider.Invoke(null, new object[] { v, min, max, Opts(w) });
+        private static PropertyInfo evCurrent, evType;
+        private static bool IsWheelEvent()
+        {
+            try
+            {
+                if (evCurrent == null) { var et = Type.GetType("UnityEngine.Event, UnityEngine.IMGUIModule"); evCurrent = et?.GetProperty("current"); evType = et?.GetProperty("type"); }
+                var e = evCurrent?.GetValue(null);
+                return e != null && evType.GetValue(e).ToString() == "ScrollWheel";
+            }
+            catch { return false; }
+        }
+
+        // The mouse wheel never changes a slider (it only scrolls the menu); DoMe had values jump while scrolling.
+        public static float Slider(float v, float min, float max, float w)
+        {
+            bool wheel = IsWheelEvent();
+            float r = (float)slider.Invoke(null, new object[] { v, min, max, Opts(w) });
+            return wheel ? v : r;
+        }
         public static bool Button(string t, float w = 0) => (bool)button.Invoke(null, new[] { Lang.T(t), Opts(w) });
         public static void BeginH() => beginH.Invoke(null, new[] { noOptions });
         public static void EndH() => endH.Invoke(null, null);
