@@ -26,12 +26,30 @@ namespace UboatToolkit.Modules
             Util.Log("Explosionen: " + n + " Stelle(n) umgeleitet");
         }
 
+        // Smoothed frames per second (real time).
+        private static float fps = 60f, lastT;
+        private static float Fps()
+        {
+            float t = Time.unscaledTime, dt = Time.unscaledDeltaTime;
+            if (t != lastT && dt > 0f) { lastT = t; fps = Mathf.Lerp(fps, 1f / dt, 0.2f); }
+            return fps;
+        }
+
         private static GameObject Spawn(GameObject prefab)
         {
             if (!Settings.B("ExplosionLimit")) return Object.Instantiate(prefab);
             float now = Time.unscaledTime;
+            float scale = Mathf.Clamp(Settings.F("ExplosionScale"), 0.1f, 1f);
+            int max = Mathf.Max(1, Mathf.RoundToInt(Settings.F("ExplosionMaxPerSec")));
+            if (Settings.B("ExplosionAuto"))
+            {
+                // Load-based detail: at target FPS or better full effects; below, scale and count go down with the FPS.
+                float load = Mathf.Clamp01(Fps() / Mathf.Max(1f, Settings.F("ExplosionTargetFps")));
+                scale = Mathf.Lerp(scale, 1f, load);
+                max = load >= 0.999f ? 1000 : Mathf.Max(1, Mathf.RoundToInt(Mathf.Lerp(1f, max * 3f, load)));
+            }
             if (now - second >= 1f) { second = now; count = 0; }
-            if (++count > Mathf.Max(1, Mathf.RoundToInt(Settings.F("ExplosionMaxPerSec"))))
+            if (++count > max)
             {
                 skipped++;
                 if (now > nextLog) { nextLog = now + 60f; Util.Log("Explosionen begrenzt: " + skipped + " Effekte ausgelassen (gesamt)"); }
@@ -40,7 +58,7 @@ namespace UboatToolkit.Modules
                 return dummy;
             }
             var go = Object.Instantiate(prefab);
-            float s = Mathf.Clamp(Settings.F("ExplosionScale"), 0.1f, 1f);
+            float s = scale;
             if (s < 0.999f)
             {
                 go.transform.localScale = prefab.transform.localScale * s;

@@ -242,6 +242,8 @@ namespace UboatToolkit
             Num(QoL, "HatchRunTail", "  nach der Luke weiterlaufen (Sekunden)", 0.35f, 0, 2, 0.05f);
             Bool(QoL, "MuteLightCallouts", "Ansagen zum Lichtwechsel stumm", false);
             Bool(QoL, "ExplosionLimit", "Explosions-Effekte begrenzen: kleiner + höchstens x pro Sekunde (Schaden bleibt gleich)", true);
+            Bool(QoL, "ExplosionAuto", "  Automatisch nach Bildrate: flüssig = volle Effekte, je weniger FPS desto kleiner + weniger (Ziel-FPS unten)", true);
+            Num(QoL, "ExplosionTargetFps", "  Ziel-FPS für die Automatik", 40, 15, 120, 5);
             Num(QoL, "ExplosionScale", "  Größe der Granaten-Explosionen (1 = Spiel)", 0.5f, 0.1f, 1f, 0.1f);
             Num(QoL, "ExplosionMaxPerSec", "  höchstens x Explosions-Effekte pro Sekunde", 10, 1, 100, 1);
             Bool(QoL, "VoiceLimit", "Stimmen begrenzen: gleiche Ansage höchstens alle x Sekunden, kurze Warteschlange (weniger Gequassel + weniger Ruckeln)", true);
