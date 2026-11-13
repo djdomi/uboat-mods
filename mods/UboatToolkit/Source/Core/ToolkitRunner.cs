@@ -19,6 +19,7 @@ namespace UboatToolkit
         private void Awake()
         {
             Modules.Add(new Modules.Radio());
+            Modules.Add(new Modules.AutoDetail());
             Modules.Add(new Modules.Lighting());
             Modules.Add(new Modules.Hatches());
             Modules.Add(new Modules.Optics());
