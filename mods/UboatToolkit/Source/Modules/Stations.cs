@@ -223,3 +223,40 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Diagnosis: when "add sailor" finds nobody, write WHY into the toolkit log (one line per click).
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Skills.Authority), "AddNearbyCharacter")]
+    internal static class Stations_FollowerDiagPatch
+    {
+        private static void Postfix(UBOAT.Game.Scene.Characters.Skills.Authority __instance, PlayerCrew crew, bool silent, bool __result)
+        {
+            if (__result || silent || crew == null) return;
+            Util.Safe("FollowerDiag", () =>
+            {
+                var me = __instance.Character;
+                int sailors = 0, employed = 0, groupAwake = 0, cmdNotEnabled = 0, ok = 0;
+                var gt = HarmonyLib.Traverse.Create(__instance).Field("gameTime").GetValue();
+                int hour = 0;
+                try { hour = ((System.DateTime)HarmonyLib.Traverse.Create(gt).Property("CurrentDateTime").GetValue()).Hour; } catch { }
+                var tca = new UBOAT.Game.Scene.Characters.Actions.TakeCommandAction();
+                string firstState = "";
+                for (int i = 0; i < crew.Count; i++)
+                {
+                    var c = crew[i];
+                    if (c == null || c.Data == null || c.Data.CharacterType != PlayableCharacterData.Type.Sailor) continue;
+                    sailors++;
+                    if (c.Employer) { employed++; continue; }
+                    if (c.SailorGroup != null && c.SailorGroup.Schedule[hour] != Schedule.Behaviour.Sleep) { groupAwake++; continue; }
+                    var act = c.GetComponent<CharacterActivator>();
+                    var st = act != null && me != null ? tca.GetState(act, me, false, true, ActionContext.Normal).ActionState : ActionState.Hidden;
+                    if (st != ActionState.Enabled) { cmdNotEnabled++; if (firstState == "") firstState = st.ToString(); continue; }
+                    ok++;
+                }
+                Util.Log("Matrose zuweisen an " + (me != null ? me.Name : "?") + ": keiner gefunden. Matrosen " + sailors + ", schon bei Offizier " + employed
+                    + ", Gruppe hat gerade Dienst " + groupAwake + ", Befehl nicht möglich " + cmdNotEnabled + (firstState != "" ? " (" + firstState + ")" : "") + ", frei " + ok + ", Stunde " + hour);
+            });
+        }
+    }
+}
