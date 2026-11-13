@@ -45,6 +45,15 @@ namespace UboatToolkit.Modules
         // when the crew changes, so they run again only then (and every 5 minutes as a safety net).
         private static int lastCrewCount = -1;
         private static float fullRunAt;
+        // A promotion resets the officer's skill list (PromoteToClass), the crew count stays the same:
+        // so the skill cheats are applied again right away, before the promotion screen shows the list.
+        internal static void ReapplySkills()
+        {
+            lastCrewCount = -1; nextSkills = 0f;
+            if (Settings.B("CheatAllSkills")) AllSkills();
+            if (Settings.B("CheatSkillsAnyLevel")) SkillLevels(true);
+            if (Settings.B("CheatLinguist")) Linguists();
+        }
         private static bool CrewChanged()
         {
             int n = Util.SafeGet(() => Crew()?.Characters?.Count() ?? -1, -1);
@@ -243,6 +252,12 @@ namespace UboatToolkit.Modules
             }
             Imgui.Space(6);
         }
+    }
+
+    [HarmonyPatch(typeof(PlayableCharacterData), nameof(PlayableCharacterData.PromoteToClass))]
+    internal static class ExtraFeatures_PromotePatch
+    {
+        private static void Postfix() { Util.Safe("Skills.Promote", () => { ExtraFeatures.ReapplySkills(); Util.Log("Beförderung: Skill-Cheats neu angewendet"); }); }
     }
 
     // Cheat: extra skill points for every officer.
