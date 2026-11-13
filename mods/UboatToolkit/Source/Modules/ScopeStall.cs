@@ -237,7 +237,7 @@ namespace UboatToolkit.Modules
         {
             ScopePreloader.Init();
             float now = Time.unscaledTime;
-            if (now >= nextFlush) { nextFlush = now + 5f; ScopePreloader.FlushIfDirty(); }
+            if (now >= nextFlush) { nextFlush = now + 6.7f; ScopePreloader.FlushIfDirty(); }
             if (verifyAt > 0f && now >= verifyAt) { verifyAt = -1f; ScopeCfg.Log("Vorladen: " + ScopePreloader.LoadedCount() + "/" + ScopePreloader.RequestedCount + " Overlays geladen."); }
             if (done || !ScopeCfg.Retain || !ScopeCfg.Preload || ScopePreloader.Count == 0) return;
             if (readySince < 0f)

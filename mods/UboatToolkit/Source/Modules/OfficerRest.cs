@@ -50,7 +50,7 @@ namespace UboatToolkit.Modules
             HookSaves();
             if (saves != null && (saves.IsSaving || saves.IsLoading)) return;
             Util.Safe("Karten", Cards);
-            if (Time.realtimeSinceStartup >= nextPool) { nextPool = Time.realtimeSinceStartup + 5f; Pools(ship, crew.Characters); }
+            if (Time.realtimeSinceStartup >= nextPool) { nextPool = Time.realtimeSinceStartup + 4.7f; Pools(ship, crew.Characters); }
             bool blocked = false, docked = false;
             try { blocked = ship.IsCrewAlerted || ship.Alarmed; docked = ship.Docked; } catch { }
             double now = Now();

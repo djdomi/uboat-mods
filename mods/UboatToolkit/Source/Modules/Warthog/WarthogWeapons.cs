@@ -33,7 +33,7 @@ namespace UboatToolkit.Modules.Warthog
             nextTick = Time.unscaledTime + 1f;
             var ship = Util.PlayerShip;
             bool on = On;
-            if (Time.unscaledTime - gunsAt > 5f) { guns = Util.Find<Gun>().ToArray(); gunsAt = Time.unscaledTime; }
+            if (Time.unscaledTime - gunsAt > 7.3f) { guns = Util.Find<Gun>().ToArray(); gunsAt = Time.unscaledTime; }
             foreach (var g in guns)
             {
                 if (g == null) continue;

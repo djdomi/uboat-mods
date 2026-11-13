@@ -322,7 +322,7 @@ namespace UboatToolkit.Modules
             nextTick = now + 1f;
             LightEffects.SyncPerformance(false);
             LightAuto.TickSilent(ship);
-            if (now >= nextDamage) { nextDamage = now + 5f; RefreshDamage(ship); }
+            if (now >= nextDamage) { nextDamage = now + 6.1f; RefreshDamage(ship); }
         }
 
         private static void RefreshDamage(PlayerShip ship)

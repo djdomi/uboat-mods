@@ -12,7 +12,7 @@ namespace UboatToolkit.Modules.Lrl
     [NonSerializedInGameState]
     internal class LrlRuntime : MonoBehaviour
     {
-        private const float ScrubInterval = 5f;
+        private const float ScrubInterval = 5.1f;
 
         private static readonly List<ObservationSpot> Spots = new List<ObservationSpot>();
 

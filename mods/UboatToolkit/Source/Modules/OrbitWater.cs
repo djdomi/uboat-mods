@@ -60,7 +60,7 @@ namespace UboatToolkit.Modules
         public bool AnyAboveWater(PlayerShip ship, GameTime time, float now, float grace)
         {
             if (ship == null || time == null || LastAbove == null) return false;
-            if (scopes == null || scanned != ship || now >= nextScan) { nextScan = now + 5f; scanned = ship; scopes = ship.GetComponentsInChildren<Periscope>(true); }
+            if (scopes == null || scanned != ship || now >= nextScan) { nextScan = now + 4.3f; scanned = ship; scopes = ship.GetComponentsInChildren<Periscope>(true); }
             if (scopes.Length == 0) return false;
             long graceTicks = (long)(grace * 1e7f), t = time.UnscaledTicks;
             foreach (var p in scopes)

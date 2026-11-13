@@ -87,7 +87,7 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             if (Time.unscaledTime < next) return;
-            next = Time.unscaledTime + 5f;
+            next = Time.unscaledTime + 5.3f;
             var ship = Util.PlayerShip;
             bool noWeight = Settings.B("CheatNoWeight");
             float stack = Mathf.Max(1f, Settings.F("CheatStackSize"));

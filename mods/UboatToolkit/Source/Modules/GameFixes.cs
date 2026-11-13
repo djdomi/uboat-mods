@@ -33,7 +33,7 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             if (ship != null && Settings.B("FixSkipperDead") && Time.unscaledTime > nextPortCheck)
             {
-                nextPortCheck = Time.unscaledTime + 5f;
+                nextPortCheck = Time.unscaledTime + 5.7f;
                 Util.Safe("Fixes.PortWarn", () => PortWarning(ship));
             }
             Util.Safe("Fixes.Officers", ExtraOfficers);
