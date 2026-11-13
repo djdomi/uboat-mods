@@ -39,6 +39,8 @@ namespace UboatToolkit
             Num(QoL, "RadioSpeed", "Funk: so viel schneller senden (1 = normal) (#11)", 10, 1, 100, 1);
             Bool(QoL, "RadioUndetectable", "Funk: Gegner kann dich nicht anpeilen (#12)", true);
             Bool(QoL, "RadioDecryptAll", "Funk: alle Funksprüche lesbar (auch fremd verschlüsselte)", true);
+            Bool(QoL, "SeafloorAlways", "Meeresboden in der Nähe immer voll laden (auch tiefer als 650 m, für Sicht + Sonar/Tiefenmesser)", true);
+            Num(QoL, "SeafloorRadius", "  Meeresboden: Radius in km", 2, 0.5f, 4, 0.5f);
             Bool(QoL, "AutoLight", "Licht automatisch umschalten (#15)", true);
             Bool(QoL, "AutoLightNightRed", "  aufgetaucht Rotlicht", true);
             Bool(QoL, "AutoLightHuntedBlue", "  getaucht Blaulicht", true);
