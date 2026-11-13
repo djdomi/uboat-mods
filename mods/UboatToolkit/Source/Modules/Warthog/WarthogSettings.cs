@@ -8,7 +8,8 @@ namespace UboatToolkit.Modules.Warthog
     {
         public const string Tab = "Warthog";
 
-        static void Bool(string key, string label, bool def) => Settings.AddOpt(new Opt { Tab = Tab, Key = key, Label = label, IsBool = true, Default = def ? 1 : 0, Value = def ? 1 : 0, Min = 0, Max = 1, Step = 1 });
+        static void Bool(string key, string label, bool def) { def = def && key == "WhOnlyWarthog"; BoolRaw(key, label, def); }
+        static void BoolRaw(string key, string label, bool def) => Settings.AddOpt(new Opt { Tab = Tab, Key = key, Label = label, IsBool = true, Default = def ? 1 : 0, Value = def ? 1 : 0, Min = 0, Max = 1, Step = 1 });
         static void Num(string key, string label, float def, float min, float max, float step) => Settings.AddOpt(new Opt { Tab = Tab, Key = key, Label = label, Default = def, Value = def, Min = min, Max = max, Step = step });
         static void Key(string key, string label, string def) => Settings.AddOpt(new Opt { Tab = Settings.KeysTab, Key = key, Label = label, IsKey = true, Text = def });
 
