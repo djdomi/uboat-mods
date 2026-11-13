@@ -216,7 +216,10 @@ namespace UboatToolkit
             Imgui.TextAt(new Rect(r.xMax - 18, r.yMax - 20, 16, 18), "◢");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             // tabs: as wide as fits, second row when the window is narrow
-            var tabs = new[] { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden", UboatToolkit.Modules.Warthog.WarthogSettings.Tab, Settings.KeysTab, Settings.Tools };
+            var tabList = new List<string> { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden", UboatToolkit.Modules.Warthog.WarthogSettings.Tab };
+            foreach (var kv in AddonTabs.Tabs) if (!tabList.Contains(kv.Key)) tabList.Add(kv.Key);
+            tabList.Add(Settings.KeysTab); tabList.Add(Settings.Tools);
+            var tabs = tabList.ToArray();
             int perRow = Mathf.Clamp(Mathf.FloorToInt((r.width - 20) / 90f), 1, tabs.Length);
             float tw = (r.width - 30) / perRow - 4;
             for (int i = 0; i < tabs.Length; i += perRow)
@@ -244,6 +247,7 @@ namespace UboatToolkit
             if (tab == "Karte") UboatToolkit.Modules.MapTab.Draw();
             if (tab == "Licht") UboatToolkit.Modules.LightTab.Draw();
             if (tab == "Schaden") UboatToolkit.Modules.DamageReport.Draw();
+            if (tab != UboatToolkit.Modules.Warthog.WarthogSettings.Tab) AddonTabs.Draw(tab);
             if (!string.IsNullOrEmpty(search) && search.Trim().Length >= 2)
             {
                 // Search over ALL tabs: shows where each hit lives.
