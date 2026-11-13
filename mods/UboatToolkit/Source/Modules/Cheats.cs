@@ -54,6 +54,7 @@ namespace UboatToolkit.Modules
                 Fill(ship.Discipline);
                 if (ship.Stress != null) ship.Stress.Amount = 0;
             }
+            Util.Safe("Moral", () => NoMoraleLoss(ship));
             if (Settings.B("NoStress") && ship.Stress != null) ship.Stress.Amount = 0;
 
             if (Settings.B("CheatCrewNeverTired"))
@@ -77,6 +78,23 @@ namespace UboatToolkit.Modules
 
         // The diesel % is computed by the game from the fuel lying in the tanks, so filling only the
         // number would be undone at once. Fill the tanks themselves.
+        // Morale (game: "Discipline") with the cheat on: refilling alone left the display at e.g. "-102" (a big crew drains it
+        // fast). Our own delta cancels exactly the negative part of the gain, so it shows 0 and never drops; gains stay.
+        private const string MoraleMod = "UboatToolkit Moral";
+        private static void NoMoraleLoss(PlayerShip ship)
+        {
+            var g = ship.Discipline != null ? ship.Discipline.Gain : null;
+            if (g == null) return;
+            var m = g.GetDeltaModifier(MoraleMod, true);
+            float want = 0f;
+            if (Settings.B("CheatFullDiscipline"))
+            {
+                float v0 = g.GetValueWithModifierOverride(m, 0f), v1 = g.GetValueWithModifierOverride(m, 1f);
+                if (v0 < 0f && v1 - v0 > 1e-6f) want = -v0 / (v1 - v0);
+            }
+            if (Mathf.Abs(m.Value - want) > 1e-6f) m.Value = want;
+        }
+
         private static void FillFuel(UBOAT.Game.Scene.Entities.PlayerShip ship)
         {
             var srcs = ship.FuelSources;

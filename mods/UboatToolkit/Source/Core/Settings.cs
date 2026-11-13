@@ -497,7 +497,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatFullBattery", "Batterie bleibt voll", false);
             Bool(Cheat, "CheatFullAir", "Luft unter Wasser unbegrenzt", false);
             Bool(Cheat, "CheatCrewNeverTired", "Crew wird nie müde", false);
-            Bool(Cheat, "CheatFullDiscipline", "Disziplin/Stimmung immer voll, kein Stress", false);
+            Bool(Cheat, "CheatFullDiscipline", "Moral (Disziplin) immer voll und sinkt nie, kein Stress", false);
             Bool(Cheat, "CheatAllAchievements", "  >> Alle Steam-Erfolge freischalten", false);
             Num(Cheat, "CheatMoney", "Geld: nie weniger als (0 = aus)", 0, 0, 1000000, 10000);
             Num(Cheat, "CheatReputation", "Ansehen (Ruf-Punkte): nie weniger als (0 = aus)", 0, 0, 1000, 10);

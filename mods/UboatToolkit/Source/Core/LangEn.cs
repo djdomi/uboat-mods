@@ -461,7 +461,7 @@ namespace UboatToolkit
             m["Batterie bleibt voll"] = "Battery stays full";
             m["Luft unter Wasser unbegrenzt"] = "Unlimited air underwater";
             m["Crew wird nie müde"] = "Crew never gets tired";
-            m["Disziplin/Stimmung immer voll, kein Stress"] = "Discipline/mood always full, no stress";
+            m["Moral (Disziplin) immer voll und sinkt nie, kein Stress"] = "Morale (discipline) always full and never drops, no stress";
             m["  >> Alle Steam-Erfolge freischalten"] = "  >> Unlock all Steam achievements";
             m["Geld: nie weniger als (0 = aus)"] = "Money: never less than (0 = off)";
             m["Ansehen (Ruf-Punkte): nie weniger als (0 = aus)"] = "Reputation (Ansehen): never less than (0 = off)";
