@@ -150,8 +150,7 @@ namespace UboatToolkit.Modules
             try
             {
                 if (targetF != null) targetF.SetValue(h, 1f);
-                var tw = tweenF != null ? tweenF.GetValue(h) : null;
-                if (tw != null) { Traverse.Create(tw).Method("Abort").GetValue(); tweenF.SetValue(h, null); }
+                // The game's range tween is NOT aborted any more: the map draws the green range circles from it (gone since 0.2.54).
                 var t = Traverse.Create(h);
                 foreach (var f in Mods) { var m = t.Field(f).GetValue<Modifier>(); if (m != null && m.Value != 1f) m.Value = 1f; }
                 if (!logged) { logged = true; Util.Log("Horcher: Abzug für Fahrt/aufgetaucht aufgehoben, Hörkreis fest (" + h.name + ")"); }
