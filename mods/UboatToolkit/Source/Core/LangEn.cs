@@ -15,8 +15,8 @@ namespace UboatToolkit
             m["Funk: so viel schneller senden (1 = normal) (#11)"] = "Radio: send this much faster (1 = normal) (#11)";
             m["Funk: Gegner kann dich nicht anpeilen (#12)"] = "Radio: enemy cannot direction-find you (#12)";
             m["Licht automatisch umschalten (#15)"] = "Switch lights automatically (#15)";
-            m["  nachts Rotlicht"] = "  red light at night";
-            m["  wenn gejagt Blaulicht"] = "  blue light when hunted";
+            m["  aufgetaucht Rotlicht"] = "  red light when surfaced";
+            m["  getaucht Blaulicht"] = "  blue light when submerged";
             m["Suchscheinwerfer automatisch (nachts, aufgetaucht) (#16)"] = "Searchlight automatic (night, surfaced) (#16)";
             m["Luken automatisch schließen (Tauchen / gejagt) (#22)"] = "Close hatches automatically (diving / hunted) (#22)";
             m["Sehrohr + Fernglas: mehr Zoom (1 = normal) (#18)"] = "Periscope + binoculars: more zoom (1 = normal) (#18)";

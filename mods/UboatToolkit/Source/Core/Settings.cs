@@ -39,8 +39,8 @@ namespace UboatToolkit
             Num(QoL, "RadioSpeed", "Funk: so viel schneller senden (1 = normal) (#11)", 10, 1, 100, 1);
             Bool(QoL, "RadioUndetectable", "Funk: Gegner kann dich nicht anpeilen (#12)", true);
             Bool(QoL, "AutoLight", "Licht automatisch umschalten (#15)", true);
-            Bool(QoL, "AutoLightNightRed", "  nachts Rotlicht", true);
-            Bool(QoL, "AutoLightHuntedBlue", "  wenn gejagt Blaulicht", true);
+            Bool(QoL, "AutoLightNightRed", "  aufgetaucht Rotlicht", true);
+            Bool(QoL, "AutoLightHuntedBlue", "  getaucht Blaulicht", true);
             Bool(QoL, "AutoSearchlight", "Suchscheinwerfer automatisch (nachts, aufgetaucht) (#16)", false);
             Bool(QoL, "AutoHatches", "Luken automatisch schließen (Tauchen / gejagt) (#22)", true);
             Num(QoL, "OpticsZoom", "Sehrohr + Fernglas: mehr Zoom (1 = normal) (#18)", 2, 1, 10, 0.5f);

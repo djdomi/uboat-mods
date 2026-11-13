@@ -22,8 +22,10 @@ namespace UboatToolkit.Modules
             if (Settings.B("AutoLight"))
             {
                 var wanted = LightController.Preset.Surface;
-                if (Settings.B("AutoLightHuntedBlue") && ship.IsHunted) wanted = LightController.Preset.SilentRun;
-                else if (Settings.B("AutoLightNightRed") && night) wanted = LightController.Preset.Alarm;
+                // DoMe: surfaced = red, blue only once we dive (submerged or diving)
+                bool under = ship.SubmergedOrGoingToSubmerge;
+                if (Settings.B("AutoLightHuntedBlue") && under) wanted = LightController.Preset.SilentRun;
+                else if (Settings.B("AutoLightNightRed") && !under) wanted = LightController.Preset.Alarm;
 
                 if (lastWanted != wanted)
                 {
