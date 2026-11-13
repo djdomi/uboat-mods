@@ -82,14 +82,42 @@ namespace UboatToolkit
                 || m == UBOAT.Game.UI.GameUI.Mode.FPPEx || m == UBOAT.Game.UI.GameUI.Mode.DeviceManualMode;
         }
 
-        // "Type XXX" = the Warthog boat type (string check only, no reference to the Warthog mod); used to keep the
-        // Toolkit's hands off things the Warthog mod manages itself.
+        // "Type XXX" = the Warthog boat type (string check only, no reference to the Warthog mod).
         public static bool IsTypeXXX(PlayerShip ship)
         {
             if (ship == null) return false;
             try { var t = ship.SandboxEntity != null ? ship.SandboxEntity.Type : null; if (t != null && t.Name != null) return t.Name.StartsWith("Type XXX"); } catch { }
             return ship.gameObject.name.StartsWith("Type XXX");
         }
+
+        // True when the Warthog mod brings its own Warthog code (namespace "Warthog", 0.3.9+). Then the Toolkit's
+        // built-in Warthog parts stay off, so nothing runs twice; with an older Warthog (or none) the Toolkit's own
+        // parts do the work. Both mods run alone and in any version combination (DoMe 2026-11-13).
+        private static int warthogMod = -1;
+        public static bool WarthogModPresent
+        {
+            get
+            {
+                if (warthogMod < 0)
+                {
+                    warthogMod = 0;
+                    try
+                    {
+                        foreach (var a in System.AppDomain.CurrentDomain.GetAssemblies())
+                        {
+                            System.Type[] ts;
+                            try { ts = a.GetTypes(); } catch { continue; }
+                            foreach (var t in ts) if (t.Namespace == "Warthog") { warthogMod = 1; break; }
+                            if (warthogMod == 1) break;
+                        }
+                    }
+                    catch { }
+                    Log("Warthog-Mod mit eigenem Code: " + (warthogMod == 1 ? "ja (Toolkit-Warthog-Teile bleiben aus)" : "nein (Toolkit-Warthog-Teile aktiv)"));
+                }
+                return warthogMod == 1;
+            }
+        }
+        public static bool WarthogModOwns(PlayerShip ship) => WarthogModPresent && IsTypeXXX(ship);
 
         public static bool IsPlayers(Component c)
         {

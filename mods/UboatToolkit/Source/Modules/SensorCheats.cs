@@ -142,7 +142,7 @@ namespace UboatToolkit.Modules
         {
             if (h == null || !Util.IsPlayers(h)) return false;
             if (Settings.B("CheatHydrophoneAlways")) return true;
-            return false;   // Warthog mod handles its own hydrophone
+            return Warthog.WarthogSonar.On && Settings.B("WhPassive") && Settings.B("WhPassiveSame");
         }
 
         internal static void Force(Hydrophone h)

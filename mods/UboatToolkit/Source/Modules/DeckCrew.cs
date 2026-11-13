@@ -44,7 +44,7 @@ namespace UboatToolkit.Modules
     {
         private static void Postfix(Gun __instance)
         {
-            if (Settings.B("CheatDeckCrewStays") && !(Util.IsPlayers(__instance) && Util.IsTypeXXX(Util.PlayerShip))) __instance.SetDisableFlag(DeviceDisableFlag.Depth, false);
+            if (Settings.B("CheatDeckCrewStays") && !(Util.IsPlayers(__instance) && Util.WarthogModOwns(Util.PlayerShip))) __instance.SetDisableFlag(DeviceDisableFlag.Depth, false);
         }
     }
 
