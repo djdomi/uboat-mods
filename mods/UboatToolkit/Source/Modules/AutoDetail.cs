@@ -21,3 +21,30 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // The game checks ALL nearby ship groups (enter/leave, group update) in every physics step (SandboxPlayerWolfpack.FixedUpdate,
+    // measured ~10 s per minute with ~100 ships). Under the target FPS this check runs only every 2nd-4th step;
+    // groups are still found, just a few hundredths of a second later.
+    [HarmonyLib.HarmonyPatch]
+    internal static class AutoDetail_NearbyGroupsPatch
+    {
+        private static int step;
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            var t = typeof(UBOAT.Game.Sandbox.SandboxPlayerWolfpack);
+            var a = HarmonyLib.AccessTools.Method(t, "UpdateNearbyGroups"); if (a != null) yield return a;
+            var b = HarmonyLib.AccessTools.Method(t, "UpdateImpostorGroups"); if (b != null) yield return b;
+        }
+        private static bool Prefix(System.Reflection.MethodBase __originalMethod)
+        {
+            if (!Settings.B("ExplosionAuto")) return true;
+            float load = ExplosionLimit_Patch.Fps() / UnityEngine.Mathf.Max(1f, Settings.F("ExplosionTargetFps"));
+            if (load >= 1f) return true;
+            int every = load < 0.25f ? 4 : load < 0.5f ? 3 : 2;
+            if (__originalMethod.Name == "UpdateNearbyGroups") step++;
+            return step % every == 0;
+        }
+    }
+}
