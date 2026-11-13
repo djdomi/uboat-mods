@@ -40,6 +40,8 @@ namespace UboatToolkit.Modules
                 if (c == null) return;
                 Events.Diary((c.IsAirborne ? "Flugzeug" : "Kontakt") + ": " + c.Name);
                 if (Traffic.Ignore(c)) return;
+                string n = c.Name ?? "";
+                if (n.IndexOf("Wrack", System.StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("Wreck", System.StringComparison.OrdinalIgnoreCase) >= 0) return;   // wrecks never stop time (DoMe)
                 bool air = c.IsAirborne;
                 if (air ? !Settings.B("StopTimeOnAircraft") : !Settings.B("StopTimeOnShip")) return;
                 Game.StopTimeCompression((air ? "Flugzeug" : "Kontakt") + " gesichtet: " + c.Name);
