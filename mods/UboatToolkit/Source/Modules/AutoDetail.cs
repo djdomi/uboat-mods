@@ -21,6 +21,7 @@ namespace UboatToolkit.Modules
             nextSwitch = Time.unscaledTime + 10f;
             limited = want;
             Time.maximumDeltaTime = want ? Mathf.Min(original, 0.1f) : original;
+            ToolkitRunner.ShowNotice(want ? "Auto-Detail: viel los (" + Mathf.RoundToInt(f) + " FPS) - Effekte, Stimmen + Physik werden gespart" : "Auto-Detail: wieder volle Details", 4f);
             Util.Log("Auto-Detail: Physik-Aufholen " + (want ? "begrenzt (0,1 s pro Bild)" : "normal (" + original.ToString("0.00") + " s)"));
         }
     }
