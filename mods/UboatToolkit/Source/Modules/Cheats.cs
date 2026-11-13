@@ -152,4 +152,14 @@ namespace UboatToolkit.Modules
             if (c != null) c.Energy = 1f;
         }
     }
+
+    // Energy never goes down at all (DoMe: prevent the loss, not refill it): every write to Energy becomes "full".
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.PlayableCharacter), "Energy", HarmonyLib.MethodType.Setter)]
+    internal static class Cheats_NoEnergyLossPatch
+    {
+        private static void Prefix(ref float value)
+        {
+            if (Settings.B("CheatCrewNeverTired")) value = 1f;
+        }
+    }
 }
