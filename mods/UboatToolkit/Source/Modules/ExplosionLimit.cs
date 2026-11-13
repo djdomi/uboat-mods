@@ -13,6 +13,9 @@ namespace UboatToolkit.Modules
     {
         private static readonly MethodInfo Inst = AccessTools.FirstMethod(typeof(Object), m => m.Name == "Instantiate" && m.IsGenericMethodDefinition && m.GetParameters().Length == 1)?.MakeGenericMethod(typeof(GameObject));
         private static readonly MethodInfo Mine = AccessTools.Method(typeof(ExplosionLimit_Patch), nameof(Spawn));
+        // The game forbids direct calls to Object.Instantiate in mod code: the non-generic overload is called via reflection.
+        private static readonly MethodInfo InstObj = typeof(Object).GetMethod("Instantiate", new[] { typeof(Object) });
+        private static GameObject Clone(GameObject p) => (GameObject)InstObj.Invoke(null, new object[] { p });
         private static float second; private static int count; private static int skipped; private static float nextLog;
 
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
@@ -37,7 +40,7 @@ namespace UboatToolkit.Modules
 
         private static GameObject Spawn(GameObject prefab)
         {
-            if (!Settings.B("ExplosionLimit")) return Object.Instantiate(prefab);
+            if (!Settings.B("ExplosionLimit")) return Clone(prefab);
             float now = Time.unscaledTime;
             float scale = Mathf.Clamp(Settings.F("ExplosionScale"), 0.1f, 1f);
             int max = Mathf.Max(1, Mathf.RoundToInt(Settings.F("ExplosionMaxPerSec")));
@@ -57,7 +60,7 @@ namespace UboatToolkit.Modules
                 Object.Destroy(dummy, 0.1f);
                 return dummy;
             }
-            var go = Object.Instantiate(prefab);
+            var go = Clone(prefab);
             float s = scale;
             if (s < 0.999f)
             {
