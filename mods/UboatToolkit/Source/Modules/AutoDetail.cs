@@ -47,7 +47,8 @@ namespace UboatToolkit.Modules
             if (!Settings.B("ExplosionAuto")) return true;
             float load = ExplosionLimit_Patch.Fps() / UnityEngine.Mathf.Max(1f, Settings.F("ExplosionTargetFps"));
             if (load >= 1f) return true;
-            int every = load < 0.25f ? 4 : load < 0.5f ? 3 : 2;
+            // the slower, the rarer: 40 FPS target at 5 FPS = every 8th step (max. 10)
+            int every = UnityEngine.Mathf.Clamp(UnityEngine.Mathf.CeilToInt(1f / UnityEngine.Mathf.Max(0.01f, load)), 2, 10);
             if (__originalMethod.Name == "UpdateNearbyGroups") step++;
             return step % every == 0;
         }
