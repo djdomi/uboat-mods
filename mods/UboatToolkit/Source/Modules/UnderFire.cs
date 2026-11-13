@@ -134,6 +134,7 @@ namespace UboatToolkit.Modules
                         break;
                 }
                 UboatToolkit.ToolkitRunner.ShowNotice("Befehl: " + ActName[(int)act], 5f);
+                Util.Log("Beschuss-Befehl ausgeführt: " + ActName[(int)act]);
             }
             catch (Exception ex) { Util.Log("Beschuss-Befehl: " + ex.Message); }
         }
@@ -159,8 +160,19 @@ namespace UboatToolkit.Modules
         // Drawn every frame from the toolkit GUI (also when F10 is closed).
         // Same choices as before, but as a box at the right edge (not in the middle); click or key Alt+1..4, Alt+5 = ignore.
         private static readonly string[] ActKeys = { "KeyUnderFire1", "KeyUnderFire2", "KeyUnderFire3", "KeyUnderFire4" };
+        private static bool migrated;
         public static void Draw()
         {
+            if (!migrated)
+            {
+                migrated = true;
+                string[] ks = { "KeyUnderFire1", "KeyUnderFire2", "KeyUnderFire3", "KeyUnderFire4", "KeyUnderFireIgnore" };
+                for (int i = 0; i < ks.Length; i++)
+                {
+                    var o = Settings.Get(ks[i]);
+                    if (o != null && o.Text == "Alt+Alpha" + (i + 1)) { o.Text = "Ctrl+Alt+Alpha" + (i + 1); Util.Log("Beschuss-Taste " + ks[i] + " von Alt+" + (i + 1) + " auf Strg+Alt+" + (i + 1) + " geändert (Alt+Zahl ist der Maschinentelegraf)"); Settings.Save(); }
+                }
+            }
             if (Mathf.RoundToInt(Settings.F("UnderFireMode")) != 1) { if (windowOpen) Close(); return; }
             float now = Time.unscaledTime;
             if (current != null && now >= ignoreUntil)
