@@ -219,3 +219,33 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // The game sets every gun of the group to "Custom" (= hold fire) whenever a gunner starts at a gun whose mode
+    // is not "Aircrafts" (alarm, attack dialog, crew change). The mode the player chose is put back here.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Actions.UseGun), "StartMainCharacter")]
+    internal static class Weapons_KeepGunModePatch
+    {
+        private static void Prefix(out System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Gun, ArtilleryTargetingMode>> __state)
+        {
+            __state = null;
+            if (!Settings.B("KeepGunMode")) return;
+            __state = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Gun, ArtilleryTargetingMode>>();
+            foreach (var g in Util.Find<Gun>())
+                if (g != null && Util.IsPlayers(g) && g.TargetingMode != ArtilleryTargetingMode.Custom)
+                    __state.Add(new System.Collections.Generic.KeyValuePair<Gun, ArtilleryTargetingMode>(g, g.TargetingMode));
+        }
+        private static void Postfix(System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Gun, ArtilleryTargetingMode>> __state)
+        {
+            if (__state == null) return;
+            Util.Safe("Weapons.KeepMode", () =>
+            {
+                int n = 0;
+                foreach (var kv in __state)
+                    if (kv.Key != null && kv.Key.TargetingMode == ArtilleryTargetingMode.Custom) { kv.Key.TargetingMode = kv.Value; n++; }
+                if (n > 0) Util.Log("Geschütze: Feuermodus von " + n + " Geschütz(en) behalten (Spiel wollte 'Feuer einstellen')");
+            });
+        }
+    }
+}
