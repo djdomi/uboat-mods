@@ -32,6 +32,7 @@ namespace UboatToolkit.Modules
 
         public static string Prefix(Gun gun) => gun.IsAntiAircraftWeapon ? "AAGun" : "DeckGun";
 
+        private static bool bothLogged;
         public override void Tick()
         {
             var ship = Util.PlayerShip;
@@ -40,6 +41,14 @@ namespace UboatToolkit.Modules
                 if (g != null && !g.IsAntiAircraftWeapon && Util.IsPlayers(g)) { deck88 = g; break; }
             foreach (var gun in Util.Find<Gun>())
             {
+                // QoL: player guns attack ships AND aircraft (the game's menu only offers one or the other; enemy flak
+                // already uses both). Preference per gun type in Weapons_PreferPatch. "Clear" (hold fire) stays.
+                if (Settings.B("AAGunBothTargets") && Util.IsPlayers(gun) && !Util.IsTypeXXX(ship)
+                    && (gun.TargetingMode == ArtilleryTargetingMode.Ships || gun.TargetingMode == ArtilleryTargetingMode.Aircrafts))
+                {
+                    gun.TargetingMode = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
+                    if (!bothLogged) { bothLogged = true; Util.Log("Geschütze: Schiffe und Flugzeuge zugleich (Deckgeschütz bevorzugt Schiffe, Flak Flugzeuge), z. B. " + gun.name); }
+                }
                 string p = Prefix(gun);
                 float turn = Settings.F(p + "TurnSpeed");
                 float rpm = Settings.F(p + "RPM");
@@ -185,6 +194,27 @@ namespace UboatToolkit.Modules
         {
             if (!Settings.B("CheatInfiniteGunAmmo") || !Util.IsPlayers(__instance)) return;
             AmmoCount(__instance) = Mathf.Max(1, (int)__instance.MagazineSize.Value);
+        }
+    }
+
+    // With both target types on: the deck gun (88/105) looks for ships first, flak (incl. the 37 mm) for aircraft first;
+    // only if none is found, the other type. Calls the game's own search twice (the inner call has one type only and
+    // passes straight through this prefix).
+    [HarmonyPatch(typeof(Gun), "FindBestTarget")]
+    internal static class Weapons_PreferPatch
+    {
+        private static readonly MethodInfo Find = AccessTools.Method(typeof(Gun), "FindBestTarget");
+        private static bool Prefix(Gun __instance, bool ships, bool allowAircraft, ref UBOAT.Game.Scene.Entities.Entity __result)
+        {
+            if (!ships || !allowAircraft || Find == null || !Settings.B("AAGunBothTargets") || !Util.IsPlayers(__instance)) return true;
+            try
+            {
+                bool air = __instance.IsAntiAircraftWeapon;
+                var first = Find.Invoke(__instance, new object[] { !air, air }) as UBOAT.Game.Scene.Entities.Entity;
+                __result = first != null ? first : Find.Invoke(__instance, new object[] { air, !air }) as UBOAT.Game.Scene.Entities.Entity;
+                return false;
+            }
+            catch { return true; }
         }
     }
 }

@@ -15,6 +15,7 @@ namespace UboatToolkit
             m["Funk: so viel schneller senden (1 = normal) (#11)"] = "Radio: send this much faster (1 = normal) (#11)";
             m["Funk: Gegner kann dich nicht anpeilen (#12)"] = "Radio: enemy cannot direction-find you (#12)";
             m["Funk: alle Funksprüche lesbar (auch fremd verschlüsselte)"] = "Radio: all messages readable (also foreign-encrypted)";
+            m["Geschütze: Schiffe und Flugzeuge zugleich angreifen (88/105 zuerst Schiffe, Flak zuerst Flugzeuge)"] = "Guns: attack ships and aircraft together (88/105 prefer ships, AA prefers aircraft)";
             m["Meeresboden in der Nähe immer voll laden (auch tiefer als 650 m, für Sicht + Sonar/Tiefenmesser)"] = "Always fully load the nearby sea floor (also deeper than 650 m, for view + sonar/depth gauge)";
             m["  Meeresboden: Radius in km"] = "  Sea floor: radius in km";
             m["Licht automatisch umschalten (#15)"] = "Switch lights automatically (#15)";
