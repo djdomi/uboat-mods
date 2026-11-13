@@ -16,7 +16,7 @@ namespace UboatToolkit.Modules.Warthog
         public static void Draw()
         {
             var ship = Util.PlayerShip;
-            if (ship == null || !WarthogSettings.IsWarthog(ship) || !Settings.B("WhThrustGauge") || !Settings.B("WhThrusters")) return;
+            if (ship == null || !WarthogSettings.ThrustersActive(ship) || !Settings.B("WhThrustGauge") || !Settings.B("WhThrusters")) return;
             var r = new Rect(Mathf.Clamp(Screen.width * Settings.F("WhThrustGaugeX") / 100f, 0f, Screen.width - W),
                              Mathf.Clamp(Screen.height * Settings.F("WhThrustGaugeY") / 100f, 0f, Screen.height - H), W, H);
             Imgui.Backdrop(r, 0.75f);

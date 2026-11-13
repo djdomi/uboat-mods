@@ -26,7 +26,7 @@ namespace UboatToolkit.Modules.Warthog
             Num("WhFinDepth", "  Tiefenruder-Wirkung x", 1.6f, 1f, 4f, 0.1f);
 
             // --- Antrieb
-            Bool("WhThrusters", "Strahlruder vorn + achtern", true);
+            Bool("WhThrusters", "Strahlruder vorn + achtern (alle Boote)", true);
             Bool("WhThrusterWithRudder", "  Strahlruder helfen automatisch beim Ruderlegen", true);
             Num("WhThrusterPower", "  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)", 6f, 0.5f, 30f, 0.5f);
             Num("WhThrusterEnergy", "  Strom pro Sekunde volle Leistung (Anteil Batterie x 0,0001)", 2f, 0f, 20f, 0.5f);
@@ -115,6 +115,9 @@ namespace UboatToolkit.Modules.Warthog
             if (!Settings.B("WhOnlyWarthog")) return true;
             return IsWarthog(ship);
         }
+
+        // Thrusters work on EVERY boat (DoMe); only skipped on the Warthog when the Warthog mod brings its own code.
+        public static bool ThrustersActive(PlayerShip ship) => ship != null && !Util.WarthogModOwns(ship);
 
         // By the game's entity type ("Type XXX (Player)"), and by the object name as a fallback.
         private static object logged;

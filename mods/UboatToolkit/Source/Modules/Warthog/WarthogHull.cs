@@ -130,7 +130,7 @@ namespace UboatToolkit.Modules.Warthog
         {
             var ship = Util.PlayerShip;
             bool keys = Keys.Held("KeyWhThrustLeft") || Keys.Held("KeyWhThrustRight");
-            if (!WarthogSettings.Active(ship)) { if (keys) Why("Strahlruder gibt es nur auf dem Warthog (U-1337)"); return; }
+            if (!WarthogSettings.ThrustersActive(ship)) return;
             var rb = ship.RigidBody;
             if (keys && !Settings.B("WhThrusters")) Why("Strahlruder sind ausgeschaltet (F10 > Warthog)");
             else if (keys && ship.Docked) Why("Strahlruder: im Hafen festgemacht, erst ablegen");
