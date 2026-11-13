@@ -133,6 +133,7 @@ namespace UboatToolkit
             m["Neue Karriere: Einf\u00fchrungs-Tutorial \u00fcberspringen"] = "New career: skip the introduction tutorial";
             m["Fehler-Fix: Einblend-Effekt von Figuren (z. B. Hafenarbeiter) beim Ein-/Ausschalten nicht mehr falsch umh\u00e4ngen"] = "Error fix: fade effect of figures (e.g. dock workers) no longer re-parented wrongly when switched on/off";
             m["Pause ohne Unsch\u00e4rfe und ohne dunkle Einblendung"] = "Pause without blur and without dark overlay";
+            m["Entwickler-Konsole nicht automatisch öffnen (Fehler landen trotzdem im Log)"] = "Do not open the developer console automatically (errors still go to the log)";
             m["Schnittansicht rutscht nicht weg, wenn die Maus den Bildschirmrand berührt"] = "Cutaway view does not slide away when the mouse touches the screen edge";
             m["Kein Sprung zur Deck-Ansicht am oberen/unteren Bildschirmrand"] = "No jump to the deck view at the top/bottom screen edge";
             m["Fix: Konvois mit Flugzeugtr\u00e4ger fahren normal (geparkte Flugzeuge bremsen nicht)"] = "Fix: convoys with an aircraft carrier move normally (parked aircraft do not slow them)";

@@ -437,3 +437,19 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // Unity "Development Console" (only exists in a Development Build of the game): it pops up on every error and covers
+    // the screen. It is closed again in the same frame. Logging is not affected: errors still go to output_log.txt.
+    public class DevConsoleHide : ModuleBase
+    {
+        private bool logged;
+        public override void Frame()
+        {
+            if (!Settings.B("HideDevConsole") || !UnityEngine.Debug.developerConsoleVisible) return;
+            UnityEngine.Debug.developerConsoleVisible = false;
+            if (!logged) { logged = true; Util.Log("Entwickler-Konsole geschlossen (Spiel läuft als Development Build: " + UnityEngine.Debug.isDebugBuild + ")"); }
+        }
+    }
+}
