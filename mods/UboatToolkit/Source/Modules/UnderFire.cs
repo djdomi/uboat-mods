@@ -63,7 +63,10 @@ namespace UboatToolkit.Modules
                 if (mode >= 2) { Do(a.Advice, a); return; }
                 if (current != null && windowOpen) { current = a; return; }  // window already open: show the newest
                 current = a;
-                if (Settings.B("UnderFirePause")) Open(true);
+                // More than 2 messages within 30 s: no pause (only the box at the edge).
+                float t = Time.unscaledTime;
+                recent.Add(t); recent.RemoveAll(x => t - x > 30f);
+                Open(Settings.B("UnderFirePause") && recent.Count <= 2);
             }
             catch (Exception ex) { Util.Log("Beschuss: " + ex.Message); }
         }
@@ -135,6 +138,7 @@ namespace UboatToolkit.Modules
             catch (Exception ex) { Util.Log("Beschuss-Befehl: " + ex.Message); }
         }
 
+        private static readonly System.Collections.Generic.List<float> recent = new System.Collections.Generic.List<float>();
         private static void Open(bool pause)
         {
             windowOpen = true;
@@ -153,42 +157,46 @@ namespace UboatToolkit.Modules
         }
 
         // Drawn every frame from the toolkit GUI (also when F10 is closed).
+        // Same choices as before, but as a box at the right edge (not in the middle); click or key Alt+1..4, Alt+5 = ignore.
+        private static readonly string[] ActKeys = { "KeyUnderFire1", "KeyUnderFire2", "KeyUnderFire3", "KeyUnderFire4" };
         public static void Draw()
         {
             if (Mathf.RoundToInt(Settings.F("UnderFireMode")) != 1) { if (windowOpen) Close(); return; }
             float now = Time.unscaledTime;
-            if (windowOpen && current != null)
+            if (current != null && now >= ignoreUntil)
             {
-                Cursor.visible = true; Cursor.lockState = CursorLockMode.None;
-                var r = new Rect(Screen.width / 2f - 260, Screen.height / 2f - 150, 520, 300);
-                Imgui.Box(r, "Herr Kaleun, was tun wir?");
-                Imgui.BeginArea(new Rect(r.x + 12, r.y + 28, r.width - 24, r.height - 36));
-                Imgui.Label(current.Clock + "  " + current.Text + (current.Count > 1 ? "  (x" + current.Count + ")" : ""), 490);
-                Imgui.Label("Vorschlag: " + ActName[(int)current.Advice] + ". " + current.Why, 490);
-                Imgui.Space(6);
-                for (int i = 0; i < ActName.Length; i++)
-                    if (Imgui.Button((i == (int)current.Advice ? "★ " : "") + ActName[i], 490)) { var a = current; Close(); if (i != (int)Act.Nothing) Do((Act)i, a); Imgui.EndArea(); return; }
-                int min = Mathf.Max(1, Mathf.RoundToInt(Settings.F("UnderFireIgnoreMin")));
-                if (Imgui.Button(min + " Minuten ignorieren (Meldungen werden gesammelt)", 490)) { ignoreUntil = now + min * 60f; ignoredCount = 0; Close(); }
+                for (int i = 0; i < ActKeys.Length; i++)
+                    if (Keys.Down(ActKeys[i])) { var a = current; Close(); current = null; if (i != (int)Act.Nothing) Do((Act)i, a); return; }
+                if (Keys.Down("KeyUnderFireIgnore"))
+                {
+                    int min = Mathf.Max(1, Mathf.RoundToInt(Settings.F("UnderFireIgnoreMin")));
+                    ignoreUntil = now + min * 60f; ignoredCount = 0; Close(); current = null;
+                    UboatToolkit.ToolkitRunner.ShowNotice("Beschuss-Meldungen " + min + " min ignoriert", 3f);
+                    return;
+                }
+            }
+            string label = null;
+            if (now < ignoreUntil)
+                label = "⚠ Beschuss ignoriert noch " + Mathf.CeilToInt((ignoreUntil - now) / 60f) + " min, " + ignoredCount + " Meldungen gesammelt";
+            if (label != null)
+            {
+                Imgui.BeginArea(new Rect(Screen.width - 330, Screen.height / 2f - 30, 320, 60));
+                if (Imgui.Button(label, 315)) { ignoreUntil = 0f; ignoredCount = 0; if (Collected.Count > 0) current = Collected[Collected.Count - 1]; }
                 Imgui.EndArea();
                 return;
             }
-            // Icon on the right edge: open question (no pause) or ignore time with collected messages.
-            string label = null;
-            if (now < ignoreUntil)
-            {
-                label = "⚠ ignoriert noch " + Mathf.CeilToInt((ignoreUntil - now) / 60f) + " min\n" + ignoredCount + " Meldungen gesammelt";
-            }
-            else if (current != null) label = "⚠ Beschuss!\nVorschlag: " + ActName[(int)current.Advice];
-            if (label == null) return;
-            Imgui.BeginArea(new Rect(Screen.width - 230, Screen.height / 2f - 30, 220, 60));
-            if (Imgui.Button(label, 215))
-            {
-                if (now < ignoreUntil) { ignoreUntil = 0f; ignoredCount = 0; if (Collected.Count > 0) current = Collected[Collected.Count - 1]; }
-                if (current != null) Open(false);
-            }
+            if (current == null) return;
+            // Small box at the right edge (game keeps running): click or key.
+            Imgui.BeginArea(new Rect(Screen.width - 330, Screen.height / 2f - 110, 320, 230));
+            Imgui.Label("⚠ " + current.Clock + " " + current.Text + (current.Count > 1 ? " (x" + current.Count + ")" : ""), 315);
+            for (int i = 0; i < ActName.Length; i++)
+                if (Imgui.Button("[" + KeyText(ActKeys[i]) + "] " + ActName[i] + (i == (int)current.Advice ? " ★" : ""), 315))
+                { var a = current; Close(); current = null; if (i != (int)Act.Nothing) Do((Act)i, a); Imgui.EndArea(); return; }
+            if (Imgui.Button("[" + KeyText("KeyUnderFireIgnore") + "] " + Mathf.Max(1, Mathf.RoundToInt(Settings.F("UnderFireIgnoreMin"))) + " min ignorieren", 315))
+            { ignoreUntil = now + Mathf.Max(1, Mathf.RoundToInt(Settings.F("UnderFireIgnoreMin"))) * 60f; ignoredCount = 0; Close(); current = null; }
             Imgui.EndArea();
         }
+        private static string KeyText(string k) { var o = Settings.Get(k); return o == null || string.IsNullOrEmpty(o.Text) ? "-" : o.Text; }
 
         // F10 tab "Schaden": list of collected under-fire messages.
         public static void DrawList()
