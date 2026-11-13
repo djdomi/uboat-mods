@@ -68,6 +68,7 @@ namespace UboatToolkit.Modules
 
             float ms = Time.unscaledDeltaTime * 1000f;
             if (ms > 100f) Write("slow_frame", ms.ToString("0", CultureInfo.InvariantCulture) + " ms");
+            FrameSplit.Sample();
 
             float now = Time.unscaledTime;
             if (now >= nextMemory)
@@ -139,6 +140,62 @@ namespace UboatToolkit.Modules
             double d = Time.realtimeSinceStartupAsDouble - __state;
             timeSpent.TryGetValue(__originalMethod, out var t);
             timeSpent[__originalMethod] = t + d;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // Frame split: where does a frame go (scripts, physics, drawing, garbage collection, audio...)?
+    // Uses Unity's own profiler counters (work in the development build), one "frame_split" line per minute.
+    internal static class FrameSplit
+    {
+        private static readonly string[] Names = {
+            "PlayerLoop", "BehaviourUpdate", "LateBehaviourUpdate", "FixedBehaviourUpdate", "Physics.Simulate",
+            "GC.Collect", "Camera.Render", "Gfx.WaitForPresentOnGfxThread", "Gfx.WaitForGfxCommandsFromMainThread",
+            "Animators.Update", "AudioManager.Update", "ParticleSystem.Update", "Canvas.SendWillRenderCanvases",
+            "NavMeshManager", "Loading.ReadObject", "Instantiate", "Destroy" };
+        private static Unity.Profiling.ProfilerRecorder[] rec;
+        private static double[] sum;
+        private static int frames; private static float nextDump; private static bool failed;
+
+        internal static void Sample()
+        {
+            if (failed) return;
+            try
+            {
+                if (rec == null)
+                {
+                    rec = new Unity.Profiling.ProfilerRecorder[Names.Length];
+                    sum = new double[Names.Length];
+                    var all = new List<Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle>();
+                    Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle.GetAvailable(all);
+                    var found = new List<string>();
+                    foreach (var h in all)
+                    {
+                        var d = Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle.GetDescription(h);
+                        int i = Array.IndexOf(Names, d.Name);
+                        if (i < 0 || rec[i].Valid) continue;
+                        rec[i] = Unity.Profiling.ProfilerRecorder.StartNew(d.Category, d.Name, 1);
+                        found.Add(d.Name);
+                    }
+                    Util.Log("Frame-Aufteilung: " + found.Count + " von " + Names.Length + " Messpunkten gefunden");
+                    nextDump = Time.unscaledTime + 60f;
+                }
+                for (int i = 0; i < rec.Length; i++) if (rec[i].Valid) sum[i] += rec[i].LastValue / 1e6;
+                frames++;
+                if (Time.unscaledTime < nextDump) return;
+                nextDump = Time.unscaledTime + 60f;
+                var sb = new System.Text.StringBuilder();
+                sb.Append("frames=").Append(frames).Append(" fps=").Append((frames / 60f).ToString("0.0", CultureInfo.InvariantCulture)).Append(" ms/frame:");
+                for (int i = 0; i < rec.Length; i++)
+                    if (rec[i].Valid) sb.Append(' ').Append(Names[i]).Append('=').Append((sum[i] / Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture));
+                int ships = 0; foreach (var e in Entity.List) if (e is Ship) ships++;
+                sb.Append(" ships=").Append(ships);
+                Util.Log("Frame-Aufteilung " + sb);
+                for (int i = 0; i < sum.Length; i++) sum[i] = 0; frames = 0;
+            }
+            catch (Exception ex) { failed = true; Util.Log("Frame-Aufteilung aus: " + ex.Message); }
         }
     }
 }
