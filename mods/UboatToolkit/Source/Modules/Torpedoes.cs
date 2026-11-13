@@ -3,6 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 using DWS.Common.Resources;
 using UBOAT.Game.Core.Data;
+using UBOAT.Game.Core.Time;
 using UBOAT.Game.Scene.Entities;
 using UBOAT.Game.Scene.Items;
 
@@ -72,6 +73,59 @@ namespace UboatToolkit.Modules
                 __instance.SetTorpedo(stored);
                 __instance.CompleteLoading(quiet: true);
             });
+        }
+    }
+    // QoL: a torpedo the crew has maintained stays maintained (player's boat only). The game normally drops the
+    // "WarmedUp" dud bonus when the maintenance cooldown runs out and the crew then maintains the tube again.
+    internal static class TorpedoKeep
+    {
+        private static readonly System.Reflection.FieldInfo GameTimeF = AccessTools.Field(typeof(StoredTorpedo), "gameTime");
+        internal static readonly AccessTools.FieldRef<StoredTorpedo, long> WarmUpTicks = AccessTools.FieldRefAccess<StoredTorpedo, long>("warmUpTicks");
+        private static bool logged;
+
+        internal static bool Wanted(StoredTorpedo t)
+        {
+            if (t == null || !Settings.B("TorpedoStayMaintained") || t.IsLaunched || !t.IsMaintained) return false;
+            var ship = Util.PlayerShip;
+            if (ship == null) return false;
+            return (object)t.ParentEntity == ship || Util.IsPlayers(t);
+        }
+
+        internal static bool Refresh(StoredTorpedo t)
+        {
+            var gt = GameTimeF != null ? GameTimeF.GetValue(null) as GameTime : null;
+            if (gt == null) return false;
+            WarmUpTicks(t) = gt.ContinuousTicks;
+            if (!logged) { logged = true; Util.Log("Torpedos bleiben gewartet: " + t.name + " bleibt gewartet"); }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(StoredTorpedo), "RemoveWarmUpModifier")]
+    internal static class Torpedoes_KeepMaintainedPatch
+    {
+        private static bool Prefix(StoredTorpedo __instance, ref float __result)
+        {
+            try
+            {
+                if (!TorpedoKeep.Wanted(__instance) || !TorpedoKeep.Refresh(__instance)) return true;
+                __result = Mathf.Max(60f, (float)__instance.MaintenanceCooldown);
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+
+    [HarmonyPatch(typeof(StoredTorpedo), nameof(StoredTorpedo.MaintenanceCooldownProgress), MethodType.Getter)]
+    internal static class Torpedoes_KeepProgressPatch
+    {
+        private static void Postfix(StoredTorpedo __instance, ref float __result)
+        {
+            try
+            {
+                if (__result > 0.05f && __result < 1f && TorpedoKeep.Wanted(__instance) && TorpedoKeep.Refresh(__instance)) __result = 0f;
+            }
+            catch { }
         }
     }
 }

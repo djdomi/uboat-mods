@@ -425,6 +425,7 @@ namespace UboatToolkit
             Bool(QoL, "MilkCowRadio", "  Funk-Nachschub: nächste Milchkuh kommt in Reichweite", true);
             Num(QoL, "MilkCowRadioKm", "    Abstand in km", 30, 5, 500, 5);
             Bool(QoL, "EasyTDC", "Torpedo-Rechner einfach: Lösung wird automatisch berechnet + angezeigt (#17)", true);
+            Bool(QoL, "TorpedoStayMaintained", "Torpedos bleiben gewartet (Wartung läuft nicht ab, Crew muss nicht nachwarten)", true);
             Num(QoL, "DeckGunTurnSpeed", "88mm: Dreh-/Neige-Tempo (1 = normal) (#27)", 1, 0.5f, 10, 0.5f);
             Num(QoL, "DeckGunRPM", "88mm: Schuss pro Minute (0 = Spielwert) (#27)", 0, 0, 120, 5);
             Num(QoL, "DeckGunMagazine", "88mm: Magazin (0 = Spielwert; groß = Dauerfeuer) (#28)", 0, 0, 200, 1);
