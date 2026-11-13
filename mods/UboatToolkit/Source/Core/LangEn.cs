@@ -14,6 +14,7 @@ namespace UboatToolkit
             m["Vorgeflutet: Crew darf an Deckgeschütz + Flak (#24)"] = "Decks awash: crew may use deck gun + AA (#24)";
             m["Funk: so viel schneller senden (1 = normal) (#11)"] = "Radio: send this much faster (1 = normal) (#11)";
             m["Funk: Gegner kann dich nicht anpeilen (#12)"] = "Radio: enemy cannot direction-find you (#12)";
+            m["Funk: alle Funksprüche lesbar (auch fremd verschlüsselte)"] = "Radio: all messages readable (also foreign-encrypted)";
             m["Licht automatisch umschalten (#15)"] = "Switch lights automatically (#15)";
             m["  aufgetaucht Rotlicht"] = "  red light when surfaced";
             m["  getaucht Blaulicht"] = "  blue light when submerged";

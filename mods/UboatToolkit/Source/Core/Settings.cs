@@ -38,6 +38,7 @@ namespace UboatToolkit
             Bool(QoL, "AwashGuns", "Vorgeflutet: Crew darf an Deckgeschütz + Flak (#24)", true);
             Num(QoL, "RadioSpeed", "Funk: so viel schneller senden (1 = normal) (#11)", 10, 1, 100, 1);
             Bool(QoL, "RadioUndetectable", "Funk: Gegner kann dich nicht anpeilen (#12)", true);
+            Bool(QoL, "RadioDecryptAll", "Funk: alle Funksprüche lesbar (auch fremd verschlüsselte)", true);
             Bool(QoL, "AutoLight", "Licht automatisch umschalten (#15)", true);
             Bool(QoL, "AutoLightNightRed", "  aufgetaucht Rotlicht", true);
             Bool(QoL, "AutoLightHuntedBlue", "  getaucht Blaulicht", true);
