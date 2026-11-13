@@ -20,6 +20,7 @@ namespace UboatToolkit
         {
             Modules.Add(new Modules.Radio());
             Modules.Add(new Modules.AutoDetail());
+            Modules.Add(new Modules.DiveAngle());
             Modules.Add(new Modules.Lighting());
             Modules.Add(new Modules.Hatches());
             Modules.Add(new Modules.Optics());
