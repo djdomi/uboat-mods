@@ -134,7 +134,7 @@ namespace UboatToolkit
             Num(QoL, "DepthGaugeY", "  Position oben (% vom Bildschirm)", 35, 0, 90, 1);
             Num(QoL, "DepthGaugeSeconds", "  Verlauf über x Sekunden (echte Zeit)", 120, 30, 600, 10);
             Bool(QoL, "AutoDepth", "Bodenabstand-Autopilot: hält Abstand zum Meeresgrund", false);
-            Num(QoL, "AutoDepthClearance", "  Wasser unter dem Kiel (m)", 1, 0.5f, 50, 0.5f);
+            Num(QoL, "AutoDepthClearance", "  Wasser unter dem Kiel (m, mindestens 5 gegen Physik-Hänger)", 10, 5, 50, 0.5f);
             Num(QoL, "AutoDepthLookAhead", "  Voraus schauen (m)", 400, 0, 2000, 50);
             Num(QoL, "AutoDepthMin", "  Nie flacher als (m)", 12, 0, 50, 1);
             Num(QoL, "AutoDepthMax", "  Nie tiefer als (m)", 300, 20, 5000, 10);

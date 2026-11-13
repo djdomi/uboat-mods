@@ -177,7 +177,7 @@ namespace UboatToolkit.Modules
             }
             if (float.IsNaN(bed)) { pilotText = "Autopilot: Grund unbekannt"; return; }
 
-            float target = bed - Mathf.Max(0.5f, Settings.F("AutoDepthClearance")) - keel;
+            float target = bed - Mathf.Max(5f, Settings.F("AutoDepthClearance"))   // under 5 m the hull scrapes the full-detail sea floor -> PhysX freeze + fling (DoMe 2026-11-13) - keel;
             float maxD = Settings.F("AutoDepthMax");
             float minD = Settings.F("AutoDepthMin");
             if (target > maxD) target = maxD;
