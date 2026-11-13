@@ -170,6 +170,7 @@ namespace UboatToolkit
             Bool(QoL, "FixFadeReparent", "Fehler-Fix: Einblend-Effekt von Figuren (z. B. Hafenarbeiter) beim Ein-/Ausschalten nicht mehr falsch umh\u00e4ngen", true);
             Bool(QoL, "NoPauseBlur", "Pause ohne Unsch\u00e4rfe und ohne dunkle Einblendung", false);
             Bool(QoL, "HideDevConsole", "Entwickler-Konsole nicht automatisch öffnen (Fehler landen trotzdem im Log)", true);
+            Bool(QoL, "QuitWaitsForSave", "Beenden wartet, bis der Spielstand fertig geschrieben ist (sonst kaputter Spielstand)", true);
             Bool(QoL, "NoEdgeScroll", "Schnittansicht rutscht nicht weg, wenn die Maus den Bildschirmrand berührt", false);
             Bool(QoL, "NoEdgeDeck", "Kein Sprung zur Deck-Ansicht am oberen/unteren Bildschirmrand", false);
             Bool(QoL, "FixCarrierConvoy", "Fix: Konvois mit Flugzeugtr\u00e4ger fahren normal (geparkte Flugzeuge bremsen nicht)", true);

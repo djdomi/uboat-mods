@@ -473,4 +473,47 @@ namespace UboatToolkit.Modules
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) => Mark("geladen", s.name + " " + m);
         }
     }
+
+    // Fix (DoMe 2026-11-13): quitting while a save is still being written left Autosave_5 at 16 KB, and "Fortsetzen"
+    // then crashed while loading it. Quitting now waits until the game has finished writing, then quits by itself.
+    public class QuitGuard : ModuleBase
+    {
+        private static bool hooked, quitPending;
+        private static UBOAT.Game.Core.Serialization.SavesManager saves;
+        private static UBOAT.Game.Core.Serialization.SavesManager Saves
+        {
+            get
+            {
+                if (saves == null)
+                {
+                    try { saves = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Core.Serialization.SavesManager>(); } catch { }
+                    if (saves == null) saves = UnityEngine.Object.FindObjectOfType<UBOAT.Game.Core.Serialization.SavesManager>();
+                }
+                return saves;
+            }
+        }
+        private static bool WantsToQuit()
+        {
+            try
+            {
+                if (!Settings.B("QuitWaitsForSave")) return true;
+                var s = Saves;
+                if (s == null || !s.IsSaving) return true;
+                if (!quitPending) Util.Log("Beenden wartet: Spielstand wird noch geschrieben");
+                quitPending = true;
+                return false;
+            }
+            catch { return true; }
+        }
+        public override void Frame()
+        {
+            if (!hooked) { hooked = true; UnityEngine.Application.wantsToQuit += WantsToQuit; }
+            if (!quitPending) return;
+            var s = Saves;
+            if (s != null && s.IsSaving) return;
+            quitPending = false;
+            Util.Log("Spielstand fertig geschrieben, Spiel wird beendet");
+            UnityEngine.Application.Quit();
+        }
+    }
 }

@@ -138,6 +138,7 @@ namespace UboatToolkit
             m["Fehler-Fix: Einblend-Effekt von Figuren (z. B. Hafenarbeiter) beim Ein-/Ausschalten nicht mehr falsch umh\u00e4ngen"] = "Error fix: fade effect of figures (e.g. dock workers) no longer re-parented wrongly when switched on/off";
             m["Pause ohne Unsch\u00e4rfe und ohne dunkle Einblendung"] = "Pause without blur and without dark overlay";
             m["Entwickler-Konsole nicht automatisch öffnen (Fehler landen trotzdem im Log)"] = "Do not open the developer console automatically (errors still go to the log)";
+            m["Beenden wartet, bis der Spielstand fertig geschrieben ist (sonst kaputter Spielstand)"] = "Quitting waits until the save is fully written (else a broken save)";
             m["Torpedos bleiben gewartet (Wartung läuft nicht ab, Crew muss nicht nachwarten)"] = "Torpedoes stay maintained (maintenance does not expire, crew need not redo it)";
             m["Schnittansicht rutscht nicht weg, wenn die Maus den Bildschirmrand berührt"] = "Cutaway view does not slide away when the mouse touches the screen edge";
             m["Kein Sprung zur Deck-Ansicht am oberen/unteren Bildschirmrand"] = "No jump to the deck view at the top/bottom screen edge";

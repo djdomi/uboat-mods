@@ -50,6 +50,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.TooltipDiag());
             Modules.Add(new Modules.DevConsoleHide());
             Modules.Add(new Modules.SceneTiming());
+            Modules.Add(new Modules.QuitGuard());
             Modules.Add(new Modules.CrewCheats());
             Modules.Add(new Modules.Inventory());
             Modules.Add(new Modules.Loading());
