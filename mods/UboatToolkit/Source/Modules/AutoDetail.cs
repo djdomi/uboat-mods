@@ -9,12 +9,16 @@ namespace UboatToolkit.Modules
     {
         private float original = -1f;
         private bool limited;
+        private float nextSwitch;
 
         public override void Frame()
         {
             if (original < 0f) original = Time.maximumDeltaTime;
-            bool want = Settings.B("ExplosionAuto") && ExplosionLimit_Patch.Fps() < Settings.F("ExplosionTargetFps") * 0.5f;
-            if (want == limited) return;
+            // Hysteresis: limit below 50 % of target FPS, release only above 70 %, and switch at most every 10 s.
+            float f = ExplosionLimit_Patch.Fps(), target = Settings.F("ExplosionTargetFps");
+            bool want = Settings.B("ExplosionAuto") && (limited ? f < target * 0.7f : f < target * 0.5f);
+            if (want == limited || Time.unscaledTime < nextSwitch) return;
+            nextSwitch = Time.unscaledTime + 10f;
             limited = want;
             Time.maximumDeltaTime = want ? Mathf.Min(original, 0.1f) : original;
             Util.Log("Auto-Detail: Physik-Aufholen " + (want ? "begrenzt (0,1 s pro Bild)" : "normal (" + original.ToString("0.00") + " s)"));
