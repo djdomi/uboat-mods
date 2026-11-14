@@ -190,7 +190,9 @@ namespace UboatToolkit.Modules
             if (target > maxD) target = maxD;
             if (target < minD)
             {
-                target = minD;
+                // 0.3.57 (DoMe: boat scrapes the ground): in shallow water never force "min depth" into the sea floor;
+                // go as deep as the water allows, at most up to the surface.
+                target = Mathf.Max(0f, target);
                 if (now - lastWarn > 30f)
                 {
                     lastWarn = now;
