@@ -174,6 +174,7 @@ namespace UboatToolkit.Modules
 
         internal static bool IsMine(string name) => name != null && (name.IndexOf("Mine", StringComparison.OrdinalIgnoreCase) >= 0 || name.StartsWith("TM"));
 
+        private static readonly Dictionary<ISandboxEntity, EntityBlueprintSlot> mineSlots = new Dictionary<ISandboxEntity, EntityBlueprintSlot>();
         private static bool Prefix(ISandboxEntity entity, EntityBlueprintSlot slot, ref SandboxEquipment __result, WorldState ___worldState)
         {
             TorpedoTab.Load();
@@ -196,7 +197,15 @@ namespace UboatToolkit.Modules
             // Mines share the "Torpedo" slot: the first slot of every port is always a mine (if the country has any),
             // so mine-laying missions stay possible.
             var mines = list.Where(x => IsMine(x.ItemData.Name)).ToList();
-            var data = (n == 0 && mines.Count > 0 ? mines[0] : list[n % list.Count]).ItemData;
+            // 0.3.45: the same slot gets a mine on EVERY restock (before: only the first spawn per session)
+            bool mineSlot = false;
+            if (mines.Count > 0)
+            {
+                if (!mineSlots.TryGetValue(entity, out var ms)) { mineSlots[entity] = slot; mineSlot = true; }
+                else mineSlot = ReferenceEquals(ms, slot);
+            }
+            var data = (mineSlot ? mines[n % mines.Count] : list[n % list.Count]).ItemData;
+            if (mineSlot) Util.Log("Hafen-Laden: Mine im ersten Torpedo-Platz (" + data.Name + ")");
             se.Country.ConsumeItemFromReserves(data);
             float price = entity is SandboxDock dock && ___worldState != null ? dock.GetBuyPriceMultiplier(data) / ___worldState.BuyPriceMultiplier : 1f;
             var eq = (SandboxEquipment)Activator.CreateInstance(data.Type, se, slot, data);
