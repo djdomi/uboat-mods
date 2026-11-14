@@ -49,7 +49,7 @@ namespace UboatToolkit.Modules
                     gun.TargetingMode = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
                     if (!bothLogged) { bothLogged = true; Util.Log("Geschütze: Schiffe und Flugzeuge zugleich (Deckgeschütz bevorzugt Schiffe, Flak Flugzeuge), z. B. " + gun.name); }
                 }
-                // 0.3.37: enemy guns (port defence, escorts) always keep the game's own values. Up to 0.3.37 turn speed,
+                // 0.3.38: enemy guns (port defence, escorts) always keep the game's own values. Up to 0.3.38 turn speed,
                 // fire rate, magazine, shell speed and "flak like 88" were applied to EVERY gun in the scene.
                 if (!Util.IsPlayers(gun))
                 {
@@ -233,7 +233,7 @@ namespace UboatToolkit.Modules
             }
             catch { return true; }
         }
-        // 0.3.37 (DoMe): aircraft far away = low priority. Our guns only take an aircraft as target when it is
+        // 0.3.38 (DoMe): aircraft far away = low priority. Our guns only take an aircraft as target when it is
         // within AAEngageKm; farther ones are ignored (ships still count), so no ammo is wasted.
         private static void Postfix(Gun __instance, ref UBOAT.Game.Scene.Entities.Entity __result)
         {

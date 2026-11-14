@@ -43,7 +43,7 @@ namespace UboatToolkit.Modules
 
             if (!Settings.B("CheatNoDuds")) return;
             foreach (var t in Util.Find<Torpedo>(1f))
-                if (t != null && t.Owner == Util.PlayerShip) t.DudsDisabled = true;   // 0.3.37: own torpedoes only
+                if (t != null && t.Owner == Util.PlayerShip) t.DudsDisabled = true;   // 0.3.38: own torpedoes only
         }
     }
 

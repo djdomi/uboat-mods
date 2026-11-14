@@ -39,9 +39,9 @@ namespace UboatToolkit.Modules
         private float scanAt;
         public override void Tick()
         {
-            // 0.3.37: Health 0 is saved with the game, the timer is not. After load / port scene reload, broken port
+            // 0.3.38: Health 0 is saved with the game, the timer is not. After load / port scene reload, broken port
             // guns without timer get a new one, so they never stay broken forever.
-            if (Time.unscaledTime >= scanAt)
+            if (Settings.B("PortDefenseDestroyable") && Time.unscaledTime >= scanAt)
             {
                 scanAt = Time.unscaledTime + 10f;
                 foreach (var g in Util.Find<Gun>())
