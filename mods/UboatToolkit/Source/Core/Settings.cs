@@ -478,6 +478,8 @@ namespace UboatToolkit
             Bool(QoL, "DeckGunKineticDamage", "88mm: Schaden wächst mit Gewicht x Geschwindigkeit (wie früher)", false);
             Num(QoL, "AAGunDepress", "Flak: so viele Grad nach unten neigen (0 = Spielwert)", 30, 0, 60, 1);
             Bool(QoL, "AAGunBothTargets", "Geschütze: Schiffe und Flugzeuge zugleich angreifen (88/105 zuerst Schiffe, Flak zuerst Flugzeuge)", true);
+            Bool(QoL, "AASaveAmmo", "Flugzeuge nur beschießen, wenn sie nah genug sind (spart Munition)", true);
+            Num(QoL, "AAEngageKm", "  Flugzeuge: höchstens so weit beschießen (km)", 2.5f, 0.5f, 10f, 0.5f);
             Bool(QoL, "KeepGunMode", "Geschütze: Feuermodus bleibt, wenn ein Kanonier (neu) ans Geschütz geht (sonst stellt das Spiel auf Feuer einstellen)", true);
             Num(QoL, "AAGunShellMps", "Flak: Mündungsgeschwindigkeit in m/s (0 = Spielwert, dann x Geschossgeschwindigkeit)", 0, 0, 5000, 50);
             Num(QoL, "AAGunRateMul", "Flak: Feuerrate x (1 = normal, wirkt auch auf Schuss pro Minute)", 1, 0.25f, 10, 0.25f);
