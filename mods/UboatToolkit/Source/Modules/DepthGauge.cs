@@ -45,7 +45,14 @@ namespace UboatToolkit.Modules
         }
 
         // Keel depth in "target depth" units: the game's target depth refers to the boat's origin, not the keel.
-        private static float KeelOffset(PlayerShip ship) => ship.BottomDepth - (ship.Depth + ship.VerticalOriginOffset);
+        private static float KeelOffset(PlayerShip ship)
+        {
+            // 0.3.56 (DoMe: autopilot measures the top, boat scrapes the sea floor): lowest hull point, not the centre.
+            float k = ship.BottomDepth - (ship.Depth + ship.VerticalOriginOffset);
+            if (k < 4f) k = 4f;                                          // keel at least 4 m below the origin (IXC draught ~4.7 m)
+            float pitch = Mathf.Abs(Mathf.DeltaAngle(0f, ship.transform.eulerAngles.x));
+            return k + 40f * Mathf.Sin(pitch * Mathf.Deg2Rad);           // bow/stern hang lower when the boat is tilted (half length ~40 m)
+        }
         private static float Current(PlayerShip ship) => Mathf.Max(0f, ship.Depth + ship.VerticalOriginOffset);
 
         private static void SetTarget(PlayerShip ship, float depth)
@@ -170,7 +177,7 @@ namespace UboatToolkit.Modules
             // Shallowest sea floor now and ahead along the course.
             float look = Mathf.Max(0f, Settings.F("AutoDepthLookAhead"));
             float bed = lastBed;
-            foreach (float dist in new[] { look * 0.25f, look * 0.5f, look })
+            foreach (float dist in new[] { -40f, 40f, look * 0.25f, look * 0.5f, look })   // 0.3.56: also under stern and bow
             {
                 float b = Util.SafeGet(() => Seabed(ship, dist), float.NaN);
                 if (!float.IsNaN(b)) bed = float.IsNaN(bed) ? b : Mathf.Min(bed, b);
