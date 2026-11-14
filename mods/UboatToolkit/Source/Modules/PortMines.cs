@@ -34,3 +34,18 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // 0.3.48: log what goes into our tubes (DoMe found mines in the tubes, source unknown)
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Items.TorpedoLauncher), nameof(UBOAT.Game.Scene.Items.TorpedoLauncher.SetTorpedo))]
+    internal static class PortMines_TubeLog
+    {
+        private static void Postfix(UBOAT.Game.Scene.Items.TorpedoLauncher __instance)
+        {
+            var t = __instance.Torpedo;
+            if (t == null || !Util.IsPlayers(__instance) || !Controls_TorpedoMixPatch.IsMine(t.name)) return;
+            Util.Log("Rohr " + __instance.name + ": Mine geladen (" + t.name.Replace("(Clone)", "").Trim() + "), Hafen=" + (Util.PlayerShip != null && Util.PlayerShip.Docked));
+        }
+    }
+}
