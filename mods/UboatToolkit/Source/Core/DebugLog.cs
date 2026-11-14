@@ -60,7 +60,7 @@ namespace UboatToolkit
                     var r = ship.GetResource(n);
                     return r == null ? n + "=?" : n + "=" + ((float)r.Amount).ToString("0.###");
                 }));
-                Write("STATE", "Tiefe=" + ship.TargetDepth.ToString("0.0") + " Alarm=" + ship.Alarmed + " Gejagt=" + ship.IsHunted +
+                Write("STATE", "Zieltiefe=" + ship.TargetDepth.ToString("0.0") + " Tiefe=" + ship.Depth.ToString("0.0") + " Alarm=" + ship.Alarmed + " Gejagt=" + ship.IsHunted +
                                " Hafen=" + ship.Docked + " " + res + " FPS=" + RealFps().ToString("0") + " Zeitraffer=" + Time.timeScale.ToString("0.#"));
             }
             catch (Exception e) { Write("ERROR", "DumpState: " + e.Message); }
