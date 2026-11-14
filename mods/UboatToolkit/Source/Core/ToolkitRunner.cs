@@ -93,6 +93,9 @@ namespace UboatToolkit
 
         private void Update()
         {
+            // 0.3.47: a key capture can only run while the menu is open. A capture left over from a closed menu blocked
+            // EVERY hotkey (Keys.Down returns false while capturing) and the menu key (DoMe: Ctrl+Alt+M no effect, F10 several times).
+            if (!menuOpen && Keys.Capturing != null) { Util.Log("Tasten-Aufnahme hing bei geschlossenem Menü, beendet"); Keys.Capturing = null; }
             Keys.CaptureFrame();
             // Menu key: works even with Ctrl/Shift/Alt still held and while a key capture hangs (F10 must always close).
             var mk = Keys.Code("KeyMenu", KeyCode.F10);
