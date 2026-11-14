@@ -399,6 +399,7 @@ namespace UboatToolkit.Modules
     internal static class GameFixes_NavmeshSnapPatch
     {
         private static readonly System.Collections.Generic.HashSet<string> Warned = new System.Collections.Generic.HashSet<string>();
+        private static readonly System.Collections.Generic.Dictionary<string, int> Tries = new System.Collections.Generic.Dictionary<string, int>();
         private static bool Prefix(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour __instance, ref UnityEngine.Vector3 ___target, ref bool __result)
         {
             if (!Settings.B("FixNavmeshSnap")) return true;
@@ -414,6 +415,14 @@ namespace UboatToolkit.Modules
                     // 0.3.53 (DoMe: many short error popups): nothing walkable within 60 m. The game would log a red
                     // error every 3 s for minutes. Return the same "false" quietly and note it once in our log.
                     string key = ___target.ToString();
+                    // 0.3.54 (DoMe: "nach 5 erfolglosen Versuchen helfen"): from the 5th try search up to 300 m and walk there.
+                    Tries.TryGetValue(key, out int n); Tries[key] = ++n;
+                    if (n >= 5 && UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 300f, mask))
+                    {
+                        Util.Log("Laufweg: Ziel " + key + " nach " + n + " Versuchen auf " + hit.position + " verlegt (" + UnityEngine.Vector3.Distance(___target, hit.position).ToString("0") + " m)");
+                        Tries.Remove(key);
+                        ___target = hit.position; __result = true; return false;
+                    }
                     if (Warned.Add(key)) Util.Log("Laufweg: Ziel " + key + " nicht erreichbar (" + __instance.GetType().Name + "), Fehler-Popup unterdrückt");
                     __result = false;
                     return false;
