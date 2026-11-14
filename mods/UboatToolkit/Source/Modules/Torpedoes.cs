@@ -31,20 +31,6 @@ namespace UboatToolkit.Modules
         // did not fire in every case. Backup: an own tube that stays empty for 3 s is filled again here.
         private static readonly System.Collections.Generic.Dictionary<TorpedoLauncher, string> lastName = new System.Collections.Generic.Dictionary<TorpedoLauncher, string>();
         private static readonly System.Collections.Generic.Dictionary<TorpedoLauncher, float> emptySince = new System.Collections.Generic.Dictionary<TorpedoLauncher, float>();
-        // newest LUT torpedo name the game knows (from torpedoes on board or the port shop), null if none seen
-        internal static string LutName()
-        {
-            string best = null; float bp = -1f;
-            foreach (var st in Util.Find<StoredTorpedo>(5f))
-            {
-                if (st == null) continue;
-                string nm = st.name.Replace("(Clone)", "").Trim();
-                if (nm.IndexOf("LUT", System.StringComparison.OrdinalIgnoreCase) < 0) continue;
-                float p = Controls_TorpedoMixPatch.Pistol(nm);
-                if (p > bp) { bp = p; best = nm; }
-            }
-            return best;
-        }
         private static void Refill()
         {
             if (!Settings.B("CheatInfiniteTorpedoes")) return;
@@ -66,7 +52,6 @@ namespace UboatToolkit.Modules
                     var rm = Resources; if (rm == null) return;
                     string name = Settings.B("CheatAllT5") || string.IsNullOrEmpty(last) ? T5 : last;
                     var go = rm.InstantiatePrefab("Equipment/" + name);
-                    if (go == null && name == T5 && Settings.B("ReloadLutFallback")) { var lut = LutName(); if (lut != null) { name = lut; go = rm.InstantiatePrefab("Equipment/" + lut); } }   // 0.3.50: no T5 -> LUT
                     if (go == null && !string.IsNullOrEmpty(last) && name != last) go = rm.InstantiatePrefab("Equipment/" + last);
                     var stored = go != null ? go.GetComponent<StoredTorpedo>() : null;
                     if (stored == null) { if (go != null) Object.Destroy(go); Util.Log("Torpedo nachladen: kein Torpedo-Typ gefunden (" + name + ")"); return; }

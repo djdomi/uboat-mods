@@ -181,12 +181,13 @@ namespace UboatToolkit.Modules
         }
         internal static bool IsMine(string name) => name != null && (name.IndexOf("Mine", StringComparison.OrdinalIgnoreCase) >= 0 || name.StartsWith("TM"));
 
+        private static readonly Dictionary<ISandboxEntity, EntityBlueprintSlot> t5Slots = new Dictionary<ISandboxEntity, EntityBlueprintSlot>();
         private static readonly Dictionary<ISandboxEntity, EntityBlueprintSlot> mineSlots = new Dictionary<ISandboxEntity, EntityBlueprintSlot>();
         private static bool Prefix(ISandboxEntity entity, EntityBlueprintSlot slot, ref SandboxEquipment __result, WorldState ___worldState)
         {
             TorpedoTab.Load();
             bool pick = TorpedoTab.PortPick.Count > 0;
-            if ((!Settings.B("TorpedoMix") && !pick && !Settings.B("TorpedoLatestPistol")) || slot == null || slot.EquipmentTag != "Torpedo") return true;
+            if ((!Settings.B("TorpedoMix") && !pick && !Settings.B("TorpedoLatestPistol") && !Settings.B("PortT5Min")) || slot == null || slot.EquipmentTag != "Torpedo") return true;
             var se = entity as SandboxEntity;
             if (se == null || se.Blueprint.Type.Category != EntityTypeCategory.Port || se.Country == null) return true;
             var pool = se.Country.GetReservesByTagID(slot.EquipmentTagID);
@@ -217,13 +218,23 @@ namespace UboatToolkit.Modules
                 if (!mineSlots.TryGetValue(entity, out var ms)) { mineSlots[entity] = slot; mineSlot = true; }
                 else mineSlot = ReferenceEquals(ms, slot);
             }
-            var data = (mineSlot ? mines[n % mines.Count] : list[n % list.Count]).ItemData;
+            // 0.3.51 (DoMe): one more slot per port always holds T5 Zaunkönig, at least 4 of them
+            bool t5Slot = false;
+            var t5s = list.Where(x => x.ItemData.Name.IndexOf("T5", StringComparison.Ordinal) >= 0 && !IsMine(x.ItemData.Name)).OrderByDescending(x => Pistol(x.ItemData.Name)).ToList();
+            if (!mineSlot && Settings.B("PortT5Min") && t5s.Count > 0)
+            {
+                if (!t5Slots.TryGetValue(entity, out var ts)) { t5Slots[entity] = slot; t5Slot = true; }
+                else t5Slot = ReferenceEquals(ts, slot);
+            }
+            var data = (mineSlot ? mines[n % mines.Count] : t5Slot ? t5s[0] : list[n % list.Count]).ItemData;
             if (mineSlot) Util.Log("Hafen-Laden: Mine im ersten Torpedo-Platz (" + data.Name + ")");
             se.Country.ConsumeItemFromReserves(data);
             float price = entity is SandboxDock dock && ___worldState != null ? dock.GetBuyPriceMultiplier(data) / ___worldState.BuyPriceMultiplier : 1f;
             var eq = (SandboxEquipment)Activator.CreateInstance(data.Type, se, slot, data);
             eq.Count = Mathf.Max(1f, Mathf.Round(UnityEngine.Random.Range(0.3f, 1f) * slot.Capacity / data.Mass / price));
+            if (t5Slot && eq.Count < 4f) eq.Count = 4f;
             eq.Initialize();
+            if (t5Slot) Util.Log("Hafen-Laden: " + eq.Count.ToString("0") + "x " + data.Name);
             __result = eq;
             return false;
         }
