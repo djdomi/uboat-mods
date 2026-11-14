@@ -39,6 +39,7 @@ namespace UboatToolkit.Modules.Warthog
             Num("WhCrushDepth", "Zerstörungstiefe in m (befohlene Tiefe wird auf 100 m darüber begrenzt)", 3000f, 500f, 6000f, 100f);
             Bool("WhVThrusters", "Vertikal-Strahlruder vorn + achtern (alle Boote): Boot heben/senken", true);
             Bool("WhVThrustAuto", "  helfen automatisch, die befohlene Tiefe zu erreichen", true);
+            Bool("WhVThrustLevel", "  Nase waagerecht halten (gegen Bug-hoch bei hoher Fahrt), an der Oberfläche", true);
             Num("WhVThrustPower", "  Stärke (% vom Bootsgewicht)", 10f, 1f, 100f, 1f);
             Bool("WhThrustShiftSide", "  Shift + Z/X: ganzes Boot seitwärts (Anlegen); Z/X ohne Shift: auf der Stelle drehen", true);
             Num("WhThrustBowManual", "  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);

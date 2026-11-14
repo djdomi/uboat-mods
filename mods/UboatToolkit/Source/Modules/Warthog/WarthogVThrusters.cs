@@ -8,7 +8,7 @@ namespace UboatToolkit.Modules.Warthog
     //  - auto: help the dive planes reach the ordered depth (push toward target depth, never against the planes)
     public class WarthogVThrusters : ModuleBase
     {
-        const float Arm = 30f;
+        private float arm = -1f; private object armShip;
 
         public override void Frame()
         {
@@ -29,12 +29,34 @@ namespace UboatToolkit.Modules.Warthog
                 cmd -= Mathf.Clamp(vy * 0.3f, -0.5f, 0.5f) * (Mathf.Abs(err) < 15f ? 1f : 0f);
                 cmd = Mathf.Clamp(cmd, -1f, 1f);
             }
-            if (Mathf.Abs(cmd) < 0.02f) return;
+            // DoMe: one thruster at the very bow, one at the very stern -> arm = half the hull length
+            if (!ReferenceEquals(armShip, ship))
+            {
+                armShip = ship; arm = 35f;
+                try
+                {
+                    Bounds b = new Bounds(ship.transform.position, Vector3.zero); bool any = false;
+                    foreach (var c in ship.GetComponentsInChildren<Collider>(true))
+                        if (c != null && !c.isTrigger) { if (!any) { b = c.bounds; any = true; } else b.Encapsulate(c.bounds); }
+                    if (any) arm = Mathf.Clamp(Vector3.Scale(b.size, new Vector3(Mathf.Abs(ship.transform.forward.x), Mathf.Abs(ship.transform.forward.y), Mathf.Abs(ship.transform.forward.z))).magnitude * 0.5f, 20f, 70f);
+                }
+                catch { }
+                Util.Log("Vertikal-Strahlruder: Abstand Bug/Heck je " + arm.ToString("F0") + " m");
+            }
+            // level the bow (keeps the nose down at high speed / holds the boat flat): bow and stern push opposite
+            float pitchCmd = 0f;
+            if (Settings.B("WhVThrustLevel") && cmd == 0f && ship.TargetDepth <= 5f)
+            {
+                float pitch = Vector3.SignedAngle(Vector3.ProjectOnPlane(ship.transform.forward, Vector3.up), ship.transform.forward, ship.transform.right); // + = bow down
+                pitchCmd = Mathf.Clamp(pitch / 5f, -1f, 1f);   // bow up (negative) -> push bow down
+            }
+            if (Mathf.Abs(cmd) < 0.02f && Mathf.Abs(pitchCmd) < 0.02f) return;
             // strength in % of the boat's weight (100 = can lift the whole boat)
             float f = rb.mass * 9.81f * Settings.F("WhVThrustPower") / 100f * cmd * 0.5f;
+            float p = rb.mass * 9.81f * Settings.F("WhVThrustPower") / 100f * pitchCmd * 0.5f;
             var t = ship.transform; var com = rb.worldCenterOfMass;
-            rb.AddForceAtPosition(Vector3.up * f * k, com + t.forward * Arm, ForceMode.Force);
-            rb.AddForceAtPosition(Vector3.up * f * k, com - t.forward * Arm, ForceMode.Force);
+            rb.AddForceAtPosition(Vector3.up * (f + p) * k, com + t.forward * arm, ForceMode.Force);   // bow
+            rb.AddForceAtPosition(Vector3.up * (f - p) * k, com - t.forward * arm, ForceMode.Force);   // stern
         }
     }
 }
