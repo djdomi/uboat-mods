@@ -63,7 +63,7 @@ namespace UboatToolkit.Modules
             // Echo sounder pings by itself while submerged.
             if (Settings.B("CheatSonarPing"))
                 foreach (var d in Util.Find<SoundRangingDevice>())
-                    d.IsSendButtonPressed = ship.SubmergedOrGoingToSubmerge;
+                    if (Util.IsPlayers(d)) d.IsSendButtonPressed = ship.SubmergedOrGoingToSubmerge;
 
             // Faster torpedoes: the speed values of all own torpedoes are raised, so the
             // torpedo computer also aims with the new speed.

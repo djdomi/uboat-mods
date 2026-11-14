@@ -15,7 +15,7 @@ namespace UboatToolkit.Modules
             if (!Settings.B("AutoPump")) return;
             var ship = Util.PlayerShip;
             foreach (var p in Util.Find<TrimPump>())
-                if (!p.enabled && (p.IsWaterLeft || Pump_Patch.InteriorWater(ship) > 0.1))
+                if (Util.IsPlayers(p) && !p.enabled && (p.IsWaterLeft || Pump_Patch.InteriorWater(ship) > 0.1))
                 {
                     p.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
                     Util.Log("Pumpe automatisch an");

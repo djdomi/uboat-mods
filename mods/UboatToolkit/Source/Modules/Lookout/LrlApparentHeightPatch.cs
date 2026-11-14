@@ -24,7 +24,7 @@ namespace UboatToolkit.Modules.Lrl
         {
             try
             {
-                // 0.3.33 (DoMe): only helps the player see others; our own group never gets taller for enemies
+                // 0.3.34 (DoMe): only helps the player see others; our own group never gets taller for enemies
                 if (!LrlSettings.Enabled || !LrlSettings.SmokeHeightEnabled || __instance is SandboxPlayerWolfpack)
                     return;
 

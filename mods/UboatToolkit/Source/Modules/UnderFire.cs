@@ -95,7 +95,7 @@ namespace UboatToolkit.Modules
 
         private static bool HasDeckGun()
         {
-            foreach (var g in Util.Find<Gun>()) if (g != null && g.isActiveAndEnabled) return true;
+            foreach (var g in Util.Find<Gun>()) if (g != null && g.isActiveAndEnabled && Util.IsPlayers(g)) return true;
             return false;
         }
 
@@ -130,7 +130,7 @@ namespace UboatToolkit.Modules
                         ship.StartAlarm("Alarm", true);
                         ManGunsUntil = Time.unscaledTime + 120f;
                         if (a?.Attacker != null)
-                            foreach (var g in Util.Find<Gun>()) if (g != null) Util.Safe("Beschuss.Ziel", () => g.TargetOverride = a.Attacker);
+                            foreach (var g in Util.Find<Gun>()) if (g != null && Util.IsPlayers(g)) Util.Safe("Beschuss.Ziel", () => g.TargetOverride = a.Attacker);
                         break;
                 }
                 UboatToolkit.ToolkitRunner.ShowNotice("Befehl: " + ActName[(int)act], 5f);

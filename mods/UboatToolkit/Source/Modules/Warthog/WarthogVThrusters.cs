@@ -21,7 +21,7 @@ namespace UboatToolkit.Modules.Warthog
             float cmd = 0f;                                    // + = up
             if (Keys.Held("KeyWhVThrustUp")) cmd += 1f;
             if (Keys.Held("KeyWhVThrustDown")) cmd -= 1f;
-            // 0.3.33: time compression = many physics steps per frame, the auto controllers overshoot -> keys only
+            // 0.3.34: time compression = many physics steps per frame, the auto controllers overshoot -> keys only
             bool tc = Time.timeScale > 1.5f;
             if (cmd == 0f && !tc && Settings.B("WhVThrustAuto") && ship.SubmergedOrGoingToSubmerge)
             {

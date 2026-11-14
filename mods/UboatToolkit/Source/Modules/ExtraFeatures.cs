@@ -142,8 +142,8 @@ namespace UboatToolkit.Modules
             if (energySaved || v >= lim || !ship.SubmergedOrGoingToSubmerge) return;
             energySaved = true;
             int n = 0;
-            foreach (var c in Util.Find<AirCompressor>()) if (!c.HasDisableFlag(DeviceDisableFlag.TurnedOff)) { c.SetDisableFlag(DeviceDisableFlag.TurnedOff, true); n++; }
-            foreach (var s in Util.Find<Searchlight>()) if (!s.HasDisableFlag(DeviceDisableFlag.TurnedOff)) { s.SetDisableFlag(DeviceDisableFlag.TurnedOff, true); n++; }
+            foreach (var c in Util.Find<AirCompressor>()) if (Util.IsPlayers(c) && !c.HasDisableFlag(DeviceDisableFlag.TurnedOff)) { c.SetDisableFlag(DeviceDisableFlag.TurnedOff, true); n++; }
+            foreach (var s in Util.Find<Searchlight>()) if (Util.IsPlayers(s) && !s.HasDisableFlag(DeviceDisableFlag.TurnedOff)) { s.SetDisableFlag(DeviceDisableFlag.TurnedOff, true); n++; }
             if (n > 0) ToolkitRunner.ShowNotice("Strom sparen: " + n + " Geräte aus (Batterie " + (v * 100f).ToString("0") + " %)", 6f);
         }
 

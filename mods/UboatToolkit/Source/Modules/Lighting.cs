@@ -41,7 +41,7 @@ namespace UboatToolkit.Modules
                 if (lastSearchlight != on)
                 {
                     foreach (var s in Util.Find<Searchlight>())
-                        s.SetDisableFlag(DeviceDisableFlag.TurnedOff, !on);
+                        if (Util.IsPlayers(s)) s.SetDisableFlag(DeviceDisableFlag.TurnedOff, !on);
                     lastSearchlight = on;
                 }
             }
