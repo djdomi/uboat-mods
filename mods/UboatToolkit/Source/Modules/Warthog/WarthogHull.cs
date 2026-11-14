@@ -179,14 +179,15 @@ namespace UboatToolkit.Modules.Warthog
                 return;
             }
             // same sign fix as the fins; astern the game mirrors Turn (rudder works reversed), thrusters do not -> undo it
-            if (cmd == 0f && Settings.B("WhThrusterWithRudder"))
+            bool tc = Time.timeScale > 1.5f;   // 0.3.30: no automatic thruster use in time compression (it swung around)
+            if (cmd == 0f && !tc && Settings.B("WhThrusterWithRudder"))
             {
                 float fwd = Vector3.Dot(rb.velocity, ship.transform.forward);
                 cmd = Mathf.Clamp(-ship.Turn * (fwd < -0.2f ? -1f : 1f), -1f, 1f);
             }
 
             // hold the heading while our guns fire (recoil)
-            if (Settings.B("WhThrusterHoldFiring") && Time.time - LastGunShot < 3f && Mathf.Abs(ship.Turn) < 0.05f && Mathf.Abs(cmd) < 0.05f)
+            if (!tc && Settings.B("WhThrusterHoldFiring") && Time.time - LastGunShot < 3f && Mathf.Abs(ship.Turn) < 0.05f && Mathf.Abs(cmd) < 0.05f)
             {
                 if (float.IsNaN(heldHeading)) heldHeading = ship.transform.eulerAngles.y;
                 float err = Mathf.DeltaAngle(ship.transform.eulerAngles.y, heldHeading);
