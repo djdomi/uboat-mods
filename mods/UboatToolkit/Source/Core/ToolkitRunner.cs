@@ -96,7 +96,13 @@ namespace UboatToolkit
             Keys.CaptureFrame();
             // Menu key: works even with Ctrl/Shift/Alt still held and while a key capture hangs (F10 must always close).
             var mk = Keys.Code("KeyMenu", KeyCode.F10);
-            if (mk != KeyCode.None && Input.GetKeyDown(mk) && (Keys.Capturing == null || menuOpen)) { Keys.Capturing = null; menuOpen = !menuOpen; }
+            if (mk != KeyCode.None && Input.GetKeyDown(mk))
+            {
+                // 0.3.46: log every press (DoMe: "sometimes F10 must be pressed several times") to find the cause
+                bool blocked = !(Keys.Capturing == null || menuOpen);
+                Util.Log("Menütaste: " + (blocked ? "ignoriert (Tasten-Aufnahme läuft)" : menuOpen ? "zu" : "auf") + ", Bild " + Time.frameCount + ", dt " + (Time.unscaledDeltaTime * 1000f).ToString("0") + " ms");
+                if (!blocked) { Keys.Capturing = null; menuOpen = !menuOpen; }
+            }
             if (names == null) { names = new string[Modules.Count]; frameNames = new string[Modules.Count]; for (int i = 0; i < Modules.Count; i++) { names[i] = Modules[i].GetType().Name; frameNames[i] = names[i] + ".Frame"; } }
             for (int i = 0; i < Modules.Count; i++) Timed(frameNames[i], Modules[i].Frame, 20.0);
 
