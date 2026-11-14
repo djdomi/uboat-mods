@@ -152,6 +152,7 @@ namespace UboatToolkit
             Bool(QoL, "AutoSnorkel", "Schnorchel fährt automatisch aus auf Sehrohrtiefe (1-10 m) und wieder ein", true);
             Bool(QoL, "SnorkelAir", "  Schnorchel oben: Lüftung an + Luftdruck in allen Räumen schnell auf Normaldruck", true);
             Bool(QoL, "AutoCrashDive", "Alarmtauchen automatisch, wenn ein feindliches Flugzeug gesichtet wird", false);
+            Bool(QoL, "DiveSpeedCompensate", "Tiefenruder bei Speed-Cheat abschwächen (wirken wie bei normaler Fahrt)", true);
             Bool(QoL, "RouteLead", "Kurs: rechtzeitig vor dem Wegpunkt eindrehen (kein Bogen hinter dem Punkt)", true);
             Num(QoL, "RouteLeadRadius", "  Wendekreis-Radius für das Eindrehen (m)", 400, 50, 3000, 50);
             Bool(QoL, "LeavePortButton", "Knopf \u201eHafen verlassen\u201c direkt nach dem Ablegen (nur offizieller Ausfahrt-Punkt)", false);
