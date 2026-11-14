@@ -203,8 +203,9 @@ namespace UboatToolkit
             if (Notice != null && Time.unscaledTime < NoticeUntil)
                 Imgui.TextAt(new Rect(Screen.width / 2f - 300, 60, 600, 24), ">>> " + Notice + " <<<");
             // Info lines no longer sit on top of the game's top-left widgets (DoMe 2026-11-14): position in % of the screen (F10).
-            float ix = Screen.width * Settings.F("InfoPosX") / 100f, iy = Screen.height * Settings.F("InfoPosY") / 100f;
+            float ix = Screen.width * Settings.F("InfoTopX") / 100f, iy = Screen.height * Settings.F("InfoTopY") / 100f;
             if (!string.IsNullOrEmpty(InfoLine)) Imgui.TextAt(new Rect(ix, iy, 1100, 22), InfoLine);
+            if (!string.IsNullOrEmpty(UboatToolkit.Modules.TankReset.Line)) Imgui.TextAt(new Rect(ix, iy + 40, 1100, 22), UboatToolkit.Modules.TankReset.Line);
             if (!string.IsNullOrEmpty(UboatToolkit.Modules.ExtraFeatures.TubeLine)) Imgui.TextAt(new Rect(ix, iy + 20, 1100, 22), UboatToolkit.Modules.ExtraFeatures.TubeLine);
             if (Settings.B("CheatShowActive"))
             {

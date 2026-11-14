@@ -64,7 +64,17 @@ namespace UboatToolkit.Modules
         public static float Speed;
 
         public static string SpeedText =>
-            Settings.B("Speedometer") ? Speed.ToString("0.0") + " kn  |  Fahrt: " + TripKm.ToString("0") + " km  |  gesamt: " + TotalKm.ToString("0") + " km" : null;
+            !Settings.B("Speedometer") ? null : Join(
+                Settings.B("InfoSpeed") ? Speed.ToString("0.0") + " kn" : null,
+                Settings.B("InfoTrip") ? "Fahrt: " + TripKm.ToString("0") + " km" : null,
+                Settings.B("InfoTotal") ? "gesamt: " + TotalKm.ToString("0") + " km" : null);
+
+        public static string Join(params string[] parts)
+        {
+            var l = new System.Collections.Generic.List<string>();
+            foreach (var p in parts) if (!string.IsNullOrEmpty(p)) l.Add(p);
+            return l.Count == 0 ? null : string.Join("  |  ", l);
+        }
 
         public static void Diary(string text)
         {

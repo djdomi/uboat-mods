@@ -312,20 +312,20 @@ namespace UboatToolkit.Modules
             string speed = Events.SpeedText;
             if (!Settings.B("NavInfo")) { ToolkitRunner.InfoLine = speed; return; }
             var w = Game.Wolfpack;
-            string text = "";
-            if (w?.Route != null && w.Route.Count > 0)
+            string eta = null, diesel = null;
+            if (Settings.B("InfoEta") && w?.Route != null && w.Route.Count > 0)
             {
                 float km = w.Route.TotalLength;
-                text = "Ziel: " + km.ToString("0") + " km";
+                eta = "Ziel: " + km.ToString("0") + " km";
                 if (w.Velocity > 0.0001f)
                 {
                     float h = km / w.Velocity / 3600f;
-                    text += ", Ankunft in " + ((int)h) + " h " + ((int)((h - (int)h) * 60f)).ToString("00") + " min (Spielzeit)";
+                    eta += ", Ankunft in " + ((int)h) + " h " + ((int)((h - (int)h) * 60f)).ToString("00") + " min (Spielzeit)";
                 }
-                text += "  |  ";
             }
-            try { text += "Diesel-Reichweite (3. Stufe): " + (ship.EstimatedRangeOnThirdGear > 100000f ? "∞" : ship.EstimatedRangeOnThirdGear.ToString("0") + " km"); } catch { }
-            ToolkitRunner.InfoLine = speed != null ? speed + "  |  " + text : text;
+            if (Settings.B("InfoDiesel"))
+                try { diesel = "Diesel-Reichweite (3. Stufe): " + (ship.EstimatedRangeOnThirdGear > 100000f ? "∞" : ship.EstimatedRangeOnThirdGear.ToString("0") + " km"); } catch { }
+            ToolkitRunner.InfoLine = Events.Join(speed, eta, diesel);
         }
     }
 

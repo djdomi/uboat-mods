@@ -142,7 +142,8 @@ namespace UboatToolkit.Modules.Warthog
             SpinProps(ship, rb);
 
             // ---- fins
-            if (Settings.B("WhFins"))
+            // 0.3.41: fins push per frame; in time compression that over-corrects the roll and the boat rolls over (DoMe)
+            if (Settings.B("WhFins") && Time.timeScale <= 1.5f)
             {
                 float speed = Vector3.Dot(rb.velocity, ship.transform.forward);
                 // more turning: the game turns the boat with the rudder; add (factor-1) of a rudder-like torque
