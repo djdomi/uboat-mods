@@ -36,8 +36,18 @@ namespace UboatToolkit.Modules
             }
         }
 
+        private float scanAt;
         public override void Tick()
         {
+            // 0.3.37: Health 0 is saved with the game, the timer is not. After load / port scene reload, broken port
+            // guns without timer get a new one, so they never stay broken forever.
+            if (Time.unscaledTime >= scanAt)
+            {
+                scanAt = Time.unscaledTime + 10f;
+                foreach (var g in Util.Find<Gun>())
+                    if (IsPortGun(g) && g.Health <= 0f && !Down.ContainsKey(g))
+                        Down[g] = Time.time + Settings.F("PortDefenseMinutes") * 60f;
+            }
             if (Down.Count == 0) return;
             done.Clear();
             foreach (var kv in Down) if (kv.Key == null || Time.time >= kv.Value) done.Add(kv.Key);

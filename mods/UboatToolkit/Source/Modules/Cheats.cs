@@ -22,7 +22,7 @@ namespace UboatToolkit.Modules
             float sr = Mathf.Max(1f, Settings.F("CheatSensorRange"));
             foreach (var d in Util.Find<UBOAT.Game.Scene.Items.BaseDetector>())
             {
-                float m = Util.IsPlayers(d) ? sr : 1f;   // 0.3.36: enemies keep their game range
+                float m = Util.IsPlayers(d) ? sr : 1f;   // 0.3.37: enemies keep their game range
                 Util.ScaleParameter(d.DetectionRange, m);
                 Util.ScaleParameter(d.GroupDetectionRange, m);
             }
