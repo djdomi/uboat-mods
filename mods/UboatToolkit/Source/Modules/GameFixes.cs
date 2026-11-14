@@ -538,3 +538,29 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // 0.3.58 (DoMe: upgrades cannot be bought, short error each click): the game's InstallUpgrade crashes (NRE) when
+    // the boat has no slot for the item (unfinished game upgrades like "Reinforced Pistons", unlocked by research cheats).
+    // Now: no crash, a short notice instead.
+    [HarmonyPatch(typeof(PortServicesProvider), "InstallUpgrade")]
+    internal static class Fix_UpgradeNoSlot
+    {
+        private static readonly System.Reflection.MethodInfo Find = AccessTools.Method(typeof(PortServicesProvider), "FindSuitableSlot");
+        private static bool Prefix(PortServicesProvider __instance, SandboxEquipmentData equipmentData, ref bool __result)
+        {
+            try
+            {
+                var ship = Util.PlayerShip;
+                if (Find == null || ship == null || equipmentData == null) return true;
+                if (Find.Invoke(__instance, new object[] { ship, equipmentData }) != null) return true;
+                Util.Log("Upgrade: kein passender Platz im Boot fuer " + equipmentData.Name);
+                ToolkitRunner.ShowNotice("Passt nicht in dein Boot: " + equipmentData.Name, 4f);
+                __result = false;
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+}

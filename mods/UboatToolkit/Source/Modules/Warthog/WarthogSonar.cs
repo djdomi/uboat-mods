@@ -23,6 +23,7 @@ namespace UboatToolkit.Modules.Warthog
             var ship = Util.PlayerShip;
             bool passive = On && Settings.B("WhPassive") && (Settings.B("WhSonarBow") || Settings.B("WhSonarMid") || Settings.B("WhSonarStern"));
             foreach (var h in Util.Find<Hydrophone>())
+            if (h != null && h.DetectionRange != null)
             {
                 var t = Traverse.Create(h);
                 // 360°: the arc check uses |angle| <= arc, so 190° with fade covers every direction
@@ -37,6 +38,7 @@ namespace UboatToolkit.Modules.Warthog
             }
 
             // battery for the arrays (mode from the power menu)
+            if (ship == null) return;   // 0.3.58: NRE without a boat (port, menus)
             if (ship.Energy != null)
             {
                 if (energy == null) energy = ship.Energy.Gain.AddDeltaModifier("Warthog Sonar");
