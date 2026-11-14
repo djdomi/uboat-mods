@@ -417,7 +417,9 @@ namespace UboatToolkit.Modules
                     string key = ___target.ToString();
                     // 0.3.54 (DoMe: "nach 5 erfolglosen Versuchen helfen"): from the 5th try search up to 300 m and walk there.
                     Tries.TryGetValue(key, out int n); Tries[key] = ++n;
-                    if (n >= 5 && UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 300f, mask))
+                    if (n >= 5 && UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 300f, mask)
+                        && (!Util.IsPlayers(nav) || Util.PlayerShip == null
+                            || UnityEngine.Vector3.Distance(hit.position, Util.PlayerShip.transform.position) < 80f))   // crew on own boat stays on own boat
                     {
                         Util.Log("Laufweg: Ziel " + key + " nach " + n + " Versuchen auf " + hit.position + " verlegt (" + UnityEngine.Vector3.Distance(___target, hit.position).ToString("0") + " m)");
                         Tries.Remove(key);
