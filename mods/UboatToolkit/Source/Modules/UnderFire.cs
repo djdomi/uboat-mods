@@ -205,9 +205,9 @@ namespace UboatToolkit.Modules
             Imgui.BeginArea(new Rect(box.x + 6, box.y + 24, box.width - 12, box.height - 28));
             Imgui.Label(current.Clock + " " + current.Text + (current.Count > 1 ? " (x" + current.Count + ")" : ""), 315);
             for (int i = 0; i < ActName.Length; i++)
-                if (Imgui.Button("[" + KeyText(ActKeys[i]) + "] " + ActName[i] + (i == (int)current.Advice ? " ★" : ""), 315))
+                if (Imgui.Button(ActName[i] + (i == (int)current.Advice ? " ★" : ""), 315))
                 { var a = current; Close(); current = null; if (i != (int)Act.Nothing) Do((Act)i, a); Imgui.EndArea(); return; }
-            if (Imgui.Button("[" + KeyText("KeyUnderFireIgnore") + "] " + Mathf.Max(1, Mathf.RoundToInt(Settings.F("UnderFireIgnoreMin"))) + " min ignorieren", 315))
+            if (Imgui.Button(Mathf.Max(1, Mathf.RoundToInt(Settings.F("UnderFireIgnoreMin"))) + " min ignorieren", 315))
             { ignoreUntil = now + Mathf.Max(1, Mathf.RoundToInt(Settings.F("UnderFireIgnoreMin"))) * 60f; ignoredCount = 0; Close(); current = null; }
             Imgui.EndArea();
         }
