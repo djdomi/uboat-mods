@@ -232,3 +232,20 @@ namespace UboatToolkit.Modules
     }
 
 }
+
+namespace UboatToolkit.Modules
+{
+    // Game bug: OrderEngineGear throws IndexOutOfRange for a gear the boat doesn't have (UI telegraph). The order is
+    // simply dropped instead of an exception popping the dev console; the gear number is logged once to find the source.
+    [HarmonyPatch(typeof(PlayerShip), nameof(PlayerShip.OrderEngineGear))]
+    internal static class Fix_OrderEngineGearRange
+    {
+        private static readonly HashSet<int> logged = new HashSet<int>();
+        private static System.Exception Finalizer(System.Exception __exception, int gearIndex)
+        {
+            if (!(__exception is System.IndexOutOfRangeException)) return __exception;
+            if (logged.Add(gearIndex)) Util.Log("Fahrstufe " + gearIndex + " gibt es auf diesem Boot nicht, Befehl ignoriert");
+            return null;
+        }
+    }
+}
