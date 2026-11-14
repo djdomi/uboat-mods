@@ -324,7 +324,7 @@ namespace UboatToolkit.Modules
                 }
                 text += "  |  ";
             }
-            try { text += "Diesel-Reichweite (3. Stufe): " + ship.EstimatedRangeOnThirdGear.ToString("0") + " km"; } catch { }
+            try { text += "Diesel-Reichweite (3. Stufe): " + (ship.EstimatedRangeOnThirdGear > 100000f ? "∞" : ship.EstimatedRangeOnThirdGear.ToString("0") + " km"); } catch { }
             ToolkitRunner.InfoLine = speed != null ? speed + "  |  " + text : text;
         }
     }

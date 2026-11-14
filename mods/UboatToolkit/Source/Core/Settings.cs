@@ -117,6 +117,8 @@ namespace UboatToolkit
             Num(QoL, "AutoSaveMinutes", "Auto-Speichern alle x Minuten (0 = aus) (Idee 6)", 15, 0, 120, 5);
             Num(QoL, "LowWarnPercent", "Warnung + Zeitraffer-Stopp bei Diesel/Batterie/Luft unter x % (0 = aus) (Idee 8)", 15, 0, 50, 5);
             Bool(QoL, "NavInfo", "Karte: Ankunftszeit + Restweg + Diesel-Reichweite oben links (Idee 7)", true);
+            Num(QoL, "InfoPosX", "  Infozeilen: Position von links (% vom Bild)", 30, 0, 90, 1);
+            Num(QoL, "InfoPosY", "  Infozeilen: Position von oben (% vom Bild)", 88, 0, 95, 1);
             Bool(QoL, "DepthHotkeys", "Tiefe per Taste (Tasten im Tab „Tasten“) (Idee 10)", true);
             Bool(QoL, "FixTooltipParent", "Fix: Fehler \"Default Tooltip ... GUI\" (Tooltip nicht unnötig umhängen)", true);
             Bool(QoL, "DiagTooltip", "Diagnose: Tooltips ins Log schreiben (leerer Kasten am Auge)", true);

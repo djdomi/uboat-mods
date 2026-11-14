@@ -201,12 +201,14 @@ namespace UboatToolkit
         {
             if (Notice != null && Time.unscaledTime < NoticeUntil)
                 Imgui.TextAt(new Rect(Screen.width / 2f - 300, 60, 600, 24), ">>> " + Notice + " <<<");
-            if (!string.IsNullOrEmpty(InfoLine)) Imgui.TextAt(new Rect(8, 24, 1100, 22), InfoLine);
-            if (!string.IsNullOrEmpty(UboatToolkit.Modules.ExtraFeatures.TubeLine)) Imgui.TextAt(new Rect(8, 44, 1100, 22), UboatToolkit.Modules.ExtraFeatures.TubeLine);
+            // Info lines no longer sit on top of the game's top-left widgets (DoMe 2026-11-14): position in % of the screen (F10).
+            float ix = Screen.width * Settings.F("InfoPosX") / 100f, iy = Screen.height * Settings.F("InfoPosY") / 100f;
+            if (!string.IsNullOrEmpty(InfoLine)) Imgui.TextAt(new Rect(ix, iy, 1100, 22), InfoLine);
+            if (!string.IsNullOrEmpty(UboatToolkit.Modules.ExtraFeatures.TubeLine)) Imgui.TextAt(new Rect(ix, iy + 20, 1100, 22), UboatToolkit.Modules.ExtraFeatures.TubeLine);
             if (Settings.B("CheatShowActive"))
             {
                 var active = Settings.All.Where(o => o.Tab == Settings.Cheat && o.Key != "CheatShowActive" && (o.IsBool ? o.Value > 0f : o.Value != o.Default)).Select(o => o.Key.Replace("Cheat", "")).ToArray();
-                if (active.Length > 0) Imgui.TextAt(new Rect(8, 4, 900, 22), "Cheats: " + string.Join(", ", active));
+                if (active.Length > 0) Imgui.TextAt(new Rect(ix, iy + 40, 900, 22), "Cheats: " + string.Join(", ", active));
             }
             if (Util.InGameView())   // not over the port menu / ship selection / HQ etc.
             {
