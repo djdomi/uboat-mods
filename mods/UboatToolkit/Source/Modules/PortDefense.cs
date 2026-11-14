@@ -22,10 +22,19 @@ namespace UboatToolkit.Modules
             return e != null && !(e is Ship) && !(e is Aircraft);
         }
 
+        // 0.3.59: Util.Find only searches the player's boat, so port guns were never found. Scene-wide search, cached 10 s.
+        private static Gun[] all = new Gun[0];
+        private static float allAt = -100f;
+        private static Gun[] AllGuns()
+        {
+            if (Time.unscaledTime - allAt > 10f) { all = Object.FindObjectsOfType<Gun>(); allAt = Time.unscaledTime; }
+            return all;
+        }
+
         internal static void Hit(Vector3 pos, float radius)
         {
             float r = Mathf.Max(radius, Settings.F("PortDefenseHitM"));
-            foreach (var g in Util.Find<Gun>())
+            foreach (var g in AllGuns())
             {
                 if (!IsPortGun(g) || g.Health <= 0f) continue;
                 if ((g.transform.position - pos).sqrMagnitude > r * r) continue;
@@ -44,7 +53,7 @@ namespace UboatToolkit.Modules
             if (Settings.B("PortDefenseDestroyable") && Time.unscaledTime >= scanAt)
             {
                 scanAt = Time.unscaledTime + 10f;
-                foreach (var g in Util.Find<Gun>())
+                foreach (var g in AllGuns())
                     if (IsPortGun(g) && g.Health <= 0f && !Down.ContainsKey(g))
                         Down[g] = Time.time + Settings.F("PortDefenseMinutes") * 60f;
             }
