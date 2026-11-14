@@ -478,6 +478,9 @@ namespace UboatToolkit
             Bool(QoL, "DeckGunKineticDamage", "88mm: Schaden wächst mit Gewicht x Geschwindigkeit (wie früher)", false);
             Num(QoL, "AAGunDepress", "Flak: so viele Grad nach unten neigen (0 = Spielwert)", 30, 0, 60, 1);
             Bool(QoL, "AAGunBothTargets", "Geschütze: Schiffe und Flugzeuge zugleich angreifen (88/105 zuerst Schiffe, Flak zuerst Flugzeuge)", true);
+            Bool(Cheat, "PortDefenseDestroyable", "Hafenverteidigung zerstörbar (Treffer in der Nähe schaltet Geschütz aus)", true);
+            Num(Cheat, "PortDefenseMinutes", "  Hafengeschütz repariert nach (Minuten Spielzeit)", 30, 1, 240, 1);
+            Num(Cheat, "PortDefenseHitM", "  Trefferradius (m)", 15, 3, 60, 1);
             Bool(QoL, "AASaveAmmo", "Flugzeuge nur beschießen, wenn sie nah genug sind (spart Munition)", true);
             Num(QoL, "AAEngageKm", "  Flugzeuge: höchstens so weit beschießen (km)", 2.5f, 0.5f, 10f, 0.5f);
             Bool(QoL, "KeepGunMode", "Geschütze: Feuermodus bleibt, wenn ein Kanonier (neu) ans Geschütz geht (sonst stellt das Spiel auf Feuer einstellen)", true);
