@@ -32,7 +32,7 @@ namespace UboatToolkit.Modules
 
         public static string Prefix(Gun gun) => gun.IsAntiAircraftWeapon ? "AAGun" : "DeckGun";
 
-        private static bool bothLogged;
+        private static bool bothLogged, enemyLogged;
         public override void Tick()
         {
             var ship = Util.PlayerShip;
@@ -48,6 +48,21 @@ namespace UboatToolkit.Modules
                 {
                     gun.TargetingMode = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
                     if (!bothLogged) { bothLogged = true; Util.Log("Geschütze: Schiffe und Flugzeuge zugleich (Deckgeschütz bevorzugt Schiffe, Flak Flugzeuge), z. B. " + gun.name); }
+                }
+                // 0.3.31: enemy guns (port defence, escorts) always keep the game's own values. Up to 0.3.31 turn speed,
+                // fire rate, magazine, shell speed and "flak like 88" were applied to EVERY gun in the scene.
+                if (!Util.IsPlayers(gun))
+                {
+                    Util.SetField(gun, "rotationSpeed", Util.Original<float>(gun, "rotationSpeed"));
+                    Util.SetField(gun, "minAngle", Util.Original<float>(gun, "minAngle"));
+                    Util.SetField(gun, "maxAngle", Util.Original<float>(gun, "maxAngle"));
+                    Util.SetField(gun, "shellSpeed", Util.Original<float>(gun, "shellSpeed"));
+                    Util.SetParameter(Traverse.Create(gun).Field("range").GetValue<Parameter>(), 0f);
+                    Util.SetParameter(gun.MagazineSize, 0f);
+                    Util.SetParameter(Traverse.Create(gun).Field("seriesTimeOffset").GetValue<Parameter>(), 0f);
+                    Util.SetParameter(gun.ReloadTime, 0f);
+                    if (!enemyLogged) { enemyLogged = true; Util.Log("Geschütze: Gegner-Geschütze behalten Spielwerte (z. B. " + gun.name + ")"); }
+                    continue;
                 }
                 string p = Prefix(gun);
                 float turn = Settings.F(p + "TurnSpeed");
