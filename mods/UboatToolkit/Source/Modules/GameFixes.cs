@@ -398,6 +398,7 @@ namespace UboatToolkit.Modules
     [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "SnapTarget")]
     internal static class GameFixes_NavmeshSnapPatch
     {
+        private static readonly System.Collections.Generic.HashSet<string> Warned = new System.Collections.Generic.HashSet<string>();
         private static bool Prefix(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour __instance, ref UnityEngine.Vector3 ___target, ref bool __result)
         {
             if (!Settings.B("FixNavmeshSnap")) return true;
@@ -407,7 +408,16 @@ namespace UboatToolkit.Modules
                 if (nav == null) return true;
                 int mask = nav.WalkableAreasMask;
                 if (UnityEngine.AI.NavMesh.SamplePosition(___target, out var hit, 1.5f, mask)) return true;   // normal case: game does it
-                if (!UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 5f, mask)) return true;      // really nowhere: game handles it
+                if (!UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 5f, mask)
+                    && !UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 60f, mask))
+                {
+                    // 0.3.53 (DoMe: many short error popups): nothing walkable within 60 m. The game would log a red
+                    // error every 3 s for minutes. Return the same "false" quietly and note it once in our log.
+                    string key = ___target.ToString();
+                    if (Warned.Add(key)) Util.Log("Laufweg: Ziel " + key + " nicht erreichbar (" + __instance.GetType().Name + "), Fehler-Popup unterdrückt");
+                    __result = false;
+                    return false;
+                }
                 ___target = hit.position;
                 __result = true;
                 return false;
