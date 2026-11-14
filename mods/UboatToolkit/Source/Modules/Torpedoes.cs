@@ -27,6 +27,41 @@ namespace UboatToolkit.Modules
 
         private static UserSettings userSettings;
 
+        // 0.3.43 (DoMe: "es werden keine Torpedos nachgeladen"): the reload right after the shot (OnLaunchingComplete)
+        // did not fire in every case. Backup: an own tube that stays empty for 3 s is filled again here.
+        private static readonly System.Collections.Generic.Dictionary<TorpedoLauncher, string> lastName = new System.Collections.Generic.Dictionary<TorpedoLauncher, string>();
+        private static readonly System.Collections.Generic.Dictionary<TorpedoLauncher, float> emptySince = new System.Collections.Generic.Dictionary<TorpedoLauncher, float>();
+        private static void Refill()
+        {
+            if (!Settings.B("CheatInfiniteTorpedoes")) return;
+            foreach (var l in Util.Find<TorpedoLauncher>(2f))
+            {
+                if (l == null || !Util.IsPlayers(l)) continue;
+                if (l.Torpedo != null)
+                {
+                    emptySince.Remove(l);
+                    if (!(l.Torpedo is StoredMinePacket)) lastName[l] = l.Torpedo.name.Replace("(Clone)", "").Trim();
+                    continue;
+                }
+                if (!emptySince.TryGetValue(l, out var t0)) { emptySince[l] = Time.time; continue; }
+                if (Time.time - t0 < 3f) continue;
+                emptySince.Remove(l);
+                lastName.TryGetValue(l, out var last);
+                Util.Safe("torpedo refill", () =>
+                {
+                    var rm = Resources; if (rm == null) return;
+                    string name = Settings.B("CheatAllT5") || string.IsNullOrEmpty(last) ? T5 : last;
+                    var go = rm.InstantiatePrefab("Equipment/" + name);
+                    if (go == null && !string.IsNullOrEmpty(last) && name != last) go = rm.InstantiatePrefab("Equipment/" + last);
+                    var stored = go != null ? go.GetComponent<StoredTorpedo>() : null;
+                    if (stored == null) { if (go != null) Object.Destroy(go); Util.Log("Torpedo nachladen: kein Torpedo-Typ gefunden (" + name + ")"); return; }
+                    l.SetTorpedo(stored);
+                    l.CompleteLoading(quiet: true);
+                    Util.Log("Torpedo nachgeladen (Cheat): " + l.name + " <- " + name);
+                });
+            }
+        }
+
         public override void Tick()
         {
             // #17: use the game's own automatic torpedo solution (click target -> values are filled in).
@@ -41,6 +76,7 @@ namespace UboatToolkit.Modules
                 }
             }
 
+            Refill();
             if (!Settings.B("CheatNoDuds")) return;
             foreach (var t in Util.Find<Torpedo>(1f))
                 if (t != null && t.Owner == Util.PlayerShip) t.DudsDisabled = true;   // 0.3.38: own torpedoes only
