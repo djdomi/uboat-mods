@@ -32,7 +32,8 @@ namespace UboatToolkit
             var o = Settings.Get(key);
             if (o == null || string.IsNullOrEmpty(o.Text) || Capturing != null) return false;
             if (Enum.TryParse<KeyCode>(o.Text.Trim(), true, out var single)) return Input.GetKey(single);
-            return Parse(o.Text, out var code, out _, out _, out _) && Input.GetKey(code);
+            // combos: the named modifiers must be held too (else Ctrl+Alt+PageUp would also fire on plain PageUp)
+            return Parse(o.Text, out var code, out var c, out var sh, out var a) && Input.GetKey(code) && (!c || Ctrl) && (!sh || Shift) && (!a || Alt);
         }
 
         // The bound key as a KeyCode (single key names like "LeftAlt" or "Mouse3" allowed).
