@@ -22,8 +22,9 @@ namespace UboatToolkit.Modules
             float sr = Mathf.Max(1f, Settings.F("CheatSensorRange"));
             foreach (var d in Util.Find<UBOAT.Game.Scene.Items.BaseDetector>())
             {
-                Util.ScaleParameter(d.DetectionRange, sr);
-                Util.ScaleParameter(d.GroupDetectionRange, sr);
+                float m = Util.IsPlayers(d) ? sr : 1f;   // 0.3.32: enemies keep their game range
+                Util.ScaleParameter(d.DetectionRange, m);
+                Util.ScaleParameter(d.GroupDetectionRange, m);
             }
 
             // Undetectable: seen, heard (sonar + hydrophones) and radar-detected at almost zero range.

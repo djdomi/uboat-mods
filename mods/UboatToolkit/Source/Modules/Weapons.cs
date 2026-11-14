@@ -49,7 +49,7 @@ namespace UboatToolkit.Modules
                     gun.TargetingMode = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
                     if (!bothLogged) { bothLogged = true; Util.Log("Geschütze: Schiffe und Flugzeuge zugleich (Deckgeschütz bevorzugt Schiffe, Flak Flugzeuge), z. B. " + gun.name); }
                 }
-                // 0.3.31: enemy guns (port defence, escorts) always keep the game's own values. Up to 0.3.31 turn speed,
+                // 0.3.32: enemy guns (port defence, escorts) always keep the game's own values. Up to 0.3.32 turn speed,
                 // fire rate, magazine, shell speed and "flak like 88" were applied to EVERY gun in the scene.
                 if (!Util.IsPlayers(gun))
                 {
