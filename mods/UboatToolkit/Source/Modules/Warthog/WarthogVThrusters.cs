@@ -18,12 +18,15 @@ namespace UboatToolkit.Modules.Warthog
             if (rb == null || rb.isKinematic || Time.deltaTime <= 0f || Time.timeScale <= 0f) return;
             float k = Mathf.Clamp(Time.deltaTime / Time.fixedDeltaTime, 0f, 4f);
 
-            float cmd = 0f;                                    // + = up
-            if (Keys.Held("KeyWhVThrustUp")) cmd += 1f;
-            if (Keys.Held("KeyWhVThrustDown")) cmd -= 1f;
+            // 0.3.39 (DoMe): like the side thrusters. Key alone = bow and stern opposite (nose up/down),
+            // with Shift = both the same way (whole boat up/down).
+            float cmd = 0f, keyPitch = 0f;                     // + = up / + = bow up
+            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            float k0 = (Keys.Held("KeyWhVThrustUp") ? 1f : 0f) - (Keys.Held("KeyWhVThrustDown") ? 1f : 0f);
+            if (shift) cmd = k0; else keyPitch = k0;
             // 0.3.38: time compression = many physics steps per frame, the auto controllers overshoot -> keys only
             bool tc = Time.timeScale > 1.5f;
-            if (cmd == 0f && !tc && Settings.B("WhVThrustAuto") && ship.SubmergedOrGoingToSubmerge)
+            if (cmd == 0f && keyPitch == 0f && !tc && Settings.B("WhVThrustAuto") && ship.SubmergedOrGoingToSubmerge)
             {
                 float err = ship.TargetDepth - (ship.Depth + ship.VerticalOriginOffset);   // + = must go deeper
                 cmd = -Mathf.Clamp(err / 10f, -1f, 1f);
@@ -46,8 +49,8 @@ namespace UboatToolkit.Modules.Warthog
                 Util.Log("Vertikal-Strahlruder: Abstand Bug/Heck je " + arm.ToString("F0") + " m");
             }
             // level the bow (keeps the nose down at high speed / holds the boat flat): bow and stern push opposite
-            float pitchCmd = 0f;
-            if (!tc && Settings.B("WhVThrustLevel") && cmd == 0f && ship.TargetDepth <= 5f)
+            float pitchCmd = keyPitch;
+            if (keyPitch == 0f && !tc && Settings.B("WhVThrustLevel") && cmd == 0f && ship.TargetDepth <= 5f)
             {
                 float pitch = Vector3.SignedAngle(Vector3.ProjectOnPlane(ship.transform.forward, Vector3.up), ship.transform.forward, ship.transform.right); // + = bow down
                 pitchCmd = Mathf.Clamp(pitch / 5f, -1f, 1f);   // bow up (negative) -> push bow down

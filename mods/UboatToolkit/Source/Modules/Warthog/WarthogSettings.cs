@@ -109,8 +109,8 @@ namespace UboatToolkit.Modules.Warthog
 
             Key("KeyWhThrustLeft", "Warthog: Strahlruder links", "Z");
             Key("KeyWhThrustRight", "Warthog: Strahlruder rechts", "X");
-            Key("KeyWhVThrustUp", "Vertikal-Strahlruder: hoch", "Ctrl+Alt+Home");
-            Key("KeyWhVThrustDown", "Vertikal-Strahlruder: runter", "Ctrl+Alt+End");
+            Key("KeyWhVThrustUp", "Vertikal-Strahlruder: Bug hoch (mit Shift: ganzes Boot hoch)", "Ctrl+Alt+Home");
+            Key("KeyWhVThrustDown", "Vertikal-Strahlruder: Bug runter (mit Shift: ganzes Boot runter)", "Ctrl+Alt+End");
             Key("KeyWhAnchor", "Warthog: Anker werfen / lichten", "J");
         }
 
