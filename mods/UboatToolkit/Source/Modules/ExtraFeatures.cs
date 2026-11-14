@@ -197,6 +197,11 @@ namespace UboatToolkit.Modules
             if (Util.PlayerShip == null || crew?.Characters == null) { Imgui.Label("Nur im Spiel verfügbar."); return; }
             var db = Traverse.Create(typeof(UBOAT.Game.Scene.Tasks.ExpandedSchedulesController)).Field("characterRolesDatabase").GetValue() as ICharacterRolesDatabase;
             Imgui.Label("Offiziere: Rolle mit Klick wechseln. „Skills bearbeiten“ öffnet den Skill-Editor (alle Skills aller Klassen).");
+            // 0.3.44 (DoMe): for the whole crew (officers AND sailors), one click each
+            Imgui.BeginH();
+            if (Imgui.Button("Ganze Mannschaft: Max Stufe", 260)) Util.Safe("Crew.MaxLevel", () => MaxLevelAll(crew));
+            if (Imgui.Button("Ganze Mannschaft: alle Skills", 260)) Util.Safe("Crew.AllSkills", () => AllSkillsAll(crew));
+            Imgui.EndH();
             foreach (var ch in crew.Characters)
             {
                 var d = ch?.Data;
@@ -219,6 +224,37 @@ namespace UboatToolkit.Modules
                 Imgui.EndH();
                 if (editSkills == d) SkillEditor(d);
             }
+        }
+
+        private static void MaxLevelAll(PlayerCrew crew)
+        {
+            int n = 0;
+            foreach (var ch in crew.Characters)
+            {
+                var d = ch?.Data; if (d == null) continue;
+                int before = Traverse.Create(d).Field("level").GetValue<int>();
+                for (int i = 0; i < 30; i++) d.AddExperiencePoints(100000);
+                int after = Traverse.Create(d).Field("level").GetValue<int>();
+                if (after > before) n++;
+            }
+            Util.Log("Mannschaft: Max Stufe, " + n + " Leute aufgestiegen");
+            ToolkitRunner.ShowNotice("Max Stufe: " + n + " Leute aufgestiegen", 5f);
+        }
+
+        private static void AllSkillsAll(PlayerCrew crew)
+        {
+            var classes = Classes();
+            if (classes == null) { ToolkitRunner.ShowNotice("Skill-Liste nicht gefunden", 5f); return; }
+            var all = classes.SelectMany(c => c.Skills).Where(x => x != null).GroupBy(x => x.Name).Select(g => g.First()).ToList();
+            int n = 0;
+            foreach (var ch in crew.Characters)
+            {
+                var d = ch?.Data; if (d == null) continue;
+                var owned = d.Statuses.OfType<CharacterSkill>().Select(o => o.Name).ToList();
+                foreach (var sk in all) if (!owned.Contains(sk.Name)) { try { d.LearnSkill(sk, false); n++; } catch { } }
+            }
+            Util.Log("Mannschaft: alle Skills, " + n + " Skills vergeben");
+            ToolkitRunner.ShowNotice("Alle Skills: " + n + " vergeben", 5f);
         }
 
         // Skill editor: every skill of every class, one click adds or removes it (no points, no level needed).
