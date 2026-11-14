@@ -1,5 +1,6 @@
 using System.Linq;
 using UBOAT.Game.Sandbox;
+using UBOAT.Game.Scene.Entities;
 using UnityEngine;
 
 namespace UboatToolkit.Modules
@@ -14,6 +15,13 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             var se = ship?.CurrentDock as SandboxEntity;
             if (se == null || se.Country == null) { UboatToolkit.ToolkitRunner.ShowNotice("Minen: nur im Hafen möglich", 4f); Util.Log("Minen: kein Hafen (Docked=" + (ship != null && ship.Docked) + ", CurrentDock=" + (ship?.CurrentDock != null ? ship.CurrentDock.GetType().Name : "null") + ")"); return; }
+            // 0.3.48: only a real port (DoMe: mines ended up in his own tubes)
+            if (se.Blueprint?.Type == null || se.Blueprint.Type.Category != EntityTypeCategory.Port)
+            {
+                UboatToolkit.ToolkitRunner.ShowNotice("Minen: das ist kein Hafen-Laden", 4f);
+                Util.Log("Minen: CurrentDock ist kein Hafen (" + se.Name + ", " + se.Blueprint?.Type?.Category + ")");
+                return;
+            }
             var eqs = se.Equipment.Where(e => e?.Slot != null && e.Slot.EquipmentTag == "Torpedo").ToList();
             var first = eqs.FirstOrDefault();
             if (first == null) { UboatToolkit.ToolkitRunner.ShowNotice("Minen: Hafen hat keine Torpedo-Plätze", 4f); Util.Log("Minen: " + se.Name + " ohne Torpedo-Platz, Plätze: " + string.Join(", ", se.Equipment.Where(e => e?.Slot != null).Select(e => e.Slot.EquipmentTag).Distinct())); return; }
