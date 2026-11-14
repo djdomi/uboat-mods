@@ -114,10 +114,17 @@ namespace UboatToolkit.Modules
 
         public static bool InScope(Entity e)
         {
-            if (e == null || e is PlayerShip || !(e is Ship)) return false;
-            if (SeaGunCfg.NpcWarships) return true;
-            string c = Category(e);
-            return c == "Freighter" || c == "Tanker" || c == "Coaster" || c == "Fishing Boat";
+            // 0.3.60 (DoMe: "Gegner sind alles, was nicht der Player ist und nicht grün"): every non-player, non-ally
+            // shooter (ships of all kinds, port guns, aircraft) gets the enemy spread.
+            if (e == null || e is PlayerShip) return false;
+            try
+            {
+                var me = Util.PlayerShip != null && Util.PlayerShip.SandboxEntity != null ? Util.PlayerShip.SandboxEntity.Country : null;
+                var c = e.SandboxEntity != null ? e.SandboxEntity.PerceivedCountry : null;
+                if (me != null && c != null && c.GetRelationWith(me) == UBOAT.Game.Sandbox.Country.Relation.Ally) return false;
+            }
+            catch { }
+            return true;
         }
 
         private static EntityType TypeOf(Entity e)
