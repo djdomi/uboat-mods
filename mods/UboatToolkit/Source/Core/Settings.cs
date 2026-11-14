@@ -166,6 +166,7 @@ namespace UboatToolkit
             Bool(QoL, "LeavePortButton", "Knopf \u201eHafen verlassen\u201c direkt nach dem Ablegen (nur offizieller Ausfahrt-Punkt)", false);
             Bool(QoL, "TonnageBeforePatrol", "Patrouillen-Auftrag: Tonnage z\u00e4hlt schon auf dem Weg ins Gebiet", true);
             Bool(QoL, "MapActualDepth", "Karte: genaue Wassertiefe unter der Maus anzeigen", true);
+            Bool(QoL, "TorpedoLatestPistol", "Häfen: von jedem Torpedo-Typ nur die neueste Zündpistole", true);
             Bool(QoL, "TorpedoMix", "H\u00e4fen haben eine gleichm\u00e4\u00dfige Mischung aller Torpedo-Typen", false);
             Bool(QoL, "SeaFloorAlways", "Meeresboden immer laden, wenn das Wasser flacher als ~300 m ist (nur Reise-System \u201eRealistisch\u201c)", true);
             Num(QoL, "SeaFloorMaxCompression", "  nur bis Zeitraffer x (darüber kein Nachladen = keine Ruckler/Flicken)", 100, 1, 5000, 10);
@@ -510,6 +511,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatSpecPoints", "Crew-Spezialisierungen (Tauchgang, Schleichfahrt, Disziplin): immer genug Punkte", false);
             Bool(Cheat, "CheatInfiniteTorpedoes", "Torpedos unendlich: Rohr lädt nach dem Schuss sofort neu (#26)", false);
             Bool(Cheat, "CheatAllT5", "  Nachgeladen wird immer ein T5 Zaunkönig (zielsuchend)", false);
+            Bool(Cheat, "ReloadLutFallback", "  Kein T5 verfügbar: stattdessen LUT nachladen", false);
             Bool(Cheat, "CheatNoDuds", "Keine Torpedo-Versager", false);
             Num(Cheat, "CheatSpeed", "Boot schneller x (über und unter Wasser) (1 = normal) (#33)", 1, 1, 5, 0.25f);
             Num(Cheat, "CheatPumpPower", "Pumpe x stärker (1 = normal) (#38)", 1, 1, 50, 1);

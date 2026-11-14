@@ -172,6 +172,13 @@ namespace UboatToolkit.Modules
     {
         private static readonly Dictionary<ISandboxEntity, int> turn = new Dictionary<ISandboxEntity, int>();
 
+        // "G7a Torpedo T1 - Pi3 - LUT" -> base "G7a Torpedo T1 - LUT", pistol 3 (Pi1.1 -> 1.1)
+        internal static string BaseName(string name) => System.Text.RegularExpressions.Regex.Replace(name, @" - Pi[0-9.]+", "");
+        internal static float Pistol(string name)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(name, @" - Pi([0-9]+(\.[0-9]+)?)");
+            return m.Success && float.TryParse(m.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0f;
+        }
         internal static bool IsMine(string name) => name != null && (name.IndexOf("Mine", StringComparison.OrdinalIgnoreCase) >= 0 || name.StartsWith("TM"));
 
         private static readonly Dictionary<ISandboxEntity, EntityBlueprintSlot> mineSlots = new Dictionary<ISandboxEntity, EntityBlueprintSlot>();
@@ -179,7 +186,7 @@ namespace UboatToolkit.Modules
         {
             TorpedoTab.Load();
             bool pick = TorpedoTab.PortPick.Count > 0;
-            if ((!Settings.B("TorpedoMix") && !pick) || slot == null || slot.EquipmentTag != "Torpedo") return true;
+            if ((!Settings.B("TorpedoMix") && !pick && !Settings.B("TorpedoLatestPistol")) || slot == null || slot.EquipmentTag != "Torpedo") return true;
             var se = entity as SandboxEntity;
             if (se == null || se.Blueprint.Type.Category != EntityTypeCategory.Port || se.Country == null) return true;
             var pool = se.Country.GetReservesByTagID(slot.EquipmentTagID);
@@ -192,6 +199,12 @@ namespace UboatToolkit.Modules
                 else if (!Settings.B("TorpedoMix")) return true;
             }
             if (list.Count == 0) return true;
+            // 0.3.50 (DoMe): only the newest firing pistol of each torpedo type ("... - Pi1/Pi2/..." -> highest)
+            if (Settings.B("TorpedoLatestPistol"))
+            {
+                var newest = list.GroupBy(x => BaseName(x.ItemData.Name)).Select(g => g.OrderByDescending(x => Pistol(x.ItemData.Name)).First()).ToList();
+                if (newest.Count > 0) list = newest.OrderBy(x => x.ItemData.Name).ToList();
+            }
             turn.TryGetValue(entity, out int n);
             turn[entity] = n + 1;
             // Mines share the "Torpedo" slot: the first slot of every port is always a mine (if the country has any),
