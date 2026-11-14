@@ -179,7 +179,7 @@ namespace UboatToolkit.Modules.Warthog
                 return;
             }
             // same sign fix as the fins; astern the game mirrors Turn (rudder works reversed), thrusters do not -> undo it
-            bool tc = Time.timeScale > 1.5f;   // 0.3.32: no automatic thruster use in time compression (it swung around)
+            bool tc = Time.timeScale > 1.5f;   // 0.3.33: no automatic thruster use in time compression (it swung around)
             if (cmd == 0f && !tc && Settings.B("WhThrusterWithRudder"))
             {
                 float fwd = Vector3.Dot(rb.velocity, ship.transform.forward);
