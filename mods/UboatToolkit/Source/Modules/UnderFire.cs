@@ -170,7 +170,7 @@ namespace UboatToolkit.Modules
                 for (int i = 0; i < ks.Length; i++)
                 {
                     var o = Settings.Get(ks[i]);
-                    if (o != null && o.Text == "Alt+Alpha" + (i + 1)) { o.Text = "Ctrl+Alt+Alpha" + (i + 1); Util.Log("Beschuss-Taste " + ks[i] + " von Alt+" + (i + 1) + " auf Strg+Alt+" + (i + 1) + " geändert (Alt+Zahl ist der Maschinentelegraf)"); Settings.Save(); }
+                    if (o != null && (o.Text == "Alt+Alpha" + (i + 1) || o.Text == "Ctrl+Alt+Alpha" + (i + 1))) { o.Text = "Ctrl+Shift+Alpha" + (i + 1); Util.Log("Beschuss-Taste " + ks[i] + " von Alt+" + (i + 1) + " auf Strg+Shift+" + (i + 1) + " geändert (Alt+Zahl / Strg+Alt+Zahl sind der Maschinentelegraf)"); Settings.Save(); }
                 }
             }
             if (Mathf.RoundToInt(Settings.F("UnderFireMode")) != 1) { if (windowOpen) Close(); return; }

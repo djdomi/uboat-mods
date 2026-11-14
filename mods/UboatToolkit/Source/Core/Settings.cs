@@ -576,11 +576,11 @@ namespace UboatToolkit
             Key("KeyDepthShallower", "Tiefe: höher (allein = Schritt, Shift = x10, Alt = x100)", "PageUp");
             Key("KeyAutoDepth", "Bodenabstand-Autopilot an/aus", "Ctrl+B");
             Key("KeyAutoDepthBottom", "Aufsetzen auf den Grund an/aus", "Ctrl+Shift+B");
-            Key("KeyUnderFire1", "Unter Beschuss: Alarmtauchen", "Ctrl+Alt+Alpha1");
-            Key("KeyUnderFire2", "Unter Beschuss: Ausweichen", "Ctrl+Alt+Alpha2");
-            Key("KeyUnderFire3", "Unter Beschuss: Zurückschießen", "Ctrl+Alt+Alpha3");
-            Key("KeyUnderFire4", "Unter Beschuss: Nichts tun", "Ctrl+Alt+Alpha4");
-            Key("KeyUnderFireIgnore", "Unter Beschuss: Meldungen ignorieren", "Ctrl+Alt+Alpha5");
+            Key("KeyUnderFire1", "Unter Beschuss: Alarmtauchen", "Ctrl+Shift+Alpha1");
+            Key("KeyUnderFire2", "Unter Beschuss: Ausweichen", "Ctrl+Shift+Alpha2");
+            Key("KeyUnderFire3", "Unter Beschuss: Zurückschießen", "Ctrl+Shift+Alpha3");
+            Key("KeyUnderFire4", "Unter Beschuss: Nichts tun", "Ctrl+Shift+Alpha4");
+            Key("KeyUnderFireIgnore", "Unter Beschuss: Meldungen ignorieren", "Ctrl+Shift+Alpha5");
             Key("KeySpeedFaster", "Tempo-Cheat: schneller (+0,5)", "Ctrl+PageUp");
             Key("KeySpeedSlower", "Tempo-Cheat: langsamer (-0,5)", "Ctrl+PageDown");
             Key("KeyReloadAll", "Alle leeren Rohre laden", "Ctrl+Shift+R");
