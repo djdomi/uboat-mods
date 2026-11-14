@@ -139,11 +139,12 @@ namespace UboatToolkit.Modules.Warthog
             // Frame() runs in Update: forces added here are summed until the next physics step, so scale them per frame.
             float k = Mathf.Clamp(Time.deltaTime / Time.fixedDeltaTime, 0f, 4f);
 
-            SpinProps(ship, rb);
+            if (WarthogSettings.IsWarthog(ship)) SpinProps(ship, rb);
 
             // ---- fins
             // 0.3.41: fins push per frame; in time compression that over-corrects the roll and the boat rolls over (DoMe)
-            if (Settings.B("WhFins") && Time.timeScale <= 1.5f)
+            // 0.3.42 (DoMe): fins exist only on the Warthog, never on a vanilla boat
+            if (Settings.B("WhFins") && Time.timeScale <= 1.5f && WarthogSettings.IsWarthog(ship))
             {
                 float speed = Vector3.Dot(rb.velocity, ship.transform.forward);
                 // more turning: the game turns the boat with the rudder; add (factor-1) of a rudder-like torque
