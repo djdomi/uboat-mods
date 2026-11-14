@@ -31,6 +31,33 @@ namespace UboatToolkit.Modules
         // did not fire in every case. Backup: an own tube that stays empty for 3 s is filled again here.
         private static readonly System.Collections.Generic.Dictionary<TorpedoLauncher, string> lastName = new System.Collections.Generic.Dictionary<TorpedoLauncher, string>();
         private static readonly System.Collections.Generic.Dictionary<TorpedoLauncher, float> emptySince = new System.Collections.Generic.Dictionary<TorpedoLauncher, float>();
+        // 0.3.52 (DoMe: "zusätzliche option T1, t2, t,3, 4, t5 oder mine"): ReloadType 0 = like last, 1-5 = T1-T5, 6 = mine.
+        // Picks the item with the newest pistol from the equipment database.
+        private static readonly System.Collections.Generic.Dictionary<int, string> pickCache = new System.Collections.Generic.Dictionary<int, string>();
+        internal static string Pick(string last)
+        {
+            int t = Mathf.RoundToInt(Settings.F("ReloadType"));
+            if (t <= 0 && Settings.B("CheatAllT5")) t = 5;
+            if (t <= 0 || t > 6) return string.IsNullOrEmpty(last) ? T5 : last;
+            if (pickCache.TryGetValue(t, out var c)) return c;
+            string best = null; float bp = -1f;
+            var db = UnityEngine.Resources.FindObjectsOfTypeAll<UBOAT.Game.Sandbox.Devices.EquipmentDatabase>().FirstOrDefault();
+            if (db != null)
+                foreach (var e in db.GetEquipmentDirect())
+                {
+                    string n = e != null ? e.Name : null;
+                    if (string.IsNullOrEmpty(n)) continue;
+                    bool mine = Controls_TorpedoMixPatch.IsMine(n);
+                    bool ok = t == 6 ? mine : !mine && n.IndexOf("Torpedo T" + t, System.StringComparison.Ordinal) >= 0 && n.IndexOf("LUT", System.StringComparison.Ordinal) < 0;
+                    if (!ok) continue;
+                    float p = Controls_TorpedoMixPatch.Pistol(n);
+                    if (p > bp) { bp = p; best = n; }
+                }
+            if (best == null) { Util.Log("Nachladen: kein Typ T" + t + " gefunden, nehme " + (string.IsNullOrEmpty(last) ? T5 : last)); return string.IsNullOrEmpty(last) ? T5 : last; }
+            Util.Log("Nachladen: Typ " + t + " = " + best);
+            pickCache[t] = best; return best;
+        }
+
         private static void Refill()
         {
             if (!Settings.B("CheatInfiniteTorpedoes")) return;
@@ -40,7 +67,7 @@ namespace UboatToolkit.Modules
                 if (l.Torpedo != null)
                 {
                     emptySince.Remove(l);
-                    if (!(l.Torpedo is StoredMinePacket)) lastName[l] = l.Torpedo.name.Replace("(Clone)", "").Trim();
+                    lastName[l] = l.Torpedo.name.Replace("(Clone)", "").Trim();
                     continue;
                 }
                 if (!emptySince.TryGetValue(l, out var t0)) { emptySince[l] = Time.time; continue; }
@@ -50,7 +77,7 @@ namespace UboatToolkit.Modules
                 Util.Safe("torpedo refill", () =>
                 {
                     var rm = Resources; if (rm == null) return;
-                    string name = Settings.B("CheatAllT5") || string.IsNullOrEmpty(last) ? T5 : last;
+                    string name = Pick(last);
                     var go = rm.InstantiatePrefab("Equipment/" + name);
                     if (go == null && !string.IsNullOrEmpty(last) && name != last) go = rm.InstantiatePrefab("Equipment/" + last);
                     var stored = go != null ? go.GetComponent<StoredTorpedo>() : null;
@@ -91,7 +118,7 @@ namespace UboatToolkit.Modules
             __state = null;
             if (!Settings.B("CheatInfiniteTorpedoes") || !Util.IsPlayers(__instance)) return;
             var fired = __instance.Torpedo;
-            if (fired != null && !(fired is StoredMinePacket)) __state = fired.name.Replace("(Clone)", "").Trim();
+            if (fired != null) __state = fired.name.Replace("(Clone)", "").Trim();
         }
 
         private static void Postfix(TorpedoLauncher __instance, string __state)
@@ -101,7 +128,7 @@ namespace UboatToolkit.Modules
             {
                 var rm = Torpedoes.Resources;
                 if (rm == null) return;
-                string name = Settings.B("CheatAllT5") ? Torpedoes.T5 : __state;
+                string name = Torpedoes.Pick(__state);
                 var go = rm.InstantiatePrefab("Equipment/" + name);
                 if (go == null && name != __state) go = rm.InstantiatePrefab("Equipment/" + __state);
                 var stored = go != null ? go.GetComponent<StoredTorpedo>() : null;

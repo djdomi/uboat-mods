@@ -512,6 +512,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatSpecPoints", "Crew-Spezialisierungen (Tauchgang, Schleichfahrt, Disziplin): immer genug Punkte", false);
             Bool(Cheat, "CheatInfiniteTorpedoes", "Torpedos unendlich: Rohr lädt nach dem Schuss sofort neu (#26)", false);
             Bool(Cheat, "CheatAllT5", "  Nachgeladen wird immer ein T5 Zaunkönig (zielsuchend)", false);
+            Num(Cheat, "ReloadType", "  Nachladen mit: 0 = wie zuletzt, 1-5 = T1-T5, 6 = Mine", 0, 0, 6, 1);
             Bool(Cheat, "CheatNoDuds", "Keine Torpedo-Versager", false);
             Num(Cheat, "CheatSpeed", "Boot schneller x (über und unter Wasser) (1 = normal) (#33)", 1, 1, 5, 0.25f);
             Num(Cheat, "CheatPumpPower", "Pumpe x stärker (1 = normal) (#38)", 1, 1, 50, 1);
