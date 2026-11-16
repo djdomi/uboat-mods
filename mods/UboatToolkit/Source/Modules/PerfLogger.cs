@@ -156,6 +156,19 @@ namespace UboatToolkit.Modules
             "GC.Collect", "Camera.Render", "Gfx.WaitForPresentOnGfxThread", "Gfx.WaitForGfxCommandsFromMainThread",
             "Animators.Update", "AudioManager.Update", "ParticleSystem.Update", "Canvas.SendWillRenderCanvases",
             "NavMeshManager", "Loading.ReadObject", "Instantiate", "Destroy" };
+        // 0.3.72: the fixed list above explained only ~20 of ~46 ms per frame (convoy test 2026-11-16). Every engine phase
+        // of the frame ("PostLateUpdate.xyz" ...) and the UI / IMGUI / culling markers are recorded too; once per
+        // minute the 14 biggest are logged as "Frame-Phasen".
+        private static readonly string[] Prefixes = { "Initialization.", "EarlyUpdate.", "FixedUpdate.", "PreUpdate.", "Update.", "PreLateUpdate.", "PostLateUpdate.", "TimeUpdate." };
+        private static readonly string[] Extra = {
+            "UGUI.Rendering.UpdateBatches", "Canvas.BuildBatch", "Layout", "GUI.Repaint", "GUI.ProcessEvents", "GUIUtility.SetSkin", "Culling", "Render Camera",
+            "MeshSkinning.Update", "EventSystem.Update", "CoroutinesDelayedCalls", "Gfx.PresentFrame", "WaitForTargetFPS", "Semaphore.WaitForSignal",
+            "Director.Update", "Animators.Update", "UpdateRendererBoundingVolumes", "Shadows.RenderShadowMap", "Drawing", "RenderLoop.Prepare", "SceneCulling",
+            "ScriptableRenderContext.Submit", "Camera.FireOnPreCull", "OnPreCull", "OnPreRender", "OnPostRender", "OnRenderImage", "Physics.Processing", "Physics.ProcessReports",
+            "Physics.UpdateBodies", "Physics.SyncColliderTransform", "Physics.Raycast", "Terrain.Heightmap.RenderStep1", "Water", "UIEvents.WillRenderCanvases" };
+        private static readonly List<Unity.Profiling.ProfilerRecorder> rec2 = new List<Unity.Profiling.ProfilerRecorder>();
+        private static readonly List<string> name2 = new List<string>();
+        private static readonly List<double> sum2 = new List<double>();
         private static Unity.Profiling.ProfilerRecorder[] rec;
         private static double[] sum;
         private static int frames; private static float nextDump; private static bool failed;
@@ -176,14 +189,21 @@ namespace UboatToolkit.Modules
                     {
                         var d = Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle.GetDescription(h);
                         int i = Array.IndexOf(Names, d.Name);
+                        if (i < 0 && rec2.Count < 160 && d.Name != null && !name2.Contains(d.Name))
+                        {
+                            bool want = Array.IndexOf(Extra, d.Name) >= 0;
+                            if (!want) foreach (var pre in Prefixes) if (d.Name.StartsWith(pre)) { want = true; break; }
+                            if (want) { rec2.Add(Unity.Profiling.ProfilerRecorder.StartNew(d.Category, d.Name, 1)); name2.Add(d.Name); sum2.Add(0); }
+                        }
                         if (i < 0 || rec[i].Valid) continue;
                         rec[i] = Unity.Profiling.ProfilerRecorder.StartNew(d.Category, d.Name, 1);
                         found.Add(d.Name);
                     }
-                    Util.Log("Frame-Aufteilung: " + found.Count + " von " + Names.Length + " Messpunkten gefunden");
+                    Util.Log("Frame-Aufteilung: " + found.Count + " von " + Names.Length + " Messpunkten gefunden, dazu " + rec2.Count + " Phasen");
                     nextDump = Time.unscaledTime + 60f;
                 }
                 for (int i = 0; i < rec.Length; i++) if (rec[i].Valid) sum[i] += rec[i].LastValue / 1e6;
+                for (int i = 0; i < rec2.Count; i++) if (rec2[i].Valid) sum2[i] += rec2[i].LastValue / 1e6;
                 frames++;
                 if (Time.unscaledTime < nextDump) return;
                 nextDump = Time.unscaledTime + 60f;
@@ -194,6 +214,19 @@ namespace UboatToolkit.Modules
                 int ships = 0; foreach (var e in Entity.List) if (e is Ship) ships++;
                 sb.Append(" ships=").Append(ships);
                 Util.Log("Frame-Aufteilung " + sb);
+                if (rec2.Count > 0)
+                {
+                    var idx = new List<int>(); for (int i = 0; i < rec2.Count; i++) idx.Add(i);
+                    idx.Sort((a, b) => sum2[b].CompareTo(sum2[a]));
+                    var s2 = new System.Text.StringBuilder();
+                    for (int k = 0; k < idx.Count && k < 14; k++)
+                        s2.Append(' ').Append(name2[idx[k]]).Append('=').Append((sum2[idx[k]] / Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture));
+                    Util.Log("Frame-Phasen ms/frame:" + s2);
+                    for (int i = 0; i < sum2.Count; i++) sum2[i] = 0;
+                }
+                Util.Log("Toolkit-Kosten ms/frame: Anzeige=" + (ToolkitRunner.GuiSeconds * 1000.0 / Math.Max(1, frames)).ToString("0.00", CultureInfo.InvariantCulture)
+                    + " (" + (ToolkitRunner.GuiCalls / (float)Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture) + " Durchläufe/Bild) Module=" + (ToolkitRunner.ModuleSeconds * 1000.0 / Math.Max(1, frames)).ToString("0.00", CultureInfo.InvariantCulture));
+                ToolkitRunner.GuiSeconds = 0; ToolkitRunner.GuiCalls = 0; ToolkitRunner.ModuleSeconds = 0;
                 for (int i = 0; i < sum.Length; i++) sum[i] = 0; frames = 0;
             }
             catch (Exception ex) { failed = true; Util.Log("Frame-Aufteilung aus: " + ex.Message); }

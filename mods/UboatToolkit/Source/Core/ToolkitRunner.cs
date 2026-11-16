@@ -125,6 +125,7 @@ namespace UboatToolkit
             long swStart = UboatToolkit.Modules.LoadClock.Now();
             Util.Safe(name, a);
             double ms = UboatToolkit.Modules.LoadClock.Seconds(UboatToolkit.Modules.LoadClock.Now() - swStart) * 1000.0;
+            ModuleSeconds += ms / 1000.0;
             if (ms < limitMs) return;
             float now = Time.unscaledTime;
             if (slowLogged.TryGetValue(name, out var t) && now - t < 30f) return;
@@ -162,8 +163,14 @@ namespace UboatToolkit
             }
             Imgui.Init();
             if (!Imgui.Ready) return;
+            double g0 = Time.realtimeSinceStartupAsDouble;
             Util.Safe("menu", DrawGui);
+            GuiSeconds += Time.realtimeSinceStartupAsDouble - g0; GuiCalls++;
         }
+
+        // 0.3.72: the Toolkit's own cost per frame (drawing + modules), logged once per minute by the frame logger.
+        internal static double GuiSeconds, ModuleSeconds;
+        internal static int GuiCalls;
 
         // Short on-screen message from a module (e.g. "Land voraus").
         public static string Notice;
