@@ -70,6 +70,23 @@ namespace UboatToolkit
         public static void Label(string t, float w = 0) => label.Invoke(null, new[] { Lang.T(t), Opts(w) });
         public static bool Toggle(bool v, string t) => (bool)toggle.Invoke(null, new object[] { v, Lang.T(t), noOptions });
         private static PropertyInfo evCurrent, evType;
+        // Key event of the current OnGUI call for one key: 1 = down, 2 = up, 0 = none/other. (Event via reflection, see above.)
+        private static PropertyInfo evKeyCode;
+        public static int KeyEvent(KeyCode code)
+        {
+            try
+            {
+                if (evCurrent == null) { var et = Type.GetType("UnityEngine.Event, UnityEngine.IMGUIModule"); evCurrent = et?.GetProperty("current"); evType = et?.GetProperty("type"); }
+                if (evKeyCode == null) evKeyCode = Type.GetType("UnityEngine.Event, UnityEngine.IMGUIModule")?.GetProperty("keyCode");
+                var e = evCurrent?.GetValue(null, null);
+                if (e == null || evKeyCode == null || evType == null) return 0;
+                if ((KeyCode)evKeyCode.GetValue(e, null) != code) return 0;
+                string t = evType.GetValue(e, null).ToString();
+                return t == "KeyDown" ? 1 : t == "KeyUp" ? 2 : 0;
+            }
+            catch { return 0; }
+        }
+
         private static bool IsWheelEvent()
         {
             try

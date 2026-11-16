@@ -99,13 +99,8 @@ namespace UboatToolkit
             Keys.CaptureFrame();
             // Menu key: works even with Ctrl/Shift/Alt still held and while a key capture hangs (F10 must always close).
             var mk = Keys.Code("KeyMenu", KeyCode.F10);
-            if (mk != KeyCode.None && Input.GetKeyDown(mk))
-            {
-                // 0.3.46: log every press (DoMe: "sometimes F10 must be pressed several times") to find the cause
-                bool blocked = !(Keys.Capturing == null || menuOpen);
-                Util.Log("Menütaste: " + (blocked ? "ignoriert (Tasten-Aufnahme läuft)" : menuOpen ? "zu" : "auf") + ", Bild " + Time.frameCount + ", dt " + (Time.unscaledDeltaTime * 1000f).ToString("0") + " ms");
-                if (!blocked) { Keys.Capturing = null; menuOpen = !menuOpen; }
-            }
+            if (mk != KeyCode.None && Input.GetKeyDown(mk)) MenuKey("Update");
+            if (mk == KeyCode.None || !Input.GetKey(mk)) guiKeyHeld = false;
             if (names == null) { names = new string[Modules.Count]; frameNames = new string[Modules.Count]; for (int i = 0; i < Modules.Count; i++) { names[i] = Modules[i].GetType().Name; frameNames[i] = names[i] + ".Frame"; } }
             for (int i = 0; i < Modules.Count; i++) Timed(frameNames[i], Modules[i].Frame, 20.0);
 
@@ -141,8 +136,30 @@ namespace UboatToolkit
 
         private float nextState;
 
+        // 0.3.67 (DoMe: F10 must be pressed 4-5 times): the log showed that every press that reached Update toggled
+        // correctly, so presses were lost before Update saw them (the game clears the key state in some screens).
+        // Second, independent path: the key event of the window system in OnGUI. Both paths end here; a press is
+        // counted once (0.25 s lock), key repeat while holding is ignored.
+        private float lastMenuKey = -10f;
+        private bool guiKeyHeld;
+        private void MenuKey(string src)
+        {
+            if (Time.unscaledTime - lastMenuKey < 0.25f) return;
+            lastMenuKey = Time.unscaledTime;
+            bool blocked = !(Keys.Capturing == null || menuOpen);
+            Util.Log("Menütaste (" + src + "): " + (blocked ? "ignoriert (Tasten-Aufnahme läuft)" : menuOpen ? "zu" : "auf") + ", Bild " + Time.frameCount);
+            if (!blocked) { Keys.Capturing = null; menuOpen = !menuOpen; }
+        }
+
         private void OnGUI()
         {
+            var mk = Keys.Code("KeyMenu", KeyCode.F10);
+            if (mk != KeyCode.None)
+            {
+                int k = Imgui.KeyEvent(mk);   // 1 = key down event for this key, 2 = key up, 0 = other
+                if (k == 1 && !guiKeyHeld) { guiKeyHeld = true; MenuKey("Fenster"); }
+                else if (k == 2) guiKeyHeld = false;
+            }
             Imgui.Init();
             if (!Imgui.Ready) return;
             Util.Safe("menu", DrawGui);
