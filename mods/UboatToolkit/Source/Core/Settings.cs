@@ -259,6 +259,7 @@ namespace UboatToolkit
             Bool(QoL, "AutoVirtualShips", "Auto-Detail: bei wenig FPS ferne Schiffe nur virtuell führen (bleiben auf Karte/Sensoren, werden nicht voll berechnet)", true);
             Num(QoL, "AutoVirtualMin", "  kleinster Simulations-Abstand bei sehr wenig FPS (1 = Spiel, 0.5 = halb)", 0.5f, 0.2f, 1f, 0.1f);
             Bool(QoL, "ExplosionLimit", "Explosions-Effekte begrenzen: kleiner + höchstens x pro Sekunde (Schaden bleibt gleich)", true);
+            Num(QoL, "CrewAiSleepEvery", "Schlafende, nicht sichtbare Matrosen denken nur jedes x-te Bild (1 = Spiel, jedes Bild)", 3f, 1f, 10f, 1f);
             Num(QoL, "PhysicsHz", "Physik-Takt pro Sekunde (0 = Spiel = 75; 50 spart ein Drittel Physik-Rechenzeit)", 50f, 0f, 75f, 5f);
             Num(QoL, "PhysicsMaxSteps", "  bei wenig FPS höchstens so viele Physik-Schritte pro Bild (Spiel = 5; weniger = flüssiger, Spiel läuft dann kurz langsamer)", 2f, 1f, 5f, 1f);
             Bool(QoL, "ExplosionAuto", "Automatische Detailstufe nach Bildrate (Explosionen + Stimmen): flüssig = voll, je weniger FPS desto sparsamer", true);

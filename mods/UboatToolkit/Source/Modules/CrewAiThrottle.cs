@@ -1,0 +1,68 @@
+using System.Collections.Generic;
+using HarmonyLib;
+using UBOAT.Game.Core.AI;
+using UBOAT.Game.Scene.Characters;
+using UBOAT.Game.Scene.Characters.Actions;
+using UnityEngine;
+
+namespace UboatToolkit.Modules
+{
+    // 0.3.70 (DoMe: relieve the main core). Measured: the per-frame update of all crew members costs about 3.9 s per
+    // minute with 130+ men (PlayableCharacter.Update + InteractiveCharacter.Update). Every man runs his AI every frame.
+    // Men who sleep in a bunk and are not on screen now run it only every x-th frame ("CrewAiSleepEvery").
+    // Only the per-frame call is thinned out; direct calls of the game (alarm, stories, cutscenes) always run.
+    // Once per minute the log shows the real AI cost, so the effect is measured, not guessed.
+    public class CrewAiThrottle : ModuleBase
+    {
+        internal static double Seconds;
+        internal static int Calls, Skipped;
+        internal static int Every = 1;
+        private float nextLog;
+
+        public override void Tick()
+        {
+            Every = Mathf.Clamp(Mathf.RoundToInt(Settings.F("CrewAiSleepEvery")), 1, 10);
+            if (Time.unscaledTime < nextLog) return;
+            if (nextLog > 0f && Calls + Skipped > 0)
+                Util.Log("Crew-KI: " + (Seconds * 1000.0).ToString("0") + " ms pro Minute in " + Calls + " Aufrufen, " + Skipped + " übersprungen (schlafend, nicht sichtbar)");
+            nextLog = Time.unscaledTime + 60f;
+            Seconds = 0; Calls = 0; Skipped = 0;
+        }
+    }
+
+    [HarmonyPatch(typeof(CharacterAI), nameof(CharacterAI.UpdateAI))]
+    internal static class CrewAiThrottle_Patch
+    {
+        private static readonly Dictionary<CharacterAI, PlayableCharacter> owners = new Dictionary<CharacterAI, PlayableCharacter>();
+
+        private static bool Prefix(CharacterAI __instance, bool ignoreIsUpdatingFlag, out double __state)
+        {
+            __state = 0;
+            if (!ignoreIsUpdatingFlag) return true;   // direct call of the game: never touched
+            int every = CrewAiThrottle.Every;
+            if (every > 1)
+            {
+                if (!owners.TryGetValue(__instance, out var pc))
+                {
+                    if (owners.Count > 2000) owners.Clear();
+                    pc = __instance.GetComponent<PlayableCharacter>();
+                    owners[__instance] = pc;
+                }
+                if (pc != null && !pc.IsVisible && pc.Action is SleepAction && (Time.frameCount + (__instance.GetInstanceID() & 0x3ff)) % every != 0)
+                {
+                    CrewAiThrottle.Skipped++;
+                    return false;
+                }
+            }
+            __state = Time.realtimeSinceStartupAsDouble;
+            return true;
+        }
+
+        private static void Postfix(double __state)
+        {
+            if (__state == 0) return;
+            CrewAiThrottle.Seconds += Time.realtimeSinceStartupAsDouble - __state;
+            CrewAiThrottle.Calls++;
+        }
+    }
+}

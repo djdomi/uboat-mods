@@ -100,9 +100,10 @@ namespace UboatToolkit.Modules
         {
             if (!Settings.B("ExplosionAuto")) return true;
             float load = ExplosionLimit_Patch.Fps() / UnityEngine.Mathf.Max(1f, Settings.F("ExplosionTargetFps"));
-            if (load >= 1f) return true;
+            // 0.3.70: measured as the biggest single game script (SandboxPlayerWolfpack.FixedUpdate avg 4.6 s per minute),
+            // so the check now runs at most every 2nd physics step even at full FPS.
             // the slower, the rarer: 40 FPS target at 5 FPS = every 8th step (max. 10)
-            int every = UnityEngine.Mathf.Clamp(UnityEngine.Mathf.CeilToInt(1f / UnityEngine.Mathf.Max(0.01f, load)), 2, 10);
+            int every = load >= 1f ? 2 : UnityEngine.Mathf.Clamp(UnityEngine.Mathf.CeilToInt(1f / UnityEngine.Mathf.Max(0.01f, load)), 2, 10);
             if (__originalMethod.Name == "UpdateNearbyGroups") step++;
             return step % every == 0;
         }
