@@ -215,7 +215,7 @@ namespace UboatToolkit
             Bool(QoL, "ReticleNormalize", "  schwache Masken angleichen (alle Optiken gleich hell)", true);
             Bool(QoL, "ReticleSound", "  Klick-Ton beim Umschalten", true);
             Num(QoL, "ReticleSoundVolume", "    Lautstärke", 1, 0, 2, 0.1f);
-            Bool(QoL, "GunSmokeOff", "Eigene Geschütze ohne Mündungsfeuer und Rauch (nur Optik, spart kaum FPS)", false);
+            Bool(QoL, "GunSmokeOff", "Eigene Geschütze ohne Mündungsfeuer und Rauch (freie Sicht beim Schießen)", true);
             Bool(QoL, "DeckGunSeaState", "Deckgeschütz und Seegang (Streuung, Ladezeit, Sperre bei Sturm, feindliche Kanonen)", true);
             Num(QoL, "DgsCalm", "  ruhig bis Windstärke (keine Strafe)", 4, 0, 12, 0.5f);
             Num(QoL, "DgsRough", "  volle Strafe ab Windstärke", 8, 0, 12, 0.5f);
