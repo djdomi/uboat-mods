@@ -345,6 +345,7 @@ namespace UboatToolkit
             Num(QoL, "WolfpackGrt", "  erstes Rudel-Ziel: x BRT", 10000, 1000, 50000, 1000);
             Bool(QoL, "FastLoad", "Spielst\u00e4nde schneller laden (Bild ruckelt beim Laden etwas mehr)", true);
             Num(QoL, "FastLoadBudgetMs", "  Rechenzeit pro Bild beim Laden (ms, Spiel = 16)", 100, 16, 1000, 10);
+            Num(QoL, "FastLoadIdleMs", "  so lange wartet das Bild beim Laden auf den Hintergrund-Leser (ms, alt = 16)", 100, 2, 1000, 10);
             Num(QoL, "FastLoadMaxActions", "  Schritte pro Bild (Spiel = 500)", 5000, 500, 100000, 500);
             Num(QoL, "FastLoadQueueCap", "  Lade-Warteschlange: so viele Aufträge darf der Hintergrund-Leser vorausarbeiten (40 = Spiel)", 2000, 40, 100000, 100);
             Bool(QoL, "FastLoadNoGc", "  beim Laden kein Speicher-Aufräumen (spart Zeit)", true);

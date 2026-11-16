@@ -123,10 +123,9 @@ namespace UboatToolkit.Modules
     [HarmonyPatch]
     internal static class SaveTools_IdlePatch
     {
-        private const double IdleYieldMs = 16.0;
         private static bool installed, yielded;
         private static long idleFrame, idleLoad;
-        private static int framesYielded;
+        private static int framesYielded, served, timedOut;
 
         private static bool Prepare() => TargetMethod() != null;
         private static System.Reflection.MethodBase TargetMethod()
@@ -152,6 +151,7 @@ namespace UboatToolkit.Modules
         {
             long start = LoadClock.Now();
             bool ok = handle.WaitOne(ms);
+            if (ok) served++; else timedOut++;
             long w = LoadClock.Now() - start;
             idleFrame += w; idleLoad += w;
             return ok;
@@ -159,16 +159,20 @@ namespace UboatToolkit.Modules
 
         public static bool ShouldYield()
         {
-            if (!installed || idleFrame < (long)(IdleYieldMs * LoadClock.Frequency / 1000.0)) return false;
+            // 0.3.71: measured 2026-11-16: the loader thread ran at only 25-53 % of a core. It needs the main thread for
+            // many small jobs and stands still while the main thread is away drawing the frame. With the old 16 ms the
+            // main thread left after 16 ms of waiting in 2551 of 2800 frames. Now it stays ("FastLoadIdleMs", default 100).
+            double idleMs = Mathf.Clamp(Settings.F("FastLoadIdleMs"), 2f, 1000f);
+            if (!installed || idleFrame < (long)(idleMs * LoadClock.Frequency / 1000.0)) return false;
             if (!yielded) { yielded = true; framesYielded++; }
             return true;
         }
 
         public static void BeginFrame() { idleFrame = 0; yielded = false; }
-        public static void ResetLoad() { framesYielded = 0; idleLoad = 0; BeginFrame(); }
+        public static void ResetLoad() { framesYielded = 0; idleLoad = 0; served = 0; timedOut = 0; BeginFrame(); }
 
         public static string Summarise(int frames) => !installed ? "" :
-            " Gewartet " + LoadClock.Seconds(idleLoad).ToString("0.0", CultureInfo.InvariantCulture) + " s auf leere Warteschlange; " + framesYielded + " von " + frames + " Bildern früher beendet.";
+            " Gewartet " + LoadClock.Seconds(idleLoad).ToString("0.0", CultureInfo.InvariantCulture) + " s auf leere Warteschlange; " + framesYielded + " von " + frames + " Bildern früher beendet (Grenze " + Settings.F("FastLoadIdleMs").ToString("0") + " ms); Warten endete " + served + "x mit Auftrag, " + timedOut + "x leer.";
     }
 
     // The loader's worker thread may only queue 40 jobs for the main thread, then it stops and waits.
