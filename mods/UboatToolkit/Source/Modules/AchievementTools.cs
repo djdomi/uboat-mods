@@ -79,6 +79,7 @@ namespace UboatToolkit.Modules
             var step = Settings.Get("CheatMissionStep");
             if (step != null && step.On) { step.Value = 0; Util.Safe("MissionStep", () => Run(false)); }
             if (Settings.B("CheatEscortEasy")) Util.Safe("EscortEasy", EscortEasy);
+            else if (escProtected.Count > 0) { foreach (var x in escProtected) if (x != null) x.IsProtected = false; escProtected.Clear(); }
         }
 
         // Escort duty (DoMe 2026-11-16, Weserübung: "dauert ewig ... beim dritten Mal gescheitert"). The game fails the
@@ -87,13 +88,20 @@ namespace UboatToolkit.Modules
         private static readonly FieldInfo escNext = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "nextEnemySpawnTicks");
         private static readonly FieldInfo escScale = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "velocityScale");
         private static bool escLogged;
+        private static readonly FieldInfo escGroup = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "escortedGroup");
+        private static readonly System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity> escProtected = new System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity>();
         private static void EscortEasy()
         {
             var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
             if (e == null) { escLogged = false; return; }
             if (escNext != null) escNext.SetValue(e, long.MaxValue / 2);
             if (escScale != null && (float)escScale.GetValue(e) < 1f) escScale.SetValue(e, 1f);
-            if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer, Geleit fährt volle Fahrt"); }
+            // the escorted ships take no damage (the game's own "protected" flag, used in its tutorials)
+            var grp = escGroup == null ? null : escGroup.GetValue(e) as UBOAT.Game.Sandbox.SandboxGroup;
+            if (grp)
+                foreach (var x in grp.Entities)
+                    if (x != null && !x.IsProtected) { x.IsProtected = true; escProtected.Add(x); }
+            if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer, Geleit fährt volle Fahrt und nimmt keinen Schaden"); }
         }
 
         private static void Run(bool finish)
