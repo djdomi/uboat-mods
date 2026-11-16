@@ -270,7 +270,7 @@ namespace UboatToolkit
             Imgui.BeginH();
             Imgui.Space(24);
             if (Imgui.Button((open ? "▾ " : "▸ ") + o.Children.Count + (o.Children.Count == 1 ? " Feinwert" : " Feinwerte") + (ch > 0 ? "  (" + ch + " geändert)" : ""), 230))
-            { if (open) openOpts.Remove(o.Key); else openOpts.Add(o.Key); open = !open; }
+            { if (open) openOpts.Remove(o.Key); else openOpts.Add(o.Key); }
             Imgui.EndH();
             if (open) { foreach (var c in o.Children) DrawOpt(c); Imgui.Space(4); }
         }
@@ -294,7 +294,7 @@ namespace UboatToolkit
                 string gk = kind + "/" + g;
                 bool open = openGroups.Contains(gk) || openGroups.Contains(g);
                 if (Imgui.Button((open ? "▼  " : "▶  ") + g + "   (" + count + (changed > 0 ? ", " + changed + " geändert" : "") + ")", W))
-                { if (open) { openGroups.Remove(gk); openGroups.Remove(g); } else openGroups.Add(gk); open = !open; }
+                { if (open) { openGroups.Remove(gk); openGroups.Remove(g); } else openGroups.Add(gk); }
                 if (!open) continue;
                 var subs = new List<string>();
                 foreach (var x in Settings.All)
