@@ -94,7 +94,7 @@ namespace UboatToolkit.Modules.Lrl
 
         private static bool Prepare()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Scene.Tasks.AdditionalEncountersController");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Tasks.AdditionalEncountersController");
             _target = t != null ? AccessTools.Method(t, "TrySpawnGroup", new[] { typeof(bool) }) : null;
             if (_target == null && LrlSettings.DebugLogging)
                 LrlLog.Warn("AdditionalEncountersController.TrySpawnGroup not found - spawned contacts will read as source=search");

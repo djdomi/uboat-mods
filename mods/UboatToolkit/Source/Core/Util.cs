@@ -9,6 +9,36 @@ namespace UboatToolkit
 {
     public static class Util
     {
+        // 0.3.79: fast type lookup by name. Harmony's TypeByName walks every loaded type on each call (0.2-0.4 s when the
+        // type does not exist, e.g. another mod that is not installed); measured 15.3 s of patching at game start, most of
+        // it these lookups. Here all types are listed once; the list is rebuilt only when a new assembly was loaded.
+        private static Dictionary<string, Type> typeByFull, typeByShort;
+        private static int typeAsmCount = -1;
+        public static Type FindType(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            try
+            {
+                var direct = Type.GetType(name, false);
+                if (direct != null) return direct;
+                int n = 0; foreach (var a in AccessTools.AllAssemblies()) n++;
+                if (typeByFull == null || n != typeAsmCount)
+                {
+                    var full = new Dictionary<string, Type>(); var shortN = new Dictionary<string, Type>();
+                    foreach (var t in AccessTools.AllTypes())
+                    {
+                        if (t == null) continue;
+                        if (t.FullName != null && !full.ContainsKey(t.FullName)) full[t.FullName] = t;
+                        if (t.Name != null && !shortN.ContainsKey(t.Name)) shortN[t.Name] = t;
+                    }
+                    typeByFull = full; typeByShort = shortN; typeAsmCount = n;
+                }
+                if (typeByFull.TryGetValue(name, out var r)) return r;
+                return typeByShort.TryGetValue(name, out r) ? r : null;
+            }
+            catch { return AccessTools.TypeByName(name); }
+        }
+
         public const string ModifierName = "UboatToolkit";
 
         private static PlayerShip playerShip;

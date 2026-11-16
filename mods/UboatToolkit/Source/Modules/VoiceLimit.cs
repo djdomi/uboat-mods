@@ -17,7 +17,7 @@ namespace UboatToolkit.Modules
 
         private static MethodBase TargetMethod()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Scene.Tasks.SpeakController");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Tasks.SpeakController");
             foreach (var m in AccessTools.GetDeclaredMethods(t))
                 if (m.Name == "Say" && m.GetParameters().Length == 7) return m;
             return null;

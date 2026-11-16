@@ -44,10 +44,10 @@ namespace UboatToolkit.Modules
             bound = true;
             try
             {
-                Type engine = Need(AccessTools.TypeByName("Trivial.CodeSecurity.CodeSecurityEngine"), "CodeSecurityEngine");
-                Type restr = Need(AccessTools.TypeByName("Trivial.CodeSecurity.CodeSecurityRestrictions"), "CodeSecurityRestrictions");
-                Type report = Need(AccessTools.TypeByName("Trivial.CodeSecurity.CodeSecurityReport"), "CodeSecurityReport");
-                Type roslyn = Need(AccessTools.TypeByName("RoslynCSharp.RoslynCSharp"), "RoslynCSharp");
+                Type engine = Need(UboatToolkit.Util.FindType("Trivial.CodeSecurity.CodeSecurityEngine"), "CodeSecurityEngine");
+                Type restr = Need(UboatToolkit.Util.FindType("Trivial.CodeSecurity.CodeSecurityRestrictions"), "CodeSecurityRestrictions");
+                Type report = Need(UboatToolkit.Util.FindType("Trivial.CodeSecurity.CodeSecurityReport"), "CodeSecurityReport");
+                Type roslyn = Need(UboatToolkit.Util.FindType("RoslynCSharp.RoslynCSharp"), "RoslynCSharp");
                 engineCtor = Need(engine.GetConstructor(new[] { typeof(byte[]) }), "CodeSecurityEngine(byte[])");
                 checkAssembly = Need(engine.GetMethod("SecurityCheckAssembly", new[] { restr, report.MakeByRefType() }), "SecurityCheckAssembly");
                 reportLines = Need(report.GetMethod("GetAllLines", new[] { typeof(bool) }), "GetAllLines");

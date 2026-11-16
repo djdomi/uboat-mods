@@ -40,7 +40,7 @@ namespace UboatToolkit.Modules.Lrl
 
             try
             {
-                var cameraType = AccessTools.TypeByName("UBOAT.Game.Scene.Camera.MainCamera");
+                var cameraType = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Camera.MainCamera");
                 if (cameraType == null)
                 {
                     _whyNot = "MainCamera type not found";
@@ -52,7 +52,7 @@ namespace UboatToolkit.Modules.Lrl
                 _currentMode = AccessTools.Property(cameraType, "CurrentMode");
 
                 _genericControllerType =
-                    AccessTools.TypeByName("UBOAT.Game.Scene.Camera.GenericCameraController");
+                    UboatToolkit.Util.FindType("UBOAT.Game.Scene.Camera.GenericCameraController");
                 if (_genericControllerType == null)
                 {
                     _whyNot = "GenericCameraController type not found";

@@ -70,7 +70,7 @@ namespace UboatToolkit.Modules
             if (!consoleLooked)
             {
                 consoleLooked = true;
-                var t = HarmonyLib.AccessTools.TypeByName("UBOAT.Game.UI.DevConsole.DevConsole");
+                var t = UboatToolkit.Util.FindType("UBOAT.Game.UI.DevConsole.DevConsole");
                 consoleField = t == null ? null : HarmonyLib.AccessTools.Field(t, "enableDeveloperConsole");
             }
             var consoleRef = consoleField?.GetValue(null);

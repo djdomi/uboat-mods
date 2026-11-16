@@ -90,7 +90,7 @@ namespace UboatToolkit.Modules.CrewAi
     {
         static MethodBase TargetMethod()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.UI.CharacterSwitchUI.CharacterSwitchCloseHatchesUI");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.UI.CharacterSwitchUI.CharacterSwitchCloseHatchesUI");
             return t == null ? null : AccessTools.Method(t, "OnClick");
         }
 

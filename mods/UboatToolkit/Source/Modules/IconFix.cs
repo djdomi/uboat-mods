@@ -31,7 +31,7 @@ namespace UboatToolkit.Modules
             var list = new List<MethodBase>();
             foreach (var n in TypeNames)
             {
-                var t = AccessTools.TypeByName(n);
+                var t = UboatToolkit.Util.FindType(n);
                 if (t == null) continue;
                 var types = new List<Type> { t };
                 types.AddRange(t.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic));

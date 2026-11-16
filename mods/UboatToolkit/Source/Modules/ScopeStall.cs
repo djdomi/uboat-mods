@@ -287,9 +287,9 @@ namespace UboatToolkit.Modules
             try
             {
                 const BindingFlags inst = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-                var iface = AccessTools.TypeByName("DWS.Common.Resources.IResource");
+                var iface = UboatToolkit.Util.FindType("DWS.Common.Resources.IResource");
                 if (iface != null) { pathP = iface.GetProperty("Path"); isLoadedP = iface.GetProperty("IsLoaded"); }
-                var mt = AccessTools.TypeByName("DWS.Common.Resources.ResourceManager");
+                var mt = UboatToolkit.Util.FindType("DWS.Common.Resources.ResourceManager");
                 if (mt == null) return;
                 isLoadingP = mt.GetProperty("IsLoading", inst);
                 foreach (var m in typeof(ScriptableObjectSingleton).GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
@@ -311,7 +311,7 @@ namespace UboatToolkit.Modules
 
         private static MethodBase Target()
         {
-            var t = AccessTools.TypeByName("RealisticUZOSight.PeriscopeUIPatches+OnZoomSelectedPeriscopeUIPatch");
+            var t = UboatToolkit.Util.FindType("RealisticUZOSight.PeriscopeUIPatches+OnZoomSelectedPeriscopeUIPatch");
             return t == null ? null : AccessTools.Method(t, "Postfix");
         }
 
@@ -356,7 +356,7 @@ namespace UboatToolkit.Modules
 
         private static MethodBase Target()
         {
-            var t = AccessTools.TypeByName("DWS.Common.Resources.AssetBundleResource");
+            var t = UboatToolkit.Util.FindType("DWS.Common.Resources.AssetBundleResource");
             return t == null ? null : AccessTools.Method(t, "LoadAsset", Type.EmptyTypes);
         }
 

@@ -21,13 +21,13 @@ namespace UboatToolkit.Modules.Lrl
 
         private static FieldInfo FindSubtitlesField()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Scene.Tasks.SpeakController");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Tasks.SpeakController");
             return t != null ? AccessTools.Field(t, "subtitlesUI") : null;
         }
 
         private static PropertyInfo FindDisplayedProperty()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.UI.ISubtitlesUI");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.UI.ISubtitlesUI");
             return t != null ? t.GetProperty("Displayed") : null;
         }
 

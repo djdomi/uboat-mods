@@ -16,7 +16,7 @@ namespace UboatToolkit.Modules
         public static void Run()
         {
             if (!Settings.B("KeepVoiceLanguage")) return;
-            Type st = AccessTools.TypeByName("UBOAT.Game.Core.Data.UserSettings");
+            Type st = UboatToolkit.Util.FindType("UBOAT.Game.Core.Data.UserSettings");
             if (st == null) { Util.Log("Sprache: UserSettings nicht gefunden"); return; }
             object settings;
             try { settings = ScriptableObjectSingleton.LoadSingleton(st); } catch (Exception e) { Util.Log("Sprache: Einstellungen nicht ladbar: " + e.Message); return; }

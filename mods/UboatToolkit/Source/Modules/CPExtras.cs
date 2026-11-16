@@ -170,14 +170,14 @@ namespace UboatToolkit.Modules
         private static System.Reflection.FieldInfo current;
         private static bool Prepare()
         {
-            var t = AccessTools.TypeByName("DWS.Common.Tasks.TaskExecutor");
+            var t = UboatToolkit.Util.FindType("DWS.Common.Tasks.TaskExecutor");
             current = t != null ? AccessTools.Field(t, "currentRunnable") : null;
             return current != null && TargetMethod() != null;
         }
         private static System.Reflection.MethodBase TargetMethod()
         {
-            var t = AccessTools.TypeByName("DWS.Common.Tasks.TaskExecutor");
-            var r = AccessTools.TypeByName("DWS.Common.Tasks.IRunnable");
+            var t = UboatToolkit.Util.FindType("DWS.Common.Tasks.TaskExecutor");
+            var r = UboatToolkit.Util.FindType("DWS.Common.Tasks.IRunnable");
             return t == null || r == null ? null : AccessTools.Method(t, "Abort", new[] { r });
         }
         private struct St { public bool Holding; public object Runnable; public long Start; }
@@ -186,7 +186,7 @@ namespace UboatToolkit.Modules
 
         private static string NameOf(object r)
         {
-            try { if (nameP == null) nameP = AccessTools.TypeByName("DWS.Common.Tasks.IRunnable")?.GetProperty("Name"); return nameP != null ? (nameP.GetValue(r, null) as string ?? "?") : "?"; }
+            try { if (nameP == null) nameP = UboatToolkit.Util.FindType("DWS.Common.Tasks.IRunnable")?.GetProperty("Name"); return nameP != null ? (nameP.GetValue(r, null) as string ?? "?") : "?"; }
             catch { return "?"; }
         }
 

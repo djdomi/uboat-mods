@@ -31,7 +31,7 @@ namespace UboatToolkit.Modules.Lrl
 
         private static MethodBase TargetMethod()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Scene.Entities.DynamicContactsController");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Entities.DynamicContactsController");
             return t != null ? AccessTools.Method(t, "AddContact") : null;
         }
 

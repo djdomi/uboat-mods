@@ -25,7 +25,7 @@ namespace UboatToolkit.Modules.Lrl
 
             try
             {
-                var type = AccessTools.TypeByName("UBOAT.Game.Core.Time.TimeCompressionController");
+                var type = UboatToolkit.Util.FindType("UBOAT.Game.Core.Time.TimeCompressionController");
                 if (type == null)
                 {
                     _whyNot = "TimeCompressionController type not found";

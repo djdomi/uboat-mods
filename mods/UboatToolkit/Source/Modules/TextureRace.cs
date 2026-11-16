@@ -89,7 +89,7 @@ namespace UboatToolkit.Modules
             foreach (var s in sites)
             {
                 var p = s.Split(':');
-                var t = AccessTools.TypeByName(p[0]);
+                var t = UboatToolkit.Util.FindType(p[0]);
                 var m = t != null ? AccessTools.Method(t, p[1]) : null;
                 if (m != null) yield return m;
                 else Util.Log("Textur-Fix: " + s + " nicht gefunden.");

@@ -130,7 +130,7 @@ namespace UboatToolkit.Modules
         private static bool Prepare() => TargetMethod() != null;
         private static System.Reflection.MethodBase TargetMethod()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Serialization.GameStateDeserializer");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Serialization.GameStateDeserializer");
             return t == null ? null : AccessTools.DeclaredMethod(t, "CallMainThreadAction");
         }
 
@@ -184,7 +184,7 @@ namespace UboatToolkit.Modules
         private static bool Prepare() => TargetMethod() != null;
         private static System.Reflection.MethodBase TargetMethod()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Serialization.GameStateDeserializer");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Serialization.GameStateDeserializer");
             return t == null ? null : AccessTools.DeclaredMethod(t, "MainThread", new[] { typeof(Action), typeof(bool) });
         }
 
@@ -215,7 +215,7 @@ namespace UboatToolkit.Modules
         private static bool Prepare() => TargetMethod() != null;
         private static System.Reflection.MethodBase TargetMethod()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Core.GameState");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Core.GameState");
             return t == null ? null : AccessTools.DeclaredMethod(t, "CollectMemory");
         }
 

@@ -182,7 +182,7 @@ namespace UboatToolkit.Modules.Warthog
             {
                 if (controller == null)
                 {
-                    var t = HarmonyLib.AccessTools.TypeByName("UBOAT.Game.Scene.Environment.Terrain.TerrainController");
+                    var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Environment.Terrain.TerrainController");
                     controller = t != null ? Object.FindObjectOfType(t) : null;
                     if (controller == null) return float.NaN;
                     grid = HarmonyLib.Traverse.Create(controller).Property("MainGrid").GetValue();

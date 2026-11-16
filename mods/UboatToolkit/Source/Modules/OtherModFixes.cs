@@ -21,7 +21,7 @@ namespace UboatToolkit.Modules
 
         private static MethodBase Target()
         {
-            var t = AccessTools.TypeByName("SupplyPriceEditor.MainMenuContext");
+            var t = UboatToolkit.Util.FindType("SupplyPriceEditor.MainMenuContext");
             var m = t == null ? null : AccessTools.Method(t, "FindMainMenu", Type.EmptyTypes);
             return m != null && m.ReturnType == typeof(MainMenu) ? m : null;
         }
@@ -79,8 +79,8 @@ namespace UboatToolkit.Modules
 
         public static MethodBase Apply()
         {
-            var rt = AccessTools.TypeByName("RealisticUniformsRevival.RealisticUniformClothesRuntime");
-            var rs = AccessTools.TypeByName("RealisticUniformsRevival.RedirectState");
+            var rt = UboatToolkit.Util.FindType("RealisticUniformsRevival.RealisticUniformClothesRuntime");
+            var rs = UboatToolkit.Util.FindType("RealisticUniformsRevival.RedirectState");
             redirectCharacter = rs == null ? null : AccessTools.Field(rs, "Character");
             var m = rt == null ? null : AccessTools.Method(rt, "ApplyMaterialToExistingWearable");
             return m != null && redirectCharacter != null ? m : null;
@@ -268,7 +268,7 @@ namespace UboatToolkit.Modules
             var missing = new List<string>();
             foreach (var kv in BifrostCfg.Throttles())
             {
-                var t = AccessTools.TypeByName(kv.Key);
+                var t = UboatToolkit.Util.FindType(kv.Key);
                 var u = t == null ? null : AccessTools.DeclaredMethod(t, "Update");
                 if (u == null) { missing.Add(kv.Key); continue; }
                 interval[t] = kv.Value <= 0f ? 0f : 1f / kv.Value;
@@ -279,7 +279,7 @@ namespace UboatToolkit.Modules
 
         private static bool Prepare()
         {
-            foreach (var kv in BifrostCfg.Throttles()) if (AccessTools.TypeByName(kv.Key) != null) return true;
+            foreach (var kv in BifrostCfg.Throttles()) if (UboatToolkit.Util.FindType(kv.Key) != null) return true;
             return false;
         }
 
@@ -322,7 +322,7 @@ namespace UboatToolkit.Modules
 
         private static MethodBase Target()
         {
-            var t = AccessTools.TypeByName("UBOAT.Mods.Moonphase.Main");
+            var t = UboatToolkit.Util.FindType("UBOAT.Mods.Moonphase.Main");
             if (t == null) return null;
             chalk = AccessTools.Field(t, "chalkHandler");
             var m = AccessTools.DeclaredMethod(t, "depthChargesDetonatedDuringCurrentEncounterChanged");
@@ -361,7 +361,7 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             if (done || !BifrostCfg.On || !Settings.B("BifrostUiLog")) return;
-            if (moonphase == 0) moonphase = AccessTools.TypeByName("UBOAT.Mods.Moonphase.Main") != null ? 1 : 2;
+            if (moonphase == 0) moonphase = UboatToolkit.Util.FindType("UBOAT.Mods.Moonphase.Main") != null ? 1 : 2;
             if (moonphase == 2) { done = true; return; }
             float now = Time.unscaledTime;
             // GameObject.Find searches the whole scene (300-600 ms here). It ran every second for as long as the

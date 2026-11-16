@@ -238,7 +238,7 @@ namespace UboatToolkit.Modules
             float prio = Settings.F("OfficerCards");
             if (prio <= 0f) return;
             ICharacterRolesDatabase db = null;
-            foreach (var t in new[] { typeof(UBOAT.Game.Scene.Characters.Skills.Authority), AccessTools.TypeByName("UBOAT.Game.Sandbox.Missions.StartScript"), AccessTools.TypeByName("UBOAT.Game.Scene.Tasks.ExpandedSchedulesController") })
+            foreach (var t in new[] { typeof(UBOAT.Game.Scene.Characters.Skills.Authority), UboatToolkit.Util.FindType("UBOAT.Game.Sandbox.Missions.StartScript"), UboatToolkit.Util.FindType("UBOAT.Game.Scene.Tasks.ExpandedSchedulesController") })
             {
                 if (t == null) continue;
                 foreach (var f in t.GetFields(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public))

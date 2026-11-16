@@ -61,7 +61,7 @@ namespace UboatToolkit.Modules.CrewAi
         private static readonly PropertyInfo ItemProp = AccessTools.Property(typeof(PlayableCharacter), "Item");
         private static readonly PropertyInfo BackpackProp = AccessTools.Property(typeof(PlayableCharacter), "Backpack");
         private static readonly Type BlockingItemType =
-            AccessTools.TypeByName("UBOAT.Game.Scene.Items.IInteractionsBlockingItem");
+            UboatToolkit.Util.FindType("UBOAT.Game.Scene.Items.IInteractionsBlockingItem");
         private static PropertyInfo _backpackItemProp;
 
         public static PlayerCrew Crew { get { Lookup(Time.unscaledTime); return _crew; } }

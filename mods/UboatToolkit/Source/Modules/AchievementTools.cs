@@ -34,7 +34,7 @@ namespace UboatToolkit.Modules
         private static void UnlockAll()
         {
             var ids = typeof(AchievementManager).GetNestedType("AchievementIDs", BindingFlags.NonPublic);
-            Type stats = HarmonyLib.AccessTools.TypeByName("Steamworks.SteamUserStats");
+            Type stats = UboatToolkit.Util.FindType("Steamworks.SteamUserStats");
             if (ids == null || stats == null) { ToolkitRunner.ShowNotice("Steam nicht gefunden", 4f); return; }
             var set = stats.GetMethod("SetAchievement", new[] { typeof(string) });
             var store = stats.GetMethod("StoreStats", Type.EmptyTypes);
@@ -70,7 +70,7 @@ namespace UboatToolkit.Modules
             string why = "";
             Util.Safe("AchDiag", () =>
             {
-                var st = AccessTools.TypeByName("Steamworks.SteamUserStats"); object steam = st != null ? st.GetMethod("RequestCurrentStats", Type.EmptyTypes)?.Invoke(null, null) : "?";
+                var st = UboatToolkit.Util.FindType("Steamworks.SteamUserStats"); object steam = st != null ? st.GetMethod("RequestCurrentStats", Type.EmptyTypes)?.Invoke(null, null) : "?";
                 var com = Traverse.Create(typeof(AchievementManager)).Field("campaignObjectivesManager").GetValue();
                 int objectives = com != null ? Traverse.Create(com).Property("List").Property("Count").GetValue<int>() : -1;
                 var wp = Traverse.Create(typeof(AchievementManager)).Field("wolfpack").GetValue() as UnityEngine.Object;

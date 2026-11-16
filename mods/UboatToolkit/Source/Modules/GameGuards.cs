@@ -70,7 +70,7 @@ namespace UboatToolkit.Modules
         private static readonly HashSet<int> broken = new HashSet<int>();
         private static bool Prepare()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Scene.Items.NPCTorpedoLauncherGroup");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Items.NPCTorpedoLauncherGroup");
             target = t != null ? AccessTools.Method(t, "DoUpdate") : null;
             return target != null;
         }
@@ -101,7 +101,7 @@ namespace UboatToolkit.Modules
         private static MethodBase target;
         private static bool Prepare()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Scene.Effects.FadingCeilingArea");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Effects.FadingCeilingArea");
             target = t != null ? AccessTools.Method(t, "DoUpdate") : null;
             return target != null;
         }
@@ -252,7 +252,7 @@ namespace UboatToolkit.Modules
     {
         private static IEnumerable<MethodBase> TargetMethods()
         {
-            var t = AccessTools.TypeByName("UBOAT.Game.Scene.Tasks.ExpandedSchedulesController");
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Tasks.ExpandedSchedulesController");
             var m = t != null ? AccessTools.Method(t, "UserSettings_Changed") : null;
             if (m != null) yield return m;
         }
