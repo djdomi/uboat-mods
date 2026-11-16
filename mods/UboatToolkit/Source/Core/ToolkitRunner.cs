@@ -13,7 +13,7 @@ namespace UboatToolkit
 
         private float nextTick;
         private bool menuOpen;
-        private string tab = Settings.Topics;
+        private string tab = Settings.GroupOrder[0];
         private Vector2 scroll;
 
         private void Awake()
@@ -275,51 +275,101 @@ namespace UboatToolkit
             if (open) { foreach (var c in o.Children) DrawOpt(c); Imgui.Space(4); }
         }
 
-        // One tab = one kind (comfort or cheats). Topics fold; inside a topic the sub-topics stand under headlines,
-        // "Allgemein" first, the rest in the order they are defined. Keys of the topic follow at the end (comfort tab only).
-        private void DrawTopics(string kind)
+        // 0.3.77 (DoMe: "zu viel auf einem Haufen, Mannschaftssachen verstreut"): one tab per subject. Everything about
+        // that subject is in this one tab, on pages: Komfort / Cheats / Tasten / the subject's special page (crew list,
+        // torpedo loading, map colours, light, damage report). Inside a page the sub-topics fold.
+        private static readonly Dictionary<string, string> shortName = new Dictionary<string, string>
+        {
+            { "Crew & Gesundheit", "Crew" }, { "Hafen, Lager & Geld", "Hafen & Lager" }, { "Waffen & Torpedos", "Waffen" }, { "Boot & Technik", "Boot & Antrieb" },
+            { "Sicht, Sensoren & Funk", "Sicht & Funk" }, { "Navigation, Karte & Zeit", "Navigation" }, { "Kampagne & Missionen", "Kampagne" },
+            { "Spielstand & Leistung", "Leistung" }, { "Anzeige, Kamera & Menü", "Anzeige" }, { "Fehler-Fixes", "Fixes" }, { "Tools", "Fehlersuche" },
+        };
+        // subject -> { page name, old tab name of the special page }
+        private static readonly Dictionary<string, string[]> special = new Dictionary<string, string[]>
+        {
+            { "Crew & Gesundheit", new[] { "Mannschaft", "Crew" } }, { "Waffen & Torpedos", new[] { "Torpedo-Laden", "Torpedos" } },
+            { "Navigation, Karte & Zeit", new[] { "Karten-Farben", "Karte" } }, { "Sicht, Sensoren & Funk", new[] { "Licht", "Licht" } },
+            { "Boot & Technik", new[] { "Schadensbericht", "Schaden" } },
+        };
+        private readonly Dictionary<string, string> pageOf = new Dictionary<string, string>();
+        private const string PComfort = "Komfort", PCheats = "Cheats", PKeys = "Tasten";
+        private static string Short(string t) => shortName.TryGetValue(t, out var n) ? n : t;
+        private static bool IsTopic(string t) => System.Array.IndexOf(Settings.GroupOrder, t) >= 0;
+        // subject that an old special tab now belongs to ("Crew" -> "Crew & Gesundheit"), or null
+        private static string TopicOfOldTab(string oldTab)
+        {
+            foreach (var kv in special) if (kv.Value[1] == oldTab || (oldTab == "LichtStil" && kv.Value[1] == "Licht")) return kv.Key;
+            return null;
+        }
+
+        private static int CountOf(string g, string page)
+        {
+            int n = 0;
+            foreach (var x in Settings.All)
+            {
+                if (x.Group != g) continue;
+                if (page == PKeys ? x.IsKey : !x.IsKey && x.Tab == (page == PCheats ? Settings.Cheat : Settings.QoL)) n++;
+            }
+            return n;
+        }
+
+        private void DrawSpecial(string oldTab)
+        {
+            if (oldTab == "Crew") UboatToolkit.Modules.ExtraFeatures.DrawCrewTab();
+            if (oldTab == "Torpedos") UboatToolkit.Modules.TorpedoTab.Draw();
+            if (oldTab == "Karte") UboatToolkit.Modules.MapTab.Draw();
+            if (oldTab == "Licht") UboatToolkit.Modules.LightTab.Draw();
+            if (oldTab == "Schaden") UboatToolkit.Modules.DamageReport.Draw();
+            foreach (var o in Settings.All) if (o.Tab == oldTab && o.Parent == null) DrawBlock(o);
+        }
+
+        private void DrawTopicTab(string g)
         {
             float W = Mathf.Max(300f, MenuRect().width - 60);
-            foreach (var g in Settings.GroupOrder)
+            var pages = new List<string>();
+            if (CountOf(g, PComfort) > 0) pages.Add(PComfort);
+            if (CountOf(g, PCheats) > 0) pages.Add(PCheats);
+            if (CountOf(g, PKeys) > 0) pages.Add(PKeys);
+            if (special.TryGetValue(g, out var sp)) pages.Add(sp[0]);
+            if (pages.Count == 0) { Imgui.Label("Hier gibt es keine Einstellungen."); return; }
+            if (!pageOf.TryGetValue(g, out var page) || !pages.Contains(page)) page = pages[0];
+            Imgui.BeginH();
+            foreach (var p in pages)
+            {
+                int n = p == PComfort || p == PCheats || p == PKeys ? CountOf(g, p) : 0;
+                if (Imgui.Button((p == page ? "● " : "") + p + (n > 0 ? "  (" + n + ")" : ""), 170)) pageOf[g] = p;
+            }
+            Imgui.EndH();
+            Imgui.Space(6);
+            if (sp != null && page == sp[0]) { DrawSpecial(sp[1]); return; }
+            if (page == PKeys) { foreach (var x in Settings.All) if (x.IsKey && x.Group == g) DrawOpt(x); return; }
+            string kind = page == PCheats ? Settings.Cheat : Settings.QoL;
+            var subs = new List<string>();
+            foreach (var x in Settings.All)
+                if (x.Group == g && x.Tab == kind && x.Parent == null && !subs.Contains(x.Sub)) subs.Add(x.Sub);
+            if (subs.Remove("Allgemein")) subs.Insert(0, "Allgemein");
+            foreach (var sname in subs)
             {
                 int count = 0, changed = 0;
                 foreach (var x in Settings.All)
                 {
-                    if (x.Group != g || !(x.Tab == kind || (x.IsKey && kind == Settings.QoL))) continue;
+                    if (x.Group != g || x.Tab != kind || x.Sub != sname) continue;
                     bool c = Settings.Changed(x);
                     if (onlyChanged && !c) continue;
                     count++; if (c) changed++;
                 }
                 if (count == 0) continue;
-                string gk = kind + "/" + g;
-                bool open = openGroups.Contains(gk) || openGroups.Contains(g);
-                if (Imgui.Button((open ? "▼  " : "▶  ") + g + "   (" + count + (changed > 0 ? ", " + changed + " geändert" : "") + ")", W))
-                { if (open) { openGroups.Remove(gk); openGroups.Remove(g); } else openGroups.Add(gk); }
+                string key = kind + "/" + g + "/" + sname;
+                bool open = subs.Count == 1 || onlyChanged || openGroups.Contains(key);
+                if (subs.Count > 1 && !onlyChanged
+                    && Imgui.Button((open ? "▼  " : "▶  ") + sname + "   (" + count + (changed > 0 ? ", " + changed + " geändert" : "") + ")", W))
+                { if (open) openGroups.Remove(key); else openGroups.Add(key); }
                 if (!open) continue;
-                var subs = new List<string>();
                 foreach (var x in Settings.All)
-                    if (x.Group == g && x.Tab == kind && x.Parent == null && !subs.Contains(x.Sub)) subs.Add(x.Sub);
-                if (subs.Remove("Allgemein")) subs.Insert(0, "Allgemein");
-                foreach (var sname in subs)
                 {
-                    bool head = false;
-                    foreach (var x in Settings.All)
-                    {
-                        if (x.Group != g || x.Tab != kind || x.Parent != null || x.Sub != sname) continue;
-                        if (onlyChanged && !Settings.Changed(x) && !x.Children.Any(Settings.Changed)) continue;
-                        if (!head && subs.Count > 1) { head = true; Imgui.Space(6); Imgui.Label("——  " + sname + "  ——"); }
-                        DrawBlock(x);
-                    }
-                }
-                if (kind == Settings.QoL)
-                {
-                    bool kh = false;
-                    foreach (var x in Settings.All)
-                    {
-                        if (!x.IsKey || x.Group != g) continue;
-                        if (!kh) { kh = true; Imgui.Space(6); Imgui.Label("——  Tasten  ——"); }
-                        DrawOpt(x);
-                    }
+                    if (x.Group != g || x.Tab != kind || x.Parent != null || x.Sub != sname) continue;
+                    if (onlyChanged && !Settings.Changed(x) && !x.Children.Any(Settings.Changed)) continue;
+                    DrawBlock(x);
                 }
                 Imgui.Space(8);
             }
@@ -354,18 +404,20 @@ namespace UboatToolkit
             Imgui.TextAt(new Rect(r.xMax - 18, r.yMax - 20, 16, 18), "◢");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             // tabs: as wide as fits, second row when the window is narrow
-            var tabList = new List<string> { Settings.Topics, CheatsTab, "Crew", "Torpedos", "Karte", "Licht", "Schaden" };
+            var tabList = new List<string>();
+            foreach (var g in Settings.GroupOrder) if (special.ContainsKey(g) || Settings.All.Any(x => x.Group == g)) tabList.Add(g);
             if (!Util.WarthogModPresent) tabList.Add(UboatToolkit.Modules.Warthog.WarthogSettings.Tab);
             foreach (var kv in AddonTabs.Tabs) if (!tabList.Contains(kv.Key)) tabList.Add(kv.Key);
             tabList.Add(Settings.KeysTab); tabList.Add(Settings.Tools);
             var tabs = tabList.ToArray();
-            int perRow = Mathf.Clamp(Mathf.FloorToInt((r.width - 20) / 90f), 1, tabs.Length);
+            if (System.Array.IndexOf(tabs, tab) < 0) tab = tabs[0];
+            int perRow = Mathf.Clamp(Mathf.FloorToInt((r.width - 20) / 125f), 1, tabs.Length);
             float tw = (r.width - 30) / perRow - 4;
             for (int i = 0; i < tabs.Length; i += perRow)
             {
                 Imgui.BeginH();
                 for (int j = i; j < Mathf.Min(i + perRow, tabs.Length); j++)
-                    if (Imgui.Button((tabs[j] == tab ? "> " : "") + tabs[j], tw)) tab = tabs[j];
+                    if (Imgui.Button((tabs[j] == tab ? "● " : "") + Short(tabs[j]), tw)) { tab = tabs[j]; scroll = Vector2.zero; }
                 Imgui.EndH();
             }
             Imgui.Space(6);
@@ -377,17 +429,12 @@ namespace UboatToolkit
             if (Imgui.Button("x", 30)) search = "";
             onlyChanged = Imgui.Toggle(onlyChanged, " nur geänderte zeigen");
             searchThisTab = Imgui.Toggle(searchThisTab, " Suche nur in diesem Reiter");
-            if (Imgui.Button("alle auf", 90)) foreach (var g in Settings.GroupOrder) openGroups.Add(g);
+            if (Imgui.Button("alle auf", 90)) foreach (var x in Settings.All) if (x.Group == tab && !x.IsKey) { openGroups.Add(x.Tab + "/" + x.Group + "/" + x.Sub); }
             if (Imgui.Button("alle zu", 90)) { openGroups.Clear(); openOpts.Clear(); }
             Imgui.EndH();
             scroll = Imgui.BeginScroll(scroll);
-            if (tab == "Crew") UboatToolkit.Modules.ExtraFeatures.DrawCrewTab();
             bool builtinWh = !Util.WarthogModPresent && tab == UboatToolkit.Modules.Warthog.WarthogSettings.Tab;
             if (builtinWh) UboatToolkit.Modules.Warthog.WarthogTab.Draw();
-            if (tab == "Torpedos") UboatToolkit.Modules.TorpedoTab.Draw();
-            if (tab == "Karte") UboatToolkit.Modules.MapTab.Draw();
-            if (tab == "Licht") UboatToolkit.Modules.LightTab.Draw();
-            if (tab == "Schaden") UboatToolkit.Modules.DamageReport.Draw();
             if (!builtinWh) AddonTabs.Draw(tab);
             if (!string.IsNullOrEmpty(search) && search.Trim().Length >= 2)
             {
@@ -408,11 +455,13 @@ namespace UboatToolkit
                     if (!all) continue;
                     if (onlyChanged && !Settings.Changed(o)) continue;
                     bool topic = o.Group != "" && (o.Tab == Settings.QoL || o.Tab == Settings.Cheat || o.IsKey);
-                    string home = topic ? (o.Tab == Settings.Cheat ? CheatsTab : Settings.Topics) : o.Tab;
+                    string oldTopic = topic ? null : TopicOfOldTab(o.Tab);
+                    string home = topic ? o.Group : oldTopic ?? o.Tab;
                     if (searchThisTab && home != tab && !(o.IsKey && tab == Settings.KeysTab)) continue;
-                    string place = topic ? home + "  >  " + o.Group + (o.IsKey ? "  >  Tasten" : o.Sub != "" && o.Sub != "Allgemein" ? "  >  " + o.Sub : "") : "Reiter " + o.Tab;
+                    string pg = topic ? (o.IsKey ? PKeys : o.Tab == Settings.Cheat ? PCheats : PComfort) : oldTopic != null ? special[oldTopic][0] : "";
+                    string place = Short(home) + (pg != "" ? "  >  " + pg : "") + (topic && !o.IsKey && o.Sub != "" ? "  >  " + o.Sub : "");
                     found.Add(new KeyValuePair<string, Opt>(place, o));
-                    placeHome[place] = home; placeGroup[place] = topic ? o.Group : "";
+                    placeHome[place] = home; placeGroup[place] = pg;
                 }
                 foreach (var kv in found.OrderBy(x => x.Key, StringComparer.Ordinal))
                 {
@@ -423,7 +472,8 @@ namespace UboatToolkit
                         if (Imgui.Button("▶  " + kv.Key + "   (klicken = dorthin springen)", Mathf.Max(300f, MenuRect().width - 60)))
                         {
                             tab = placeHome[kv.Key];
-                            if (placeGroup[kv.Key] != "") openGroups.Add(placeGroup[kv.Key]);
+                            if (placeGroup[kv.Key] != "") pageOf[tab] = placeGroup[kv.Key];
+                            openGroups.Add(kv.Value.Tab + "/" + kv.Value.Group + "/" + kv.Value.Sub);
                             if (kv.Value.Parent != null) openOpts.Add(kv.Value.Parent.Key);
                             search = ""; scroll = Vector2.zero;
                             break;
@@ -437,8 +487,7 @@ namespace UboatToolkit
                 }
                 if (hits == 0) Imgui.Label("Nichts gefunden.");
             }
-            else if (tab == Settings.Topics) DrawTopics(Settings.QoL);
-            else if (tab == CheatsTab) DrawTopics(Settings.Cheat);
+            else if (IsTopic(tab)) DrawTopicTab(tab);
             else
                 foreach (var o in Settings.All) if (o.Tab == tab && o.Parent == null) DrawBlock(o);
             Imgui.EndScroll();
