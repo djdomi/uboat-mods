@@ -167,12 +167,14 @@ namespace UboatToolkit
             if (!Imgui.Ready) return;
             double g0 = Time.realtimeSinceStartupAsDouble;
             Util.Safe("menu", DrawGui);
-            GuiSeconds += Time.realtimeSinceStartupAsDouble - g0; GuiCalls++;
+            double gd = Time.realtimeSinceStartupAsDouble - g0;
+            GuiSeconds += gd; GuiCalls++;
+            if (menuShown) { MenuSeconds += gd; MenuCalls++; }
         }
 
         // 0.3.72: the Toolkit's own cost per frame (drawing + modules), logged once per minute by the frame logger.
-        internal static double GuiSeconds, ModuleSeconds;
-        internal static int GuiCalls;
+        internal static double GuiSeconds, ModuleSeconds, MenuSeconds;
+        internal static int GuiCalls, MenuCalls;
 
         // Short on-screen message from a module (e.g. "Land voraus").
         public static string Notice;
