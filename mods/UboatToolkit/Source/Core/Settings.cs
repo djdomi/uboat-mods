@@ -21,6 +21,7 @@ namespace UboatToolkit
     // The in-game menu (F10) and the INI file both read and write this list.
     public static class Settings
     {
+        public const string Topics = "Einstellungen";
         public const string QoL = "QoL";
         public const string Cheat = "Cheat";
         public const string Tools = "Tools";
@@ -772,13 +773,47 @@ namespace UboatToolkit
             new[] { "Anzeige, Kamera & Menü", "schnittansicht", "ich-sicht", "kein sprung", "ansagen", "kriegstagebuch", "stationen (" },
             new[] { "Boot & Technik", "strom sparen", "ballast", "schnorchel", "lüftung" },
         };
+        // 0.3.65 (DoMe: options are scattered, same function must be in the same place): the index. Fixed topic per
+        // option key (checked first), so the keyword rules above cannot put an option into the wrong topic.
+        private const string GCrew = "Crew & Gesundheit", GPort = "Hafen, Lager & Geld", GWeap = "Waffen & Torpedos", GBoat = "Boot & Technik",
+            GSens = "Sicht, Sensoren & Funk", GNav = "Navigation, Karte & Zeit", GCamp = "Kampagne & Missionen", GPerf = "Spielstand & Leistung",
+            GView = "Anzeige, Kamera & Menü";
+        private static readonly Dictionary<string, string> groupFix = new Dictionary<string, string>
+        {
+            { "AutoDepth", GBoat }, { "AutoCrashDive", GBoat }, { "AirByCrew", GBoat }, { "LowWarnPercent", GBoat },
+            { "MerchantTraffic", GCamp }, { "ExplosionLimit", GPerf }, { "SaveGroupCareer", GPerf },
+            { "NoShellPush", GWeap }, { "AwashGuns", GWeap }, { "CheatRemoteTorpedo", GWeap }, { "CheatOwnShellsSafe", GWeap }, { "CheatExactTargets", GWeap },
+            { "HideDevConsole", GView }, { "DevConsole", GView }, { "CamOrbitUnderwater", GView }, { "Speedometer", GView },
+            { "SeafloorAlways", GNav }, { "CheatLinguist", GCrew }, { "CheatNoSupplyUse", GPort },
+        };
+        // Keys: topic by key-name prefix (longest match first in this order).
+        private static readonly string[][] keyGroups =
+        {
+            new[] { GBoat, "KeyCourseDeeper", "KeyCourseShallower", "KeyCoursePeriscope", "KeyCourseMaxDepth", "KeyDepth", "KeyAutoDepth", "KeyDeeper", "KeyShallower", "KeyPeriscopeDepth", "KeyMaxDepth", "KeyHoldDepth", "KeyTanksEmpty", "KeyGear", "KeySpeed" },
+            new[] { GNav, "KeyCourse", "KeyTurn", "KeyAmidships", "KeyQuickTravel", "KeyBackToWater" },
+            new[] { GWeap, "KeyUnderFire", "KeyReloadAll", "KeyRemoteTorpedo", "KeySinkConvoy" },
+            new[] { GPort, "KeySortStorage", "KeyPortMines" },
+            new[] { GCrew, "KeySwapShifts", "KeyHealAll" },
+            new[] { GCamp, "KeyCallMilkCow", "KeySpawnConvoy" },
+            new[] { GSens, "KeySonarPing", "KeyReticleLight" },
+            new[] { GPerf, "KeyHotspotFinder" },
+            new[] { GView, "KeyMenu", "KeyCam", "KeyStation" },
+        };
         private static Opt lastAdded;
         private static string GroupOf(Opt o)
         {
             string g = "";
+            if (o.IsKey)
+            {
+                foreach (var r in keyGroups)
+                    for (int j = 1; j < r.Length && g == ""; j++)
+                        if (o.Key.StartsWith(r[j])) g = r[0];
+                return g;   // keys do not change lastAdded
+            }
             if (o.Tab == QoL || o.Tab == Cheat)
             {
-                if (o.Label.StartsWith(" ") && lastAdded != null && lastAdded.Tab == o.Tab) g = lastAdded.Group;
+                if (groupFix.TryGetValue(o.Key, out var fixedGroup)) g = fixedGroup;
+                else if (o.Label.StartsWith(" ") && lastAdded != null && lastAdded.Tab == o.Tab) g = lastAdded.Group;
                 else
                 {
                     string text = (o.Key + " " + o.Label).ToLowerInvariant();

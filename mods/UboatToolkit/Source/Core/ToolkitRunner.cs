@@ -13,7 +13,7 @@ namespace UboatToolkit
 
         private float nextTick;
         private bool menuOpen;
-        private string tab = Settings.QoL;
+        private string tab = Settings.Topics;
         private Vector2 scroll;
 
         private void Awake()
@@ -236,7 +236,7 @@ namespace UboatToolkit
             Imgui.TextAt(new Rect(r.xMax - 18, r.yMax - 20, 16, 18), "◢");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             // tabs: as wide as fits, second row when the window is narrow
-            var tabList = new List<string> { Settings.QoL, Settings.Cheat, "Crew", "Torpedos", "Karte", "Licht", "Schaden" };
+            var tabList = new List<string> { Settings.Topics, "Crew", "Torpedos", "Karte", "Licht", "Schaden" };
             if (!Util.WarthogModPresent) tabList.Add(UboatToolkit.Modules.Warthog.WarthogSettings.Tab);
             foreach (var kv in AddonTabs.Tabs) if (!tabList.Contains(kv.Key)) tabList.Add(kv.Key);
             tabList.Add(Settings.KeysTab); tabList.Add(Settings.Tools);
@@ -258,7 +258,7 @@ namespace UboatToolkit
             else search = Imgui.TextField(search, 300);
             if (Imgui.Button("x", 30)) search = "";
             onlyChanged = Imgui.Toggle(onlyChanged, " nur geänderte zeigen");
-            if (Imgui.Button("alle auf", 90)) foreach (var g in Settings.GroupOrder) openGroups.Add(tab + "/" + g);
+            if (Imgui.Button("alle auf", 90)) foreach (var g in Settings.GroupOrder) openGroups.Add(g);
             if (Imgui.Button("alle zu", 90)) openGroups.Clear();
             Imgui.EndH();
             scroll = Imgui.BeginScroll(scroll);
@@ -279,25 +279,29 @@ namespace UboatToolkit
                 {
                     if (!(o.Label + " " + Lang.T(o.Label) + " " + o.Key).ToLowerInvariant().Contains(q)) continue;
                     if (onlyChanged && !Settings.Changed(o)) continue;
-                    Imgui.Label("[" + o.Tab + (o.Group != "" ? " / " + o.Group : "") + "]");
+                    Imgui.Label("[" + (o.Group != "" ? o.Group + (o.Tab == Settings.Cheat ? " / Cheats" : o.IsKey ? " / Tasten" : "") : o.Tab) + "]");
                     DrawOpt(o);
                     hits++;
                 }
                 if (hits == 0) Imgui.Label("Nichts gefunden.");
             }
-            else if (tab == Settings.QoL || tab == Settings.Cheat)
+            else if (tab == Settings.Topics)
             {
+                // 0.3.65: one place per topic. Each topic shows its comfort options, then its cheats, then its keys.
                 foreach (var g in Settings.GroupOrder)
                 {
-                    var list = Settings.All.Where(x => x.Tab == tab && x.Group == g && (!onlyChanged || Settings.Changed(x))).ToList();
+                    var list = Settings.All.Where(x => x.Group == g && (x.Tab == Settings.QoL || x.Tab == Settings.Cheat || x.IsKey) && (!onlyChanged || Settings.Changed(x))).ToList();
                     if (list.Count == 0) continue;
-                    string key = tab + "/" + g;
-                    bool open = openGroups.Contains(key);
+                    bool open = openGroups.Contains(g);
                     int changed = list.Count(Settings.Changed);
                     if (Imgui.Button((open ? "▼  " : "▶  ") + g + "   (" + list.Count + " Einstellungen" + (changed > 0 ? ", " + changed + " geändert" : "") + ")", Mathf.Max(300f, MenuRect().width - 60)))
-                    { if (open) openGroups.Remove(key); else openGroups.Add(key); }
+                    { if (open) openGroups.Remove(g); else openGroups.Add(g); }
                     if (!open) continue;
-                    foreach (var o in list) DrawOpt(o);
+                    foreach (var o in list) if (o.Tab == Settings.QoL) DrawOpt(o);
+                    if (list.Any(x => x.Tab == Settings.Cheat)) { Imgui.Space(6); Imgui.Label("— Cheats: " + g + " —"); }
+                    foreach (var o in list) if (o.Tab == Settings.Cheat) DrawOpt(o);
+                    if (list.Any(x => x.IsKey)) { Imgui.Space(6); Imgui.Label("— Tasten: " + g + " —"); }
+                    foreach (var o in list) if (o.IsKey) DrawOpt(o);
                     Imgui.Space(8);
                 }
             }
