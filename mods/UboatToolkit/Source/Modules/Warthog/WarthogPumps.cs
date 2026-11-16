@@ -52,7 +52,7 @@ namespace UboatToolkit.Modules.Warthog
 
             // battery use of the running pumps
             if (ship.Energy == null) return;
-            if (energy == null) energy = ship.Energy.Gain.AddDeltaModifier("Warthog Pumps");
+            if (energy == null) { ship.Energy.Gain.RemoveDeltaModifiers("Warthog Pumps"); energy = ship.Energy.Gain.AddDeltaModifier("Warthog Pumps"); }
             float use = WarthogPower.Apply("WarthogPumps", RunningCount * Settings.F("WhPumpEnergy") * 0.0001f);
             if (energy.Value != -use) energy.Value = -use;
         }

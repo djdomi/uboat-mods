@@ -15,6 +15,7 @@ namespace UboatToolkit.Modules.Warthog
     {
         const string Mod = "Warthog";
         private Modifier thrusterEnergy;
+        private PlayerShip thrusterOwner;
         private float heldHeading = float.NaN;
         internal static float LastGunShot = -99f;   // set by WarthogWeapons when one of our guns fires
 
@@ -130,7 +131,12 @@ namespace UboatToolkit.Modules.Warthog
         {
             var ship = Util.PlayerShip;
             bool keys = Keys.Held("KeyWhThrustLeft") || Keys.Held("KeyWhThrustRight");
-            if (!WarthogSettings.ThrustersActive(ship)) return;
+            if (ship == null) return;
+            if (!WarthogSettings.ThrustersActive(ship) || (!Settings.B("WhThrusters") && !Settings.B("WhVThrusters")))
+            {
+                if (keys && !Settings.B("WhThrusters")) Why("Strahlruder sind ausgeschaltet (F10 > Warthog)");
+                SetEnergy(ship, 0f); return;   // 0.3.61: switched off = no battery use
+            }
             var rb = ship.RigidBody;
             if (keys && !Settings.B("WhThrusters")) Why("Strahlruder sind ausgeschaltet (F10 > Warthog)");
             else if (keys && ship.Docked) Why("Strahlruder: im Hafen festgemacht, erst ablegen");
@@ -293,7 +299,14 @@ namespace UboatToolkit.Modules.Warthog
         {
             var energy = ship.Energy;
             if (energy == null) return;
-            if (thrusterEnergy == null) thrusterEnergy = energy.Gain.AddDeltaModifier("Warthog Thrusters");
+            // 0.3.61 (DoMe: 3 "Warthog Thrusters" lines drain the battery, cannot be switched off): drop leftover
+            // entries (save/load, boat change) once, then keep exactly one.
+            if (thrusterEnergy == null || !ReferenceEquals(thrusterOwner, ship))
+            {
+                energy.Gain.RemoveDeltaModifiers("Warthog Thrusters");
+                thrusterEnergy = energy.Gain.AddDeltaModifier("Warthog Thrusters");
+                thrusterOwner = ship;
+            }
             use = WarthogPower.Apply("WarthogThrusters", use);
             if (thrusterEnergy.Value != -use) thrusterEnergy.Value = -use;
         }

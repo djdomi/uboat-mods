@@ -38,7 +38,7 @@ namespace UboatToolkit.Modules.Warthog
         // 0 consume, 1 free, 2 generate (the top switch forces 2 for everything)
         internal static int Mode(string type)
         {
-            if (!WarthogSettings.Active(Util.PlayerShip)) return 0;
+            if (Util.PlayerShip == null) return 0;   // 0.3.61: power switches work on every own boat (were dead on non-Warthog boats)
             if (Settings.B("WhAllGenerate")) return 2;
             return Mathf.RoundToInt(Settings.F("WhPwr_" + type));
         }
