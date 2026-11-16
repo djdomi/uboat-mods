@@ -140,7 +140,47 @@ namespace UboatToolkit.Modules
                 foreach (var st in storages)
                     for (int i = 0; i < Util.Slots(st); i++) if (st.GetItemAt(i) is StoredTorpedo t && !(t is StoredMinePacket)) stock++;
                 Util.Log("Rohre: " + empty + " leer, Zustände [" + states + "], Torpedos im Lager: " + stock + " (Lager gefunden: " + storages.Length + ")");
+                Util.Safe("tube diag", CrewLoadDiag);
             }
+        }
+
+        // Why does the crew not load by itself (DoMe 2026-11-16)? The game's own loading needs: a free tube that is
+        // accessible and open for the crew, a torpedo in the tube room's own rack, and an officer whose role has the
+        // loading job. Each of these is written to the log.
+        private static void CrewLoadDiag()
+        {
+            var sb = new System.Text.StringBuilder("Lade-Diagnose: ");
+            foreach (var l in Util.Find<TorpedoLauncher>(2f))
+            {
+                var x = l as ExtendedTorpedoLauncher;
+                if (x == null || x.Torpedo != null) continue;
+                sb.Append("[").Append(x.name).Append(" Zugang=").Append(x.GetAccessibilityStatus())
+                  .Append(" Aufträge=").Append(x.Slot != null ? x.Slot.TransportOrders.Count : -1)
+                  .Append(" KI-offen=").Append(x.LoadingInteractable ? x.LoadingInteractable.IsOpenForAI.ToString() : "kein Ladeplatz");
+                var rack = x.Group != null ? x.Group.TorpedoStorage : null;
+                int n = 0;
+                if (rack != null) for (int i = 0; i < Util.Slots(rack); i++) if (rack.GetItemAt(i) is StoredTorpedo t && !(t is StoredMinePacket)) n++;
+                sb.Append(" Gestell=").Append(rack != null ? n.ToString() : "keins").Append("] ");
+            }
+            var crew = Object.FindObjectOfType<UBOAT.Game.Scene.Characters.PlayerCrew>();
+            if (crew != null && crew.Officers != null)
+                foreach (var o in crew.Officers)
+                {
+                    if (o == null) continue;
+                    bool job = o.Role != null && o.Role.HasAction<UBOAT.Game.Scene.Characters.Actions.LoadTorpedoesAction>();
+                    sb.Append("{").Append(o.name).Append(job ? " LADE-ROLLE" : "").Append(" tut=").Append(o.Action != null ? o.Action.GetType().Name : "nichts").Append("} ");
+                }
+            Util.Log(sb.ToString());
+            // where do the torpedoes on board lie? (the tube's selection window only shows the tube room's rack)
+            var where = new System.Text.StringBuilder("Torpedo-Lagerorte: ");
+            foreach (var st in Util.Find<Storage>())
+            {
+                if (st == null || st.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() != null) continue;
+                int n = 0, slots = Util.Slots(st);
+                for (int i = 0; i < slots; i++) if (st.GetItemAt(i) is StoredTorpedo) n++;
+                if (n > 0 || st is TorpedoStorage) where.Append(st.name).Append(" (").Append(st.GetType().Name).Append(", Typ ").Append(st.StorageType).Append("): ").Append(n).Append(" von ").Append(slots).Append(" Plätzen; ");
+            }
+            Util.Log(where.ToString());
         }
 
         public override void Tick()
