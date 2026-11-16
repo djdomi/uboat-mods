@@ -583,6 +583,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatHealNow", "  >> Alle heilen (Wunden, Blutungen, Krankheiten, wieder aufstehen)", false);
             Bool(Cheat, "CheatRadioAnyDepth", "Funk-Empfang in jeder Tiefe", false);
             Bool(Cheat, "CheatHydrophoneAlways", "Horchgerät hört voll, auch aufgetaucht und bei hoher Fahrt", false);
+            Bool(Cheat, "CheatInstantSolution", "Schusslösung sofort: Ziel ist beim ersten Sichten voll erfasst (Typ, Tempo, Kurs, Entfernung)", false);
             Bool(Cheat, "CheatExactTargets", "Zielerfassung genau: Tempo, Kurs, Entfernung exakt statt geschätzt", false);
             Num(Cheat, "CheatHullArmour", "Panzer-Rumpf: Schaden am Boot x (1 = normal, 0 = kein Schaden)", 1, 0, 1, 0.05f);
             Bool(Cheat, "CheatCrewProtection", "Rumpf schützt die Crew: keine Verletzungen durch Treffer", false);
@@ -785,7 +786,7 @@ namespace UboatToolkit
             new[] { "88mm", "DeckGun" },
             new[] { "Flak", "AAGun", "AASaveAmmo", "AAvsShips" },
             new[] { "KI-Schützen", "Gunner", "GunGyro", "KeepGunMode", "CheatPerfectAim" },
-            new[] { "Torpedos", "AutoReload", "ReloadAllNow", "Torpedo", "EasyTDC", "TubeDisplay", "CheatInfiniteTorpedoes", "CheatNoDuds", "CheatTorpedoSpeed", "CheatRemoteTorpedo", "CheatExactTargets", "PortT5Min" },
+            new[] { "Torpedos", "AutoReload", "ReloadAllNow", "Torpedo", "EasyTDC", "TubeDisplay", "CheatInfiniteTorpedoes", "CheatNoDuds", "CheatTorpedoSpeed", "CheatRemoteTorpedo", "CheatInstantSolution", "CheatExactTargets", "PortT5Min" },
             new[] { "Funk", "Radio", "CheatRadio" },
             new[] { "Sehrohr & Optik", "Optics", "Periscope", "Reticle", "ScopeRemember", "NightOptics", "CheatPeriscope" },
             new[] { "Horcher & Sonar", "Horcher", "ActiveSonar", "CheatHydrophone", "CheatSonar", "CheatSensor" },
@@ -892,7 +893,7 @@ namespace UboatToolkit
             { "WhThrusters", GBoat }, { "WhVThrusters", GBoat },
             { "AutoDepth", GBoat }, { "AutoCrashDive", GBoat }, { "AirByCrew", GBoat }, { "LowWarnPercent", GBoat },
             { "MerchantTraffic", GCamp }, { "ExplosionLimit", GPerf }, { "SaveGroupCareer", GPerf },
-            { "NoShellPush", GWeap }, { "AwashGuns", GWeap }, { "CheatRemoteTorpedo", GWeap }, { "CheatOwnShellsSafe", GWeap }, { "CheatExactTargets", GWeap },
+            { "NoShellPush", GWeap }, { "AwashGuns", GWeap }, { "CheatRemoteTorpedo", GWeap }, { "CheatOwnShellsSafe", GWeap }, { "CheatExactTargets", GWeap }, { "CheatInstantSolution", GWeap },
             { "HideDevConsole", GView }, { "DevConsole", GView }, { "CamOrbitUnderwater", GView }, { "Speedometer", GView },
             { "SeafloorAlways", GNav }, { "CheatLinguist", GCrew }, { "CheatNoSupplyUse", GPort },
             // 0.3.75: all "station is manned automatically" switches in one place, smoke with the guns

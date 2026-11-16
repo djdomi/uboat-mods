@@ -49,6 +49,19 @@ namespace UboatToolkit.Modules
         }
     }
 
+    // Cheat (DoMe 2026-11-16: "instant Schusslösung"): the game builds the firing solution from "tracking progress" that
+    // grows while a contact is watched (accuracy = 1 - e^(-0.1 x progress)). With the cheat every sighting by the
+    // player's boat counts as fully tracked at once, so type, speed, course and distance are there immediately.
+    [HarmonyPatch(typeof(DirectObservation), nameof(DirectObservation.UpdateObservation))]
+    internal static class Sensor_InstantSolutionPatch
+    {
+        private static void Prefix(DirectObservation __instance, ref float trackingProgress)
+        {
+            if (!Settings.B("CheatInstantSolution") || !(__instance.Observator is PlayerShip)) return;
+            if (__instance.TrackingProgress < 100f) trackingProgress = Mathf.Max(trackingProgress, 100f - __instance.TrackingProgress);
+        }
+    }
+
     [HarmonyPatch(typeof(DamageUtility), nameof(DamageUtility.ApplyDamage))]
     internal static class Sensor_ArmourPatch
     {
