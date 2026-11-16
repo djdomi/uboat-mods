@@ -135,7 +135,7 @@ namespace UboatToolkit
             Bool(QoL, "TankDisplay", "  Infozeile: Füllstand Tauchzellen + Trimmtanks", true);
             Bool(QoL, "DepthHotkeys", "Tiefe per Taste (Tasten im Tab „Tasten“) (Idee 10)", true);
             Bool(QoL, "FixTooltipParent", "Fix: Fehler \"Default Tooltip ... GUI\" (Tooltip nicht unnötig umhängen)", true);
-            Bool(QoL, "DiagTooltip", "Diagnose: Tooltips ins Log schreiben (leerer Kasten am Auge)", true);
+            Bool(Tools, "DiagTooltip", "Log: Tooltips (leerer Kasten am Auge)", true);
             Bool(QoL, "FixEmptyTooltip", "Fix: leere Tooltip-Kästen nicht anzeigen (z. B. am Auge)", true);
             Bool(QoL, "FixSkillIcons", "Fix: Fehler \"Requested asset Icons/Skills/...\" (fehlende Skill-Bilder)", true);
             Bool(QoL, "FixCameraParent", "Fix: Fehler \"GameObject is already being activated or deactivated\" nach dem Charakter-Bildschirm", true);

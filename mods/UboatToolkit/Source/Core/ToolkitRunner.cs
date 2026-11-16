@@ -281,7 +281,15 @@ namespace UboatToolkit
                     Imgui.Label(cap ? "  Esc = Abbruch, Rück = keine" : "  " + KeyName(o.Text), C - 134);
                     return;
                 }
-                if (o.IsBool) { o.Value = Imgui.Toggle(o.On, " " + text) ? 1 : 0; return; }
+                // 0.3.90 (DoMe: tick boxes tiny, on/off hard to tell): on/off is a button in the control column like every
+                // other control; ">>" one-shot actions get a "Ausführen" button.
+                if (o.IsBool)
+                {
+                    Imgui.Label(text, L);
+                    bool action = text.StartsWith(">>");
+                    if (Imgui.Button(action ? "Ausführen" : o.On ? "●  AN" : "aus", 110)) o.Value = action ? 1 : (o.On ? 0 : 1);
+                    return;
+                }
                 var names = Settings.Choices(o);
                 float cur = Mathf.Clamp(o.Value, o.Min, o.Max);
                 if (names.Length > 0)
