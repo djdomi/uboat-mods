@@ -78,6 +78,22 @@ namespace UboatToolkit.Modules
             if (done != null && done.On) { done.Value = 0; Util.Safe("MissionDone", () => Run(true)); }
             var step = Settings.Get("CheatMissionStep");
             if (step != null && step.On) { step.Value = 0; Util.Safe("MissionStep", () => Run(false)); }
+            if (Settings.B("CheatEscortEasy")) Util.Safe("EscortEasy", EscortEasy);
+        }
+
+        // Escort duty (DoMe 2026-11-16, Weserübung: "dauert ewig ... beim dritten Mal gescheitert"). The game fails the
+        // assignment only when the troopship is lost; attackers are spawned every 0.4-2 days and sent at the convoy, and
+        // the convoy sails at a random part of its speed. Cheat: no new attackers, convoy at full speed.
+        private static readonly FieldInfo escNext = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "nextEnemySpawnTicks");
+        private static readonly FieldInfo escScale = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "velocityScale");
+        private static bool escLogged;
+        private static void EscortEasy()
+        {
+            var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
+            if (e == null) { escLogged = false; return; }
+            if (escNext != null) escNext.SetValue(e, long.MaxValue / 2);
+            if (escScale != null && (float)escScale.GetValue(e) < 1f) escScale.SetValue(e, 1f);
+            if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer, Geleit fährt volle Fahrt"); }
         }
 
         private static void Run(bool finish)
