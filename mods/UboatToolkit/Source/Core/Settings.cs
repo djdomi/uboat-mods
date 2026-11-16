@@ -259,6 +259,8 @@ namespace UboatToolkit
             Bool(QoL, "AutoVirtualShips", "Auto-Detail: bei wenig FPS ferne Schiffe nur virtuell führen (bleiben auf Karte/Sensoren, werden nicht voll berechnet)", true);
             Num(QoL, "AutoVirtualMin", "  kleinster Simulations-Abstand bei sehr wenig FPS (1 = Spiel, 0.5 = halb)", 0.5f, 0.2f, 1f, 0.1f);
             Bool(QoL, "ExplosionLimit", "Explosions-Effekte begrenzen: kleiner + höchstens x pro Sekunde (Schaden bleibt gleich)", true);
+            Num(QoL, "PhysicsHz", "Physik-Takt pro Sekunde (0 = Spiel = 75; 50 spart ein Drittel Physik-Rechenzeit)", 50f, 0f, 75f, 5f);
+            Num(QoL, "PhysicsMaxSteps", "  bei wenig FPS höchstens so viele Physik-Schritte pro Bild (Spiel = 5; weniger = flüssiger, Spiel läuft dann kurz langsamer)", 2f, 1f, 5f, 1f);
             Bool(QoL, "ExplosionAuto", "Automatische Detailstufe nach Bildrate (Explosionen + Stimmen): flüssig = voll, je weniger FPS desto sparsamer", true);
             Num(QoL, "ExplosionTargetFps", "  Ziel-FPS für die Automatik", 40, 15, 120, 5);
             Num(QoL, "ExplosionScale", "  Größe der Granaten-Explosionen (1 = Spiel)", 0.5f, 0.1f, 1f, 0.1f);
@@ -669,6 +671,7 @@ namespace UboatToolkit
             Bool(Tools, "MapPixelSample", "Karte: Pixel-Messung der Raster-Beschriftung ins Log (Kontrast, Lesbarkeit, je Stil und Ebene)", false);
             Bool(Tools, "LookoutLog", "Ausguck: ausführliches Log (Sicht, Rauch, Meldungen)", false);
             Bool(Tools, "CrewSkillLog", "Schützen/Horcher: Log", false);
+            Bool(Tools, "DiagLogs", "Fehlersuche: Crew-Logs eingeschaltet halten (Crew-KI + Offiziers-Wachen; aus = die einzelnen Schalter gelten)", true);
             Bool(Tools, "CrewAILog", "Crew-KI: ausführliches Log (große Dateien, Ordner UboatToolkit/CrewKI, ab nächstem Start)", false);
             Num(Tools, "GcSliceMs", "Speicher-Müllabfuhr: max. ms pro Bild (0 = Spielwert, kleiner = weniger Ruckler)", 0, 0, 10, 0.5f);
             Bool(Tools, "AutoCleanCache", "Cache aufräumen beim Spielstart: alte Daten-Cache, Absturzberichte, Mod-Logs (Spielstände nie)", true);
@@ -868,6 +871,9 @@ namespace UboatToolkit
                     if (o.IsBool) o.Value = (v == "1" || v == "true" || v == "on" || v == "ja") ? 1 : 0;
                     else if (float.TryParse(v.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var f)) o.Value = o.Min < 0f ? Mathf.Max(o.Min, f) : Mathf.Max(0f, f); // no upper cap: INI may go beyond the menu range
                 }
+                // 0.3.69 (DoMe 2026-11-16: "freigabe für jede log die du brauchst"): while DiagLogs is on, the crew logs
+                // needed for the open crew problems are switched on at every start.
+                if (B("DiagLogs")) { Set("CrewAILog", 1); Set("OfficerWatchLog", 1); }
                 // Write back so new settings from a mod update appear in the file.
                 Save();
             }

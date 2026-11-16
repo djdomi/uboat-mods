@@ -27,7 +27,7 @@ namespace UboatToolkit.Modules
         private static float allAt = -100f;
         private static Gun[] AllGuns()
         {
-            if (Time.unscaledTime - allAt > 10f) { all = Object.FindObjectsOfType<Gun>(); allAt = Time.unscaledTime; }
+            if (Time.unscaledTime - allAt > 30f) { all = Object.FindObjectsOfType<Gun>(); allAt = Time.unscaledTime; }
             return all;
         }
 
@@ -52,7 +52,7 @@ namespace UboatToolkit.Modules
             // guns without timer get a new one, so they never stay broken forever.
             if (Settings.B("PortDefenseDestroyable") && Time.unscaledTime >= scanAt)
             {
-                scanAt = Time.unscaledTime + 10f;
+                scanAt = Time.unscaledTime + 60f;   // 0.3.69: scene-wide search cost ~45 ms every 10 s ("Langsam: PortDefense.Tick")
                 foreach (var g in AllGuns())
                     if (IsPortGun(g) && g.Health <= 0f && !Down.ContainsKey(g))
                         Down[g] = Time.time + Settings.F("PortDefenseMinutes") * 60f;

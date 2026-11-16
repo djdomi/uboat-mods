@@ -7,22 +7,76 @@ namespace UboatToolkit.Modules
     // Below half the target FPS the catch-up per frame is limited (max. 0.1 s game time per frame); above, the game value is back.
     public class AutoDetail : ModuleBase
     {
-        private float original = -1f;
         private bool limited;
         private float nextSwitch;
+        private static UBOAT.Game.Core.Time.GameTime gameTime;
+        private static float gameStep = -1f;   // the game's own physics step (1/75 s)
+        private float nextCensus;
+
+        // 0.3.69 physics rate (DoMe: get performance out of the engine). Measured: with 48 ships the physics took
+        // 149 of 224 ms per frame. The game runs physics 75 times per second and up to 5 steps per frame.
+        // "PhysicsHz" lowers the rate through the game's own GameTime.FixedDeltaTime (50 = the step the game itself
+        // uses at 2x time compression). Only set at normal speed; time compression keeps the game's own logic.
+        public override void Tick()
+        {
+            if (gameTime == null) gameTime = Object.FindObjectOfType<UBOAT.Game.Core.Time.GameTime>();
+            if (gameTime == null) return;
+            if (gameStep < 0f) gameStep = gameTime.FixedDeltaTime;
+            float hz = Settings.F("PhysicsHz");
+            float want = hz >= 20f ? Mathf.Max(gameStep, 1f / hz) : gameStep;
+            // time compression: back to the game's own step (the game multiplies it there itself); pause: leave alone
+            if (Time.timeScale < 0.99f) return;
+            if (Time.timeScale > 1.01f) want = gameStep;
+            if (Mathf.Abs(gameTime.FixedDeltaTime - want) > 0.00001f && !SaveTools_LoadSpeedPatch.IsLoading)
+            {
+                gameTime.FixedDeltaTime = want;
+                Util.Log("Physik-Takt: " + (1f / want).ToString("0") + " pro Sekunde (Spiel: " + (1f / gameStep).ToString("0") + ")");
+            }
+            // Census for the next tuning step: what is in the physics scene when it is slow (max. every 2 min).
+            float f = ExplosionLimit_Patch.Fps();
+            if (f < Settings.F("ExplosionTargetFps") * 0.5f && Time.unscaledTime >= nextCensus && Time.timeScale > 0f)
+            {
+                nextCensus = Time.unscaledTime + 120f;
+                Util.Safe("Physik-Zählung", () => Census(f));
+            }
+        }
+
+        private static void Census(float fps)
+        {
+            int rb = 0, dyn = 0, awake = 0, col = 0, mesh = 0, concave = 0, trig = 0;
+            foreach (var r in Object.FindObjectsOfType<Rigidbody>()) { rb++; if (!r.isKinematic) { dyn++; if (!r.IsSleeping()) awake++; } }
+            foreach (var c in Object.FindObjectsOfType<Collider>())
+            {
+                col++; if (c.isTrigger) trig++;
+                var m = c as MeshCollider; if (m != null) { mesh++; if (!m.convex) concave++; }
+            }
+            int ships = Object.FindObjectsOfType<UBOAT.Game.Scene.Entities.Ship>().Length;
+            Util.Log("Physik-Zählung: FPS " + fps.ToString("0") + ", Schiffe " + ships + ", Körper " + rb + " (beweglich " + dyn + ", wach " + awake + "), Kollider " + col
+                + " (Auslöser " + trig + ", Netz " + mesh + ", davon hohl " + concave + "), Takt " + (1f / Time.fixedDeltaTime).ToString("0") + "/s, max. Schritte/Bild "
+                + (Time.maximumDeltaTime / Time.fixedDeltaTime).ToString("0.#") + ", Löser " + Physics.defaultSolverIterations + "/" + Physics.defaultSolverVelocityIterations
+                + ", autoSync " + Physics.autoSyncTransforms + ", Zeitraffer " + Time.timeScale.ToString("0.#"));
+        }
 
         public override void Frame()
         {
-            if (original < 0f) original = Time.maximumDeltaTime;
+            // 0.3.69: the old limit (0.1 s) was ABOVE the game's own value (5 steps = 0.067 s), so it never did anything.
+            // Now: while limited, at most "PhysicsMaxSteps" physics steps per frame (the game re-sets its value on
+            // every speed change, so this is checked every frame).
+            if (limited)
+            {
+                float cap = Time.fixedDeltaTime * Mathf.Clamp(Settings.F("PhysicsMaxSteps"), 1f, 5f);
+                if (Time.maximumDeltaTime > cap + 0.00001f) Time.maximumDeltaTime = cap;
+            }
             // Hysteresis: limit below 50 % of target FPS, release only above 70 %, and switch at most every 10 s.
             float f = ExplosionLimit_Patch.Fps(), target = Settings.F("ExplosionTargetFps");
             bool want = Settings.B("ExplosionAuto") && (limited ? f < target * 0.7f : f < target * 0.5f);
             if (want == limited || Time.unscaledTime < nextSwitch) return;
             nextSwitch = Time.unscaledTime + 10f;
             limited = want;
-            Time.maximumDeltaTime = want ? Mathf.Min(original, 0.1f) : original;
+            // release: the game's own setter recalculates step + catch-up limit for the current speed
+            if (!want && gameTime != null) gameTime.FixedDeltaTime = gameTime.FixedDeltaTime;
             ToolkitRunner.ShowNotice(want ? "Auto-Detail: viel los (" + Mathf.RoundToInt(f) + " FPS) - Effekte, Stimmen + Physik werden gespart" : "Auto-Detail: wieder volle Details", 4f);
-            Util.Log("Auto-Detail: Physik-Aufholen " + (want ? "begrenzt (0,1 s pro Bild)" : "normal (" + original.ToString("0.00") + " s)"));
+            Util.Log("Auto-Detail: Physik-Aufholen " + (want ? "begrenzt (" + Settings.F("PhysicsMaxSteps").ToString("0") + " Schritte pro Bild)" : "normal (5 Schritte)"));
         }
     }
 }

@@ -12,6 +12,7 @@ namespace UboatToolkit.Modules
     public class Inventory : ModuleBase
     {
         private float next, nextMerge;
+        private string lastState = "";
 
         // Same items in several slots of one storage are put together into one stack
         // (e.g. medkits bought as 5-packs). No reordering, slots with open loading orders are left alone.
@@ -86,12 +87,17 @@ namespace UboatToolkit.Modules
 
         public override void Tick()
         {
-            if (Time.unscaledTime < next) return;
-            next = Time.unscaledTime + 5.3f;
             var ship = Util.PlayerShip;
+            if (ship == null) return;
             bool noWeight = Settings.B("CheatNoWeight");
             float stack = Mathf.Max(1f, Settings.F("CheatStackSize"));
             float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
+            // 0.3.69 ("Langsam: Inventory.Tick ~48 ms" every 5 s): the full pass over all storages and items now runs
+            // at once when a setting changed, otherwise only every 20 s. New items get their stack size right away (ApplyStack).
+            string state = noWeight + "/" + stack + "/" + minStack + "/" + Settings.F("CheatShopStock") + "/" + Settings.B("CheatMergeStacks") + "/" + ship.Docked;
+            if (state == lastState && Time.unscaledTime < next) return;
+            next = Time.unscaledTime + (state != lastState ? 2f : 20f);
+            lastState = state;
 
             foreach (var s in Util.Find<Storage>())
             {

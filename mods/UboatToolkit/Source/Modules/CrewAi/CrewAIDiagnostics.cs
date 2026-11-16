@@ -100,6 +100,7 @@ namespace UboatToolkit.Modules.CrewAi
     internal static class DiagLog
     {
         private static StreamWriter _writer;
+        private static bool _open;
         private static readonly object _lock = new object();
         public static string LogPath { get; private set; }
 
@@ -118,6 +119,7 @@ namespace UboatToolkit.Modules.CrewAi
                 if (!DiagToggles.Verbose) PruneOldLogs(dir);
                 LogPath = Path.Combine(dir, "crew_ai_log_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt");
                 _writer = new StreamWriter(LogPath, false, Encoding.UTF8) { AutoFlush = true };
+                _writer.Dispose(); _writer = null; _open = true;   // file created; lines go through the background writer
             }
             catch (Exception e)
             {
@@ -162,9 +164,9 @@ namespace UboatToolkit.Modules.CrewAi
             {
                 try
                 {
-                    if (_writer == null) return;
-                    _writer.WriteLine("[gt=" + Time.time.ToString("F2") +
-                                      " rt=" + Time.unscaledTime.ToString("F2") + "] " + line);
+                    if (!_open) return;
+                    UboatToolkit.BgFile.Append(LogPath, "[gt=" + Time.time.ToString("F2") +
+                                      " rt=" + Time.unscaledTime.ToString("F2") + "] " + line + "\r\n");
                 }
                 catch { /* never let logging crash the game */ }
             }

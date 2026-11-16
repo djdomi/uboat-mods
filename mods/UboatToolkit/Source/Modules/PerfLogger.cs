@@ -46,7 +46,7 @@ namespace UboatToolkit.Modules
                 if (written > MaxBytes) return;
                 string line = DateTime.Now.ToString("HH:mm:ss.fff") + ";" + Time.realtimeSinceStartup.ToString("0.00", CultureInfo.InvariantCulture) + ";" + kind + ";" + a + ";" + b + ";" + c + "\n";
                 written += line.Length;
-                File.AppendAllText(file, line);
+                BgFile.Append(file, line);
             }
             catch (Exception e) { Util.Log("logger: " + e.Message); }
         }

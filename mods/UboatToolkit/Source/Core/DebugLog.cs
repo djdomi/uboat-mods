@@ -13,6 +13,7 @@ namespace UboatToolkit
         private const long MaxBytes = 20L * 1024 * 1024;
         private static string path;
         private static bool full;
+        private static long size = -1;
 
         private static bool On => Settings.Get("DebugLog") == null || Settings.B("DebugLog");
 
@@ -27,8 +28,12 @@ namespace UboatToolkit
                     Directory.CreateDirectory(dir);
                     path = Path.Combine(dir, "toolkit-" + DateTime.Now.ToString("yyyy-MM-dd") + ".log");
                 }
-                if (File.Exists(path) && new FileInfo(path).Length > MaxBytes) { full = true; return; }
-                File.AppendAllText(path, DateTime.Now.ToString("HH:mm:ss") + " [" + level + "] " + text + "\n");
+                // size check once at start, then counted here: no file access on the game's main thread
+                if (size < 0) size = File.Exists(path) ? new FileInfo(path).Length : 0;
+                if (size > MaxBytes) { full = true; return; }
+                string line = DateTime.Now.ToString("HH:mm:ss") + " [" + level + "] " + text + "\n";
+                size += line.Length;
+                BgFile.Append(path, line);
             }
             catch { /* logging must never break the game */ }
         }
