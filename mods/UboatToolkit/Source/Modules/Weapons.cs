@@ -153,6 +153,29 @@ namespace UboatToolkit.Modules
         }
     }
 
+    // 0.3.89 (DoMe 2026-11-16: "Hafenverteidigung hat immer noch hohe Mündungsgeschwindigkeit, Geschosse pfeilgerade").
+    // The code check found no place where the Toolkit changes enemy guns, so every enemy gun is now measured at its
+    // first shot (game value and value in use go to the log), and its muzzle velocity can be lowered in % of the game
+    // value. The gun aims with the same value, so a slower shell flies a higher arc and takes longer.
+    [HarmonyPatch(typeof(Gun), "Fire")]
+    internal static class Weapons_EnemyFirePatch
+    {
+        private static readonly HashSet<string> seen = new HashSet<string>();
+        private static void Prefix(Gun __instance)
+        {
+            if (__instance == null || Util.IsPlayers(__instance) || !EnemyGunnery.InScope(__instance.ParentEntity)) return;
+            float game = Util.Original<float>(__instance, "shellSpeed");
+            float now = Traverse.Create(__instance).Field("shellSpeed").GetValue<float>();
+            float pct = Mathf.Clamp(Settings.F("EnemyShellSpeedPct"), 20f, 100f);
+            float want = game * pct / 100f;
+            if (Mathf.Abs(now - want) > 0.01f) Util.SetField(__instance, "shellSpeed", want);
+            string key = __instance.name + "/" + (__instance.ParentEntity != null ? __instance.ParentEntity.name : "?");
+            if (seen.Count < 200 && seen.Add(key))
+                Util.Log("Gegner-Geschütz: " + key + " Spielwert " + game.ToString("0") + " m/s, vor dem Schuss " + now.ToString("0") + " m/s, jetzt " + want.ToString("0")
+                    + " m/s, Treffsicherheit " + __instance.CurrentAccuracy.ToString("0.00"));
+        }
+    }
+
     // Runs around every shot of a player gun: better accuracy, and marks the shot for the sound limit.
     [HarmonyPatch(typeof(Gun), "Fire")]
     internal static class Weapons_FirePatch

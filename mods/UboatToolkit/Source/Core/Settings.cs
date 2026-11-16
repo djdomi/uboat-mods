@@ -237,6 +237,7 @@ namespace UboatToolkit
             Num(QoL, "DgsNpcSpread", "  Feind-Kanonen: Streuung in % (100 = Spiel)", 200, 100, 500, 25);
             Num(QoL, "DgsNpcFloor", "  Feind-Kanonen: kleinster Fehlschuss (m pro km)", 4, 0, 20, 1);
             Num(QoL, "DgsNpcRanging", "  Feind-Kanonen: Einschießen in % (100 = Spiel)", 50, 10, 100, 5);
+            Num(QoL, "EnemyShellSpeedPct", "  Feind-Kanonen: Mündungsgeschwindigkeit in % vom Spielwert (100 = Spiel)", 100, 20, 100, 5);
             Bool(QoL, "DgsNpcEvenOut", "  C3 und Tanker schießen sich ein wie andere Frachter", true);
             Bool(QoL, "DgsNpcWarships", "  Feind-Einstellungen auch für Kriegsschiffe", false);
             Bool(QoL, "DgsKnockout", "  eigene Granaten können Feind-Kanonen ausschalten", true);
