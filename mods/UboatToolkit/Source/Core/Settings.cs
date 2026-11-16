@@ -15,6 +15,13 @@ namespace UboatToolkit
         public string Text = "";
         public float Value, Default, Min, Max, Step;
         public bool On => Value > 0.5f;
+        // 0.3.75 menu: sub-topic inside the topic, the main switch a fine setting belongs to, its fine settings,
+        // and (for settings with only a few values) the names of the values, e.g. 0 = aus, 1 = fragen.
+        public string Sub = "";
+        public Opt Parent;
+        public readonly List<Opt> Children = new List<Opt>();
+        public string[] ChoiceNames;
+        public string SearchText;
     }
 
     // All settings of the mod. Stored in UboatToolkit.ini (optional; defaults are used without it).
@@ -753,7 +760,94 @@ namespace UboatToolkit
         private static void Add(Opt o)
         {
             o.Group = GroupOf(o);
+            if (!o.IsKey)
+            {
+                if (o.Label.StartsWith(" ") && lastMain != null && lastMain.Tab == o.Tab) { o.Parent = lastMain; o.Sub = lastMain.Sub; lastMain.Children.Add(o); }
+                else { o.Sub = SubOf(o); lastMain = o; }
+            }
             All.Add(o); byKey[o.Key] = o;
+        }
+        private static Opt lastMain;
+
+        // Sub-topics (DoMe 2026-11-16: "gleichgeartetes soll gleich sein"): things of one kind stand together under one
+        // headline inside the topic. First matching key prefix wins; no match = "Allgemein".
+        private static readonly string[][] subRules =
+        {
+            new[] { "Gesundheit & Moral", "AutoFirstAid", "NoAutoCarry", "CheatImmortal", "CheatCrewProtection", "NoStress", "CheatFullDiscipline", "CheatCrewNeverTired", "HotBunk", "FoodByCrew", "AutoDamageControl", "LeakTwoSailors" },
+            new[] { "88mm", "DeckGun" },
+            new[] { "Flak", "AAGun", "AASaveAmmo", "AAvsShips" },
+            new[] { "KI-Schützen", "Gunner", "GunGyro", "KeepGunMode", "CheatPerfectAim" },
+            new[] { "Torpedos", "Torpedo", "EasyTDC", "TubeDisplay", "CheatInfiniteTorpedoes", "CheatNoDuds", "CheatTorpedoSpeed", "CheatRemoteTorpedo", "CheatExactTargets", "PortT5Min" },
+            new[] { "Funk", "Radio", "CheatRadio" },
+            new[] { "Sehrohr & Optik", "Optics", "Periscope", "Reticle", "ScopeRemember", "NightOptics", "CheatPeriscope" },
+            new[] { "Horcher & Sonar", "Horcher", "ActiveSonar", "CheatHydrophone", "CheatSonar", "CheatSensor" },
+            new[] { "Licht & Helligkeit", "AutoLight", "AutoSearchlight", "NightBright", "InteriorBright", "MuteLightCallouts" },
+            new[] { "Zeitraffer", "StopTime", "AntiGrounding" },
+            new[] { "Karte", "Map", "NavInfo", "SeafloorAlways", "SeaFloorAlways" },
+            new[] { "Tauchen & Tiefe", "Ballast", "AutoDepth", "Depth", "DiveAngle", "AutoCrashDive", "AutoSnorkel", "SeaLayer", "DiveSpeed" },
+            new[] { "Pumpen & Wasser", "AutoPump", "CheatPump", "CheatNeverFlood" },
+            new[] { "Diesel, Strom & Luft", "CheatFull", "EnergySaver", "AirByCrew", "LowWarn", "Rebreather", "Ventilation" },
+            new[] { "Luken", "AutoHatches", "HatchPressure", "FastHatch" },
+            new[] { "Rumpf & Schaden", "CheatDeepDive", "CheatNoHull", "CheatHullArmour", "CheatRepair", "DamageReport" },
+            new[] { "Stationen besetzen", "AutoMan", "KeepDepthStation", "KeepNavTable", "SailorsNavTable", "AwashGuns", "EchoSailor" },
+            new[] { "Offiziere", "Follower", "MaxFollowers", "Officer", "CheatExtraSkill", "CheatUnlimitedSkill", "CheatSkills", "CheatAllSkills", "CheatLinguist", "ExtraOfficers", "CheatSpecPoints" },
+            new[] { "Crew-KI", "CrewAI", "CrewAi", "CrewLod", "NoCrewCollisions" },
+            new[] { "Lager", "AutoWorkshop", "TightPack", "CheatNoSupply", "CheatNoWeight", "AutoExpandStorage", "CheatStack" },
+            new[] { "Geld & Forschung", "CheatMoney", "CheatReputation", "CheatPrice", "CheatResearch", "CheatInstantResearch", "CheatNoResearch" },
+            new[] { "Hafen", "Port", "Boarding", "InstantPort", "LeavePort" },
+            new[] { "Laden & Speichern", "AutoSave", "FastLoad", "SaveGroup", "QuitWaits", "SkipStartup", "BackupBefore" },
+            new[] { "Leistung", "AutoVirtual", "Explosion", "Physics", "VoiceLimit" },
+            new[] { "Kamera", "Cam", "NoEdge", "StationZoom", "NoPauseBlur" },
+            new[] { "Fehlerschutz", "Guard" },
+            new[] { "Fixes für andere Mods", "FixSupplyPrice", "FixUniform", "FixBifrost", "FixMissingWearables" },
+        };
+        private static string SubOf(Opt o)
+        {
+            if (o.Tab != QoL && o.Tab != Cheat) return "";
+            foreach (var r in subRules)
+                for (int j = 1; j < r.Length; j++)
+                    if (o.Key.StartsWith(r[j], StringComparison.Ordinal)) return r[0];
+            return "Allgemein";
+        }
+
+        // Search text: lower case, umlauts spelled out, so "geschuetz", "Geschütz" and "GESCHÜTZ" all match.
+        public static string Norm(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            return s.ToLowerInvariant().Replace("ä", "ae").Replace("ö", "oe").Replace("ü", "ue").Replace("ß", "ss");
+        }
+        public static string SearchTextOf(Opt o)
+        {
+            if (o.SearchText == null)
+                o.SearchText = Norm(o.Label + " " + Lang.T(o.Label) + " " + o.Key + " " + o.Group + " " + o.Sub + " " + o.Tab
+                    + (o.Parent != null ? " " + o.Parent.Label + " " + Lang.T(o.Parent.Label) : "") + (o.Tab == Cheat ? " cheat" : "") + (o.IsKey ? " taste" : ""));
+            return o.SearchText;
+        }
+
+        // Names for settings with a few fixed values, read from the label: "0 aus, 1 fragen" or "(0 = aus, 1 = an)".
+        private static readonly System.Text.RegularExpressions.Regex choiceRx = new System.Text.RegularExpressions.Regex(@"(?<![\d.,])(\d)\s*=?\s*([^\d,;()=][^,;()=]*)");
+        public static string[] Choices(Opt o)
+        {
+            if (o.ChoiceNames != null) return o.ChoiceNames;
+            int n = o.Step > 0 ? Mathf.RoundToInt((o.Max - o.Min) / o.Step) + 1 : 0;
+            if (o.IsBool || o.IsKey || n < 2 || n > 6 || Mathf.Abs(o.Step - Mathf.Round(o.Step)) > 0.001f) return o.ChoiceNames = new string[0];
+            var names = new string[n];
+            int named = 0;
+            foreach (System.Text.RegularExpressions.Match m in choiceRx.Matches(o.Label))
+            {
+                int v = m.Groups[1].Value[0] - '0';
+                int i = Mathf.RoundToInt((v - o.Min) / o.Step);
+                string t = m.Groups[2].Value.Trim().Trim('"', '„', '“');
+                if (i < 0 || i >= n || names[i] != null || t.Length == 0) continue;
+                if (t.Length > 16) t = t.Substring(0, 15) + "…";
+                names[i] = t; named++;
+            }
+            for (int i = 0; i < n; i++)
+            {
+                string num = (o.Min + i * o.Step).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                names[i] = named >= 2 && names[i] != null ? num + " " + names[i] : num;
+            }
+            return o.ChoiceNames = names;
         }
 
         // Groups for the F10 menu (QoL + Cheat tabs). Sub-options (label starts with spaces) stay in
@@ -791,6 +885,9 @@ namespace UboatToolkit
             { "NoShellPush", GWeap }, { "AwashGuns", GWeap }, { "CheatRemoteTorpedo", GWeap }, { "CheatOwnShellsSafe", GWeap }, { "CheatExactTargets", GWeap },
             { "HideDevConsole", GView }, { "DevConsole", GView }, { "CamOrbitUnderwater", GView }, { "Speedometer", GView },
             { "SeafloorAlways", GNav }, { "CheatLinguist", GCrew }, { "CheatNoSupplyUse", GPort },
+            // 0.3.75: all "station is manned automatically" switches in one place, smoke with the guns
+            { "AutoManGuns", GCrew }, { "AutoManRadio", GCrew }, { "AutoManEngines", GCrew }, { "AutoManHydrophone", GCrew },
+            { "GunSmokeOff", GWeap }, { "SeaFloorAlways", GNav }, { "MuteLightCallouts", GSens }, { "FastHatch", GBoat },
         };
         // Keys: topic by key-name prefix (longest match first in this order).
         private static readonly string[][] keyGroups =

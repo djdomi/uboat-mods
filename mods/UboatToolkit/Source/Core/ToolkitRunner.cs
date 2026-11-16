@@ -213,27 +213,117 @@ namespace UboatToolkit
         private readonly Dictionary<string, string> placeHome = new Dictionary<string, string>(), placeGroup = new Dictionary<string, string>();
         private readonly HashSet<string> openGroups = new HashSet<string>();
 
+        private readonly HashSet<string> openOpts = new HashSet<string>();
+        private const string CheatsTab = "Cheats";
+
+        // One row per setting (0.3.75, DoMe: sliders for 0/1/2 waste space):
+        // on/off = tick box; a few fixed values = one button per value; a real range = name + value, then [-] slider [+].
         private void DrawOpt(Opt o)
         {
-                if (o.IsKey)
+            float W = Mathf.Max(420f, MenuRect().width - 70);
+            if (o.IsKey)
+            {
+                Imgui.BeginH();
+                Imgui.Label(o.Label + ":  " + (string.IsNullOrEmpty(o.Text) ? "(keine)" : o.Text), W * 0.6f);
+                if (Imgui.Button(Keys.Capturing == o ? "Taste drücken ... (Esc = Abbruch, Rück = keine)" : "Ändern", 200)) { Keys.Capturing = o; Imgui.ClearFocus(); }
+                Imgui.EndH();
+                return;
+            }
+            if (o.IsBool) { o.Value = Imgui.Toggle(o.On, " " + o.Label) ? 1 : 0; return; }
+            var names = Settings.Choices(o);
+            float cur = Mathf.Clamp(o.Value, o.Min, o.Max);
+            Imgui.BeginH();
+            if (names.Length > 0)
+            {
+                Imgui.Label(o.Label, W * 0.5f);
+                float bw = Mathf.Min(150f, (W * 0.5f - 10f) / names.Length - 4f);
+                for (int i = 0; i < names.Length; i++)
                 {
-                    Imgui.BeginH();
-                    Imgui.Label(o.Label + ":  " + (string.IsNullOrEmpty(o.Text) ? "(keine)" : o.Text), 450);
-                    if (Imgui.Button(Keys.Capturing == o ? "Taste drücken ... (Esc = Abbruch, Rück = keine)" : "Ändern", 200)) { Keys.Capturing = o; Imgui.ClearFocus(); }
-                    Imgui.EndH();
+                    float v = o.Min + i * o.Step;
+                    bool sel = Mathf.Abs(cur - v) < o.Step * 0.5f;
+                    if (Imgui.Button((sel ? "● " : "") + names[i], bw) && !sel) o.Value = v;
                 }
-                else if (o.IsBool)
+            }
+            else
+            {
+                Imgui.Label(o.Label + ":  " + o.Value.ToString("0.##", CultureInfo.InvariantCulture), W * 0.5f);
+                float step = o.Step > 0 ? o.Step : (o.Max - o.Min) / 100f;
+                float v = cur;
+                if (Imgui.Button("−", 28)) v = Mathf.Max(o.Min, cur - step);
+                float sl = Imgui.Slider(v, o.Min, o.Max, Mathf.Max(120f, W * 0.5f - 80f));
+                if (Mathf.Abs(sl - v) > 0.0001f) v = sl;
+                if (Imgui.Button("+", 28)) v = Mathf.Min(o.Max, v + step);
+                if (o.Step > 0) v = o.Min + Mathf.Round((v - o.Min) / o.Step) * o.Step;
+                if (Mathf.Abs(v - cur) > 0.0001f) o.Value = v;
+            }
+            Imgui.EndH();
+        }
+
+        // A main switch with its fine settings folded in ("▸ 5 Feinwerte"). With "nur geänderte" the changed ones show directly.
+        private void DrawBlock(Opt o)
+        {
+            if (!onlyChanged || Settings.Changed(o)) DrawOpt(o);
+            if (o.Children.Count == 0) return;
+            if (onlyChanged) { foreach (var c in o.Children) if (Settings.Changed(c)) DrawOpt(c); return; }
+            bool open = openOpts.Contains(o.Key);
+            int ch = 0; foreach (var c in o.Children) if (Settings.Changed(c)) ch++;
+            Imgui.BeginH();
+            Imgui.Space(24);
+            if (Imgui.Button((open ? "▾ " : "▸ ") + o.Children.Count + (o.Children.Count == 1 ? " Feinwert" : " Feinwerte") + (ch > 0 ? "  (" + ch + " geändert)" : ""), 230))
+            { if (open) openOpts.Remove(o.Key); else openOpts.Add(o.Key); open = !open; }
+            Imgui.EndH();
+            if (open) { foreach (var c in o.Children) DrawOpt(c); Imgui.Space(4); }
+        }
+
+        // One tab = one kind (comfort or cheats). Topics fold; inside a topic the sub-topics stand under headlines,
+        // "Allgemein" first, the rest in the order they are defined. Keys of the topic follow at the end (comfort tab only).
+        private void DrawTopics(string kind)
+        {
+            float W = Mathf.Max(300f, MenuRect().width - 60);
+            foreach (var g in Settings.GroupOrder)
+            {
+                int count = 0, changed = 0;
+                foreach (var x in Settings.All)
                 {
-                    o.Value = Imgui.Toggle(o.On, " " + o.Label) ? 1 : 0;
+                    if (x.Group != g || !(x.Tab == kind || (x.IsKey && kind == Settings.QoL))) continue;
+                    bool c = Settings.Changed(x);
+                    if (onlyChanged && !c) continue;
+                    count++; if (c) changed++;
                 }
-                else
+                if (count == 0) continue;
+                string gk = kind + "/" + g;
+                bool open = openGroups.Contains(gk) || openGroups.Contains(g);
+                if (Imgui.Button((open ? "▼  " : "▶  ") + g + "   (" + count + (changed > 0 ? ", " + changed + " geändert" : "") + ")", W))
+                { if (open) { openGroups.Remove(gk); openGroups.Remove(g); } else openGroups.Add(gk); open = !open; }
+                if (!open) continue;
+                var subs = new List<string>();
+                foreach (var x in Settings.All)
+                    if (x.Group == g && x.Tab == kind && x.Parent == null && !subs.Contains(x.Sub)) subs.Add(x.Sub);
+                if (subs.Remove("Allgemein")) subs.Insert(0, "Allgemein");
+                foreach (var sname in subs)
                 {
-                    Imgui.Label(o.Label + ":  " + o.Value.ToString("0.##", CultureInfo.InvariantCulture));
-                    float v = Imgui.Slider(Mathf.Clamp(o.Value, o.Min, o.Max), o.Min, o.Max, Mathf.Max(200f, MenuRect().width - 120));
-                    if (o.Step > 0) v = Mathf.Round(v / o.Step) * o.Step;
-                    if (Mathf.Abs(v - Mathf.Clamp(o.Value, o.Min, o.Max)) > 0.0001f) o.Value = v;
-                }
+                    bool head = false;
+                    foreach (var x in Settings.All)
+                    {
+                        if (x.Group != g || x.Tab != kind || x.Parent != null || x.Sub != sname) continue;
+                        if (onlyChanged && !Settings.Changed(x) && !x.Children.Any(Settings.Changed)) continue;
+                        if (!head && subs.Count > 1) { head = true; Imgui.Space(6); Imgui.Label("——  " + sname + "  ——"); }
+                        DrawBlock(x);
                     }
+                }
+                if (kind == Settings.QoL)
+                {
+                    bool kh = false;
+                    foreach (var x in Settings.All)
+                    {
+                        if (!x.IsKey || x.Group != g) continue;
+                        if (!kh) { kh = true; Imgui.Space(6); Imgui.Label("——  Tasten  ——"); }
+                        DrawOpt(x);
+                    }
+                }
+                Imgui.Space(8);
+            }
+        }
 
         private void DrawGui()
         {
@@ -264,7 +354,7 @@ namespace UboatToolkit
             Imgui.TextAt(new Rect(r.xMax - 18, r.yMax - 20, 16, 18), "◢");
             Imgui.BeginArea(new Rect(r.x + 10, r.y + 28, r.width - 20, r.height - 38));
             // tabs: as wide as fits, second row when the window is narrow
-            var tabList = new List<string> { Settings.Topics, "Crew", "Torpedos", "Karte", "Licht", "Schaden" };
+            var tabList = new List<string> { Settings.Topics, CheatsTab, "Crew", "Torpedos", "Karte", "Licht", "Schaden" };
             if (!Util.WarthogModPresent) tabList.Add(UboatToolkit.Modules.Warthog.WarthogSettings.Tab);
             foreach (var kv in AddonTabs.Tabs) if (!tabList.Contains(kv.Key)) tabList.Add(kv.Key);
             tabList.Add(Settings.KeysTab); tabList.Add(Settings.Tools);
@@ -288,7 +378,7 @@ namespace UboatToolkit
             onlyChanged = Imgui.Toggle(onlyChanged, " nur geänderte zeigen");
             searchThisTab = Imgui.Toggle(searchThisTab, " Suche nur in diesem Reiter");
             if (Imgui.Button("alle auf", 90)) foreach (var g in Settings.GroupOrder) openGroups.Add(g);
-            if (Imgui.Button("alle zu", 90)) openGroups.Clear();
+            if (Imgui.Button("alle zu", 90)) { openGroups.Clear(); openOpts.Clear(); }
             Imgui.EndH();
             scroll = Imgui.BeginScroll(scroll);
             if (tab == "Crew") UboatToolkit.Modules.ExtraFeatures.DrawCrewTab();
@@ -303,18 +393,24 @@ namespace UboatToolkit
             {
                 // 0.3.66 (DoMe: search hits cannot be told apart, clicking a tab does not filter): hits are sorted into
                 // sections "tab / topic" with a headline each; "nur dieser Reiter" limits the hits to the tab clicked above.
-                string q = search.Trim().ToLowerInvariant();
+                // 0.3.75 better search: several words (all must match), umlauts and case do not matter, the topic, sub-topic
+                // and the main switch of a fine setting are searched too ("flak schaden", "88 rauch", "cheat torpedo").
+                var words = Settings.Norm(search).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                Opt lastParent = null;
                 int hits = 0;
                 string lastPlace = null;
                 var found = new List<KeyValuePair<string, Opt>>();
                 foreach (var o in Settings.All)
                 {
-                    if (!(o.Label + " " + Lang.T(o.Label) + " " + o.Key).ToLowerInvariant().Contains(q)) continue;
+                    string hay = Settings.SearchTextOf(o);
+                    bool all = true;
+                    foreach (var w in words) if (!hay.Contains(w)) { all = false; break; }
+                    if (!all) continue;
                     if (onlyChanged && !Settings.Changed(o)) continue;
                     bool topic = o.Group != "" && (o.Tab == Settings.QoL || o.Tab == Settings.Cheat || o.IsKey);
-                    string home = topic ? Settings.Topics : o.Tab;
+                    string home = topic ? (o.Tab == Settings.Cheat ? CheatsTab : Settings.Topics) : o.Tab;
                     if (searchThisTab && home != tab && !(o.IsKey && tab == Settings.KeysTab)) continue;
-                    string place = topic ? Settings.Topics + "  >  " + o.Group + (o.Tab == Settings.Cheat ? "  >  Cheats" : o.IsKey ? "  >  Tasten" : "") : "Reiter " + o.Tab;
+                    string place = topic ? home + "  >  " + o.Group + (o.IsKey ? "  >  Tasten" : o.Sub != "" && o.Sub != "Allgemein" ? "  >  " + o.Sub : "") : "Reiter " + o.Tab;
                     found.Add(new KeyValuePair<string, Opt>(place, o));
                     placeHome[place] = home; placeGroup[place] = topic ? o.Group : "";
                 }
@@ -328,37 +424,23 @@ namespace UboatToolkit
                         {
                             tab = placeHome[kv.Key];
                             if (placeGroup[kv.Key] != "") openGroups.Add(placeGroup[kv.Key]);
+                            if (kv.Value.Parent != null) openOpts.Add(kv.Value.Parent.Key);
                             search = ""; scroll = Vector2.zero;
                             break;
                         }
+                        lastParent = null;
                     }
+                    // a fine setting says which main switch it belongs to
+                    if (kv.Value.Parent != null && kv.Value.Parent != lastParent) { lastParent = kv.Value.Parent; Imgui.Label("   gehört zu: " + kv.Value.Parent.Label.Trim()); }
                     DrawOpt(kv.Value);
                     hits++;
                 }
                 if (hits == 0) Imgui.Label("Nichts gefunden.");
             }
-            else if (tab == Settings.Topics)
-            {
-                // 0.3.65: one place per topic. Each topic shows its comfort options, then its cheats, then its keys.
-                foreach (var g in Settings.GroupOrder)
-                {
-                    var list = Settings.All.Where(x => x.Group == g && (x.Tab == Settings.QoL || x.Tab == Settings.Cheat || x.IsKey) && (!onlyChanged || Settings.Changed(x))).ToList();
-                    if (list.Count == 0) continue;
-                    bool open = openGroups.Contains(g);
-                    int changed = list.Count(Settings.Changed);
-                    if (Imgui.Button((open ? "▼  " : "▶  ") + g + "   (" + list.Count + " Einstellungen" + (changed > 0 ? ", " + changed + " geändert" : "") + ")", Mathf.Max(300f, MenuRect().width - 60)))
-                    { if (open) openGroups.Remove(g); else openGroups.Add(g); }
-                    if (!open) continue;
-                    foreach (var o in list) if (o.Tab == Settings.QoL) DrawOpt(o);
-                    if (list.Any(x => x.Tab == Settings.Cheat)) { Imgui.Space(6); Imgui.Label("— Cheats: " + g + " —"); }
-                    foreach (var o in list) if (o.Tab == Settings.Cheat) DrawOpt(o);
-                    if (list.Any(x => x.IsKey)) { Imgui.Space(6); Imgui.Label("— Tasten: " + g + " —"); }
-                    foreach (var o in list) if (o.IsKey) DrawOpt(o);
-                    Imgui.Space(8);
-                }
-            }
+            else if (tab == Settings.Topics) DrawTopics(Settings.QoL);
+            else if (tab == CheatsTab) DrawTopics(Settings.Cheat);
             else
-                foreach (var o in Settings.All.Where(x => x.Tab == tab && (!onlyChanged || Settings.Changed(x)))) DrawOpt(o);
+                foreach (var o in Settings.All) if (o.Tab == tab && o.Parent == null) DrawBlock(o);
             Imgui.EndScroll();
             Imgui.BeginH();
             if (Imgui.Button("Speichern", 150)) Settings.Save();
