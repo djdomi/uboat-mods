@@ -226,7 +226,7 @@ namespace UboatToolkit.Modules.Warthog
             // forces at the thruster tunnels (same height as the centre of mass: no extra roll)
             rb.AddForceAtPosition(t.right * (f * bow * k), com + t.forward * Arm, ForceMode.Force);
             rb.AddForceAtPosition(t.right * (f * stern * k), com - t.forward * Arm, ForceMode.Force);
-            SetEnergy(ship, (Mathf.Abs(bow) + Mathf.Abs(stern)) * 0.5f * Settings.F("WhThrusterEnergy") * 0.0000033f)   // 0.3.62 (DoMe: expected about 1/min, not 30): 30x less;
+            SetEnergy(ship, (Mathf.Abs(bow) + Mathf.Abs(stern)) * 0.5f * Settings.F("WhThrusterEnergy") * 0.0000033f);   // 0.3.62 (DoMe: expected about 1/min, not 30): 30x less
         }
 
         // Our 4 visible propellers (WH_Prop_* hubs + WH_Blade_* blades in the hull model) are static meshes; the game's
