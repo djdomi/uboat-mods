@@ -214,7 +214,7 @@ namespace UboatToolkit
         private readonly HashSet<string> openGroups = new HashSet<string>();
 
         private readonly HashSet<string> openOpts = new HashSet<string>();
-        private const string CheatsTab = "Cheats";
+        private string pendingTab;
 
         // One row per setting (0.3.75, DoMe: sliders for 0/1/2 waste space):
         // on/off = tick box; a few fixed values = one button per value; a real range = name + value, then [-] slider [+].
@@ -398,6 +398,8 @@ namespace UboatToolkit
             if (!menuOpen) return;
             DragMenu();
 
+            // a tab change takes effect at the start of the next GUI event (always a layout pass), never in the middle of one
+            if (pendingTab != null) { tab = pendingTab; pendingTab = null; scroll = Vector2.zero; }
             var r = MenuRect();
             Imgui.Backdrop(r, Settings.F("MenuOpacity"));
             Imgui.Box(r, "UBOAT Toolkit  (F10 schließt, Titel ziehen = verschieben, Ecke unten rechts = Größe)");
@@ -417,7 +419,7 @@ namespace UboatToolkit
             {
                 Imgui.BeginH();
                 for (int j = i; j < Mathf.Min(i + perRow, tabs.Length); j++)
-                    if (Imgui.Button((tabs[j] == tab ? "● " : "") + Short(tabs[j]), tw)) { tab = tabs[j]; scroll = Vector2.zero; }
+                    if (Imgui.Button((tabs[j] == tab ? "● " : "") + Short(tabs[j]), tw)) { pendingTab = tabs[j]; }
                 Imgui.EndH();
             }
             Imgui.Space(6);
@@ -471,8 +473,8 @@ namespace UboatToolkit
                         // click on the headline = jump to that place in the menu
                         if (Imgui.Button("▶  " + kv.Key + "   (klicken = dorthin springen)", Mathf.Max(300f, MenuRect().width - 60)))
                         {
-                            tab = placeHome[kv.Key];
-                            if (placeGroup[kv.Key] != "") pageOf[tab] = placeGroup[kv.Key];
+                            pendingTab = placeHome[kv.Key];
+                            if (placeGroup[kv.Key] != "") pageOf[pendingTab] = placeGroup[kv.Key];
                             openGroups.Add(kv.Value.Tab + "/" + kv.Value.Group + "/" + kv.Value.Sub);
                             if (kv.Value.Parent != null) openOpts.Add(kv.Value.Parent.Key);
                             search = ""; scroll = Vector2.zero;
