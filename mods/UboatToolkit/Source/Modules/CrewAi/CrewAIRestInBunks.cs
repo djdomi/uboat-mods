@@ -319,6 +319,9 @@ namespace UboatToolkit.Modules.CrewAi
             {
                 Bed bed = _ship.FindFreeBed(c.Navigator, true, false);
                 if (bed == null) { OptCounters.RestNoBunk++; return false; }
+                // 0.3.64 (DoMe: a sailor crossed the whole boat again and again): an idle man only lies down in a bunk
+                // close by (15 m). No near bunk = he stays where he is instead of walking through every room.
+                if ((bed.transform.position - c.transform.position).sqrMagnitude > 15f * 15f) { OptCounters.RestNoBunk++; return false; }
 
                 CompoundBehaviour beh = c.Use(bed, RestToggles.RestProfit, null, SlotUsageFlags.None, false);
                 if (beh == null)
