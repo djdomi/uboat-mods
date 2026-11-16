@@ -52,8 +52,61 @@ namespace UboatToolkit.Modules
         private static bool Prefix(ref bool __result)
         {
             if (!Settings.B("AchievementsOn")) return true;
-            __result = false;
+            // While the console runs a command it must see "already locked", else it asks for the confirmation again
+            // and again and never runs the command (DoMe 2026-11-16). The save's real flag stays untouched.
+            __result = AchievementTools_ConsolePatch.InSubmit;
             return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.UI.DevConsole.DevConsole), "Submit", new[] { typeof(string), typeof(bool) })]
+    internal static class AchievementTools_ConsolePatch
+    {
+        internal static bool InSubmit;
+        private static void Prefix() { InSubmit = true; }
+        private static Exception Finalizer(Exception __exception) { InSubmit = false; return __exception; }
+    }
+
+    // One-shot cheats for the current assignment (DoMe 2026-11-16: "Mission per Knopfdruck erfolgreich").
+    // Same calls as the game's console command "Mission Stage", but without the console, so nothing is flagged.
+    public class MissionCheat : ModuleBase
+    {
+        private static readonly string[] homeStages = { "Report", "Return", "ReturnToPort", "DockInPort", "DockAtDestinationPort", "FinishingTask", "ReportToOfficer" };
+        public override void Tick()
+        {
+            var done = Settings.Get("CheatMissionDone");
+            if (done != null && done.On) { done.Value = 0; Util.Safe("MissionDone", () => Run(true)); }
+            var step = Settings.Get("CheatMissionStep");
+            if (step != null && step.On) { step.Value = 0; Util.Safe("MissionStep", () => Run(false)); }
+        }
+
+        private static void Run(bool finish)
+        {
+            var m = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.Mission;
+            if (m == null) { ToolkitRunner.ShowNotice("Kein laufender Auftrag", 4f); return; }
+            // names of the assignment's stages (enum "Stages" of the class or one of its base classes)
+            string[] names = new string[0];
+            for (var t = m.GetType(); t != null && names.Length == 0; t = t.BaseType)
+            {
+                var e = t.GetNestedType("Stages", BindingFlags.Public | BindingFlags.NonPublic);
+                if (e != null && e.IsEnum) names = Enum.GetNames(e);
+            }
+            int stage = m.Stage, target = stage;
+            if (!finish) target = stage + 1;
+            else
+                for (int i = stage; i < names.Length; i++)
+                    if (Array.IndexOf(homeStages, names[i]) >= 0) { target = i; break; }
+            if (names.Length > 0 && target > names.Length - 1) target = names.Length - 1;
+            string from = stage < names.Length ? names[stage] : stage.ToString();
+            if (target > stage) m.SetDebugStage(target);
+            if (finish)
+            {
+                var p = m.GetType().GetProperty("AssignmentObjectiveState", BindingFlags.Public | BindingFlags.Instance);
+                if (p != null && p.CanWrite) p.SetValue(m, UBOAT.Game.Sandbox.Missions.AssignmentObjectiveState.Completed, null);
+            }
+            string to = m.Stage < names.Length ? names[m.Stage] : m.Stage.ToString();
+            Util.Log("[Auftrag] " + m.GetType().Name + ": Schritt " + from + " -> " + to + (finish ? ", Ziel als erfüllt gesetzt" : ""));
+            ToolkitRunner.ShowNotice(finish ? "Auftrag als erfüllt gesetzt (Schritt: " + to + "). Im Heimathafen abgeben." : "Auftrag: Schritt " + from + " -> " + to, 6f);
         }
     }
 

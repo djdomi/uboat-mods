@@ -72,6 +72,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.ExtraFeatures());
             Modules.Add(new Modules.Strike());
             Modules.Add(new Modules.AchievementTools());
+            Modules.Add(new Modules.MissionCheat());
             Modules.Add(new Modules.SensorCheats());
             Modules.Add(new Modules.HealAll());
             Modules.Add(new Modules.StorageExpander());

@@ -554,6 +554,8 @@ namespace UboatToolkit
             Bool(Cheat, "CheatCrewNeverTired", "Crew wird nie müde", false);
             Bool(Cheat, "CheatFullDiscipline", "Moral (Disziplin) immer voll und sinkt nie, kein Stress", false);
             Bool(Cheat, "CheatAllAchievements", "  >> Alle Steam-Erfolge freischalten", false);
+            Bool(Cheat, "CheatMissionDone", ">> Aktuellen Auftrag als erfüllt setzen (danach im Heimathafen abgeben)", false);
+            Bool(Cheat, "CheatMissionStep", ">> Aktuellen Auftrag einen Schritt weiter schalten", false);
             Num(Cheat, "CheatMoney", "Geld: nie weniger als (0 = aus)", 0, 0, 1000000, 10000);
             Num(Cheat, "CheatReputation", "Ansehen (Ruf-Punkte): nie weniger als (0 = aus)", 0, 0, 1000, 10);
             Num(Cheat, "CheatPriceFactor", "Preise im Hafen x (1 = normal, 0,01 = fast gratis)", 1, 0.01f, 1, 0.01f);
