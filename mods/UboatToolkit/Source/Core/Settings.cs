@@ -155,6 +155,8 @@ namespace UboatToolkit
             Num(QoL, "AutoDepthMin", "  Nie flacher als (m)", 12, 0, 50, 1);
             Num(QoL, "AutoDepthMax", "  Nie tiefer als (m)", 300, 20, 5000, 10);
             Bool(QoL, "AutoDepthBottom", "  Aufsetzen: sanft auf den Grund legen + Schleichfahrt", false);
+            Bool(QoL, "AutoReloadTubes", "Leere Rohre automatisch aus dem Lager laden", true);
+            Num(QoL, "AutoReloadSeconds", "  nach x Sekunden leer", 20, 0, 600, 5);
             Bool(QoL, "ReloadAllNow", "  >> Alle leeren Rohre aus dem Lager laden (Idee 2)", false);
             Bool(QoL, "SwapShiftsNow", "  >> Wachen tauschen: Gruppen mit gleicher Aufgabe tauschen Schichten (Idee 4)", false);
             Bool(QoL, "SortStorageNow", "  >> Lager aufräumen: gleiche Sachen stapeln, nach vorne rücken (Idee 5)", false);
@@ -783,7 +785,7 @@ namespace UboatToolkit
             new[] { "88mm", "DeckGun" },
             new[] { "Flak", "AAGun", "AASaveAmmo", "AAvsShips" },
             new[] { "KI-Schützen", "Gunner", "GunGyro", "KeepGunMode", "CheatPerfectAim" },
-            new[] { "Torpedos", "Torpedo", "EasyTDC", "TubeDisplay", "CheatInfiniteTorpedoes", "CheatNoDuds", "CheatTorpedoSpeed", "CheatRemoteTorpedo", "CheatExactTargets", "PortT5Min" },
+            new[] { "Torpedos", "AutoReload", "ReloadAllNow", "Torpedo", "EasyTDC", "TubeDisplay", "CheatInfiniteTorpedoes", "CheatNoDuds", "CheatTorpedoSpeed", "CheatRemoteTorpedo", "CheatExactTargets", "PortT5Min" },
             new[] { "Funk", "Radio", "CheatRadio" },
             new[] { "Sehrohr & Optik", "Optics", "Periscope", "Reticle", "ScopeRemember", "NightOptics", "CheatPeriscope" },
             new[] { "Horcher & Sonar", "Horcher", "ActiveSonar", "CheatHydrophone", "CheatSonar", "CheatSensor" },
@@ -886,6 +888,7 @@ namespace UboatToolkit
             GView = "Anzeige, Kamera & Menü";
         private static readonly Dictionary<string, string> groupFix = new Dictionary<string, string>
         {
+            { "AutoReloadTubes", GWeap },
             { "WhThrusters", GBoat }, { "WhVThrusters", GBoat },
             { "AutoDepth", GBoat }, { "AutoCrashDive", GBoat }, { "AirByCrew", GBoat }, { "LowWarnPercent", GBoat },
             { "MerchantTraffic", GCamp }, { "ExplosionLimit", GPerf }, { "SaveGroupCareer", GPerf },

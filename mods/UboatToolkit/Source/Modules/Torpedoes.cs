@@ -63,7 +63,7 @@ namespace UboatToolkit.Modules
             if (!Settings.B("CheatInfiniteTorpedoes")) return;
             foreach (var l in Util.Find<TorpedoLauncher>(2f))
             {
-                if (l == null || !Util.IsPlayers(l)) continue;
+                if (l == null || !(Util.IsPlayers(l) || (l.Group != null && l.Group.ParentEntity is PlayerShip))) continue;
                 if (l.Torpedo != null)
                 {
                     emptySince.Remove(l);
@@ -89,8 +89,63 @@ namespace UboatToolkit.Modules
             }
         }
 
+        // 0.3.86 (DoMe 2026-11-16 BUG: "Torpedos an Bord, aber es wird nichts mehr nachgeladen"): an own tube that stays
+        // empty for AutoReloadSeconds gets the nearest torpedo from the boat's own storage (nothing is created).
+        // Once a minute the tube states and the stock are logged while a tube is empty.
+        private static readonly System.Collections.Generic.Dictionary<TorpedoLauncher, float> autoEmpty = new System.Collections.Generic.Dictionary<TorpedoLauncher, float>();
+        private static float nextTubeLog;
+        private static void AutoReload()
+        {
+            if (!Settings.B("AutoReloadTubes") || Settings.B("CheatInfiniteTorpedoes")) { autoEmpty.Clear(); return; }
+            float wait = Settings.F("AutoReloadSeconds");
+            var ship = Util.PlayerShip;
+            if (ship == null || ship.Docked) { autoEmpty.Clear(); return; }   // in port the port's own stock is not touched
+            Storage[] storages = null;
+            int empty = 0, loaded = 0;
+            string states = "";
+            foreach (var l in Util.Find<TorpedoLauncher>(2f))
+            {
+                if (l == null || !(Util.IsPlayers(l) || (l.Group != null && l.Group.ParentEntity is PlayerShip))) continue;
+                states += (states.Length > 0 ? ", " : "") + l.CurrentState;
+                if (l.Torpedo != null) { autoEmpty.Remove(l); continue; }
+                empty++;
+                if (!autoEmpty.TryGetValue(l, out var t0)) { autoEmpty[l] = Time.time; continue; }
+                if (Time.time - t0 < wait) continue;
+                if (storages == null) storages = Util.Find<Storage>().Where(x => x != null && x.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() == null).ToArray();
+                Storage best = null; int bestSlot = -1; float bestDist = float.MaxValue;
+                foreach (var st in storages)
+                    for (int i = 0; i < Util.Slots(st); i++)
+                    {
+                        if (!(st.GetItemAt(i) is StoredTorpedo t) || t is StoredMinePacket || st.HasTransportOrders(i)) continue;
+                        float dist = (st.transform.position - l.transform.position).sqrMagnitude;
+                        if (dist < bestDist) { best = st; bestSlot = i; bestDist = dist; }
+                    }
+                if (best == null) continue;
+                var tube = l; var from = best; int slot = bestSlot;
+                Util.Safe("auto reload", () =>
+                {
+                    var torp = (StoredTorpedo)from.GetItemAt(slot);
+                    from.SetItemAt(slot, null);
+                    tube.SetTorpedo(torp);
+                    tube.CompleteLoading(quiet: true);
+                    Util.Log("Rohr automatisch aus dem Lager geladen: " + tube.name + " <- " + torp.name);
+                });
+                autoEmpty.Remove(l); loaded++;
+            }
+            if (empty > loaded && Time.unscaledTime > nextTubeLog)
+            {
+                nextTubeLog = Time.unscaledTime + 60f;
+                int stock = 0;
+                if (storages == null) storages = Util.Find<Storage>().Where(x => x != null && x.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() == null).ToArray();
+                foreach (var st in storages)
+                    for (int i = 0; i < Util.Slots(st); i++) if (st.GetItemAt(i) is StoredTorpedo t && !(t is StoredMinePacket)) stock++;
+                Util.Log("Rohre: " + empty + " leer, Zustände [" + states + "], Torpedos im Lager: " + stock + " (Lager gefunden: " + storages.Length + ")");
+            }
+        }
+
         public override void Tick()
         {
+            Util.Safe("AutoReload", AutoReload);
             // #17: use the game's own automatic torpedo solution (click target -> values are filled in).
             if (Settings.B("EasyTDC"))
             {
