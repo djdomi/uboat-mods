@@ -343,7 +343,7 @@ namespace UboatToolkit.Modules
                 if (!boosted) { origSlice = QualitySettings.asyncUploadTimeSlice; origBuffer = QualitySettings.asyncUploadBufferSize; origPriority = Application.backgroundLoadingPriority; }
                 if (ex != null) ex.UnlimitedFrameBudget = true;
                 QualitySettings.asyncUploadTimeSlice = 33;
-                QualitySettings.asyncUploadBufferSize = 64;
+                QualitySettings.asyncUploadBufferSize = 256;   // 0.3.68: test, was 64 (DoMe: texture loading takes forever; 40-58 s of each load is waiting)
                 Application.backgroundLoadingPriority = ThreadPriority.High;
                 boosted = true;
             }
