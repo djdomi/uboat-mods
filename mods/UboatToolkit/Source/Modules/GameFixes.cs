@@ -463,14 +463,33 @@ namespace UboatToolkit.Modules
 {
     // Unity "Development Console" (only exists in a Development Build of the game): it pops up on every error and covers
     // the screen. It is closed again in the same frame. Logging is not affected: errors still go to output_log.txt.
+    // 0.3.91 (DoMe: "beim Laden flackert immer wieder die Debug-Konsole"): closing it once per Update was too late while
+    // loading (long frames, the console was drawn in between). Now it is also closed right when the error is logged
+    // (the console opens because of that error), before rendering and in OnGUI.
     public class DevConsoleHide : ModuleBase
     {
-        private bool logged;
-        public override void Frame()
+        private static bool logged, hooked;
+        private static int closed;
+        internal static void Close()
         {
             if (!Settings.B("HideDevConsole") || !UnityEngine.Debug.developerConsoleVisible) return;
             UnityEngine.Debug.developerConsoleVisible = false;
+            closed++;
             if (!logged) { logged = true; Util.Log("Entwickler-Konsole geschlossen (Spiel läuft als Development Build: " + UnityEngine.Debug.isDebugBuild + ")"); }
+        }
+        internal static void Hook()
+        {
+            if (hooked) return;
+            hooked = true;
+            UnityEngine.Application.logMessageReceived += (c, st, t) => { if (t == UnityEngine.LogType.Error || t == UnityEngine.LogType.Exception || t == UnityEngine.LogType.Assert) Close(); };
+            UnityEngine.Application.onBeforeRender += Close;
+        }
+        private float nextLog;
+        public override void Frame()
+        {
+            Hook();
+            Close();
+            if (closed > 0 && UnityEngine.Time.unscaledTime > nextLog) { nextLog = UnityEngine.Time.unscaledTime + 60f; Util.Log("Entwickler-Konsole " + closed + "x geschlossen in der letzten Minute"); closed = 0; }
         }
     }
 

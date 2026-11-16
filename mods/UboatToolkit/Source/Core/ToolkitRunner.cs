@@ -165,6 +165,7 @@ namespace UboatToolkit
                 if (k == 1 && !guiKeyHeld) { guiKeyHeld = true; MenuKey("Fenster"); }
                 else if (k == 2) guiKeyHeld = false;
             }
+            UboatToolkit.Modules.DevConsoleHide.Close();
             Imgui.Init();
             if (!Imgui.Ready) return;
             double g0 = Time.realtimeSinceStartupAsDouble;

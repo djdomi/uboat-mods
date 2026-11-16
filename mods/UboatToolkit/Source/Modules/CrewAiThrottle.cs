@@ -17,7 +17,23 @@ namespace UboatToolkit.Modules
         internal static double Seconds;
         internal static int Calls, Skipped;
         internal static int Every = 1;
-        private float nextLog;
+        internal static bool Settle = true;
+        internal static float LoadingUntil;
+        internal static int Held;
+        private float nextLog, nextLoadCheck;
+
+        public override void Frame()
+        {
+            Settle = Settings.B("CrewAiWaitLoad");
+            if (!Settle || Time.unscaledTime < nextLoadCheck) return;
+            nextLoadCheck = Time.unscaledTime + 0.25f;
+            if (SaveLoading()) LoadingUntil = Time.unscaledTime + 3f;
+        }
+
+        private static bool SaveLoading()
+        {
+            try { var sm = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Core.Serialization.SavesManager>(); return sm != null && sm.IsLoading; } catch { return false; }
+        }
 
         public override void Tick()
         {
@@ -25,6 +41,7 @@ namespace UboatToolkit.Modules
             if (Time.unscaledTime < nextLog) return;
             if (nextLog > 0f && Calls + Skipped > 0)
                 Util.Log("Crew-KI: " + (Seconds * 1000.0).ToString("0") + " ms pro Minute in " + Calls + " Aufrufen, " + Skipped + " übersprungen (schlafend, nicht sichtbar)");
+            if (Held > 0) { Util.Log("Crew-KI: " + Held + " Aufrufe angehalten, weil das Boot noch lädt"); Held = 0; }
             nextLog = Time.unscaledTime + 60f;
             Seconds = 0; Calls = 0; Skipped = 0;
         }
@@ -39,6 +56,10 @@ namespace UboatToolkit.Modules
         {
             __state = 0;
             if (!ignoreIsUpdatingFlag) return true;   // direct call of the game: never touched
+            // 0.3.91 (DoMe: console flickers while loading, log full of crew-AI null errors on the Warthog): while a save
+            // is still loading and in the first seconds of a new boat the crew AI of the player's boat waits, so it does
+            // not look for beds, food or free space before the interior exists.
+            if (CrewAiThrottle.Settle && (Time.unscaledTime < CrewAiThrottle.LoadingUntil || (Util.PlayerShip != null && !Util.ShipReady))) { CrewAiThrottle.Held++; return false; }
             int every = CrewAiThrottle.Every;
             if (every > 1)
             {
