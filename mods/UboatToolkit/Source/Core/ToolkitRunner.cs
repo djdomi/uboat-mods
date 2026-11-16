@@ -183,6 +183,8 @@ namespace UboatToolkit
 
         private string search = "";
         private bool onlyChanged;
+        private bool searchThisTab;
+        private readonly Dictionary<string, string> placeHome = new Dictionary<string, string>(), placeGroup = new Dictionary<string, string>();
         private readonly HashSet<string> openGroups = new HashSet<string>();
 
         private void DrawOpt(Opt o)
@@ -258,6 +260,7 @@ namespace UboatToolkit
             else search = Imgui.TextField(search, 300);
             if (Imgui.Button("x", 30)) search = "";
             onlyChanged = Imgui.Toggle(onlyChanged, " nur geänderte zeigen");
+            searchThisTab = Imgui.Toggle(searchThisTab, " Suche nur in diesem Reiter");
             if (Imgui.Button("alle auf", 90)) foreach (var g in Settings.GroupOrder) openGroups.Add(g);
             if (Imgui.Button("alle zu", 90)) openGroups.Clear();
             Imgui.EndH();
@@ -272,15 +275,38 @@ namespace UboatToolkit
             if (!builtinWh) AddonTabs.Draw(tab);
             if (!string.IsNullOrEmpty(search) && search.Trim().Length >= 2)
             {
-                // Search over ALL tabs: shows where each hit lives.
+                // 0.3.66 (DoMe: search hits cannot be told apart, clicking a tab does not filter): hits are sorted into
+                // sections "tab / topic" with a headline each; "nur dieser Reiter" limits the hits to the tab clicked above.
                 string q = search.Trim().ToLowerInvariant();
                 int hits = 0;
+                string lastPlace = null;
+                var found = new List<KeyValuePair<string, Opt>>();
                 foreach (var o in Settings.All)
                 {
                     if (!(o.Label + " " + Lang.T(o.Label) + " " + o.Key).ToLowerInvariant().Contains(q)) continue;
                     if (onlyChanged && !Settings.Changed(o)) continue;
-                    Imgui.Label("[" + (o.Group != "" ? o.Group + (o.Tab == Settings.Cheat ? " / Cheats" : o.IsKey ? " / Tasten" : "") : o.Tab) + "]");
-                    DrawOpt(o);
+                    bool topic = o.Group != "" && (o.Tab == Settings.QoL || o.Tab == Settings.Cheat || o.IsKey);
+                    string home = topic ? Settings.Topics : o.Tab;
+                    if (searchThisTab && home != tab && !(o.IsKey && tab == Settings.KeysTab)) continue;
+                    string place = topic ? Settings.Topics + "  >  " + o.Group + (o.Tab == Settings.Cheat ? "  >  Cheats" : o.IsKey ? "  >  Tasten" : "") : "Reiter " + o.Tab;
+                    found.Add(new KeyValuePair<string, Opt>(place, o));
+                    placeHome[place] = home; placeGroup[place] = topic ? o.Group : "";
+                }
+                foreach (var kv in found.OrderBy(x => x.Key, StringComparer.Ordinal))
+                {
+                    if (kv.Key != lastPlace)
+                    {
+                        lastPlace = kv.Key; Imgui.Space(8);
+                        // click on the headline = jump to that place in the menu
+                        if (Imgui.Button("▶  " + kv.Key + "   (klicken = dorthin springen)", Mathf.Max(300f, MenuRect().width - 60)))
+                        {
+                            tab = placeHome[kv.Key];
+                            if (placeGroup[kv.Key] != "") openGroups.Add(placeGroup[kv.Key]);
+                            search = ""; scroll = Vector2.zero;
+                            break;
+                        }
+                    }
+                    DrawOpt(kv.Value);
                     hits++;
                 }
                 if (hits == 0) Imgui.Label("Nichts gefunden.");
