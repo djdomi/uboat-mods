@@ -69,7 +69,28 @@ namespace UboatToolkit
         public static string TextField(string t, float w = 0) => textField == null ? t : (string)textField.Invoke(null, new[] { t ?? "", Opts(w) });
         public static void Label(string t, float w = 0) => label.Invoke(null, new[] { Lang.T(t), Opts(w) });
         public static bool Toggle(bool v, string t) => (bool)toggle.Invoke(null, new object[] { v, Lang.T(t), noOptions });
+        public static bool Toggle(bool v, string t, float w) => (bool)toggle.Invoke(null, new object[] { v, Lang.T(t), Opts(w) });
+        // Draw the following controls paler (1 = normal). Returns the old colour for Tint(old).
+        public static Color Tint(float alpha)
+        {
+            if (color == null) return Color.white;
+            var old = (Color)color.GetValue(null, null);
+            color.SetValue(null, new Color(old.r, old.g, old.b, alpha), null);
+            return old;
+        }
+        public static void Tint(Color c) { if (color != null) color.SetValue(null, c, null); }
         private static PropertyInfo evCurrent, evType;
+        // True in the layout pass of OnGUI (also true when the event cannot be read).
+        public static bool IsLayout()
+        {
+            try
+            {
+                if (evCurrent == null) { var et = Type.GetType("UnityEngine.Event, UnityEngine.IMGUIModule"); evCurrent = et?.GetProperty("current"); evType = et?.GetProperty("type"); }
+                var e = evCurrent?.GetValue(null, null);
+                return e == null || evType == null || evType.GetValue(e, null).ToString() == "Layout";
+            }
+            catch { return true; }
+        }
         // Key event of the current OnGUI call for one key: 1 = down, 2 = up, 0 = none/other. (Event via reflection, see above.)
         private static PropertyInfo evKeyCode;
         public static int KeyEvent(KeyCode code)

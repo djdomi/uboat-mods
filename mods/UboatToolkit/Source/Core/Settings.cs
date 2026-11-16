@@ -774,6 +774,7 @@ namespace UboatToolkit
         private static readonly string[][] subRules =
         {
             new[] { "Gesundheit & Moral", "AutoFirstAid", "NoAutoCarry", "CheatImmortal", "CheatCrewProtection", "NoStress", "CheatFullDiscipline", "CheatCrewNeverTired", "HotBunk", "FoodByCrew", "AutoDamageControl", "LeakTwoSailors" },
+            new[] { "Strahlruder", "WhThrust", "WhVThrust" },
             new[] { "88mm", "DeckGun" },
             new[] { "Flak", "AAGun", "AASaveAmmo", "AAvsShips" },
             new[] { "KI-Schützen", "Gunner", "GunGyro", "KeepGunMode", "CheatPerfectAim" },
@@ -880,6 +881,7 @@ namespace UboatToolkit
             GView = "Anzeige, Kamera & Menü";
         private static readonly Dictionary<string, string> groupFix = new Dictionary<string, string>
         {
+            { "WhThrusters", GBoat }, { "WhVThrusters", GBoat },
             { "AutoDepth", GBoat }, { "AutoCrashDive", GBoat }, { "AirByCrew", GBoat }, { "LowWarnPercent", GBoat },
             { "MerchantTraffic", GCamp }, { "ExplosionLimit", GPerf }, { "SaveGroupCareer", GPerf },
             { "NoShellPush", GWeap }, { "AwashGuns", GWeap }, { "CheatRemoteTorpedo", GWeap }, { "CheatOwnShellsSafe", GWeap }, { "CheatExactTargets", GWeap },
@@ -892,7 +894,7 @@ namespace UboatToolkit
         // Keys: topic by key-name prefix (longest match first in this order).
         private static readonly string[][] keyGroups =
         {
-            new[] { GBoat, "KeyCourseDeeper", "KeyCourseShallower", "KeyCoursePeriscope", "KeyCourseMaxDepth", "KeyDepth", "KeyAutoDepth", "KeyDeeper", "KeyShallower", "KeyPeriscopeDepth", "KeyMaxDepth", "KeyHoldDepth", "KeyTanksEmpty", "KeyGear", "KeySpeed" },
+            new[] { GBoat, "KeyCourseDeeper", "KeyCourseShallower", "KeyCoursePeriscope", "KeyCourseMaxDepth", "KeyDepth", "KeyAutoDepth", "KeyDeeper", "KeyShallower", "KeyPeriscopeDepth", "KeyMaxDepth", "KeyHoldDepth", "KeyTanksEmpty", "KeyGear", "KeySpeed", "KeyWhThrust", "KeyWhVThrust" },
             new[] { GNav, "KeyCourse", "KeyTurn", "KeyAmidships", "KeyQuickTravel", "KeyBackToWater" },
             new[] { GWeap, "KeyUnderFire", "KeyReloadAll", "KeyRemoteTorpedo", "KeySinkConvoy" },
             new[] { GPort, "KeySortStorage", "KeyPortMines" },

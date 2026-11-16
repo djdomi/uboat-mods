@@ -221,8 +221,11 @@ namespace UboatToolkit
         public static void Safe(string what, Action a)
         {
             try { a(); }
-            catch (Exception e)
+            catch (Exception e0)
             {
+                // errors of calls made through reflection (the whole menu) arrive wrapped: log the real one
+                var e = e0;
+                while (e is System.Reflection.TargetInvocationException && e.InnerException != null) e = e.InnerException;
                 // Same error every second would flood the log: write it 3 times, then every 100th time.
                 string key = what + "|" + e.Message;
                 errorCounts.TryGetValue(key, out int n);

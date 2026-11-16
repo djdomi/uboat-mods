@@ -12,7 +12,7 @@ namespace UboatToolkit
         public static readonly List<IModule> Modules = new List<IModule>();
 
         private float nextTick;
-        private bool menuOpen;
+        private bool menuOpen, menuShown;
         private string tab = Settings.GroupOrder[0];
         private Vector2 scroll;
 
@@ -216,62 +216,112 @@ namespace UboatToolkit
         private readonly HashSet<string> openOpts = new HashSet<string>();
         private string pendingTab;
 
-        // One row per setting (0.3.75, DoMe: sliders for 0/1/2 waste space):
-        // on/off = tick box; a few fixed values = one button per value; a real range = name + value, then [-] slider [+].
-        private void DrawOpt(Opt o)
+        // 0.3.80 (DoMe: "Buttons immer unterschiedlich platziert"): every row uses the same grid.
+        //   [fold arrow 44] [indent] [name ...........] | control column, same x and width on every page |
+        // on/off = tick box in front of the name; fixed values = buttons; range = [-] slider [+]; key = [Ändern] key name.
+        private const float Gutter = 48f;
+        private static readonly Dictionary<string, string> keyNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            float W = Mathf.Max(420f, MenuRect().width - 70);
-            if (o.IsKey)
+            { "LeftShift", "Shift links" }, { "RightShift", "Shift rechts" }, { "LeftControl", "Strg links" }, { "RightControl", "Strg rechts" },
+            { "LeftAlt", "Alt links" }, { "RightAlt", "Alt rechts" }, { "Ctrl", "Strg" }, { "Control", "Strg" },
+            { "Mouse0", "Maus links" }, { "Mouse1", "Maus rechts" }, { "Mouse2", "Mausrad-Klick" }, { "Mouse3", "Maustaste 4" }, { "Mouse4", "Maustaste 5" },
+            { "Return", "Enter" }, { "Home", "Pos1" }, { "End", "Ende" }, { "PageUp", "Bild auf" }, { "PageDown", "Bild ab" },
+            { "UpArrow", "Pfeil hoch" }, { "DownArrow", "Pfeil runter" }, { "LeftArrow", "Pfeil links" }, { "RightArrow", "Pfeil rechts" },
+            { "Space", "Leertaste" }, { "Backspace", "Rück" }, { "Delete", "Entf" }, { "Insert", "Einfg" }, { "Escape", "Esc" },
+        };
+        private static string KeyName(string t)
+        {
+            if (string.IsNullOrEmpty(t)) return "(keine)";
+            var parts = t.Split('+');
+            for (int i = 0; i < parts.Length; i++)
             {
-                Imgui.BeginH();
-                Imgui.Label(o.Label + ":  " + (string.IsNullOrEmpty(o.Text) ? "(keine)" : o.Text), W * 0.6f);
-                if (Imgui.Button(Keys.Capturing == o ? "Taste drücken ... (Esc = Abbruch, Rück = keine)" : "Ändern", 200)) { Keys.Capturing = o; Imgui.ClearFocus(); }
-                Imgui.EndH();
-                return;
+                string k = parts[i].Trim();
+                if (keyNames.TryGetValue(k, out var n)) k = n;
+                else if (k.StartsWith("Alpha", StringComparison.OrdinalIgnoreCase) && k.Length == 6) k = k.Substring(5);
+                else if (k.StartsWith("Keypad", StringComparison.OrdinalIgnoreCase) && k.Length > 6) k = "Num " + k.Substring(6);
+                parts[i] = k;
             }
-            if (o.IsBool) { o.Value = Imgui.Toggle(o.On, " " + o.Label) ? 1 : 0; return; }
-            var names = Settings.Choices(o);
-            float cur = Mathf.Clamp(o.Value, o.Min, o.Max);
-            Imgui.BeginH();
-            if (names.Length > 0)
-            {
-                Imgui.Label(o.Label, W * 0.5f);
-                float bw = Mathf.Min(150f, (W * 0.5f - 10f) / names.Length - 4f);
-                for (int i = 0; i < names.Length; i++)
-                {
-                    float v = o.Min + i * o.Step;
-                    bool sel = Mathf.Abs(cur - v) < o.Step * 0.5f;
-                    if (Imgui.Button((sel ? "● " : "") + names[i], bw) && !sel) o.Value = v;
-                }
-            }
-            else
-            {
-                Imgui.Label(o.Label + ":  " + o.Value.ToString("0.##", CultureInfo.InvariantCulture), W * 0.5f);
-                float step = o.Step > 0 ? o.Step : (o.Max - o.Min) / 100f;
-                float v = cur;
-                if (Imgui.Button("−", 28)) v = Mathf.Max(o.Min, cur - step);
-                float sl = Imgui.Slider(v, o.Min, o.Max, Mathf.Max(120f, W * 0.5f - 80f));
-                if (Mathf.Abs(sl - v) > 0.0001f) v = sl;
-                if (Imgui.Button("+", 28)) v = Mathf.Min(o.Max, v + step);
-                if (o.Step > 0) v = o.Min + Mathf.Round((v - o.Min) / o.Step) * o.Step;
-                if (Mathf.Abs(v - cur) > 0.0001f) o.Value = v;
-            }
-            Imgui.EndH();
+            return string.Join(" + ", parts);
         }
 
-        // A main switch with its fine settings folded in ("▸ 5 Feinwerte"). With "nur geänderte" the changed ones show directly.
+        private void DrawOpt(Opt o) { DrawOpt(o, false, null); }
+        // fold: this row gets the fold arrow of its fine settings; suffix: text behind the name
+        private void DrawOpt(Opt o, bool fold, string suffix)
+        {
+            float W = Mathf.Max(440f, MenuRect().width - 60);
+            float C = Mathf.Min(440f, W * 0.5f);
+            string text = o.Label.TrimStart();
+            int depth = (o.Label.Length - text.Length) / 2;
+            if (o.Parent != null && depth < 1) depth = 1;
+            float indent = depth * 22f;
+            float L = Mathf.Max(120f, W - C - Gutter - indent);
+            if (suffix != null) text += suffix;
+            // fine settings of a switched-off main switch are drawn pale
+            bool dim = o.Parent != null && o.Parent.IsBool && !o.Parent.On;
+            var oldColor = dim ? Imgui.Tint(0.45f) : Color.white;
+            Imgui.BeginH();
+            try
+            {
+                if (fold)
+                {
+                    bool open = openOpts.Contains(o.Key);
+                    if (Imgui.Button((open ? "▾ " : "▸ ") + o.Children.Count, Gutter - 6)) { if (open) openOpts.Remove(o.Key); else openOpts.Add(o.Key); }
+                    Imgui.Space(2 + indent);
+                }
+                else Imgui.Space(Gutter + indent);
+                if (o.IsKey)
+                {
+                    bool cap = Keys.Capturing == o;
+                    Imgui.Label(text, L);
+                    if (Imgui.Button(cap ? "Taste drücken ..." : "Ändern", 130)) { Keys.Capturing = o; Imgui.ClearFocus(); }
+                    Imgui.Label(cap ? "  Esc = Abbruch, Rück = keine" : "  " + KeyName(o.Text), C - 134);
+                    return;
+                }
+                if (o.IsBool) { o.Value = Imgui.Toggle(o.On, " " + text) ? 1 : 0; return; }
+                var names = Settings.Choices(o);
+                float cur = Mathf.Clamp(o.Value, o.Min, o.Max);
+                if (names.Length > 0)
+                {
+                    Imgui.Label(text, L);
+                    float bw = C / names.Length - 4f;
+                    for (int i = 0; i < names.Length; i++)
+                    {
+                        float v = o.Min + i * o.Step;
+                        bool sel = Mathf.Abs(cur - v) < o.Step * 0.5f;
+                        if (Imgui.Button((sel ? "● " : "") + names[i], bw) && !sel) o.Value = v;
+                    }
+                }
+                else
+                {
+                    Imgui.Label(text + ":  " + o.Value.ToString("0.##", CultureInfo.InvariantCulture), L);
+                    float step = o.Step > 0 ? o.Step : (o.Max - o.Min) / 100f;
+                    float v = cur;
+                    if (Imgui.Button("−", 28)) v = Mathf.Max(o.Min, cur - step);
+                    float sl = Imgui.Slider(v, o.Min, o.Max, C - 72f);
+                    if (Mathf.Abs(sl - v) > 0.0001f) v = sl;
+                    if (Imgui.Button("+", 28)) v = Mathf.Min(o.Max, v + step);
+                    if (o.Step > 0) v = o.Min + Mathf.Round((v - o.Min) / o.Step) * o.Step;
+                    if (Mathf.Abs(v - cur) > 0.0001f) o.Value = v;
+                }
+            }
+            finally { Imgui.EndH(); if (dim) Imgui.Tint(oldColor); }
+        }
+
+        // A main switch with its fine settings folded in (small arrow with their number in front of the row).
+        // With "nur geänderte" the changed ones show directly.
         private void DrawBlock(Opt o)
         {
-            if (!onlyChanged || Settings.Changed(o)) DrawOpt(o);
-            if (o.Children.Count == 0) return;
-            if (onlyChanged) { foreach (var c in o.Children) if (Settings.Changed(c)) DrawOpt(c); return; }
+            if (onlyChanged)
+            {
+                if (Settings.Changed(o)) DrawOpt(o);
+                foreach (var c in o.Children) if (Settings.Changed(c)) DrawOpt(c);
+                return;
+            }
+            if (o.Children.Count == 0) { DrawOpt(o); return; }
+            // the fold state is read before the row is drawn, so a click on the arrow shows at the next GUI event
             bool open = openOpts.Contains(o.Key);
             int ch = 0; foreach (var c in o.Children) if (Settings.Changed(c)) ch++;
-            Imgui.BeginH();
-            Imgui.Space(24);
-            if (Imgui.Button((open ? "▾ " : "▸ ") + o.Children.Count + (o.Children.Count == 1 ? " Feinwert" : " Feinwerte") + (ch > 0 ? "  (" + ch + " geändert)" : ""), 230))
-            { if (open) openOpts.Remove(o.Key); else openOpts.Add(o.Key); }
-            Imgui.EndH();
+            DrawOpt(o, true, ch > 0 ? "   (" + ch + " Feinwerte geändert)" : null);
             if (open) { foreach (var c in o.Children) DrawOpt(c); Imgui.Space(4); }
         }
 
@@ -395,7 +445,9 @@ namespace UboatToolkit
                 UboatToolkit.Modules.Warthog.WarthogThrusterGauge.Draw();
             }
             UboatToolkit.Modules.UnderFire.Draw();
-            if (!menuOpen) return;
+            // open/close takes effect at a layout pass; a change between layout and repaint breaks the menu drawing
+            if (Imgui.IsLayout()) menuShown = menuOpen;
+            if (!menuShown) return;
             DragMenu();
 
             // a tab change takes effect at the start of the next GUI event (always a layout pass), never in the middle of one
@@ -446,6 +498,7 @@ namespace UboatToolkit
                 // and the main switch of a fine setting are searched too ("flak schaden", "88 rauch", "cheat torpedo").
                 var words = Settings.Norm(search).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 Opt lastParent = null;
+                var shown = new HashSet<Opt>();
                 int hits = 0;
                 string lastPlace = null;
                 var found = new List<KeyValuePair<string, Opt>>();
@@ -483,7 +536,10 @@ namespace UboatToolkit
                         lastParent = null;
                     }
                     // a fine setting says which main switch it belongs to
-                    if (kv.Value.Parent != null && kv.Value.Parent != lastParent) { lastParent = kv.Value.Parent; Imgui.Label("   gehört zu: " + kv.Value.Parent.Label.Trim()); }
+                    // (not when that main switch is itself a hit and stands right above)
+                    if (kv.Value.Parent != null && kv.Value.Parent != lastParent && !shown.Contains(kv.Value.Parent))
+                    { lastParent = kv.Value.Parent; Imgui.BeginH(); Imgui.Space(Gutter); Imgui.Label("gehört zu: " + kv.Value.Parent.Label.Trim()); Imgui.EndH(); }
+                    shown.Add(kv.Value);
                     DrawOpt(kv.Value);
                     hits++;
                 }

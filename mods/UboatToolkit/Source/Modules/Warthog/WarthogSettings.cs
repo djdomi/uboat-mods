@@ -11,6 +11,8 @@ namespace UboatToolkit.Modules.Warthog
         static void Bool(string key, string label, bool def) { def = def && key == "WhOnlyWarthog"; BoolRaw(key, label, def); }
         static void BoolRaw(string key, string label, bool def) => Settings.AddOpt(new Opt { Tab = Tab, Key = key, Label = label, IsBool = true, Default = def ? 1 : 0, Value = def ? 1 : 0, Min = 0, Max = 1, Step = 1 });
         static void Num(string key, string label, float def, float min, float max, float step) => Settings.AddOpt(new Opt { Tab = Tab, Key = key, Label = label, Default = def, Value = def, Min = min, Max = max, Step = step });
+        static void BoatBool(string key, string label, bool def) => Settings.AddOpt(new Opt { Tab = Settings.QoL, Key = key, Label = label, IsBool = true, Default = 0, Value = 0, Min = 0, Max = 1, Step = 1 });
+        static void BoatNum(string key, string label, float def, float min, float max, float step) => Settings.AddOpt(new Opt { Tab = Settings.QoL, Key = key, Label = label, Default = def, Value = def, Min = min, Max = max, Step = step });
         static void Key(string key, string label, string def) => Settings.AddOpt(new Opt { Tab = Settings.KeysTab, Key = key, Label = label, IsKey = true, Text = def });
 
         public static void Register()
@@ -26,24 +28,25 @@ namespace UboatToolkit.Modules.Warthog
             Num("WhFinDepth", "  Tiefenruder-Wirkung x", 1.6f, 1f, 4f, 0.1f);
 
             // --- Antrieb
-            Bool("WhThrusters", "Strahlruder vorn + achtern (alle Boote)", true);
-            Bool("WhThrusterWithRudder", "  Strahlruder helfen automatisch beim Ruderlegen", true);
-            Num("WhThrusterPower", "  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)", 6f, 0.5f, 30f, 0.5f);
-            Num("WhThrusterEnergy", "  Stromverbrauch bei voller Leistung (20 = etwa 1 pro Minute)", 2f, 0f, 20f, 0.5f);
-            Bool("WhThrustGauge", "  Strahlruder-Anzeige (wie die Tiefen-Anzeige)", true);
-            Num("WhThrustGaugeX", "    Anzeige: Position von links in %", 2, 0, 95, 1);
-            Num("WhThrustGaugeY", "    Anzeige: Position von oben in %", 62, 0, 95, 1);
-            Bool("WhThrusterHoldFiring", "  Kurs halten, während Geschütze feuern (gegen Rückstoß)", true);
+            // thrusters work on every boat: they live in the tab "Boot & Antrieb" (DoMe 2026-11-16), not in the Warthog tab
+            BoatBool("WhThrusters", "Strahlruder vorn + achtern (alle Boote)", true);
+            BoatBool("WhThrusterWithRudder", "  Strahlruder helfen automatisch beim Ruderlegen", true);
+            BoatNum("WhThrusterPower", "  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)", 6f, 0.5f, 30f, 0.5f);
+            BoatNum("WhThrusterEnergy", "  Stromverbrauch bei voller Leistung (20 = etwa 1 pro Minute)", 2f, 0f, 20f, 0.5f);
+            BoatBool("WhThrustGauge", "  Strahlruder-Anzeige (wie die Tiefen-Anzeige)", true);
+            BoatNum("WhThrustGaugeX", "    Anzeige: Position von links in %", 2, 0, 95, 1);
+            BoatNum("WhThrustGaugeY", "    Anzeige: Position von oben in %", 62, 0, 95, 1);
+            BoatBool("WhThrusterHoldFiring", "  Kurs halten, während Geschütze feuern (gegen Rückstoß)", true);
+            BoatBool("WhThrustShiftSide", "  Shift + Strahlruder-Tasten: ganzes Boot seitwärts (Anlegen); ohne Shift: auf der Stelle drehen", true);
+            BoatNum("WhThrustBowManual", "  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);
+            BoatNum("WhThrustSternManual", "  Heck-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);
+            BoatBool("WhVThrusters", "Vertikal-Strahlruder vorn + achtern (alle Boote): Boot heben/senken", true);
+            BoatBool("WhVThrustAuto", "  helfen automatisch, die befohlene Tiefe zu erreichen", true);
+            BoatBool("WhVThrustLevel", "  Nase waagerecht halten (gegen Bug-hoch bei hoher Fahrt), an der Oberfläche", true);
+            BoatNum("WhVThrustPower", "  Stärke (% vom Bootsgewicht)", 10f, 1f, 100f, 1f);
             Num("WhSpeedFactor", "Geschwindigkeit: Faktor auf die Schraubenleistung (1,0 = wie gebaut)", 1f, 0.5f, 2f, 0.05f);
             Num("WhDiveSpeed", "Tauch-/Steiggeschwindigkeit: Faktor auf die Tiefenruder-Kraft (1,0 = wie ein IXC, auch in großer Tiefe)", 4f, 0.25f, 10f, 0.25f);
             Num("WhCrushDepth", "Zerstörungstiefe in m (befohlene Tiefe wird auf 100 m darüber begrenzt)", 3000f, 500f, 6000f, 100f);
-            Bool("WhVThrusters", "Vertikal-Strahlruder vorn + achtern (alle Boote): Boot heben/senken", true);
-            Bool("WhVThrustAuto", "  helfen automatisch, die befohlene Tiefe zu erreichen", true);
-            Bool("WhVThrustLevel", "  Nase waagerecht halten (gegen Bug-hoch bei hoher Fahrt), an der Oberfläche", true);
-            Num("WhVThrustPower", "  Stärke (% vom Bootsgewicht)", 10f, 1f, 100f, 1f);
-            Bool("WhThrustShiftSide", "  Shift + Z/X: ganzes Boot seitwärts (Anlegen); Z/X ohne Shift: auf der Stelle drehen", true);
-            Num("WhThrustBowManual", "  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);
-            Num("WhThrustSternManual", "  Heck-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);
 
             // --- Schnorchel
             Bool("WhSnorkelTelescope", "Teleskop-Schnorchel: tiefer als Sehrohrtiefe", true);
@@ -107,8 +110,8 @@ namespace UboatToolkit.Modules.Warthog
             Num("WhAirDetect", "Flugzeuge orten bis x km", 100, 10, 150, 5);
             Num("WhAirEngage", "Flugzeuge beschießen ab x km", 25, 2, 40, 1);
 
-            Key("KeyWhThrustLeft", "Warthog: Strahlruder links", "Z");
-            Key("KeyWhThrustRight", "Warthog: Strahlruder rechts", "X");
+            Key("KeyWhThrustLeft", "Strahlruder links", "Z");
+            Key("KeyWhThrustRight", "Strahlruder rechts", "X");
             Key("KeyWhVThrustUp", "Vertikal-Strahlruder: Bug hoch (mit Shift: ganzes Boot hoch)", "Ctrl+Alt+Home");
             Key("KeyWhVThrustDown", "Vertikal-Strahlruder: Bug runter (mit Shift: ganzes Boot runter)", "Ctrl+Alt+End");
             Key("KeyWhAnchor", "Warthog: Anker werfen / lichten", "J");
