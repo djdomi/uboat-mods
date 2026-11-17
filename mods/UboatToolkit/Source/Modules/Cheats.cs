@@ -19,6 +19,21 @@ namespace UboatToolkit.Modules
         private static readonly float[] sensorNear = new float[5];
         private static float nextSensorInfo, nextSensorLine;
         private static bool sensorHooked;
+        private static string hydroParts;
+        // every part that goes into a range value: base parts (+) and factors (x), by name
+        private static string Parts(Parameter p)
+        {
+            if (p == null) return "-";
+            var sb = new System.Text.StringBuilder();
+            try
+            {
+                foreach (var m in p.DeltaModifiers) if (m != null) sb.Append(" +").Append(m.Name).Append("=").Append(m.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+                foreach (var m in p.ScaleModifiers) if (m != null) sb.Append(" x").Append(m.Name).Append("=").Append(m.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" => ").Append(p.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+            }
+            catch (System.Exception e) { sb.Append(" (nicht lesbar: ").Append(e.Message).Append(")"); }
+            return sb.ToString();
+        }
         private static int SensorKind(UBOAT.Game.Scene.Items.BaseDetector d)
         {
             if (d is UBOAT.Game.Scene.Items.Hydrophone) return 1;
@@ -45,6 +60,15 @@ namespace UboatToolkit.Modules
                 if (mine && sensorLog && d.DetectionRange != null)
                 {
                     float near = d.DetectionRange.Value / 1000f, far = d.GroupDetectionRange != null ? d.GroupDetectionRange.Value : 0f;
+                    // 0.4.9: the hydrophone values are multiplied by the boat's own listening factor before the game uses
+                    // them (map circle: near x factor x 0.64, far x factor); without it the log showed "fern 13500 km".
+                    if (kind == 1)
+                    {
+                        float hs = 1f;
+                        try { hs = (float)ship.HydroacousticDetectorsRangeScale; } catch { }
+                        near *= hs * 0.64f; far *= hs;
+                        if (Time.unscaledTime >= nextSensorLine) hydroParts = "Horchgerät fern: Faktor Boot " + hs.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + ", Teile " + Parts(d.GroupDetectionRange);
+                    }
                     if (sensorNow[kind] == null || near > sensorNear[kind])
                     {
                         sensorNear[kind] = near;
@@ -65,6 +89,7 @@ namespace UboatToolkit.Modules
                     var sb = new System.Text.StringBuilder("Sensoren (nur eigenes Boot):");
                     for (int i = 0; i < SensorKeys.Length; i++) sb.Append(" ").Append(SensorKeys[i].Substring(10)).Append(" x").Append(Settings.F(SensorKeys[i]).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)).Append(" ").Append(sensorNow[i] ?? "(nicht an Bord)").Append(";");
                     Util.Log(sb.ToString());
+                    if (hydroParts != null) { Util.Log(hydroParts); hydroParts = null; }
                 }
             }
 

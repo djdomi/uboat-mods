@@ -30,7 +30,13 @@ namespace UboatToolkit.Modules
                 if (lastWanted != wanted)
                 {
                     var sws = Util.Find<LightSwitch>(); var sw = sws.Length > 0 ? sws[0] : null;   // 0.4.6: interior scene too
-                    if (sw != null) { sw.SetColor(wanted, quiet: true); lastWanted = wanted; }
+                    // 0.4.9: since 0.4.6 the switch in the interior is found; right after a load it is not ready yet
+                    // (error in the game's OnLightPresetChanged), so wait for the boat and try again next second.
+                    if (sw != null && Util.ShipReady)
+                    {
+                        try { sw.SetColor(wanted, quiet: true); lastWanted = wanted; }
+                        catch (System.Exception) { }
+                    }
                 }
             }
             else lastWanted = null;

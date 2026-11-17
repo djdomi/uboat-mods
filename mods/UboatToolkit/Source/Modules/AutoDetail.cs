@@ -11,7 +11,7 @@ namespace UboatToolkit.Modules
         private float nextSwitch;
         private static UBOAT.Game.Core.Time.GameTime gameTime;
         private static float gameStep = -1f;   // the game's own physics step (1/75 s)
-        private float nextCensus, autoHz; private int autoWait;
+        private float nextCensus, autoHz, nextPhysLine; private int autoWait;
 
         // 0.3.69 physics rate (DoMe: get performance out of the engine). Measured: with 48 ships the physics took
         // 149 of 224 ms per frame. The game runs physics 75 times per second and up to 5 steps per frame.
@@ -44,6 +44,12 @@ namespace UboatToolkit.Modules
             {
                 gameTime.FixedDeltaTime = want;
                 Util.Log("Physik-Takt: " + (1f / want).ToString("0") + " pro Sekunde (Spiel: " + (1f / gameStep).ToString("0") + ")");
+            }
+            // 0.4.9: proof line once per minute (was missing: no way to see whether the automatic step is active)
+            if (Time.unscaledTime >= nextPhysLine)
+            {
+                nextPhysLine = Time.unscaledTime + 60f;
+                Util.Log("Physik: Takt " + (1f / Time.fixedDeltaTime).ToString("0") + " pro Sekunde, höchstens " + (Time.maximumDeltaTime / Time.fixedDeltaTime).ToString("0.#") + " Schritte pro Bild, Zeitraffer x" + Time.timeScale.ToString("0.#") + ", FPS " + ExplosionLimit_Patch.Fps().ToString("0") + ", Automatik " + (Settings.B("PhysicsAuto") ? (Time.timeScale > 1.01f ? "ruht (Zeitraffer, Spiel regelt selbst)" : "an") : "aus"));
             }
             // Census for the next tuning step: what is in the physics scene when it is slow (max. every 2 min).
             float f = ExplosionLimit_Patch.Fps();

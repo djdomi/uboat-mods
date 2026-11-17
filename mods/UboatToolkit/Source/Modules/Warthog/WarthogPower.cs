@@ -67,7 +67,8 @@ namespace UboatToolkit.Modules.Warthog
                 if (d.type.StartsWith("Warthog")) continue; // own consumers apply the mode themselves
                 int mode = Mode(d.type);
                 int n = 0; float game = 0f, now = 0f;
-                foreach (var comp in DevicesOfType(d.type))
+                var comps = DevicesOfType(d.type);
+                foreach (var comp in comps)
                     foreach (var f in EnergyFields(comp.GetType()))
                     {
                         var m = f.GetValue(comp) as Modifier;
@@ -80,11 +81,23 @@ namespace UboatToolkit.Modules.Warthog
                         s.Written = want;
                         if (log) { n++; game += s.Game; now += want; }
                     }
-                if (log) sb.Append(" ").Append(d.label).Append(": ").Append(n).Append(" Werte, Spiel ").Append(game.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" -> jetzt ").Append(now.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" (Modus ").Append(mode).Append(");");
+                if (log) sb.Append(" ").Append(d.label).Append(": ").Append(comps.Length).Append(" Geräte, ").Append(n).Append(" aktive Werte, Spiel ").Append(game.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" -> jetzt ").Append(now.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" (Modus ").Append(mode).Append(");");
             }
-            if (log) Util.Log(sb.ToString());
+            if (log)
+            {
+                // total of the boat's battery: what the game really adds (+) or takes (-) per second right now
+                try { var en = ship.GetResource("Energy"); if (en != null) sb.Append(" Batterie gesamt jetzt ").Append(en.Gain.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" pro Sekunde, Teile").Append(PartsOf(en.Gain)); } catch { }
+                Util.Log(sb.ToString());
+            }
         }
 
+        private static string PartsOf(Parameter p)
+        {
+            var sb = new System.Text.StringBuilder();
+            int k = 0;
+            foreach (var m in p.DeltaModifiers) { if (m == null || m.Value == 0f) continue; if (k++ >= 25) break; sb.Append(" ").Append(m.Name).Append("=").Append(m.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)); }
+            return sb.ToString();
+        }
         private static readonly Dictionary<string, Type> typeByName = new Dictionary<string, Type>();
         private static Component[] DevicesOfType(string name)
         {
