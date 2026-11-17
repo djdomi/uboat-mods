@@ -450,6 +450,9 @@ namespace UboatToolkit
             m["Pumpe x stärker (1 = normal) (#38)"] = "Pump x stronger (1 = normal) (#38)";
             m["Pumpe arbeitet in jeder Tiefe voll"] = "Pump works fully at any depth";
             m["Boot kann nie volllaufen (Wasser wird sofort abgepumpt)"] = "Boat can never flood (water is pumped out instantly)";
+            m["Geleitschutz leicht gemacht: keine neuen Angreifer, Geleit fährt volle Fahrt und nimmt keinen Schaden"] = "Convoy gets easy: no new attackers, convoy sails at full speed and takes no damage";
+            m["Testwasser: so viele m³ (1-10)"] = "Test water: this many m³ (1-10)";
+            m[">> Testwasser ins Boot: Grundreinigung durch Flutung (in den Raum der Kamera, sonst Zentrale)"] = ">> Test water into the boat: deep cleaning by flooding (into the camera's room, else control room)";
             m["Crew läuft x schneller (1 = normal)"] = "Crew walks x faster (1 = normal)";
             m["Crew unsterblich + unverletzbar (keine Wunden, fällt nicht um)"] = "Crew immortal + invulnerable (no wounds, does not fall over)";
             m["Vorräte gehen nie aus (Essen, Ersatzteile, Verbandskästen ...)"] = "Supplies never run out (food, spare parts, first aid kits ...)";
