@@ -102,6 +102,15 @@ namespace UboatToolkit.Modules
             foreach (var s in Util.Find<Storage>())
             {
                 if (s.IsShop) continue;
+                // 0.4.2: torpedo tubes and torpedo racks are left exactly as the game made them (suspect for the
+                // empty tube window / crew not loading; torpedoes never stack anyway).
+                if (s is TorpedoLauncherGroup || s is TorpedoStorage)
+                {
+                    var tt = Traverse.Create(s);
+                    tt.Field("ignoreStackLimits").SetValue(Util.Original<bool>(s, "ignoreStackLimits"));
+                    Util.ScaleParameter(tt.Field("itemsMassLimit").GetValue<Parameter>(), 1f);
+                    continue;
+                }
                 var t = Traverse.Create(s);
                 bool origIgnore = Util.Original<bool>(s, "ignoreStackLimits");
                 t.Field("ignoreStackLimits").SetValue(stack > 1f || minStack > 0f || origIgnore);
@@ -122,7 +131,7 @@ namespace UboatToolkit.Modules
             {
                 // Never for diesel: the game reads the fuel amount from its weight, so "no weight"
                 // made every tank show 0 kg and look empty, even right after refuelling.
-                Util.ScaleParameter(e.Mass, noWeight && !(e is Fuel) ? 0.0000001f : 1f);
+                Util.ScaleParameter(e.Mass, noWeight && !(e is Fuel) && !(e is StoredTorpedo) ? 0.0000001f : 1f);   // 0.4.2: torpedoes keep their game weight
                 if (e is Cargo c) ApplyStack(c);
             }
         }

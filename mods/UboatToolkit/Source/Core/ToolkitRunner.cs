@@ -520,7 +520,7 @@ namespace UboatToolkit
                 {
                     string hay = Settings.SearchTextOf(o);
                     bool all = true;
-                    foreach (var w in words) if (!hay.Contains(w)) { all = false; break; }
+                    foreach (var w in words) if (!Settings.WordHits(hay, w)) { all = false; break; }
                     if (!all) continue;
                     if (onlyChanged && !Settings.Changed(o)) continue;
                     bool topic = o.Group != "" && (o.Tab == Settings.QoL || o.Tab == Settings.Cheat || o.IsKey);

@@ -387,7 +387,7 @@ namespace UboatToolkit
             m["Strom sparen: unter Wasser bei Batterie unter x % Kompressor + Scheinwerfer aus (0 = aus)"] = "Save power: underwater with battery below x % compressor + searchlight off (0 = off)";
             m["Torpedos x schneller nachladen (1 = normal, 1000 = sofort)"] = "Reload torpedoes x faster (1 = normal, 1000 = instant)";
             m["Schneller laden: Ladebildschirm nutzt die volle Rechenzeit"] = "Load faster: loading screen uses the full computing time";
-            m["Pumpe schaltet sich bei Wasser im Boot selbst an (#38)"] = "Pump switches itself on when there is water in the boat (#38)";
+            m["Lenzpumpe schaltet sich bei Wasser im Boot selbst an (#38)"] = "Pump switches itself on when there is water in the boat (#38)";
             m["Hafen-Grundfix: kein Einfrieren beim Verladen, hängende Aufträge werden gelöst (#39)"] = "Port base fix: no freeze while loading cargo, stuck orders get solved (#39)";
             m["  Hängt das Verladen so viele Sekunden: neu anstoßen, dann abbrechen"] = "  If loading hangs this many seconds: restart it, then cancel";
             m["  >> Verladen jetzt abbrechen (Schalter springt zurück)"] = "  >> Cancel loading now (switch jumps back)";
@@ -447,8 +447,8 @@ namespace UboatToolkit
             m["  Nachgeladen wird immer ein T5 Zaunkönig (zielsuchend)"] = "  Always reloads a T5 Zaunkönig (homing)";
             m["Keine Torpedo-Versager"] = "No torpedo duds";
             m["Boot schneller x (über und unter Wasser) (1 = normal) (#33)"] = "Boat faster x (surfaced and submerged) (1 = normal) (#33)";
-            m["Pumpe x stärker (1 = normal) (#38)"] = "Pump x stronger (1 = normal) (#38)";
-            m["Pumpe arbeitet in jeder Tiefe voll"] = "Pump works fully at any depth";
+            m["Lenzpumpe x stärker (1 = normal) (#38)"] = "Pump x stronger (1 = normal) (#38)";
+            m["Lenzpumpe arbeitet in jeder Tiefe voll"] = "Pump works fully at any depth";
             m["Boot kann nie volllaufen (Wasser wird sofort abgepumpt)"] = "Boat can never flood (water is pumped out instantly)";
             m["Geleitschutz leicht gemacht: keine neuen Angreifer, Geleit fährt volle Fahrt und nimmt keinen Schaden"] = "Convoy gets easy: no new attackers, convoy sails at full speed and takes no damage";
             m["Testwasser: so viele m³ (1-10)"] = "Test water: this many m³ (1-10)";

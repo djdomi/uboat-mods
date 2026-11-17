@@ -147,6 +147,60 @@ namespace UboatToolkit.Modules
         // Why does the crew not load by itself (DoMe 2026-11-16)? The game's own loading needs: a free tube that is
         // accessible and open for the crew, a torpedo in the tube room's own rack, and an officer whose role has the
         // loading job. Each of these is written to the log.
+        // 0.4.2 (DoMe 2026-11-17: "finde heraus, warum die Mannschaft nicht nachlädt"): asks the game's own decision
+        // code for every officer with the loading job: silent running (the game forbids loading then), may the officer
+        // start work at all, what does the loading action answer for each tube room (state + reason + profit).
+        private static void CrewLoadDiag2()
+        {
+            var sb = new System.Text.StringBuilder("Lade-Entscheidung: ");
+            try
+            {
+                var src = DWS.Common.InjectionFramework.InjectionFramework.Instance.GetInstance<UBOAT.Game.Scene.Tasks.ISilentRunningController>();
+                sb.Append("Schleichfahrt=").Append(src != null ? (src.IsSilentRunningEnabled ? "AN (Spiel lädt dann nie)" : "aus") : "?").Append("; ");
+            }
+            catch { sb.Append("Schleichfahrt=?; "); }
+            var groups = Util.Find<TorpedoLauncherGroup>(2f);
+            var crew = Object.FindObjectOfType<UBOAT.Game.Scene.Characters.PlayerCrew>();
+            if (crew == null || crew.Officers == null) { Util.Log(sb.Append("keine Crew").ToString()); return; }
+            foreach (var o in crew.Officers)
+            {
+                if (o == null || o.Role == null || !o.Role.HasAction<UBOAT.Game.Scene.Characters.Actions.LoadTorpedoesAction>()) continue;
+                sb.Append("{").Append(o.name).Append(" darfArbeiten=").Append(o.CanStartNormalActions())
+                  .Append(" Dienstplan=").Append(o.Schedule != null ? o.Schedule.CurrentBehaviour.ToString() : "?");
+                var jobs = Traverse.Create(o.Role).Field("jobs").GetValue() as System.Collections.IEnumerable;
+                if (jobs != null)
+                    foreach (var job in jobs)
+                    {
+                        if (job == null) continue;
+                        var info = Traverse.Create(job).Field("actionInfo").GetValue();
+                        if (info == null) continue;
+                        var act = Traverse.Create(info).Field("Action").GetValue() as UBOAT.Game.Scene.Characters.Actions.LoadTorpedoesAction;
+                        if (act == null) continue;
+                        var tags = Traverse.Create(info).Field("ActivatorTags").GetValue() as string[];
+                        sb.Append(" Auftrag[Marken=").Append(tags != null ? string.Join("/", tags) : "?")
+                          .Append(" Prio=").Append(Traverse.Create(job).Field("priority").GetValue()).Append("]");
+                        foreach (var g in groups)
+                        {
+                            if (g == null) continue;
+                            var activator = g.GetComponentInParent<UBOAT.Game.Scene.Characters.Activators.Activator>();
+                            if (activator == null) { sb.Append(" ").Append(g.name).Append(":kein Bedienplatz"); continue; }
+                            string st, why = "", profit;
+                            try
+                            {
+                                var r = act.GetState(activator, o, true, false, UBOAT.Game.Scene.Characters.Activators.ActionContext.Normal);
+                                st = r.ActionState.ToString();
+                                if (r.Warning != null) why = " (" + r.Warning.ToString() + ")";
+                            }
+                            catch (System.Exception e) { st = "Fehler " + e.GetType().Name; }
+                            try { profit = act.GetActionProfit(activator, o, 1f).ToString("0.##"); } catch (System.Exception e) { profit = "Fehler " + e.GetType().Name; }
+                            sb.Append(" ").Append(g.name).Append(":Zustand=").Append(st).Append(why).Append(",Nutzen=").Append(profit);
+                        }
+                    }
+                sb.Append("} ");
+            }
+            Util.Log(sb.ToString());
+        }
+
         private static void CrewLoadDiag()
         {
             var sb = new System.Text.StringBuilder("Lade-Diagnose: ");
@@ -171,6 +225,7 @@ namespace UboatToolkit.Modules
                     sb.Append("{").Append(o.name).Append(job ? " LADE-ROLLE" : "").Append(" tut=").Append(o.Action != null ? o.Action.GetType().Name : "nichts").Append("} ");
                 }
             Util.Log(sb.ToString());
+            Util.Safe("tube diag 2", CrewLoadDiag2);
             // where do the torpedoes on board lie? (the tube's selection window only shows the tube room's rack)
             var where = new System.Text.StringBuilder("Torpedo-Lagerorte: ");
             foreach (var st in Util.Find<Storage>())
@@ -202,6 +257,35 @@ namespace UboatToolkit.Modules
             if (!Settings.B("CheatNoDuds")) return;
             foreach (var t in Util.Find<Torpedo>(1f))
                 if (t != null && t.Owner == Util.PlayerShip) t.DudsDisabled = true;   // 0.3.38: own torpedoes only
+        }
+    }
+
+    // 0.4.2 (DoMe 2026-11-17: "Torpedoversager, obwohl es laut Cheat keine geben kann"): a launched torpedo is its own
+    // object in the water, not a part of the boat, so the once-a-second search on the boat never found it. Now the
+    // torpedo is marked right before the game decides about a dud (impact, magnetic trigger, dud roll). Own torpedoes only.
+    [HarmonyPatch]
+    internal static class Torpedoes_NoDudPatch
+    {
+        private static int logged;
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            foreach (var n in new[] { "OnCollisionEnter", "OnTriggerEnter", "TryDetonateFlatChance" })
+            {
+                var m = AccessTools.DeclaredMethod(typeof(Torpedo), n);
+                if (m != null) yield return m;
+            }
+        }
+        private static void Prefix(Torpedo __instance)
+        {
+            try
+            {
+                if (__instance == null || __instance.DudsDisabled || !Settings.B("CheatNoDuds")) return;
+                var ship = Util.PlayerShip;
+                if (ship == null || __instance.Owner != ship) return;
+                __instance.DudsDisabled = true;
+                if (logged++ < 30) Util.Log("Versager verhindert: " + __instance.name);
+            }
+            catch { }
         }
     }
 

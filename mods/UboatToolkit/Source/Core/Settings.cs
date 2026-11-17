@@ -459,7 +459,7 @@ namespace UboatToolkit
             Num(QoL, "EnergySaverPercent", "Strom sparen: unter Wasser bei Batterie unter x % Kompressor + Scheinwerfer aus (0 = aus)", 20, 0, 50, 5);
             Num(QoL, "TorpedoLoadSpeed", "Torpedos x schneller nachladen (1 = normal, 1000 = sofort)", 1, 1, 1000, 1);
             Bool(QoL, "FastLoading", "Schneller laden: Ladebildschirm nutzt die volle Rechenzeit", true);
-            Bool(QoL, "AutoPump", "Pumpe schaltet sich bei Wasser im Boot selbst an (#38)", true);
+            Bool(QoL, "AutoPump", "Lenzpumpe schaltet sich bei Wasser im Boot selbst an (#38)", true);
             Bool(QoL, "PortLoadingFix", "Hafen-Grundfix: kein Einfrieren beim Verladen, hängende Aufträge werden gelöst (#39)", true);
             Num(QoL, "PortLoadingStuckSeconds", "  Hängt das Verladen so viele Sekunden: neu anstoßen, dann abbrechen", 30, 5, 300, 5);
             Bool(QoL, "CancelPortLoading", "  >> Verladen jetzt abbrechen (Schalter springt zurück)", false);
@@ -532,8 +532,8 @@ namespace UboatToolkit
             Num(Cheat, "ReloadType", "  Nachladen mit: 0 = wie zuletzt, 1-5 = T1-T5, 6 = Mine", 0, 0, 6, 1);
             Bool(Cheat, "CheatNoDuds", "Keine Torpedo-Versager", false);
             Num(Cheat, "CheatSpeed", "Boot schneller x (über und unter Wasser) (1 = normal) (#33)", 1, 1, 5, 0.25f);
-            Num(Cheat, "CheatPumpPower", "Pumpe x stärker (1 = normal) (#38)", 1, 1, 50, 1);
-            Bool(Cheat, "CheatPumpAnyDepth", "Pumpe arbeitet in jeder Tiefe voll", false);
+            Num(Cheat, "CheatPumpPower", "Lenzpumpe x stärker (1 = normal) (#38)", 1, 1, 50, 1);
+            Bool(Cheat, "CheatPumpAnyDepth", "Lenzpumpe arbeitet in jeder Tiefe voll", false);
             Bool(Cheat, "CheatNeverFlood", "Boot kann nie volllaufen (Wasser wird sofort abgepumpt)", false);
             Num(Cheat, "CheatPumpTestWaterM3", "Testwasser: so viele m³ (1-10)", 5, 1, 10, 1);
             Bool(Cheat, "CheatPumpTestWater", ">> Testwasser ins Boot: Grundreinigung durch Flutung (in den Raum der Kamera, sonst Zentrale)", false);
@@ -829,6 +829,45 @@ namespace UboatToolkit
             if (string.IsNullOrEmpty(s)) return "";
             return s.ToLowerInvariant().Replace("ä", "ae").Replace("ö", "oe").Replace("ü", "ue").Replace("ß", "ss");
         }
+        // 0.4.2 (DoMe: "manche Optionen finde ich nur mit lenz, andere nur mit pumpe"): words that mean the same.
+        // A search word that fits one word of a row also finds every setting that has any other word of that row.
+        private static readonly string[][] synonyms =
+        {
+            new[] { "lenz", "pumpe", "bilge", "wasser", "pump", "flut" },
+            new[] { "rohr", "torpedo", "aal", "tube" },
+            new[] { "strahlruder", "thruster", "querstrahl" },
+            new[] { "schleichfahrt", "leise", "silent", "schleich" },
+            new[] { "flak", "aa", "flugabwehr" },
+            new[] { "tauch", "tiefe", "dive", "depth" },
+            new[] { "akku", "batterie", "strom", "energie", "battery" },
+            new[] { "crew", "mannschaft", "matrose", "besatzung", "offizier" },
+            new[] { "geschuetz", "kanone", "deckgeschuetz", "88", "105", "gun" },
+            new[] { "sehrohr", "periskop", "periscope" },
+            new[] { "diesel", "treibstoff", "sprit", "fuel", "kraftstoff" },
+            new[] { "erfolg", "achievement", "errungenschaft" },
+            new[] { "auftrag", "mission", "aufgabe" },
+            new[] { "geleit", "konvoi", "convoy", "eskorte" },
+            new[] { "lager", "stapel", "vorrat", "inventar", "storage" },
+            new[] { "horch", "hydrophon", "sonar", "ghg" },
+            new[] { "funk", "radio" },
+            new[] { "licht", "lampe", "beleuchtung", "light" },
+            new[] { "reparatur", "repar", "schaden", "damage" },
+            new[] { "geld", "budget", "preis", "kosten" },
+        };
+        public static bool WordHits(string hay, string w)
+        {
+            if (hay.Contains(w)) return true;
+            if (w.Length < 2) return false;
+            foreach (var row in synonyms)
+            {
+                bool fits = false;
+                foreach (var x in row) if (x.StartsWith(w) || (w.Length >= 4 && w.StartsWith(x))) { fits = true; break; }
+                if (!fits) continue;
+                foreach (var x in row) if (x.Length >= 3 ? hay.Contains(x) : (" " + hay + " ").Contains(" " + x + " ")) return true;
+            }
+            return false;
+        }
+
         public static string SearchTextOf(Opt o)
         {
             if (o.SearchText == null)
