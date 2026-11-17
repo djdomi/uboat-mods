@@ -563,7 +563,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatFullDiscipline", "Moral (Disziplin) immer voll und sinkt nie, kein Stress", false);
             Bool(Cheat, "CheatAllAchievements", "  >> Alle Steam-Erfolge freischalten", false);
             Bool(Cheat, "CheatMissionDone", ">> Aktuellen Auftrag als erfüllt setzen (danach im Heimathafen abgeben)", false);
-            Bool(Cheat, "CheatEscortEasy", "Geleitschutz-Auftrag: keine neuen Angreifer, Geleit fährt volle Fahrt und nimmt keinen Schaden", false);
+            Bool(Cheat, "CheatEscortEasy", "Geleitschutz leicht gemacht: keine neuen Angreifer, Geleit fährt volle Fahrt und nimmt keinen Schaden", false);
             Bool(Cheat, "CheatMissionStep", ">> Aktuellen Auftrag einen Schritt weiter schalten", false);
             Num(Cheat, "CheatMoney", "Geld: nie weniger als (0 = aus)", 0, 0, 1000000, 10000);
             Num(Cheat, "CheatReputation", "Ansehen (Ruf-Punkte): nie weniger als (0 = aus)", 0, 0, 1000, 10);
