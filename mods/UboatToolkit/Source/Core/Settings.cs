@@ -829,45 +829,6 @@ namespace UboatToolkit
             if (string.IsNullOrEmpty(s)) return "";
             return s.ToLowerInvariant().Replace("ä", "ae").Replace("ö", "oe").Replace("ü", "ue").Replace("ß", "ss");
         }
-        // 0.4.2 (DoMe: "manche Optionen finde ich nur mit lenz, andere nur mit pumpe"): words that mean the same.
-        // A search word that fits one word of a row also finds every setting that has any other word of that row.
-        private static readonly string[][] synonyms =
-        {
-            new[] { "lenz", "pumpe", "bilge", "wasser", "pump", "flut" },
-            new[] { "rohr", "torpedo", "aal", "tube" },
-            new[] { "strahlruder", "thruster", "querstrahl" },
-            new[] { "schleichfahrt", "leise", "silent", "schleich" },
-            new[] { "flak", "aa", "flugabwehr" },
-            new[] { "tauch", "tiefe", "dive", "depth" },
-            new[] { "akku", "batterie", "strom", "energie", "battery" },
-            new[] { "crew", "mannschaft", "matrose", "besatzung", "offizier" },
-            new[] { "geschuetz", "kanone", "deckgeschuetz", "88", "105", "gun" },
-            new[] { "sehrohr", "periskop", "periscope" },
-            new[] { "diesel", "treibstoff", "sprit", "fuel", "kraftstoff" },
-            new[] { "erfolg", "achievement", "errungenschaft" },
-            new[] { "auftrag", "mission", "aufgabe" },
-            new[] { "geleit", "konvoi", "convoy", "eskorte" },
-            new[] { "lager", "stapel", "vorrat", "inventar", "storage" },
-            new[] { "horch", "hydrophon", "sonar", "ghg" },
-            new[] { "funk", "radio" },
-            new[] { "licht", "lampe", "beleuchtung", "light" },
-            new[] { "reparatur", "repar", "schaden", "damage" },
-            new[] { "geld", "budget", "preis", "kosten" },
-        };
-        public static bool WordHits(string hay, string w)
-        {
-            if (hay.Contains(w)) return true;
-            if (w.Length < 2) return false;
-            foreach (var row in synonyms)
-            {
-                bool fits = false;
-                foreach (var x in row) if (x.StartsWith(w) || (w.Length >= 4 && w.StartsWith(x))) { fits = true; break; }
-                if (!fits) continue;
-                foreach (var x in row) if (x.Length >= 3 ? hay.Contains(x) : (" " + hay + " ").Contains(" " + x + " ")) return true;
-            }
-            return false;
-        }
-
         public static string SearchTextOf(Opt o)
         {
             if (o.SearchText == null)

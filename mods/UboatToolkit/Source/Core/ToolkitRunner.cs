@@ -510,7 +510,9 @@ namespace UboatToolkit
                 // sections "tab / topic" with a headline each; "nur dieser Reiter" limits the hits to the tab clicked above.
                 // 0.3.75 better search: several words (all must match), umlauts and case do not matter, the topic, sub-topic
                 // and the main switch of a fine setting are searched too ("flak schaden", "88 rauch", "cheat torpedo").
-                var words = Settings.Norm(search).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                // 0.4.3: the matching itself lives in Core/Search.cs (word parts, endings, typing mistakes, same-meaning
+                // words, best hits first). The result is kept until the search text changes.
+                var scores = Search.Run(search);
                 Opt lastParent = null;
                 var shown = new HashSet<Opt>();
                 int hits = 0;
@@ -518,10 +520,7 @@ namespace UboatToolkit
                 var found = new List<KeyValuePair<string, Opt>>();
                 foreach (var o in Settings.All)
                 {
-                    string hay = Settings.SearchTextOf(o);
-                    bool all = true;
-                    foreach (var w in words) if (!Settings.WordHits(hay, w)) { all = false; break; }
-                    if (!all) continue;
+                    if (!scores.ContainsKey(o)) continue;
                     if (onlyChanged && !Settings.Changed(o)) continue;
                     bool topic = o.Group != "" && (o.Tab == Settings.QoL || o.Tab == Settings.Cheat || o.IsKey);
                     string oldTopic = topic ? null : TopicOfOldTab(o.Tab);
@@ -532,7 +531,15 @@ namespace UboatToolkit
                     found.Add(new KeyValuePair<string, Opt>(place, o));
                     placeHome[place] = home; placeGroup[place] = pg;
                 }
-                foreach (var kv in found.OrderBy(x => x.Key, StringComparer.Ordinal))
+                // best place first (the place of the best hit), inside a place the best hits first; a fine setting stays
+                // below its main switch when both are hits
+                var placeBest = new Dictionary<string, int>();
+                foreach (var kv in found) { int sc = scores[kv.Value], old; if (!placeBest.TryGetValue(kv.Key, out old) || sc > old) placeBest[kv.Key] = sc; }
+                Func<Opt, int> rank = o => o.Parent != null && scores.ContainsKey(o.Parent) ? Math.Max(scores[o.Parent], scores[o]) : scores[o];
+                var order = new Dictionary<Opt, int>();
+                for (int i = 0; i < Settings.All.Count; i++) order[Settings.All[i]] = i;
+                foreach (var kv in found.OrderByDescending(x => placeBest[x.Key]).ThenBy(x => x.Key, StringComparer.Ordinal)
+                    .ThenByDescending(x => rank(x.Value)).ThenBy(x => order[x.Value.Parent != null && scores.ContainsKey(x.Value.Parent) ? x.Value.Parent : x.Value]).ThenBy(x => order[x.Value]))
                 {
                     if (kv.Key != lastPlace)
                     {
@@ -557,7 +564,11 @@ namespace UboatToolkit
                     DrawOpt(kv.Value);
                     hits++;
                 }
-                if (hits == 0) Imgui.Label("Nichts gefunden.");
+                if (hits == 0)
+                {
+                    Imgui.Label("Nichts gefunden.");
+                    if (Search.Suggestion != "" && Imgui.Button("Meintest du: " + Search.Suggestion + " ?", 420)) search = Search.Suggestion;
+                }
             }
             else if (IsTopic(tab)) DrawTopicTab(tab);
             else
