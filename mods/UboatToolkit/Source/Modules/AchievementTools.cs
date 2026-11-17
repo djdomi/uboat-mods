@@ -64,7 +64,25 @@ namespace UboatToolkit.Modules
     {
         internal static bool InSubmit;
         private static void Prefix() { InSubmit = true; }
-        private static Exception Finalizer(Exception __exception) { InSubmit = false; return __exception; }
+        private static readonly FieldInfo Lock = AccessTools.Field(typeof(PlayerCareer), "isPlaythroughLockedOutOfAchievements");
+        private static Exception Finalizer(Exception __exception, string __0)
+        {
+            InSubmit = false;
+            // 0.3.98 proof line (DoMe: console cheats without losing achievements): the save's real flag is checked
+            // right after each command and cleared at once, not only at the next tick.
+            try
+            {
+                if (Settings.B("AchievementsOn") && !string.IsNullOrEmpty(__0))
+                {
+                    var pc = Util.Career;
+                    bool locked = pc != null && Lock != null && (bool)Lock.GetValue(pc);
+                    if (locked) Lock.SetValue(pc, false);
+                    Util.Log("Konsole: " + __0 + ", Erfolge weiter erlaubt: " + (pc == null ? "kein Spielstand geladen" : "ja" + (locked ? " (Sperre sofort entfernt)" : "")));
+                }
+            }
+            catch { }
+            return __exception;
+        }
     }
 
     // One-shot cheats for the current assignment (DoMe 2026-11-16: "Mission per Knopfdruck erfolgreich").
