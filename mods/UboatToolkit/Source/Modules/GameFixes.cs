@@ -469,7 +469,7 @@ namespace UboatToolkit.Modules
     public class DevConsoleHide : ModuleBase
     {
         private static bool logged, hooked;
-        private static int closed;
+        private static int closed, reasons;
         internal static void Close()
         {
             if (!Settings.B("HideDevConsole") || !UnityEngine.Debug.developerConsoleVisible) return;
@@ -481,7 +481,14 @@ namespace UboatToolkit.Modules
         {
             if (hooked) return;
             hooked = true;
-            UnityEngine.Application.logMessageReceived += (c, st, t) => { if (t == UnityEngine.LogType.Error || t == UnityEngine.LogType.Exception || t == UnityEngine.LogType.Assert) Close(); };
+            UnityEngine.Application.logMessageReceived += (c, st, t) =>
+            {
+                if (t != UnityEngine.LogType.Error && t != UnityEngine.LogType.Exception && t != UnityEngine.LogType.Assert) return;
+                bool was = UnityEngine.Debug.developerConsoleVisible;
+                Close();
+                // 0.3.93: name what opened the console (first line only), so the cause can be found in the log.
+                if (reasons < 30) { reasons++; var line = c ?? ""; int n = line.IndexOf('\n'); if (n >= 0) line = line.Substring(0, n); if (line.Length > 160) line = line.Substring(0, 160); DebugLog.Write("INFO", "Konsole ausgelöst von (" + t + (was ? ", war offen" : "") + "): " + line); }
+            };
             UnityEngine.Application.onBeforeRender += Close;
         }
         private float nextLog;

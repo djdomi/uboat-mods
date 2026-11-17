@@ -115,3 +115,46 @@ namespace UboatToolkit.Modules
         public override void Frame() => CameraParentFix.RunPending();
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // 0.3.93 (DoMe: debug console still pops up about once a minute): many other UI parts (contact list, cursor
+    // action icons, periscope overlays) ask for pictures the game does not ship. Each one wrote a red
+    // "Requested asset at path ... doesn't exist." error, which opens the console. A missing picture is harmless:
+    // for paths under Icons/ and Images/ the error is now only counted, not written.
+    [HarmonyPatch]
+    internal static class IconFix_MissingLog
+    {
+        internal static int Hidden;
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            // Mono shares one method body for all class types (Sprite, Texture2D, ...): patching the Sprite version covers them all.
+            var list = new List<MethodBase>();
+            foreach (var t in new[] { typeof(DWS.Common.Resources.ResourceBase<Sprite>) })
+            {
+                var m = AccessTools.DeclaredMethod(t, "LogAssetMissing");
+                if (m != null && !list.Contains(m)) list.Add(m);
+            }
+            var ab = UboatToolkit.Util.FindType("DWS.Common.Resources.AssetBundleContainedResource`1");
+            if (ab != null)
+                foreach (var a in new[] { typeof(Sprite) })
+                {
+                    try { var m = AccessTools.DeclaredMethod(ab.MakeGenericType(a), "LogAssetMissing"); if (m != null && !list.Contains(m)) list.Add(m); } catch { }
+                }
+            return list;
+        }
+
+        private static bool Prefix(object __instance)
+        {
+            try
+            {
+                if (!Settings.B("FixMissingIcons")) return true;
+                var p = Traverse.Create(__instance).Property("Path").GetValue<string>();
+                if (p == null || !(p.StartsWith("Icons/") || p.StartsWith("Images/"))) return true;
+                if (Hidden++ < 20) Util.Log("Fehlendes Bild ohne roten Fehler übersprungen: " + p);
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+}

@@ -139,7 +139,7 @@ namespace UboatToolkit
             Bool(QoL, "FixEmptyTooltip", "Fix: leere Tooltip-Kästen nicht anzeigen (z. B. am Auge)", true);
             Bool(QoL, "FixSkillIcons", "Fix: Fehler \"Requested asset Icons/Skills/...\" (fehlende Skill-Bilder)", true);
             Bool(QoL, "FixCameraParent", "Fix: Fehler \"GameObject is already being activated or deactivated\" nach dem Charakter-Bildschirm", true);
-            Bool(QoL, "FixMissingIcons", "Fix: Fehler \"Requested asset Icons/Activators/... / Icons/Equipment/...\" (fehlende Bilder von Depots und Gegenständen)", true);
+            Bool(QoL, "FixMissingIcons", "Fix: fehlende Bilder (Icons/..., Images/...) ohne roten Fehler und ohne aufpoppende Konsole", true);
             Bool(QoL, "FixFlames", "Fix: Fehler in FlamesRegistry (Feuer an abgeschossenen Schiffsteilen)", true);
             Bool(QoL, "FixPoolAnimators", "Fix: Fehler \"Pooled instance ... enabled animators\" (z. B. Zeitungsständer)", true);
             Num(QoL, "DepthStep", "  Tiefen-Schritt in m (Shift = x10, Alt = x100, auch Mausrad an der Tiefenanzeige)", 1, 0.5f, 50, 0.5f);
