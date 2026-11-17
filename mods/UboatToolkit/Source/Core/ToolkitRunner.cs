@@ -24,6 +24,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.GunSmoke());
             Modules.Add(new Modules.DiveAngle());
             Modules.Add(new Modules.PortDefense());
+            Modules.Add(new Modules.EnemyCheck());
             Modules.Add(new Modules.TankReset());
             Modules.Add(new Modules.PortMines());
             Modules.Add(new Modules.Lighting());

@@ -25,7 +25,7 @@ namespace UboatToolkit.Modules
         // 0.3.59: Util.Find only searches the player's boat, so port guns were never found. Scene-wide search, cached 10 s.
         private static Gun[] all = new Gun[0];
         private static float allAt = -100f;
-        private static Gun[] AllGuns()
+        internal static Gun[] AllGuns()
         {
             if (Time.unscaledTime - allAt > 30f) { all = Object.FindObjectsOfType<Gun>(); allAt = Time.unscaledTime; }
             return all;

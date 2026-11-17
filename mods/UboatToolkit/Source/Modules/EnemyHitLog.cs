@@ -52,6 +52,49 @@ namespace UboatToolkit.Modules
             catch { }
         }
 
+        // Once a minute: every enemy gun in the scene is compared with the game values. Any toolkit value on an
+        // enemy (a "UboatToolkit" modifier on one of its parameters, or a changed shell speed) is logged and removed.
+        private static List<System.Reflection.FieldInfo> paramFields;
+        internal static void CheckEnemies()
+        {
+            try
+            {
+                if (paramFields == null)
+                {
+                    paramFields = new List<System.Reflection.FieldInfo>();
+                    for (var ty = typeof(UBOAT.Game.Scene.Items.Gun); ty != null && ty != typeof(object); ty = ty.BaseType)
+                        foreach (var f in ty.GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.DeclaredOnly))
+                            if (f.FieldType == typeof(UBOAT.Game.Core.Data.Parameter)) paramFields.Add(f);
+                }
+                int guns = 0, bad = 0; float pct = Mathf.Clamp(Settings.F("EnemyShellSpeedPct"), 20f, 100f);
+                foreach (var g in PortDefense.AllGuns())
+                {
+                    if (g == null || Util.IsPlayers(g) || g.ParentEntity is PlayerShip) continue;
+                    guns++;
+                    foreach (var f in paramFields)
+                    {
+                        var par = f.GetValue(g) as UBOAT.Game.Core.Data.Parameter;
+                        if (par == null) continue;
+                        float ex = par.GetValueExcludingModifier(Util.ModifierName);
+                        if (Mathf.Abs(par.Value - ex) <= 0.0001f) continue;
+                        bad++;
+                        if (bad <= 20) Util.Log("Gegner-Prüfung: ABWEICHUNG " + g.name + " (" + (g.ParentEntity != null ? g.ParentEntity.name : "?") + ") " + f.Name + " " + par.Value.ToString("0.###") + " statt " + ex.ToString("0.###") + " - zurückgesetzt");
+                        Util.SetParameter(par, 0f);
+                    }
+                    float game = Util.Original<float>(g, "shellSpeed");
+                    float now = Traverse.Create(g).Field("shellSpeed").GetValue<float>();
+                    if (now > game + 0.01f || (pct >= 100f && Mathf.Abs(now - game) > 0.01f))
+                    {
+                        bad++;
+                        if (bad <= 20) Util.Log("Gegner-Prüfung: ABWEICHUNG " + g.name + " Mündungsgeschwindigkeit " + now.ToString("0") + " statt " + game.ToString("0") + " - zurückgesetzt");
+                        Util.SetField(g, "shellSpeed", game);
+                    }
+                }
+                Util.Log("Gegner-Prüfung: " + guns + " gegnerische Waffen verglichen, " + (bad == 0 ? "alle mit Spielwerten (Toolkit verbessert keinen Gegner)" : bad + " Abweichungen gefunden und zurückgesetzt"));
+            }
+            catch (System.Exception e) { Util.Log("Gegner-Prüfung Fehler: " + e.Message); }
+        }
+
         internal static void Flush()
         {
             nextLog = Time.unscaledTime + 60f;
@@ -60,6 +103,19 @@ namespace UboatToolkit.Modules
                 Util.Log("Treffer-Summe letzte Minute: " + kv.Key + " " + kv.Value.Hits + "x, Entfernung " + kv.Value.MinKm.ToString("0.0") + "-" + kv.Value.MaxKm.ToString("0.0")
                     + " km, Schaden zusammen " + kv.Value.Dmg.ToString("0.#") + ", davon mit Toolkit-Werten: " + kv.Value.Toolkit);
             stats.Clear();
+        }
+    
+    }
+
+    public class EnemyCheck : ModuleBase
+    {
+        private float next = 60f;
+        public override void Tick()
+        {
+            if (Time.unscaledTime < next || Util.PlayerShip == null) return;
+            next = Time.unscaledTime + 60f;
+            EnemyHitLog.CheckEnemies();
+            EnemyHitLog.Flush();
         }
     }
 }
