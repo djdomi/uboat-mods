@@ -93,6 +93,23 @@ namespace UboatToolkit
                 if (ok) return arr;
             }
             var res = ship.GetComponentsInChildren<T>(true);
+            // Interior devices (pumps, racks, ...) live in a separate "<Name> Interior" scene: add them too.
+            try
+            {
+                var inner = ship.Interior;
+                if (inner != null && !inner.transform.IsChildOf(ship.transform))
+                {
+                    var more = inner.GetComponentsInChildren<T>(true);
+                    if (more.Length > 0)
+                    {
+                        var all = new List<T>(res);
+                        var seen = new HashSet<T>(res);
+                        foreach (var m in more) if (seen.Add(m)) all.Add(m);
+                        res = all.ToArray();
+                    }
+                }
+            }
+            catch { }
             found[t] = res; foundAt[t] = Time.unscaledTime;
             return res;
         }
@@ -150,10 +167,35 @@ namespace UboatToolkit
         }
         public static bool WarthogModOwns(PlayerShip ship) => WarthogModPresent && IsTypeXXX(ship);
 
+        // true for parts of the player's boat, also for devices in the separate interior scene
+        // (the game itself finds the owner the same way: SceneExtensions.GetParentShip).
+        private static readonly Dictionary<int, bool> ownerCache = new Dictionary<int, bool>();
+        private static PlayerShip ownerShip;
         public static bool IsPlayers(Component c)
         {
             var ship = PlayerShip;
-            return ship != null && c != null && c.transform.IsChildOf(ship.transform);
+            if (ship == null || c == null) return false;
+            if (ownerShip != ship) { ownerCache.Clear(); ownerShip = ship; }
+            var tr = c.transform;
+            if (tr.IsChildOf(ship.transform)) return true;
+            int id = c.GetInstanceID();
+            bool r;
+            if (ownerCache.TryGetValue(id, out r)) return r;
+            r = false;
+            try
+            {
+                var inner = ship.Interior;
+                if (inner != null && tr.IsChildOf(inner.transform)) r = true;
+                else
+                {
+                    var pi = c.GetComponentInParent<UBOAT.Game.Scene.Spaces.PlayerShipInterior>();
+                    if (pi != null && pi.Ship == ship) r = true;
+                }
+            }
+            catch { }
+            if (ownerCache.Count > 20000) ownerCache.Clear();
+            ownerCache[id] = r;
+            return r;
         }
 
         // Makes a game parameter end up at "target" (or back to the game value when target <= 0),
