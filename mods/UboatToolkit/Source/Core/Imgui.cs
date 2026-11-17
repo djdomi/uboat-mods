@@ -14,6 +14,40 @@ namespace UboatToolkit
         private static PropertyInfo color;
         private static object noOptions;
         public static bool Ready;
+        private static Action<Rect, string> fLabel, fBox;
+        private static Action<Rect, Texture> fTex;
+        private static Func<Color> fGetColor;
+        private static Action<Color> fSetColor;
+        private static Func<int> fEventType;
+        private static bool eventTypeTried;
+        // Kind of the current GUI event as number (Unity: 4 KeyDown, 5 KeyUp, 7 Repaint, 8 Layout); -1 = unknown.
+        public static int EventKind()
+        {
+            if (!eventTypeTried)
+            {
+                eventTypeTried = true;
+                try
+                {
+                    var et = Type.GetType("UnityEngine.Event, UnityEngine.IMGUIModule");
+                    var cur = System.Linq.Expressions.Expression.Property(null, et.GetProperty("current"));
+                    var body = System.Linq.Expressions.Expression.Condition(
+                        System.Linq.Expressions.Expression.Equal(cur, System.Linq.Expressions.Expression.Constant(null, et)),
+                        System.Linq.Expressions.Expression.Constant(-1),
+                        System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression.Property(cur, et.GetProperty("type")), typeof(int)));
+                    fEventType = System.Linq.Expressions.Expression.Lambda<Func<int>>(body).Compile();
+                    fEventType();
+                }
+                catch (Exception e) { fEventType = null; Util.Log("Anzeige: Ereignis-Art nur über den langsamen Weg (" + e.Message + ")"); }
+            }
+            if (fEventType != null) { try { return fEventType(); } catch { return -1; } }
+            try
+            {
+                if (evCurrent == null) { var et = Type.GetType("UnityEngine.Event, UnityEngine.IMGUIModule"); evCurrent = et?.GetProperty("current"); evType = et?.GetProperty("type"); }
+                var e = evCurrent?.GetValue(null, null);
+                return e == null || evType == null ? -1 : Convert.ToInt32(evType.GetValue(e, null));
+            }
+            catch { return -1; }
+        }
 
         public static void Init()
         {
@@ -42,6 +76,16 @@ namespace UboatToolkit
             guiLabel = gui.GetMethod("Label", new[] { typeof(Rect), typeof(string) });
             drawTex = gui.GetMethod("DrawTexture", new[] { typeof(Rect), typeof(Texture) });
             color = gui.GetProperty("color", BindingFlags.Public | BindingFlags.Static);
+            // 0.4.7: the calls used every frame by the always-on displays go through direct delegates instead of
+            // reflection (no boxing, no argument arrays). If one cannot be made, the old path stays.
+            try
+            {
+                fLabel = (Action<Rect, string>)Delegate.CreateDelegate(typeof(Action<Rect, string>), guiLabel);
+                fBox = (Action<Rect, string>)Delegate.CreateDelegate(typeof(Action<Rect, string>), box);
+                if (drawTex != null) fTex = (Action<Rect, Texture>)Delegate.CreateDelegate(typeof(Action<Rect, Texture>), drawTex);
+                if (color != null) { fGetColor = (Func<Color>)Delegate.CreateDelegate(typeof(Func<Color>), color.GetGetMethod()); fSetColor = (Action<Color>)Delegate.CreateDelegate(typeof(Action<Color>), color.GetSetMethod()); }
+            }
+            catch (Exception e) { fLabel = null; fBox = null; fTex = null; fGetColor = null; fSetColor = null; Util.Log("Anzeige: schneller Weg nicht möglich (" + e.Message + ")"); }
             Ready = new[] { label, toggle, slider, button, beginH, endH, beginScroll, endScroll, beginArea, endArea, box, guiLabel, width, space }.All(m => m != null);
             if (!Ready) Util.Log("menu could not be created (IMGUI not found).");
         }
@@ -134,11 +178,12 @@ namespace UboatToolkit
         public static void BeginArea(Rect r) => beginArea.Invoke(null, new object[] { r });
         public static void EndArea() => endArea.Invoke(null, null);
         public static void Space(float px) => space.Invoke(null, new object[] { px });
-        public static void Box(Rect r, string t) => box.Invoke(null, new object[] { r, Lang.T(t) });
+        public static void Box(Rect r, string t) { if (fBox != null) fBox(r, Lang.T(t)); else box.Invoke(null, new object[] { r, Lang.T(t) }); }
         // Solid dark background (alpha 0..1), so the menu stays readable over the game.
         public static void Backdrop(Rect r, float alpha)
         {
             if (drawTex == null || color == null || alpha <= 0f) return;
+            if (fTex != null && fGetColor != null) { var o0 = fGetColor(); fSetColor(new Color(0.05f, 0.06f, 0.08f, Mathf.Clamp01(alpha))); fTex(r, Texture2D.whiteTexture); fSetColor(o0); return; }
             var old = (Color)color.GetValue(null, null);
             color.SetValue(null, new Color(0.05f, 0.06f, 0.08f, Mathf.Clamp01(alpha)), null);
             drawTex.Invoke(null, new object[] { r, Texture2D.whiteTexture });
@@ -147,11 +192,12 @@ namespace UboatToolkit
         public static void Fill(Rect r, Color c)
         {
             if (drawTex == null || color == null) return;
+            if (fTex != null && fGetColor != null) { var o0 = fGetColor(); fSetColor(c); fTex(r, Texture2D.whiteTexture); fSetColor(o0); return; }
             var old = (Color)color.GetValue(null, null);
             color.SetValue(null, c, null);
             drawTex.Invoke(null, new object[] { r, Texture2D.whiteTexture });
             color.SetValue(null, old, null);
         }
-        public static void TextAt(Rect r, string t) => guiLabel.Invoke(null, new object[] { r, Lang.T(t) });
+        public static void TextAt(Rect r, string t) { if (fLabel != null) fLabel(r, Lang.T(t)); else guiLabel.Invoke(null, new object[] { r, Lang.T(t) }); }
     }
 }

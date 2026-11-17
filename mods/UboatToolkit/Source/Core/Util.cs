@@ -79,6 +79,8 @@ namespace UboatToolkit
 
         // All parts of type T on the player's boat. Searching the boat is slow, so the result is kept
         // for 10 seconds (or until one of the parts is gone). Saves many small stutters.
+        // 0.4.7: how often and how long the boat was searched (logged once per minute with the Toolkit cost line)
+        internal static int FindScans; internal static double FindSeconds;
         public static T[] Find<T>(float maxAge = 10f) where T : Component
         {
             var ship = PlayerShip;
@@ -92,6 +94,7 @@ namespace UboatToolkit
                 for (int i = 0; i < arr.Length; i++) if (arr[i] == null) { ok = false; break; }
                 if (ok) return arr;
             }
+            double f0 = Time.realtimeSinceStartupAsDouble; FindScans++;
             var res = ship.GetComponentsInChildren<T>(true);
             // Interior devices (pumps, racks, ...) live in a separate "<Name> Interior" scene: add them too.
             try
@@ -111,6 +114,7 @@ namespace UboatToolkit
             }
             catch { }
             found[t] = res; foundAt[t] = Time.unscaledTime;
+            FindSeconds += Time.realtimeSinceStartupAsDouble - f0;
             return res;
         }
 

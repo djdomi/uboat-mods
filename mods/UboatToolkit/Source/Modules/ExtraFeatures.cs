@@ -153,7 +153,7 @@ namespace UboatToolkit.Modules
             if (!Settings.B("TubeDisplay")) { TubeLine = null; return; }
             var parts = new List<string>();
             int i = 1;
-            foreach (var l in Util.Find<TorpedoLauncher>(2f))
+            foreach (var l in Util.Find<TorpedoLauncher>())
             {
                 string t = "leer";
                 if (l.Torpedo != null)

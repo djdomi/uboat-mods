@@ -61,7 +61,7 @@ namespace UboatToolkit.Modules
         private static void Refill()
         {
             if (!Settings.B("CheatInfiniteTorpedoes")) return;
-            foreach (var l in Util.Find<TorpedoLauncher>(2f))
+            foreach (var l in Util.Find<TorpedoLauncher>())
             {
                 if (l == null || !(Util.IsPlayers(l) || (l.Group != null && l.Group.ParentEntity is PlayerShip))) continue;
                 if (l.Torpedo != null)
@@ -103,7 +103,7 @@ namespace UboatToolkit.Modules
             Storage[] storages = null;
             int empty = 0, loaded = 0;
             string states = "";
-            foreach (var l in Util.Find<TorpedoLauncher>(2f))
+            foreach (var l in Util.Find<TorpedoLauncher>())
             {
                 if (l == null || !(Util.IsPlayers(l) || (l.Group != null && l.Group.ParentEntity is PlayerShip))) continue;
                 states += (states.Length > 0 ? ", " : "") + l.CurrentState;
@@ -159,7 +159,7 @@ namespace UboatToolkit.Modules
                 sb.Append("Schleichfahrt=").Append(src != null ? (src.IsSilentRunningEnabled ? "AN (Spiel lädt dann nie)" : "aus") : "?").Append("; ");
             }
             catch { sb.Append("Schleichfahrt=?; "); }
-            var groups = Util.Find<TorpedoLauncherGroup>(2f);
+            var groups = Util.Find<TorpedoLauncherGroup>();
             var crew = Object.FindObjectOfType<UBOAT.Game.Scene.Characters.PlayerCrew>();
             if (crew == null || crew.Officers == null) { Util.Log(sb.Append("keine Crew").ToString()); return; }
             foreach (var o in crew.Officers)
@@ -204,7 +204,7 @@ namespace UboatToolkit.Modules
         private static void CrewLoadDiag()
         {
             var sb = new System.Text.StringBuilder("Lade-Diagnose: ");
-            foreach (var l in Util.Find<TorpedoLauncher>(2f))
+            foreach (var l in Util.Find<TorpedoLauncher>())
             {
                 var x = l as ExtendedTorpedoLauncher;
                 if (x == null || x.Torpedo != null) continue;
@@ -254,9 +254,8 @@ namespace UboatToolkit.Modules
             }
 
             Refill();
-            if (!Settings.B("CheatNoDuds")) return;
-            foreach (var t in Util.Find<Torpedo>(1f))
-                if (t != null && t.Owner == Util.PlayerShip) t.DudsDisabled = true;   // 0.3.38: own torpedoes only
+            // 0.4.7: the once-a-second search for launched torpedoes on the boat is gone (it never found one and cost a
+            // full search of the boat every second); Torpedoes_NoDudPatch does the job at the moment of impact.
         }
     }
 

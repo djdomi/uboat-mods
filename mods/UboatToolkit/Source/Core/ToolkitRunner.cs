@@ -159,7 +159,11 @@ namespace UboatToolkit
 
         private void OnGUI()
         {
-            var mk = Keys.Code("KeyMenu", KeyCode.F10);
+            // 0.4.7: Unity calls OnGUI several times per frame (layout, repaint, every mouse and key event). While the
+            // menu is closed the displays are only text and bars, which exist in the repaint pass alone; all other
+            // passes now end here. Measured before: 4.2 ms per frame on average for the displays.
+            int kind = Imgui.EventKind();
+            var mk = (kind == 4 || kind == 5 || kind < 0) ? Keys.Code("KeyMenu", KeyCode.F10) : KeyCode.None;
             if (mk != KeyCode.None)
             {
                 int k = Imgui.KeyEvent(mk);   // 1 = key down event for this key, 2 = key up, 0 = other
@@ -169,6 +173,8 @@ namespace UboatToolkit
             UboatToolkit.Modules.DevConsoleHide.Close();
             Imgui.Init();
             if (!Imgui.Ready) return;
+            if (kind == 8) menuShown = menuOpen;
+            if (kind >= 0 && kind != 7 && !menuShown && !menuOpen && !UboatToolkit.Modules.UnderFire.NeedsEvents) { GuiSkipped++; return; }
             double g0 = Time.realtimeSinceStartupAsDouble;
             Util.Safe("menu", DrawGui);
             double gd = Time.realtimeSinceStartupAsDouble - g0;
@@ -178,7 +184,7 @@ namespace UboatToolkit
 
         // 0.3.72: the Toolkit's own cost per frame (drawing + modules), logged once per minute by the frame logger.
         internal static double GuiSeconds, ModuleSeconds, MenuSeconds;
-        internal static int GuiCalls, MenuCalls;
+        internal static int GuiCalls, MenuCalls, GuiSkipped;
 
         // Short on-screen message from a module (e.g. "Land voraus").
         public static string Notice;
@@ -450,6 +456,7 @@ namespace UboatToolkit
             }
         }
 
+        private static string cheatLine; private static float cheatLineAt;
         private void DrawGui()
         {
             if (Notice != null && Time.unscaledTime < NoticeUntil)
@@ -461,8 +468,14 @@ namespace UboatToolkit
             if (!string.IsNullOrEmpty(UboatToolkit.Modules.ExtraFeatures.TubeLine)) Imgui.TextAt(new Rect(ix, iy + 20, 1100, 22), UboatToolkit.Modules.ExtraFeatures.TubeLine);
             if (Settings.B("CheatShowActive"))
             {
-                var active = Settings.All.Where(o => o.Tab == Settings.Cheat && o.Key != "CheatShowActive" && (o.IsBool ? o.Value > 0f : o.Value != o.Default)).Select(o => o.Key.Replace("Cheat", "")).ToArray();
-                if (active.Length > 0) Imgui.TextAt(new Rect(ix, iy + 40, 900, 22), "Cheats: " + string.Join(", ", active));
+                // 0.4.7: the list of active cheats is rebuilt once per second, not in every GUI pass (it walks all ~800 settings)
+                if (Time.unscaledTime >= cheatLineAt)
+                {
+                    cheatLineAt = Time.unscaledTime + 1f;
+                    var active = Settings.All.Where(o => o.Tab == Settings.Cheat && o.Key != "CheatShowActive" && (o.IsBool ? o.Value > 0f : o.Value != o.Default)).Select(o => o.Key.Replace("Cheat", "")).ToArray();
+                    cheatLine = active.Length > 0 ? "Cheats: " + string.Join(", ", active) : null;
+                }
+                if (cheatLine != null) Imgui.TextAt(new Rect(ix, iy + 40, 900, 22), cheatLine);
             }
             if (Util.InGameView())   // not over the port menu / ship selection / HQ etc.
             {

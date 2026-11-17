@@ -24,7 +24,7 @@ namespace UboatToolkit.Modules.Warthog
 
             // 1) tubes
             float wait = Settings.F("WhAutoLoadSeconds");
-            foreach (var l in Util.Find<TorpedoLauncher>(2f))
+            foreach (var l in Util.Find<TorpedoLauncher>())
             {
                 int id = l.GetInstanceID();
                 if (l.Torpedo != null || l.IsFlooded || l.FloodingProgress > 0f) { emptySince.Remove(id); continue; }

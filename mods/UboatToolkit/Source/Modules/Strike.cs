@@ -68,7 +68,7 @@ namespace UboatToolkit.Modules
 
             // A loaded tube gives its torpedo type (and loses it, unless unlimited torpedoes is on).
             string type = "G7a Torpedo T1 - Pi1.1";
-            var tube = Util.Find<TorpedoLauncher>(2f).FirstOrDefault(l => l.Torpedo != null && l.IsLoaded && !(l.Torpedo is StoredMinePacket));
+            var tube = Util.Find<TorpedoLauncher>().FirstOrDefault(l => l.Torpedo != null && l.IsLoaded && !(l.Torpedo is StoredMinePacket));
             if (tube == null && !Settings.B("CheatInfiniteTorpedoes")) { ToolkitRunner.ShowNotice("Kein Rohr geladen", 3f); return; }
             if (tube != null)
             {

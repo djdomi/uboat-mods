@@ -161,6 +161,8 @@ namespace UboatToolkit.Modules
         // Same choices as before, but as a box at the right edge (not in the middle); click or key Alt+1..4, Alt+5 = ignore.
         private static readonly string[] ActKeys = { "KeyUnderFire1", "KeyUnderFire2", "KeyUnderFire3", "KeyUnderFire4" };
         private static bool migrated;
+        // 0.4.7: true while the under-fire box or its "ignored" button is on screen (they need all GUI passes for clicks)
+        public static bool NeedsEvents => windowOpen || current != null || Time.unscaledTime < ignoreUntil;
         public static void Draw()
         {
             if (!migrated)

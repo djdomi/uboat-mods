@@ -225,13 +225,15 @@ namespace UboatToolkit.Modules
                     for (int i = 0; i < sum2.Count; i++) sum2[i] = 0;
                 }
                 Util.Log("Toolkit-Kosten ms/frame: Anzeige=" + (ToolkitRunner.GuiSeconds * 1000.0 / Math.Max(1, frames)).ToString("0.00", CultureInfo.InvariantCulture)
-                    + " (" + (ToolkitRunner.GuiCalls / (float)Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture) + " Durchläufe/Bild) Module=" + (ToolkitRunner.ModuleSeconds * 1000.0 / Math.Max(1, frames)).ToString("0.00", CultureInfo.InvariantCulture));
+                    + " (" + (ToolkitRunner.GuiCalls / (float)Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture) + " Durchläufe/Bild, " + ToolkitRunner.GuiSkipped + " leere Durchläufe gespart) Module=" + (ToolkitRunner.ModuleSeconds * 1000.0 / Math.Max(1, frames)).ToString("0.00", CultureInfo.InvariantCulture));
                 // menu open and closed apart: is the cost the F10 menu or the always-on displays?
                 int closedCalls = ToolkitRunner.GuiCalls - ToolkitRunner.MenuCalls;
                 Util.Log("Toolkit-Anzeige ms je Durchlauf: Menü offen=" + (ToolkitRunner.MenuSeconds * 1000.0 / Math.Max(1, ToolkitRunner.MenuCalls)).ToString("0.00", CultureInfo.InvariantCulture)
                     + " (" + ToolkitRunner.MenuCalls + "x), Menü zu=" + ((ToolkitRunner.GuiSeconds - ToolkitRunner.MenuSeconds) * 1000.0 / Math.Max(1, closedCalls)).ToString("0.00", CultureInfo.InvariantCulture)
                     + " (" + closedCalls + "x)");
-                ToolkitRunner.GuiSeconds = 0; ToolkitRunner.GuiCalls = 0; ToolkitRunner.ModuleSeconds = 0; ToolkitRunner.MenuSeconds = 0; ToolkitRunner.MenuCalls = 0;
+                Util.Log("Toolkit-Bootssuche: " + Util.FindScans + " Suchläufe, zusammen " + (Util.FindSeconds * 1000.0).ToString("0", CultureInfo.InvariantCulture) + " ms in dieser Minute");
+                Util.FindScans = 0; Util.FindSeconds = 0;
+                ToolkitRunner.GuiSeconds = 0; ToolkitRunner.GuiCalls = 0; ToolkitRunner.GuiSkipped = 0; ToolkitRunner.ModuleSeconds = 0; ToolkitRunner.MenuSeconds = 0; ToolkitRunner.MenuCalls = 0;
                 for (int i = 0; i < sum.Length; i++) sum[i] = 0; frames = 0;
             }
             catch (Exception ex) { failed = true; Util.Log("Frame-Aufteilung aus: " + ex.Message); }
