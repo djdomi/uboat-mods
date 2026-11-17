@@ -17,7 +17,7 @@ namespace UboatToolkit.Modules
             if (!Settings.B("AutoPump")) return;
             var ship = Util.PlayerShip;
             foreach (var p in Util.Find<TrimPump>())
-                if (Util.IsPlayers(p) && !p.enabled && (p.IsWaterLeft || Pump_Patch.InteriorWater(ship) > 0.1))
+                if (Util.IsPlayers(p) && !p.enabled && Pump_Patch.InteriorWater(ship) > 0.1)   // 0.4.0: only water in the rooms counts, not trim/hull tanks
                 {
                     p.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
                     Util.Log("Pumpe automatisch an");
@@ -87,6 +87,15 @@ namespace UboatToolkit.Modules
             float dt = Time.deltaTime * gt.ArtificialTimeScale;
             foreach (var ct in tanks)
             {
+                // 0.4.0 (DoMe: "das Boot flutet übertrieben"): the pump is also connected to tanks that are not rooms
+                // (trim / compensating / hull tanks). Emptying those x50 at depth made the boat's depth keeping flood
+                // them again at once. The toolkit now only adds pumping for water standing in the ROOMS of the boat.
+                if (ct == null || ct.Tank == null) continue;
+                if (!(ct.Tank is UBOAT.Game.Scene.Items.Compartment))
+                {
+                    if (otherLogged.Count < 20 && otherLogged.Add(ct.Tank.name)) Util.Log("Pumpe: Tank \"" + ct.Tank.name + "\" ist kein Raum, Toolkit pumpt ihn nicht zusätzlich (Wasser " + ct.Tank.Water.ToString("0.00") + " von " + ct.Tank.Capacity.ToString("0.00") + ")");
+                    continue;
+                }
                 float gameDepth = 1f - Mathf.Clamp01(sub.DeckDepth / ct.MaxDepth);
                 float ourDepth = anyDepth ? 1f : gameDepth;
                 gameRate += baseLps * ct.PerformanceModifier * gameDepth;
@@ -104,11 +113,12 @@ namespace UboatToolkit.Modules
             {
                 if (removed > 0)
                     Util.Log("Pumpe: Tiefe " + sub.DeckDepth.ToString("0") + " m, Spiel allein " + (LastGameRate * 1000f).ToString("0.0") + " l/s, mit Toolkit " + (LastOurRate * 1000f).ToString("0.0")
-                        + " l/s (Pumpenleistung x" + Mathf.Max(1f, power).ToString("0.#") + (anyDepth ? ", volle Leistung in jeder Tiefe" : "") + "), in der letzten Minute zusätzlich " + (removed * 1000.0).ToString("0") + " l abgepumpt");
+                        + " l/s (Pumpenleistung x" + Mathf.Max(1f, power).ToString("0.#") + (anyDepth ? ", volle Leistung in jeder Tiefe" : "") + "), in der letzten Minute zusätzlich " + (removed * 1000.0).ToString("0") + " l abgepumpt, Wasser in den Räumen jetzt " + (InteriorWater(Util.PlayerShip) * 1000.0).ToString("0") + " l");
                 nextLog = Time.unscaledTime + 60f; removed = 0; gameRate = ourRate = 0; samples = 0;
             }
         }
 
+        private static readonly System.Collections.Generic.HashSet<string> otherLogged = new System.Collections.Generic.HashSet<string>();
         private static double removed, gameRate, ourRate; private static int samples; private static float nextLog;
         internal static float LastDepth, LastGameRate, LastOurRate;
     }
