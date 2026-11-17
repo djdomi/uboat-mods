@@ -106,7 +106,7 @@ namespace UboatToolkit.Modules
         private static void ReloadAll()
         {
             var ship = Util.PlayerShip;
-            var storages = Util.Find<Storage>().Where(s => s.GetComponentInParent<PlayableCharacter>() == null).ToArray();
+            var storages = Util.Find<Storage>().Where(s => s != null && !(s is UBOAT.Game.Scene.Items.TorpedoLauncherGroup) && s.GetComponentInParent<PlayableCharacter>() == null).ToArray();
             int n = 0;
             foreach (var l in Util.Find<TorpedoLauncher>())
             {

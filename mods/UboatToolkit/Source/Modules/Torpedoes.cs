@@ -111,7 +111,7 @@ namespace UboatToolkit.Modules
                 empty++;
                 if (!autoEmpty.TryGetValue(l, out var t0)) { autoEmpty[l] = Time.time; continue; }
                 if (Time.time - t0 < wait) continue;
-                if (storages == null) storages = Util.Find<Storage>().Where(x => x != null && x.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() == null).ToArray();
+                if (storages == null) storages = Util.Find<Storage>().Where(x => x != null && !(x is TorpedoLauncherGroup) && x.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() == null).ToArray();
                 Storage best = null; int bestSlot = -1; float bestDist = float.MaxValue;
                 foreach (var st in storages)
                     for (int i = 0; i < Util.Slots(st); i++)
@@ -136,7 +136,7 @@ namespace UboatToolkit.Modules
             {
                 nextTubeLog = Time.unscaledTime + 60f;
                 int stock = 0;
-                if (storages == null) storages = Util.Find<Storage>().Where(x => x != null && x.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() == null).ToArray();
+                if (storages == null) storages = Util.Find<Storage>().Where(x => x != null && !(x is TorpedoLauncherGroup) && x.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() == null).ToArray();
                 foreach (var st in storages)
                     for (int i = 0; i < Util.Slots(st); i++) if (st.GetItemAt(i) is StoredTorpedo t && !(t is StoredMinePacket)) stock++;
                 Util.Log("Rohre: " + empty + " leer, Zustände [" + states + "], Torpedos im Lager: " + stock + " (Lager gefunden: " + storages.Length + ")");
