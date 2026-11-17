@@ -330,7 +330,9 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(LoadingUIController), "UpdateSceneLoading")]
     internal static class ExtraFeatures_LoadingBoostPatch
     {
-        private static bool boosted;
+        private static bool boosted, asyncSet;
+        private static System.Threading.ThreadPriority origAsync;
+        internal static bool Boosted => boosted;
         private static int origSlice, origBuffer;
         private static ThreadPriority origPriority;
 
@@ -342,6 +344,8 @@ namespace UboatToolkit.Modules
             {
                 if (!boosted) { origSlice = QualitySettings.asyncUploadTimeSlice; origBuffer = QualitySettings.asyncUploadBufferSize; origPriority = Application.backgroundLoadingPriority; }
                 if (ex != null) ex.UnlimitedFrameBudget = true;
+                // 0.4.8: the game's helper threads (terrain, crew meshes) run at the lowest priority; normal while loading
+                if (ex != null && !boosted) Util.Safe("Laden: Hilfs-Threads", () => { origAsync = ex.AsyncThreadsPriority; ex.AsyncThreadsPriority = System.Threading.ThreadPriority.Normal; asyncSet = true; });
                 QualitySettings.asyncUploadTimeSlice = 33;
                 QualitySettings.asyncUploadBufferSize = 256;   // 0.3.68: test, was 64 (DoMe: texture loading takes forever; 40-58 s of each load is waiting)
                 Application.backgroundLoadingPriority = ThreadPriority.High;
@@ -350,6 +354,7 @@ namespace UboatToolkit.Modules
             else if (boosted)
             {
                 if (ex != null) ex.UnlimitedFrameBudget = false;
+                if (ex != null && asyncSet) Util.Safe("Laden: Hilfs-Threads", () => { ex.AsyncThreadsPriority = origAsync; asyncSet = false; });
                 QualitySettings.asyncUploadTimeSlice = origSlice;
                 QualitySettings.asyncUploadBufferSize = origBuffer;
                 Application.backgroundLoadingPriority = origPriority;

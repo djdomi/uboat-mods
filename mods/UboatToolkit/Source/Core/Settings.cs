@@ -274,6 +274,9 @@ namespace UboatToolkit
             Num(QoL, "CrewAiSleepEvery", "Schlafende, nicht sichtbare Matrosen denken nur jedes x-te Bild (1 = Spiel, jedes Bild)", 3f, 1f, 10f, 1f);
             Bool(QoL, "CrewAiWaitLoad", "  Crew-KI wartet, bis das Boot fertig geladen ist (gegen Fehler beim Laden)", true);
             Num(QoL, "PhysicsHz", "Physik-Takt pro Sekunde (0 = Spielwert 60; 50 spart ein Sechstel Physik-Rechenzeit)", 50f, 0f, 75f, 5f);
+            Bool(QoL, "WolfpackOncePerFrame", "Schiffsgruppen um das Boot nur einmal pro Bild suchen (Spiel: in jedem Physik-Schritt, also 2-3 mal pro Bild)", true);
+            Bool(QoL, "PhysicsAuto", "  Physik-Takt folgt der Bildrate (bei wenig FPS längere Schritte, Spiel läuft nicht mehr in Zeitlupe)", true);
+            Num(QoL, "PhysicsAutoMinHz", "    nie weniger als x Schritte pro Sekunde (Spiel nutzt 25 bei Zeitraffer x5)", 25f, 15f, 50f, 5f);
             Num(QoL, "PhysicsMaxSteps", "  bei wenig FPS höchstens so viele Physik-Schritte pro Bild (Spiel = 5; weniger = flüssiger, Spiel läuft dann kurz langsamer)", 2f, 1f, 5f, 1f);
             Bool(QoL, "ExplosionAuto", "Automatische Detailstufe nach Bildrate (Explosionen + Stimmen): flüssig = voll, je weniger FPS desto sparsamer", true);
             Num(QoL, "ExplosionTargetFps", "  Ziel-FPS für die Automatik", 40, 15, 120, 5);
@@ -361,6 +364,8 @@ namespace UboatToolkit
             Num(QoL, "FastLoadIdleMs", "  so lange wartet das Bild beim Laden auf den Hintergrund-Leser (ms, alt = 16)", 100, 2, 1000, 10);
             Num(QoL, "FastLoadMaxActions", "  Schritte pro Bild (Spiel = 500)", 5000, 500, 100000, 500);
             Num(QoL, "FastLoadQueueCap", "  Lade-Warteschlange: so viele Aufträge darf der Hintergrund-Leser vorausarbeiten (40 = Spiel)", 2000, 40, 100000, 100);
+            Num(QoL, "FastLoadSpinUs", "  Übergabe zwischen Leser und Hauptthread: so lange ohne Schlafen warten (Mikrosekunden, 0 = aus = Spiel)", 300, 0, 5000, 50);
+            Bool(QoL, "FastLoadNoSceneDelay", "  Szenen ohne die feste Wartezeit von 0,5 s starten", true);
             Bool(QoL, "FastLoadNoGc", "  beim Laden kein Speicher-Aufräumen (spart Zeit)", true);
             Num(QoL, "FastLoadGcCapMb", "    außer Speicher über ... MB", 3000, 500, 32000, 250);
             Bool(QoL, "SaveGroupCareer", "Spielstand-Liste: Reiter je Karriere (Spielstände einer Karriere zusammen)", true);
@@ -815,7 +820,7 @@ namespace UboatToolkit
             new[] { "Geld & Forschung", "CheatMoney", "CheatReputation", "CheatPrice", "CheatResearch", "CheatInstantResearch", "CheatNoResearch" },
             new[] { "Hafen", "Port", "Boarding", "InstantPort", "LeavePort" },
             new[] { "Laden & Speichern", "AutoSave", "FastLoad", "SaveGroup", "QuitWaits", "SkipStartup", "BackupBefore" },
-            new[] { "Leistung", "AutoVirtual", "Explosion", "Physics", "VoiceLimit" },
+            new[] { "Leistung", "AutoVirtual", "Explosion", "Physics", "VoiceLimit", "WolfpackOnce" },
             new[] { "Kamera", "Cam", "NoEdge", "StationZoom", "NoPauseBlur" },
             new[] { "Fehlerschutz", "Guard" },
             new[] { "Fixes für andere Mods", "FixSupplyPrice", "FixUniform", "FixBifrost", "FixMissingWearables" },

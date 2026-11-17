@@ -20,6 +20,7 @@ namespace UboatToolkit
         {
             Modules.Add(new Modules.Radio());
             Modules.Add(new Modules.AutoDetail());
+            Modules.Add(new Modules.WolfpackStep());
             Modules.Add(new Modules.CrewAiThrottle());
             Modules.Add(new Modules.GunSmoke());
             Modules.Add(new Modules.DiveAngle());

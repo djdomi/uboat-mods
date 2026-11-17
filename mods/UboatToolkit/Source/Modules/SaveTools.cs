@@ -94,6 +94,7 @@ namespace UboatToolkit.Modules
         {
             if (!ReferenceEquals(active, __instance)) { active = __instance; loadStart = LoadClock.Now(); frames = 0; SaveTools_IdlePatch.ResetLoad(); }
             frames++;
+            LoadSpin_WorkerPatch.SpinUs = Settings.B("FastLoad") ? Mathf.Clamp(Settings.F("FastLoadSpinUs"), 0f, 5000f) : 0f;
             lastStep = LoadClock.Now();
             SaveTools_IdlePatch.BeginFrame();
         }
@@ -114,7 +115,7 @@ namespace UboatToolkit.Modules
             double s = LoadClock.Seconds(LoadClock.Now() - loadStart);
             Util.Log("Laden: fertig in " + s.ToString("0.0", CultureInfo.InvariantCulture) + " s über " + frames + " Bilder ("
                 + (patched && On ? Settings.F("FastLoadBudgetMs").ToString("0", CultureInfo.InvariantCulture) + " ms / " + MaxActions() + " Schritte pro Bild" : "Spielwert 16 ms / 500 Schritte") + ")."
-                + SaveTools_IdlePatch.Summarise(frames) + SaveTools_MemoryPatch.SummariseAndReset());
+                + SaveTools_IdlePatch.Summarise(frames) + SaveTools_MemoryPatch.SummariseAndReset() + LoadSpin.SummariseAndReset());
             active = null;
         }
     }
@@ -150,7 +151,9 @@ namespace UboatToolkit.Modules
         public static bool TimedWait(System.Threading.WaitHandle handle, int ms)
         {
             long start = LoadClock.Now();
-            bool ok = handle.WaitOne(ms);
+            // 0.4.8: first look for the reader's signal in a short spin (no sleeping), then wait as before
+            bool ok = LoadSpin.Poll(handle);
+            if (ok) LoadSpin.MainFast++; else ok = handle.WaitOne(ms);
             if (ok) served++; else timedOut++;
             long w = LoadClock.Now() - start;
             idleFrame += w; idleLoad += w;
@@ -235,6 +238,90 @@ namespace UboatToolkit.Modules
             string s = " " + skipped + " Speicher-Aufräumen übersprungen" + (allowed > 0 ? ", " + allowed + " wegen Obergrenze erlaubt" : "") + " (etwa " + (skipped * 115) + " ms gespart).";
             skipped = allowed = 0;
             return s;
+        }
+    }
+
+    // 0.4.8 (DoMe 2026-11-17: go deep into loading). Loading a save is a ping-pong between the game's reader thread
+    // and the main thread: for nearly every object the reader hands a small job to the main thread and sleeps until it
+    // is done; the main thread sleeps until the next job arrives. Each wake-up from sleep costs time (on a virtual PC
+    // noticeably), and there are hundreds of thousands of them: measured "Gewartet 72 s" of a 135-165 s load.
+    // Now both sides first look for the other for a fraction of a millisecond without sleeping ("FastLoadSpinUs").
+    internal static class LoadSpin
+    {
+        internal static int MainFast, WorkerFast, WorkerSlow;
+        private static long Budget() => Settings.B("FastLoad") ? (long)(Mathf.Clamp(Settings.F("FastLoadSpinUs"), 0f, 5000f) * LoadClock.Frequency / 1000000.0) : 0;
+
+        // main thread: poll the signal without blocking
+        public static bool Poll(System.Threading.WaitHandle handle)
+        {
+            long b = Budget();
+            if (b <= 0) return false;
+            long end = LoadClock.Now() + b;
+            do
+            {
+                if (handle.WaitOne(0)) return true;
+                System.Threading.Thread.SpinWait(30);
+            } while (LoadClock.Now() < end);
+            return false;
+        }
+
+        public static string SummariseAndReset()
+        {
+            if (MainFast + WorkerFast + WorkerSlow == 0) return "";
+            string s = " Übergaben ohne Schlafen: Hauptthread " + MainFast + ", Leser " + WorkerFast + " (Leser musste trotzdem schlafen: " + WorkerSlow + ").";
+            MainFast = 0; WorkerFast = 0; WorkerSlow = 0;
+            return s;
+        }
+    }
+
+    // reader thread: wait for the main thread in a short spin before going to sleep
+    [HarmonyPatch]
+    internal static class LoadSpin_WorkerPatch
+    {
+        private static AccessTools.FieldRef<object, bool> queued;
+        private static bool Prepare() => TargetMethod() != null;
+        private static System.Reflection.MethodBase TargetMethod()
+        {
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Serialization.GameStateDeserializer");
+            if (t == null) return null;
+            var f = AccessTools.DeclaredField(t, "queuedMainThreadJobs");
+            if (f == null || f.FieldType != typeof(bool)) return null;
+            try { queued = AccessTools.FieldRefAccess<object, bool>(f); }
+            catch (Exception e) { queued = null; Util.Log("Laden: Leser-Warten bleibt Spielwert (" + e.Message + ")"); return null; }
+            return AccessTools.DeclaredMethod(t, "WaitForMainThread");
+        }
+
+        private static void Prefix(object __instance)
+        {
+            if (queued == null) return;
+            long b = (long)(1.0 * LoadClock.Frequency / 1000000.0 * SpinUs);
+            if (b <= 0) return;
+            ref bool q = ref queued(__instance);
+            if (!System.Threading.Volatile.Read(ref q)) return;
+            long end = LoadClock.Now() + b;
+            do
+            {
+                System.Threading.Thread.SpinWait(30);
+                if (!System.Threading.Volatile.Read(ref q)) { LoadSpin.WorkerFast++; return; }
+            } while (LoadClock.Now() < end);
+            LoadSpin.WorkerSlow++;
+        }
+
+        // read on the main thread once per load step (Settings is not made for other threads)
+        internal static volatile float SpinUs;
+    }
+
+    // Scenes of a save are started with a fixed wait of 0.5 s each; not while a save is loading.
+    [HarmonyPatch(typeof(DWS.Common.Resources.ResourceManager), "RetrieveSceneAsync")]
+    internal static class LoadSpin_SceneDelayPatch
+    {
+        private static int cut;
+        private static void Prefix(ref float loadingDelay, string levelName)
+        {
+            if (loadingDelay <= 0f || !Settings.B("FastLoad") || !Settings.B("FastLoadNoSceneDelay")) return;
+            if (!(ExtraFeatures_LoadingBoostPatch.Boosted || SaveTools_LoadSpeedPatch.IsLoading)) return;
+            if (cut++ < 40) Util.Log("Laden: Szene \"" + levelName + "\" ohne feste Wartezeit von " + loadingDelay.ToString("0.0", CultureInfo.InvariantCulture) + " s gestartet");
+            loadingDelay = 0f;
         }
     }
 }

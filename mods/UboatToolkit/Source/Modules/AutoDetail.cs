@@ -11,7 +11,7 @@ namespace UboatToolkit.Modules
         private float nextSwitch;
         private static UBOAT.Game.Core.Time.GameTime gameTime;
         private static float gameStep = -1f;   // the game's own physics step (1/75 s)
-        private float nextCensus;
+        private float nextCensus, autoHz; private int autoWait;
 
         // 0.3.69 physics rate (DoMe: get performance out of the engine). Measured: with 48 ships the physics took
         // 149 of 224 ms per frame. The game runs physics 75 times per second and up to 5 steps per frame.
@@ -27,6 +27,19 @@ namespace UboatToolkit.Modules
             // time compression: back to the game's own step (the game multiplies it there itself); pause: leave alone
             if (Time.timeScale < 0.99f) return;
             if (Time.timeScale > 1.01f) want = gameStep;
+            else if (Settings.B("PhysicsAuto"))
+            {
+                // 0.4.8 (DoMe: optimise the game): at 16 FPS the game needed 3 physics steps of 20 ms per frame but may
+                // do only 2 ("PhysicsMaxSteps"), so the whole game ran in slow motion and still paid 18 ms per frame for
+                // physics. The game itself uses longer steps under time compression (x4 = 30 per second, x5 = 25).
+                // Now the step follows the frame rate in stages of 5 per second, never below "PhysicsAutoMinHz".
+                float fps = ExplosionLimit_Patch.Fps();
+                float top = 1f / want, low = Mathf.Clamp(Settings.F("PhysicsAutoMinHz"), 15f, top);
+                float target = Mathf.Clamp(Mathf.Floor(fps * 1.5f / 5f) * 5f, low, top);   // 1.5 steps per frame on average
+                if (autoHz <= 0f) autoHz = top;
+                if (Mathf.Abs(target - autoHz) > 0.5f) { if (++autoWait >= 3) { autoHz = target; autoWait = 0; } } else autoWait = 0;
+                want = 1f / Mathf.Clamp(autoHz, low, top);
+            }
             if (Mathf.Abs(gameTime.FixedDeltaTime - want) > 0.00001f && !SaveTools_LoadSpeedPatch.IsLoading)
             {
                 gameTime.FixedDeltaTime = want;

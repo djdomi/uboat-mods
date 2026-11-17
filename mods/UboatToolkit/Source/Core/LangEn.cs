@@ -463,6 +463,8 @@ namespace UboatToolkit
             m["  Lager mindestens x Plätze, sofort (0 = aus)"] = "  Storage at least x slots, instantly (0 = off)";
             m["Lager: x mehr pro Platz stapeln (1 = normal, INI ohne Obergrenze)"] = "Storage: stack x more per slot (1 = normal, INI without upper limit)";
             m["  Lager: mindestens so viele pro Platz (0 = aus)"] = "  Storage: at least this many per slot (0 = off)";
+            m["Physik-Takt folgt der Bildrate (bei wenig FPS längere Schritte, Spiel läuft nicht mehr in Zeitlupe)"] = "Physics rate follows the frame rate (longer steps at low FPS, game no longer runs in slow motion)";
+            m["nie weniger als x Schritte pro Sekunde (Spiel nutzt 25 bei Zeitraffer x5)"] = "never fewer than x steps per second (game uses 25 at time compression x5)";
             m["Reichweite Horchgerät x (1 = Spiel)"] = "Hydrophone range x (1 = game)";
             m["Reichweite aktives Sonar (Bordgerät) x (1 = Spiel)"] = "Active sonar (boat device) range x (1 = game)";
             m["Reichweite Radar x (1 = Spiel)"] = "Radar range x (1 = game)";
