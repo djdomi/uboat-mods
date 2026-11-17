@@ -463,7 +463,11 @@ namespace UboatToolkit
             m["  Lager mindestens x Plätze, sofort (0 = aus)"] = "  Storage at least x slots, instantly (0 = off)";
             m["Lager: x mehr pro Platz stapeln (1 = normal, INI ohne Obergrenze)"] = "Storage: stack x more per slot (1 = normal, INI without upper limit)";
             m["  Lager: mindestens so viele pro Platz (0 = aus)"] = "  Storage: at least this many per slot (0 = off)";
-            m["Sensor-Reichweite x (Radar, Sonar, Horchgerät, Ausguck) (1 = normal)"] = "Sensor range x (radar, sonar, hydrophone, lookout) (1 = normal)";
+            m["Reichweite Horchgerät x (1 = Spiel)"] = "Hydrophone range x (1 = game)";
+            m["Reichweite aktives Sonar (Bordgerät) x (1 = Spiel)"] = "Active sonar (boat device) range x (1 = game)";
+            m["Reichweite Radar x (1 = Spiel)"] = "Radar range x (1 = game)";
+            m["Reichweite Radarwarner x (1 = Spiel)"] = "Radar detector range x (1 = game)";
+            m["Reichweite Ausguck und Sehrohr x (1 = Spiel)"] = "Lookout and periscope range x (1 = game)";
             m["Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)"] = "No water pressure damage at depth (hull holds)";
             m["Fix: leere Tooltip-Kästen nicht anzeigen (z. B. am Auge)"] = "Fix: do not show empty tooltip boxes (e.g. at the eye)";
             m["Diagnose: Tooltips ins Log schreiben (leerer Kasten am Auge)"] = "Diagnostics: write tooltips to the log (empty box at the eye)";

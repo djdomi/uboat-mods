@@ -307,7 +307,7 @@ namespace UboatToolkit
                 }
                 else
                 {
-                    Imgui.Label(text + ":  " + o.Value.ToString("0.##", CultureInfo.InvariantCulture), L);
+                    Imgui.Label(text + ":  " + o.Value.ToString("0.##", CultureInfo.InvariantCulture) + (o.Extra != null ? "   " + o.Extra() : ""), L);
                     float step = o.Step > 0 ? o.Step : (o.Max - o.Min) / 100f;
                     float v = cur;
                     if (Imgui.Button("−", 28)) v = Mathf.Max(o.Min, cur - step);

@@ -22,6 +22,7 @@ namespace UboatToolkit
         public readonly List<Opt> Children = new List<Opt>();
         public string[] ChoiceNames;
         public string SearchText;
+        public Func<string> Extra;   // 0.4.4: live text shown behind the value in the menu
     }
 
     // All settings of the mod. Stored in UboatToolkit.ini (optional; defaults are used without it).
@@ -552,7 +553,12 @@ namespace UboatToolkit
             Num(Cheat, "CheatShopStock", "  Händler im Hafen hat von jeder Ware mindestens so viel (0 = wie im Spiel)", 100000, 0, 1000000, 1000);
             Num(Cheat, "CheatDetect", "Kontakte dauerhaft auf der Karte (0 = aus, 1 = nur Ziele, 2 = alle)", 0, 0, 2, 1);
             Num(Cheat, "CheatDetectKm", "  nur im Umkreis von x km (0 = überall)", 0, 0, 2000, 50);
-            Num(Cheat, "CheatSensorRange", "Sensor-Reichweite x (Radar, Sonar, Horchgerät, Ausguck) (1 = normal)", 1, 1, 5, 0.5f);
+            // 0.4.4 (DoMe 2026-11-17): one factor per sensor instead of one for all. 1 = game value.
+            Num(Cheat, "CheatRangeHydro", "Reichweite Horchgerät x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
+            Num(Cheat, "CheatRangeSonar", "Reichweite aktives Sonar (Bordgerät) x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
+            Num(Cheat, "CheatRangeRadar", "Reichweite Radar x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
+            Num(Cheat, "CheatRangeRadarWarn", "Reichweite Radarwarner x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
+            Num(Cheat, "CheatRangeLookout", "Reichweite Ausguck und Sehrohr x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Bool(Cheat, "CheatDeepDive", "Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)", false);
             Bool(Cheat, "CheatNoHullDamage", "Rumpf verliert keine Gesundheit", false);
             Bool(Cheat, "CheatOwnShellsSafe", "Eigene Granaten und Flak beschädigen das eigene Boot und die Crew nicht", true);
@@ -793,7 +799,7 @@ namespace UboatToolkit
             new[] { "Torpedos", "AutoReload", "ReloadAllNow", "Torpedo", "EasyTDC", "TubeDisplay", "CheatInfiniteTorpedoes", "CheatNoDuds", "CheatTorpedoSpeed", "CheatRemoteTorpedo", "CheatInstantSolution", "CheatExactTargets", "PortT5Min" },
             new[] { "Funk", "Radio", "CheatRadio" },
             new[] { "Sehrohr & Optik", "Optics", "Periscope", "Reticle", "ScopeRemember", "NightOptics", "CheatPeriscope" },
-            new[] { "Horcher & Sonar", "Horcher", "ActiveSonar", "CheatHydrophone", "CheatSonar", "CheatSensor" },
+            new[] { "Horcher & Sonar", "Horcher", "ActiveSonar", "CheatHydrophone", "CheatSonar", "CheatRange" },
             new[] { "Licht & Helligkeit", "AutoLight", "AutoSearchlight", "NightBright", "InteriorBright", "MuteLightCallouts" },
             new[] { "Zeitraffer", "StopTime", "AntiGrounding" },
             new[] { "Karte", "Map", "NavInfo", "SeafloorAlways", "SeaFloorAlways" },
@@ -973,13 +979,18 @@ namespace UboatToolkit
             try
             {
                 if (!File.Exists(FilePath)) { Save(); return; }
+                float legacySensor = 0f; bool newSensorKeys = false;
                 foreach (var raw in File.ReadAllLines(FilePath))
                 {
                     var line = raw.Trim();
                     if (line.Length == 0 || line[0] == ';' || line[0] == '#' || line[0] == '[') continue;
                     int eq = line.IndexOf('=');
                     if (eq <= 0) continue;
-                    var o = Get(line.Substring(0, eq).Trim());
+                    var keyName = line.Substring(0, eq).Trim();
+                    // 0.4.4: the old single factor "CheatSensorRange" is carried over once into the new single factors.
+                    if (keyName == "CheatSensorRange") { float.TryParse(line.Substring(eq + 1).Trim().Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out legacySensor); continue; }
+                    if (keyName.StartsWith("CheatRange")) newSensorKeys = true;
+                    var o = Get(keyName);
                     if (o == null) continue;
                     if (o.IsKey) { o.Text = line.Substring(eq + 1).Trim(); continue; }
                     var v = line.Substring(eq + 1).Trim().ToLowerInvariant();
@@ -988,6 +999,8 @@ namespace UboatToolkit
                 }
                 // 0.3.69 (DoMe 2026-11-16: "freigabe für jede log die du brauchst"): while DiagLogs is on, the crew logs
                 // needed for the open crew problems are switched on at every start.
+                if (legacySensor > 0f && !newSensorKeys)
+                    foreach (var k in new[] { "CheatRangeHydro", "CheatRangeSonar", "CheatRangeRadar", "CheatRangeRadarWarn", "CheatRangeLookout" }) Set(k, legacySensor);
                 if (B("DiagLogs")) { Set("CrewAILog", 1); Set("OfficerWatchLog", 1); }
                 // Write back so new settings from a mod update appear in the file.
                 Save();

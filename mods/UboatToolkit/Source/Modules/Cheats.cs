@@ -14,17 +14,58 @@ namespace UboatToolkit.Modules
         private PlayerCrew crew;
         private PlayerCareer career;
 
+        private static readonly string[] SensorKeys = { "CheatRangeLookout", "CheatRangeHydro", "CheatRangeSonar", "CheatRangeRadar", "CheatRangeRadarWarn" };
+        private static readonly string[] sensorNow = new string[5];
+        private static readonly float[] sensorNear = new float[5];
+        private static float nextSensorInfo, nextSensorLine;
+        private static bool sensorHooked;
+        private static int SensorKind(UBOAT.Game.Scene.Items.BaseDetector d)
+        {
+            if (d is UBOAT.Game.Scene.Items.Hydrophone) return 1;
+            if (d is UBOAT.Game.Scene.Items.Sonar) return 2;
+            if (d is UBOAT.Game.Scene.Items.Radar) return 3;
+            if (d is UBOAT.Game.Scene.Items.RadarDetector) return 4;
+            return 0;
+        }
+
         public override void Tick()
         {
             var ship = Util.PlayerShip;
 
-            // Sensor range: radar, sonar, hydrophones, lookouts, radar detector see further.
-            float sr = Mathf.Max(1f, Settings.F("CheatSensorRange"));
+            // 0.4.4: one range factor per sensor type, player only. Enemies always get factor 1 (game range).
+            bool sensorLog = Time.unscaledTime >= nextSensorInfo;
+            if (sensorLog) { nextSensorInfo = Time.unscaledTime + 1f; for (int i = 0; i < SensorKeys.Length; i++) sensorNow[i] = null; }
             foreach (var d in Util.Find<UBOAT.Game.Scene.Items.BaseDetector>())
             {
-                float m = Util.IsPlayers(d) ? sr : 1f;   // 0.3.38: enemies keep their game range
+                bool mine = Util.IsPlayers(d);
+                int kind = SensorKind(d);
+                float m = mine ? Mathf.Max(0.05f, Settings.F(SensorKeys[kind])) : 1f;
                 Util.ScaleParameter(d.DetectionRange, m);
                 Util.ScaleParameter(d.GroupDetectionRange, m);
+                if (mine && sensorLog && d.DetectionRange != null)
+                {
+                    float near = d.DetectionRange.Value / 1000f, far = d.GroupDetectionRange != null ? d.GroupDetectionRange.Value : 0f;
+                    if (sensorNow[kind] == null || near > sensorNear[kind])
+                    {
+                        sensorNear[kind] = near;
+                        sensorNow[kind] = "(jetzt nah " + near.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " km" + (far > 0f ? ", fern " + far.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + " km" : "") + ")";
+                    }
+                }
+            }
+            if (sensorLog)
+            {
+                if (!sensorHooked)
+                {
+                    sensorHooked = true;
+                    for (int i = 0; i < SensorKeys.Length; i++) { int k = i; var o = Settings.Get(SensorKeys[k]); if (o != null) o.Extra = () => sensorNow[k] ?? "(nicht an Bord)"; }
+                }
+                if (Time.unscaledTime >= nextSensorLine)
+                {
+                    nextSensorLine = Time.unscaledTime + 60f;
+                    var sb = new System.Text.StringBuilder("Sensoren (nur eigenes Boot):");
+                    for (int i = 0; i < SensorKeys.Length; i++) sb.Append(" ").Append(SensorKeys[i].Substring(10)).Append(" x").Append(Settings.F(SensorKeys[i]).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)).Append(" ").Append(sensorNow[i] ?? "(nicht an Bord)").Append(";");
+                    Util.Log(sb.ToString());
+                }
             }
 
             // Undetectable: seen, heard (sonar + hydrophones) and radar-detected at almost zero range.
