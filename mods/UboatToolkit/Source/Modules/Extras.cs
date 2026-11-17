@@ -386,4 +386,25 @@ namespace UboatToolkit.Modules
             catch { }
         }
     }
+
+    // 0.4.10 (DoMe 2026-11-17: "Forschung ohne Voraussetzungen wirkt nicht, ich muss immer noch einen Offizier haben"):
+    // the officer slots of a task come from this list; with the cheat it is empty, so the task starts without an officer
+    // (the game then runs it at normal speed, HeadquartersTaskHandler: no agents = performance 1).
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase), "CharacterRequirements", HarmonyLib.MethodType.Getter)]
+    internal static class NoResearchOfficer_Patch
+    {
+        private static readonly UBOAT.Game.Sandbox.HQ.CharacterRequirement[] none = new UBOAT.Game.Sandbox.HQ.CharacterRequirement[0];
+        private static void Postfix(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase __instance, ref UBOAT.Game.Sandbox.HQ.CharacterRequirement[] __result)
+        {
+            if (__result == null || __result.Length == 0 || !Settings.B("CheatNoResearchRequirements")) return;
+            if (!(__instance is UBOAT.Game.Sandbox.HQ.Research || __instance is UBOAT.Game.Sandbox.HQ.EquipmentProduction
+                  || __instance is UBOAT.Game.Sandbox.HQ.ItemsProduction || __instance is UBOAT.Game.Sandbox.HQ.Production)) return;
+            try
+            {
+                var c = Util.PlayerShip?.SandboxEntity?.Country;
+                if (c != null && ReferenceEquals(__instance.Country, c)) __result = none;
+            }
+            catch { }
+        }
+    }
 }

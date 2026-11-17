@@ -23,6 +23,42 @@ namespace UboatToolkit.Modules
         private readonly Dictionary<Activator, float> waitUntil = new Dictionary<Activator, float>();
         private readonly List<CharacterActionInfo> infos = new List<CharacterActionInfo>();
 
+        // Safety net: under water the tower hatch is locked whatever the game decided, and every open leak under
+        // water is named in the log once per minute (proof where water comes from).
+        private float nextHatchNote, nextLeakLine;
+        private void HatchSafety(UBOAT.Game.Scene.Entities.PlayerShip ship)
+        {
+            if (ship == null || ship.Interior == null) return;
+            if (Settings.B("HatchSafety") && ship.DeckDepth > 1.5f && !Util.WarthogModOwns(ship))
+            {
+                var h = ship.GetEquipment<UBOAT.Game.Scene.Items.Hatch>("Exterior");
+                if (h != null && !h.Locked)
+                {
+                    h.Locked = true;
+                    if (Time.unscaledTime >= nextHatchNote)
+                    {
+                        nextHatchNote = Time.unscaledTime + 30f;
+                        ToolkitRunner.ShowNotice("Turmluke war unter Wasser offen und wurde geschlossen", 5f);
+                    }
+                }
+            }
+            if (ship.DeckDepth > 1.5f && Time.unscaledTime >= nextLeakLine)
+            {
+                nextLeakLine = Time.unscaledTime + 60f;
+                var sb = new System.Text.StringBuilder();
+                int n = 0; double water = 0;
+                foreach (var c in ship.Interior.Compartments)
+                {
+                    if (c == null) continue;
+                    water += c.Water;
+                    foreach (var hole in c.Holes)
+                        if (hole != null && hole.Openess > 0f)
+                        { n++; if (n <= 12) sb.Append(" ").Append(c.name).Append("/").Append(hole.name).Append(" offen ").Append(hole.Openess.ToString("0.##")).Append(" Größe ").Append(hole.HoleSize.ToString("0.#####")).Append(hole.IsUnderWater ? " unter Wasser" : " trocken").Append(";"); }
+                }
+                Util.Log("Lecks getaucht (Tiefe " + ship.DeckDepth.ToString("0") + " m): " + n + " offene Stellen, Wasser in den Räumen " + (water * 1000.0).ToString("0") + " l." + sb);
+            }
+        }
+
         public override void Tick()
         {
             if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
@@ -47,7 +83,11 @@ namespace UboatToolkit.Modules
                     else if (radio && eq is PlayerShipRadio) Keep(act, "Funkraum");
                 }
 
-            bool guns = ship.DeckDepth < 1f && ((Settings.B("AutoManGuns") && ship.Alarmed) || Time.unscaledTime < UnderFire.ManGunsUntil);
+            // 0.4.10 (DoMe 2026-11-17: boat floods suddenly): on an alarm dive the deck is still dry for some seconds; in that
+            // time men were sent to the guns although the boat was already diving. With men on deck the game does not lock
+            // the tower hatch, so the boat dived with an open hatch and filled within seconds. Never while diving.
+            bool guns = ship.DeckDepth < 1f && !ship.SubmergedOrGoingToSubmerge && ((Settings.B("AutoManGuns") && ship.Alarmed) || Time.unscaledTime < UnderFire.ManGunsUntil);
+            Util.Safe("Luken-Sicherung", () => HatchSafety(ship));
             bool engines = Settings.B("AutoManEngines") && !ship.Docked;
             if (guns || engines)
                 foreach (var act in Util.Find<Activator>())

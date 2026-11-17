@@ -465,6 +465,7 @@ namespace UboatToolkit
             m["  Lager: mindestens so viele pro Platz (0 = aus)"] = "  Storage: at least this many per slot (0 = off)";
             m["Physik-Takt folgt der Bildrate (bei wenig FPS längere Schritte, Spiel läuft nicht mehr in Zeitlupe)"] = "Physics rate follows the frame rate (longer steps at low FPS, game no longer runs in slow motion)";
             m["nie weniger als x Schritte pro Sekunde (Spiel nutzt 25 bei Zeitraffer x5)"] = "never fewer than x steps per second (game uses 25 at time compression x5)";
+            m["Luken-Sicherung: Turmluke unter Wasser immer schließen (auch wenn noch jemand an Deck ist)"] = "Hatch safety: always close the tower hatch under water (even if someone is still on deck)";
             m["Reichweite Horchgerät x (1 = Spiel)"] = "Hydrophone range x (1 = game)";
             m["Reichweite aktives Sonar (Bordgerät) x (1 = Spiel)"] = "Active sonar (boat device) range x (1 = game)";
             m["Reichweite Radar x (1 = Spiel)"] = "Radar range x (1 = game)";
@@ -886,7 +887,7 @@ namespace UboatToolkit
             m["Fix: Fehler \"GameObject is already being activated or deactivated\" nach dem Charakter-Bildschirm"] = "Fix: error \"GameObject is already being activated or deactivated\" after the character screen";
             m[" Forschungen ("] = " research items (";
             m[" davon liefen gerade)"] = " of them were running)";
-            m["Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum nötig"] = "Research without requirements: no earlier research, no date needed";
+            m["Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum, kein Offizier nötig"] = "Research without requirements: no earlier research, no date needed";
             m["  Lager: gleiche Sachen automatisch zu einem Stapel zusammenlegen"] = "  Storage: automatically merge identical items into one stack";
             m["  Lager: auch Sachen stapeln, die im Spiel nur einzeln gehen (alle Waren außer Diesel)"] = "  Storage: also stack items the game keeps single (all goods except diesel)";
             m["  Händler im Hafen hat von jeder Ware mindestens so viel (0 = wie im Spiel)"] = "  Port dealer has at least this many of every good (0 = game value)";

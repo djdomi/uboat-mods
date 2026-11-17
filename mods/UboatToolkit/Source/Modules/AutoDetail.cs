@@ -27,7 +27,7 @@ namespace UboatToolkit.Modules
             // time compression: back to the game's own step (the game multiplies it there itself); pause: leave alone
             if (Time.timeScale < 0.99f) return;
             if (Time.timeScale > 1.01f) want = gameStep;
-            else if (Settings.B("PhysicsAuto"))
+            else if (Settings.B("PhysicsFollowFps"))
             {
                 // 0.4.8 (DoMe: optimise the game): at 16 FPS the game needed 3 physics steps of 20 ms per frame but may
                 // do only 2 ("PhysicsMaxSteps"), so the whole game ran in slow motion and still paid 18 ms per frame for
@@ -49,7 +49,7 @@ namespace UboatToolkit.Modules
             if (Time.unscaledTime >= nextPhysLine)
             {
                 nextPhysLine = Time.unscaledTime + 60f;
-                Util.Log("Physik: Takt " + (1f / Time.fixedDeltaTime).ToString("0") + " pro Sekunde, höchstens " + (Time.maximumDeltaTime / Time.fixedDeltaTime).ToString("0.#") + " Schritte pro Bild, Zeitraffer x" + Time.timeScale.ToString("0.#") + ", FPS " + ExplosionLimit_Patch.Fps().ToString("0") + ", Automatik " + (Settings.B("PhysicsAuto") ? (Time.timeScale > 1.01f ? "ruht (Zeitraffer, Spiel regelt selbst)" : "an") : "aus"));
+                Util.Log("Physik: Takt " + (1f / Time.fixedDeltaTime).ToString("0") + " pro Sekunde, höchstens " + (Time.maximumDeltaTime / Time.fixedDeltaTime).ToString("0.#") + " Schritte pro Bild, Zeitraffer x" + Time.timeScale.ToString("0.#") + ", FPS " + ExplosionLimit_Patch.Fps().ToString("0") + ", Automatik " + (Settings.B("PhysicsFollowFps") ? (Time.timeScale > 1.01f ? "ruht (Zeitraffer, Spiel regelt selbst)" : "an") : "aus"));
             }
             // Census for the next tuning step: what is in the physics scene when it is slow (max. every 2 min).
             float f = ExplosionLimit_Patch.Fps();

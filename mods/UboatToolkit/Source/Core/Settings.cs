@@ -88,6 +88,7 @@ namespace UboatToolkit
             Num(QoL, "EchoSailorSeconds", "  Alle x Sekunden (Spielzeit läuft im Zeitraffer schneller)", 60, 10, 600, 10);
             Bool(QoL, "AutoManGuns", "Deckgeschütz + Flak automatisch besetzen (aufgetaucht + Alarm)", false);
             Bool(QoL, "AutoManEngines", "Maschinenraum automatisch besetzen, wenn ein Motor läuft", false);
+            Bool(QoL, "HatchSafety", "Luken-Sicherung: Turmluke unter Wasser immer schließen (auch wenn noch jemand an Deck ist)", true);
             Bool(QoL, "AutoManHydrophone", "Horcher automatisch besetzen (getaucht oder bei Alarm)", true);
             Bool(QoL, "AutoManRadio", "Funkraum automatisch besetzen (wenn das Funkgerät empfangen kann)", true);
             Bool(QoL, "FollowersAuto", "Matrosen pro Offizier automatisch: alle Matrosen an Bord passen in die Gruppen (kein 10/6 mehr)", true);
@@ -275,7 +276,7 @@ namespace UboatToolkit
             Bool(QoL, "CrewAiWaitLoad", "  Crew-KI wartet, bis das Boot fertig geladen ist (gegen Fehler beim Laden)", true);
             Num(QoL, "PhysicsHz", "Physik-Takt pro Sekunde (0 = Spielwert 60; 50 spart ein Sechstel Physik-Rechenzeit)", 50f, 0f, 75f, 5f);
             Bool(QoL, "WolfpackOncePerFrame", "Schiffsgruppen um das Boot nur einmal pro Bild suchen (Spiel: in jedem Physik-Schritt, also 2-3 mal pro Bild)", true);
-            Bool(QoL, "PhysicsAuto", "  Physik-Takt folgt der Bildrate (bei wenig FPS längere Schritte, Spiel läuft nicht mehr in Zeitlupe)", true);
+            Bool(QoL, "PhysicsFollowFps", "  Physik-Takt folgt der Bildrate (bei wenig FPS längere Schritte, Spiel läuft nicht mehr in Zeitlupe)", false);
             Num(QoL, "PhysicsAutoMinHz", "    nie weniger als x Schritte pro Sekunde (Spiel nutzt 25 bei Zeitraffer x5)", 25f, 15f, 50f, 5f);
             Num(QoL, "PhysicsMaxSteps", "  bei wenig FPS höchstens so viele Physik-Schritte pro Bild (Spiel = 5; weniger = flüssiger, Spiel läuft dann kurz langsamer)", 2f, 1f, 5f, 1f);
             Bool(QoL, "ExplosionAuto", "Automatische Detailstufe nach Bildrate (Explosionen + Stimmen): flüssig = voll, je weniger FPS desto sparsamer", true);
@@ -583,7 +584,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatResearchSpeed", "Forschung/Aufgaben im Hauptquartier x schneller", 1, 1, 1000, 10);
             Bool(Cheat, "DevConsole", "Entwickler-Konsole des Spiels einschalten (mit „Erfolge immer erlaubt“ ohne Achievement-Verlust)", false);
             Bool(Cheat, "CheatInstantResearch", "Forschung + Aufgaben im Hauptquartier sofort fertig", false);
-            Bool(Cheat, "CheatNoResearchRequirements", "Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum nötig", false);
+            Bool(Cheat, "CheatNoResearchRequirements", "Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum, kein Offizier nötig", false);
             Bool(Cheat, "CheatResearchAll", "  >> Alles erforschen", false);
             Num(Cheat, "CheatAddReputationAmount", "  Punkte pro Klick (für die zwei Knöpfe unten)", 10, 1, 1000000, 1);
             Bool(Cheat, "CheatAddReputation", "  >> Ansehen (Ruf-Punkte) dazu (damit bezahlst du Forschung + Matrosen)", false);
