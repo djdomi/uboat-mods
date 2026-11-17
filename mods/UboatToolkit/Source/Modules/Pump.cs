@@ -12,6 +12,8 @@ namespace UboatToolkit.Modules
     {
         public override void Tick()
         {
+            var tw = Settings.Get("CheatPumpTestWater");
+            if (tw != null && tw.On) { tw.Value = 0; Util.Safe("Testwasser", TestWater); }
             if (!Settings.B("AutoPump")) return;
             var ship = Util.PlayerShip;
             foreach (var p in Util.Find<TrimPump>())
@@ -20,6 +22,29 @@ namespace UboatToolkit.Modules
                     p.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
                     Util.Log("Pumpe automatisch an");
                 }
+        }
+
+        // DoMe 2026-11-17: "put 1-10 m³ water into the boat, to test the pumps". Water goes into the compartment the
+        // camera is in (else the control room, else the first one), at most up to the compartment's size.
+        private static void TestWater()
+        {
+            var ship = Util.PlayerShip;
+            if (ship == null || ship.Interior == null) { ToolkitRunner.ShowNotice("Testwasser: kein Boot", 3f); return; }
+            float m3 = Mathf.Clamp(Settings.F("CheatPumpTestWaterM3"), 1f, 10f);
+            UBOAT.Game.Scene.Items.Compartment c = null;
+            var cam = Camera.main;
+            if (cam != null) { try { c = ship.Interior.FindContainingCompartment(cam.transform.position); } catch { } }
+            if (c == null)
+                foreach (var x in ship.Interior.Compartments)
+                    if (x != null && (x.name.IndexOf("Control", System.StringComparison.OrdinalIgnoreCase) >= 0 || x.name.IndexOf("Zentrale", System.StringComparison.OrdinalIgnoreCase) >= 0)) { c = x; break; }
+            if (c == null && ship.Interior.Compartments.Length > 0) c = ship.Interior.Compartments[0];
+            if (c == null) { ToolkitRunner.ShowNotice("Testwasser: kein Raum gefunden", 3f); return; }
+            double before = c.Water;
+            double after = System.Math.Min((double)c.Capacity, before + m3);
+            c.Water = after;
+            string note = Settings.B("CheatNeverFlood") ? " (Achtung: \"Boot kann nie volllaufen\" ist an, das Wasser verschwindet sofort)" : "";
+            Util.Log("Testwasser: " + (after - before).ToString("0.0") + " m³ in " + c.name + " (vorher " + before.ToString("0.0") + ", jetzt " + after.ToString("0.0") + " m³)" + note);
+            ToolkitRunner.ShowNotice("Testwasser: " + (after - before).ToString("0.0") + " m³ in " + c.name + note, 5f);
         }
 
         public override void Frame()
