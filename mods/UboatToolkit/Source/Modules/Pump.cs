@@ -64,11 +64,49 @@ namespace UboatToolkit.Modules
             {
                 float gameDepth = 1f - Mathf.Clamp01(sub.DeckDepth / ct.MaxDepth);
                 float ourDepth = anyDepth ? 1f : gameDepth;
+                gameRate += baseLps * ct.PerformanceModifier * gameDepth;
+                ourRate += baseLps * ct.PerformanceModifier * ourDepth * Mathf.Max(1f, power);
                 double extra = baseLps * ct.PerformanceModifier * (ourDepth * Mathf.Max(1f, power) - gameDepth) * dt;
                 if (extra <= 0) continue;
                 if (extra > ct.Tank.Water) extra = ct.Tank.Water;
                 ct.Tank.Water -= extra;
+                removed += extra;
             }
+            samples++;
+            LastDepth = sub.DeckDepth;
+            LastGameRate = (float)(gameRate / samples); LastOurRate = (float)(ourRate / samples);
+            if (Time.unscaledTime >= nextLog)
+            {
+                if (removed > 0)
+                    Util.Log("Pumpe: Tiefe " + sub.DeckDepth.ToString("0") + " m, Spiel allein " + (LastGameRate * 1000f).ToString("0.0") + " l/s, mit Toolkit " + (LastOurRate * 1000f).ToString("0.0")
+                        + " l/s (Pumpenleistung x" + Mathf.Max(1f, power).ToString("0.#") + (anyDepth ? ", volle Leistung in jeder Tiefe" : "") + "), in der letzten Minute zusätzlich " + (removed * 1000.0).ToString("0") + " l abgepumpt");
+                nextLog = Time.unscaledTime + 60f; removed = 0; gameRate = ourRate = 0; samples = 0;
+            }
+        }
+
+        private static double removed, gameRate, ourRate; private static int samples; private static float nextLog;
+        internal static float LastDepth, LastGameRate, LastOurRate;
+    }
+
+    // 0.3.94 (DoMe: the pump tooltip still says reduced/red at depth, so he doubts the cheat works): with the pump
+    // cheats on, the game's red/orange pressure line is replaced by the real toolkit rate.
+    [HarmonyPatch(typeof(TrimPump), nameof(TrimPump.GetStateText))]
+    internal static class Pump_TooltipPatch
+    {
+        private static void Postfix(TrimPump __instance, ref string __result)
+        {
+            try
+            {
+                float power = Settings.F("CheatPumpPower");
+                bool anyDepth = Settings.B("CheatPumpAnyDepth");
+                if ((power <= 1f && !anyDepth) || __result == null || !Util.IsPlayers(__instance)) return;
+                int cut = __result.IndexOf("<line-height=50%>");
+                string head = cut >= 0 ? __result.Substring(0, cut) : __result;
+                string line = "Toolkit: Pumpenleistung x" + Mathf.Max(1f, power).ToString("0.#") + (anyDepth ? ", volle Leistung in jeder Tiefe" : ", Tiefe bremst wie im Spiel");
+                if (Pump_Patch.LastOurRate > 0f) line += " (" + (Pump_Patch.LastOurRate * 1000f).ToString("0") + " l/s statt " + (Pump_Patch.LastGameRate * 1000f).ToString("0") + " l/s)";
+                __result = head + "<line-height=50%>\n<line-height=100%>\n<color=#7CFC00>" + line + "</color>";
+            }
+            catch { }
         }
     }
 }
