@@ -53,14 +53,20 @@ namespace UboatToolkit.Modules.Warthog
         private readonly Dictionary<Modifier, Slot> slots = new Dictionary<Modifier, Slot>();
         private static readonly Dictionary<Type, FieldInfo[]> fieldCache = new Dictionary<Type, FieldInfo[]>();
 
+        private float nextLog;
         public override void Frame()
         {
             var ship = Util.PlayerShip;
             if (ship == null) return;
+            // 0.4.6: proof line once per minute: per device the game's value and what is written now (minus = use, plus = gain)
+            bool log = Time.unscaledTime >= nextLog;
+            System.Text.StringBuilder sb = null;
+            if (log) { nextLog = Time.unscaledTime + 60f; sb = new System.Text.StringBuilder("Strom (eigenes Boot):"); }
             foreach (var d in Devices)
             {
                 if (d.type.StartsWith("Warthog")) continue; // own consumers apply the mode themselves
                 int mode = Mode(d.type);
+                int n = 0; float game = 0f, now = 0f;
                 foreach (var comp in DevicesOfType(d.type))
                     foreach (var f in EnergyFields(comp.GetType()))
                     {
@@ -72,8 +78,11 @@ namespace UboatToolkit.Modules.Warthog
                         float want = mode == 1 ? 0f : mode == 2 ? Mathf.Abs(s.Game) : s.Game;
                         if (m.Value != want) m.Value = want;
                         s.Written = want;
+                        if (log) { n++; game += s.Game; now += want; }
                     }
+                if (log) sb.Append(" ").Append(d.label).Append(": ").Append(n).Append(" Werte, Spiel ").Append(game.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" -> jetzt ").Append(now.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" (Modus ").Append(mode).Append(");");
             }
+            if (log) Util.Log(sb.ToString());
         }
 
         private static readonly Dictionary<string, Type> typeByName = new Dictionary<string, Type>();
@@ -89,7 +98,7 @@ namespace UboatToolkit.Modules.Warthog
             // searching the boat every frame is slow: keep the list 5 s (or until the boat changes)
             if (cacheShip != ship) { compCache.Clear(); cacheShip = ship; }
             if (compCache.TryGetValue(name, out var c) && Time.unscaledTime - c.at < 5f) return c.list;
-            var list = ship.GetComponentsInChildren(t, true);
+            var list = Util.FindByType(t);   // 0.4.6: was the boat only; these devices sit in the interior scene, so nothing was found
             compCache[name] = (list, Time.unscaledTime);
             return list;
         }

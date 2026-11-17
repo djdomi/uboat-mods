@@ -29,7 +29,7 @@ namespace UboatToolkit.Modules
 
                 if (lastWanted != wanted)
                 {
-                    var sw = ship.GetComponentInChildren<LightSwitch>(true);
+                    var sws = Util.Find<LightSwitch>(); var sw = sws.Length > 0 ? sws[0] : null;   // 0.4.6: interior scene too
                     if (sw != null) { sw.SetColor(wanted, quiet: true); lastWanted = wanted; }
                 }
             }

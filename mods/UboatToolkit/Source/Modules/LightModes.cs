@@ -396,7 +396,7 @@ namespace UboatToolkit.Modules
             Util.Safe("Licht.SwitchTo", () =>
             {
                 var ship = Util.PlayerShip;
-                var sw = Switch != null ? Switch : ship?.GetComponentInChildren<LightSwitch>(true);
+                var sw = Switch != null ? Switch : (Util.Find<LightSwitch>().Length > 0 ? Util.Find<LightSwitch>()[0] : null);
                 if (sw != null) sw.SetColor((LightController.Preset)pos, quiet: true);
                 else Lighting?.SetPreset((LightController.Preset)pos);
                 if (Lighting != null) Lighting.WasPresetSetManually = true;

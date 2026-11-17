@@ -114,6 +114,31 @@ namespace UboatToolkit
             return res;
         }
 
+        // 0.4.6: same as Find<T>, for a type only known by name (boat + its separate interior scene). Not cached.
+        public static Component[] FindByType(Type t)
+        {
+            var ship = PlayerShip;
+            if (ship == null || t == null) return new Component[0];
+            var res = ship.GetComponentsInChildren(t, true);
+            try
+            {
+                var inner = ship.Interior;
+                if (inner != null && !inner.transform.IsChildOf(ship.transform))
+                {
+                    var more = inner.GetComponentsInChildren(t, true);
+                    if (more.Length > 0)
+                    {
+                        var all = new List<Component>(res);
+                        var seen = new HashSet<Component>(res);
+                        foreach (var m in more) if (seen.Add(m)) all.Add(m);
+                        res = all.ToArray();
+                    }
+                }
+            }
+            catch { }
+            return res;
+        }
+
         // true while the normal game view (boat, map, first person, manual device) is shown; false in port menus,
         // ship selection, headquarters, dialogues, cutscenes and other fullscreen UIs: our gauges are not drawn there.
         private static UBOAT.Game.UI.GameUI gameUi; private static float gameUiAt = -99f;
