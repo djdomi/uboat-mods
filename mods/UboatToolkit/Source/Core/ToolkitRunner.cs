@@ -250,9 +250,20 @@ namespace UboatToolkit
             return string.Join(" + ", parts);
         }
 
+        // 0.4.5: every change made by a click in the menu is written to the log (proof that clicks arrive).
+        private static int clickLines;
         private void DrawOpt(Opt o) { DrawOpt(o, false, null); }
-        // fold: this row gets the fold arrow of its fine settings; suffix: text behind the name
         private void DrawOpt(Opt o, bool fold, string suffix)
+        {
+            float before = o.Value;
+            DrawOptRow(o, fold, suffix);
+            if (o.Value != before && !o.IsKey && clickLines < 400 && dragSliderKey != o.Key)
+            { clickLines++; Util.Log("Menü-Klick: " + o.Key + " " + before.ToString("0.##", CultureInfo.InvariantCulture) + " -> " + o.Value.ToString("0.##", CultureInfo.InvariantCulture)); }
+            dragSliderKey = o.Value != before ? o.Key : dragSliderKey;
+        }
+        private static string dragSliderKey;
+        // fold: this row gets the fold arrow of its fine settings; suffix: text behind the name
+        private void DrawOptRow(Opt o, bool fold, string suffix)
         {
             float W = Mathf.Max(440f, MenuRect().width - 60);
             float C = Mathf.Min(440f, W * 0.5f);

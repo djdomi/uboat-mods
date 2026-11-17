@@ -29,6 +29,11 @@ namespace UboatToolkit.Modules
             IdleFrames = Mathf.Max(1, Mathf.RoundToInt(Settings.F("CrewLodIdleFrames")));
             var ship = Util.PlayerShip;
             Busy = ship != null && (ship.Alarmed || ship.Emergency);
+            if (Time.unscaledTime >= nextLine)
+            {
+                if (nextLine > 0f && On) Util.Log("Crew-Detailstufen: " + Skipped + " mal Überlegen ausgesetzt, " + OrderKept + " mal nicht ausgesetzt wegen wartendem Befehl, " + Direct + " direkte Aufrufe des Spiels (Befehle) nie ausgesetzt; Werte " + Frames + "/" + IdleFrames);
+                nextLine = Time.unscaledTime + 60f; Skipped = 0; OrderKept = 0; Direct = 0;
+            }
         }
 
         private static readonly Dictionary<CharacterAI, InteractiveCharacter> owner = new Dictionary<CharacterAI, InteractiveCharacter>();
@@ -37,6 +42,11 @@ namespace UboatToolkit.Modules
         internal static bool Skip(CharacterAI ai)
         {
             if (!On || Busy || ai == null || Time.timeScale <= 0f) return false;
+            // 0.4.5 (DoMe 2026-11-17: orders must be given twice and still are not carried out): the game calls
+            // UpdateAI directly (68 places) right after an order is given or cancelled. Those calls were skipped
+            // here too, so the man only noticed his order x frames later. Now only the routine call once per frame
+            // may be skipped, and never for a man who has an order (profit 2 and more) that is not running yet.
+            if (!FrameCall) { Direct++; return false; }
             if (!owner.TryGetValue(ai, out var ch))
             {
                 if (owner.Count > 3000) owner.Clear();
@@ -56,7 +66,25 @@ namespace UboatToolkit.Modules
             if (n <= 1) return false;
             int id = ai.GetInstanceID();
             if (id < 0) id = -id;
-            return (Time.frameCount + id) % n != 0;
+            if ((Time.frameCount + id) % n == 0) return false;
+            if (HasWaitingOrder(ai)) { OrderKept++; return false; }
+            Skipped++;
+            return true;
+        }
+
+        internal static bool FrameCall;
+        internal static int Direct, OrderKept, Skipped;
+        private float nextLine;
+
+        private static bool HasWaitingOrder(CharacterAI ai)
+        {
+            int c = ai.BehavioursCount;
+            for (int i = 0; i < c; i++)
+            {
+                var b = ai.GetBehaviourAt(i);
+                if (b != null && b.Profit >= 2f && b.State != AIBehaviourState.Active) return true;
+            }
+            return false;
         }
 
         // Idle = something is active, and everything active is free time (idle, rest, smoke, chat, sleep).
@@ -73,6 +101,15 @@ namespace UboatToolkit.Modules
             }
             return true;
         }
+    }
+
+    // Marks the routine call once per frame (the only caller that passes true); every other call is a direct one.
+    [HarmonyPatch(typeof(CharacterAI), nameof(CharacterAI.UpdateAI))]
+    internal static class CrewLod_FrameCall
+    {
+        [HarmonyPriority(Priority.First)]
+        private static void Prefix(bool ignoreIsUpdatingFlag, out bool __state) { __state = CrewLod.FrameCall; CrewLod.FrameCall = ignoreIsUpdatingFlag; }
+        private static void Finalizer(bool __state) { CrewLod.FrameCall = __state; }
     }
 
     [HarmonyPatch(typeof(CharacterAI), "UpdateInactiveBehaviours")]
