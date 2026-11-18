@@ -1160,7 +1160,7 @@ namespace UboatToolkit.Modules.Warthog
 
             // --- Rumpf
             Num("WhRubberCoating", "Gummibeschichtung: Sonar-Ortbarkeit x (1 = ohne, 0 = unsichtbar)", 0.3f, 0f, 1f, 0.05f);
-            Num("WhHydroNoise", "Gummibeschichtung: Horch-Ortbarkeit x (1 = normal)", 0.6f, 0f, 1f, 0.05f);
+            Num("WhHydroNoise", "Gummibeschichtung: Hydrophon-Ortbarkeit x (1 = normal)", 0.6f, 0f, 1f, 0.05f);
             Bool("WhFins", "Finnen: engere Kurven, weniger Rollen, schneller Tiefe wechseln", true);
             Num("WhFinTurn", "  Kurven: Drehkraft x", 1.6f, 1f, 4f, 0.1f);
             Num("WhFinRoll", "  Rollen: Dämpfung x", 2.5f, 1f, 6f, 0.1f);
@@ -1208,7 +1208,7 @@ namespace UboatToolkit.Modules.Warthog
             WarthogPower.RegisterOptions(Num); // one indented line per device under the top switch
 
             // --- Sonar
-            Bool("WhPassive", "Passives Sonar 360°: immer an, auch ohne Horcher", true);
+            Bool("WhPassive", "Passives Sonar 360°: immer an, auch ohne Hydrophon", true);
             Bool("WhPassiveSame", "  aufgetaucht und bei hoher Fahrt genauso gut", true);
             Num("WhPassiveRange", "  Reichweite x", 2f, 0.5f, 5f, 0.25f);
             Bool("WhPassiveMap", "  Kontakte auf der Karte zeigen", true);

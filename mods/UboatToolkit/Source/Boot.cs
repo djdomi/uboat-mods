@@ -882,7 +882,7 @@ namespace UboatToolkit.Modules
             new[] { "Conning Tower", "Turm" }, new[] { "Diesel Engine", "Dieselraum" }, new[] { "Diesel", "Dieselraum" },
             new[] { "Electric Engine", "E-Maschinenraum" }, new[] { "Electric", "E-Maschinenraum" }, new[] { "Engine", "Maschinenraum" },
             new[] { "Galley", "Kombüse" }, new[] { "Officers", "Offiziersraum" }, new[] { "Petty Officers", "Unteroffiziersraum" },
-            new[] { "Radio", "Funkraum" }, new[] { "Sonar", "Horchraum" }, new[] { "Captain", "Kommandantenraum" },
+            new[] { "Radio", "Funkraum" }, new[] { "Sonar", "Hydrophon" }, new[] { "Captain", "Kommandantenraum" },
             new[] { "Quarters", "Quartier" }, new[] { "Deck", "Deck" }, new[] { "Exterior", "außen" }
         };
 
@@ -3001,7 +3001,7 @@ namespace UboatToolkit.Modules
             bool below = ship.Depth > Depth + 3f;
             if (below == wasBelow || (!below && ship.Depth > Depth - 3f)) return;
             wasBelow = below;
-            string t = below ? "Unter der Sprungschicht (~" + Mathf.RoundToInt(Depth) + " m): schwerer zu orten, Horcher hört schlechter"
+            string t = below ? "Unter der Sprungschicht (~" + Mathf.RoundToInt(Depth) + " m): schwerer zu orten, Hydrophon hört schlechter"
                              : "Über der Sprungschicht (~" + Mathf.RoundToInt(Depth) + " m)";
             var bar = Object.FindObjectOfType<NotificationBarUI>();
             if (bar != null) bar.OpenNow("Icons/Notification Bar/Notification - 40 - Danger", t);
@@ -3477,3 +3477,51 @@ namespace UboatToolkit.Modules
     }
 }
 
+
+// ====================================================================================================
+// Abschnitt: Tiefe nachführen (0.4.40)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Entities;
+
+    // DoMe 2026-11-18: boat rested 1.4 m below the ordered depth while snorkelling. Game code
+    // (PlayableSubmarine.FixedUpdate): depth is held by the dive planes alone, force = tanh(-0.08 x error) x
+    // (3.6 + 1.15 x speed) x plane performance. That reacts only to the error itself, so a boat that is a little
+    // too heavy and slow always rests below its order. This part adds the missing correction: the remaining error
+    // is summed up over time and turned into a small extra lift or push (at most 0.15 m/s²) until the deck stands
+    // on the ordered depth. Own boat only, submerged only, off by default. The ordered depth itself is not touched.
+    [HarmonyPatch(typeof(PlayableSubmarine), "FixedUpdate")]
+    internal static class DepthTrimHold_Patch
+    {
+        private static float sum, lastTarget = -1f, stableSince, nextLog; private static bool active;
+
+        private static void Postfix(PlayableSubmarine __instance)
+        {
+            if (__instance != (object)Util.PlayerShip) return;
+            if (!Settings.B("DepthTrimHold")) { Off(null); return; }
+            var rb = __instance.RigidBody;
+            float target = __instance.TargetDepth, deck = __instance.DeckDepthUnclamped;
+            if (rb == null || rb.isKinematic || target < 3.5f || deck < 2f || Time.timeScale > 20f) { Off(target < 3.5f ? "Boot soll an die Oberfläche" : null); return; }
+            if (Mathf.Abs(target - lastTarget) > 0.05f) { lastTarget = target; stableSince = Time.time; sum = 0f; return; }
+            float err = deck - target;                                   // + = too deep
+            if (Time.time - stableSince < 20f || Mathf.Abs(err) > 6f) return;   // still on the way to the order
+            float dt = Time.fixedDeltaTime;
+            sum = Mathf.Clamp(sum + err * dt * 0.004f, -0.15f, 0.15f);
+            rb.AddForce(new Vector3(0f, sum, 0f), ForceMode.Acceleration);
+            if (!active || Time.unscaledTime > nextLog)
+            {
+                active = true; nextLog = Time.unscaledTime + 60f;
+                Util.Log("Tiefe nachgeführt (nur eigenes Boot): Ziel " + target.ToString("0.0") + " m, Ist " + deck.ToString("0.0") + " m, Ausgleich " + (sum >= 0f ? "hebt mit " : "drückt mit ") + Mathf.Abs(sum).ToString("0.000") + " m/s² (Grenze 0,150)");
+            }
+        }
+
+        private static void Off(string why)
+        {
+            if (active) Util.Log("Tiefe nachgeführt: aus" + (why != null ? " (" + why + ")" : ""));
+            active = false; sum = 0f; lastTarget = -1f;
+        }
+    }
+}

@@ -1,4 +1,4 @@
-// UBOAT Toolkit - Sensoren: Sonar, Horcher, Sehrohr, Funk, Ausguck
+// UBOAT Toolkit - Sensoren: Sonar, Hydrophon, Sehrohr, Funk, Ausguck
 // Diese Datei fasst 40 frühere Einzeldateien zusammen (0.4.30). Jeder Abschnitt nennt seine alte Datei.
 
 // ====================================================================================================
@@ -53,7 +53,7 @@ namespace UboatToolkit.Modules
             if (Settings.B("SonarSubmergedOnly") && !ship.SubmergedOrGoingToSubmerge)
             { if (manual) ToolkitRunner.ShowNotice("Sonar: nur getaucht", 3f); return; }
             if (Settings.B("SonarNeedsOperator") && !CrewSkills.HydrophoneManned)
-            { if (manual) ToolkitRunner.ShowNotice("Sonar: Horchraum ist nicht besetzt", 3f); return; }
+            { if (manual) ToolkitRunner.ShowNotice("Sonar: Hydrophon ist nicht besetzt", 3f); return; }
             PingUntil = Time.time + Mathf.Max(1f, Settings.F("SonarPingSeconds"));
             lastAuto = Time.time;
             // report what is in range now
@@ -6081,9 +6081,9 @@ namespace UboatToolkit.Modules
                 // The game's range tween is NOT aborted any more: the map draws the green range circles from it (gone since 0.2.54).
                 var t = Traverse.Create(h);
                 foreach (var f in Mods) { if (!(f.StartsWith("surface") ? surf : fast)) continue; var m = t.Field(f).GetValue<Modifier>(); if (m != null && m.Value != 1f) m.Value = 1f; }
-                if (!logged) { logged = true; Util.Log("Horcher (nur eigenes Gerät): Abzug aufgetaucht " + (surf ? "aufgehoben" : "wie im Spiel") + ", Abzug hohe Fahrt " + (fast ? "aufgehoben" : "wie im Spiel") + " (" + h.name + ")"); }
+                if (!logged) { logged = true; Util.Log("Hydrophon (nur eigenes Gerät): Abzug aufgetaucht " + (surf ? "aufgehoben" : "wie im Spiel") + ", Abzug hohe Fahrt " + (fast ? "aufgehoben" : "wie im Spiel") + " (" + h.name + ")"); }
             }
-            catch (System.Exception e) { Util.Log("Horcher: " + e.Message); }
+            catch (System.Exception e) { Util.Log("Hydrophon: " + e.Message); }
         }
 
         // switched off again: let the game compute its own values
@@ -6095,7 +6095,7 @@ namespace UboatToolkit.Modules
                 t.Method("ValidateVelocityModifier").GetValue();
                 if (h.ParentEntity is UBOAT.Game.Scene.Entities.PlayableSubmarine) t.Method("SurfaceRangeModifierParameter_Changed", new[] { typeof(Parameter) }, new object[] { null }).GetValue();
             }
-            catch (System.Exception e) { Util.Log("Horcher zurück: " + e.Message); }
+            catch (System.Exception e) { Util.Log("Hydrophon zurück: " + e.Message); }
         }
     }
 
@@ -6107,7 +6107,7 @@ namespace UboatToolkit.Modules
             foreach (var n in new[] { "ValidateVelocityModifier", "UpdateShipVelocityModifier", "Submarine_SubmergeStateChanged", "SurfaceRangeModifierParameter_Changed", "OnSandboxRepresentationSet" })
             {
                 var m = AccessTools.Method(typeof(Hydrophone), n);
-                if (m != null) yield return m; else Util.Log("Horcher: Spiel-Methode " + n + " fehlt");
+                if (m != null) yield return m; else Util.Log("Hydrophon: Spiel-Methode " + n + " fehlt");
             }
         }
         private static void Postfix(Hydrophone __instance) { if (HydroSame.Wanted(__instance)) HydroSame.Force(__instance); }
@@ -6190,7 +6190,7 @@ namespace UboatToolkit.Modules
             if (Time.unscaledTime >= nextLog)
             {
                 nextLog = Time.unscaledTime + 60f;
-                Util.Log("Sonar-Anzeige (nur eigene Kontakte): Sonar/Ping " + sonarN + ", Radar " + radarN + ", nur Horcher " + hydroN + ", Bereich " + (rangeM / 1000f).ToString("0.#") + " km");
+                Util.Log("Sonar-Anzeige (nur eigene Kontakte): Sonar/Ping " + sonarN + ", Radar " + radarN + ", nur Hydrophon " + hydroN + ", Bereich " + (rangeM / 1000f).ToString("0.#") + " km");
             }
 
             Imgui.Backdrop(r, 0.8f);
@@ -6238,7 +6238,7 @@ namespace UboatToolkit.Modules
                 float sz = b.Kind == 2 ? 4f : 6f;
                 Imgui.Fill(new Rect(c.x + Mathf.Sin(a) * rr - sz / 2f, c.y - Mathf.Cos(a) * rr - sz / 2f, sz, sz), col);
             }
-            Imgui.TextAt(new Rect(r.x + 6, r.yMax - 20, w - 12, 20), "grün Sonar " + sonarN + "   gelb Radar " + radarN + "   Rand Horcher " + hydroN);
+            Imgui.TextAt(new Rect(r.x + 6, r.yMax - 20, w - 12, 20), "grün Sonar " + sonarN + "   gelb Radar " + radarN + "   Rand Hydrophon " + hydroN);
         }
     }
 }

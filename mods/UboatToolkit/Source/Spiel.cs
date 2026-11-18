@@ -953,7 +953,7 @@ namespace UboatToolkit.Modules
                         float hs = 1f;
                         try { hs = (float)ship.HydroacousticDetectorsRangeScale; } catch { }
                         near *= hs * 0.64f; far *= hs;
-                        if (Time.unscaledTime >= nextSensorLine) hydroParts = "Horchgerät fern: Faktor Boot " + hs.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + ", Teile " + Parts(d.GroupDetectionRange);
+                        if (Time.unscaledTime >= nextSensorLine) hydroParts = "Hydrophon fern: Faktor Boot " + hs.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + ", Teile " + Parts(d.GroupDetectionRange);
                     }
                     if (sensorNow[kind] == null || near > sensorNear[kind])
                     {

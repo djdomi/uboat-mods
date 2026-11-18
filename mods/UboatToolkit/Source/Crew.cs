@@ -7708,7 +7708,7 @@ namespace UboatToolkit.Modules
                 Util.OneScale(hydro.GroupDetectionRange, ModName).Value = f;
                 boosted.Add(hydro);
                 lastRange = pct;
-                if (Settings.B("CrewSkillLog")) Util.Log("Horcher: Reichweite x" + f.ToString("0.00") + " (Horcher besetzt)");
+                if (Settings.B("CrewSkillLog")) Util.Log("Hydrophon: Reichweite x" + f.ToString("0.00") + " (Hydrophon besetzt)");
             }
         }
     }
@@ -8768,7 +8768,7 @@ namespace UboatToolkit.Modules
                 {
                     if (act == null) continue;
                     var eq = act.AssociatedEquipment;
-                    if (hydro && eq is ListeningRoom) Keep(act, "Horcher");
+                    if (hydro && eq is ListeningRoom) Keep(act, "Hydrophon");
                     else if (radio && eq is PlayerShipRadio) Keep(act, "Funkraum");
                 }
 

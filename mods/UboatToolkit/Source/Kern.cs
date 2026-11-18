@@ -695,7 +695,7 @@ namespace UboatToolkit
             m["  Alle x Sekunden (Spielzeit läuft im Zeitraffer schneller)"] = "  Every x seconds (game time runs faster with time compression)";
             m["Deckgeschütz + Flak automatisch besetzen (aufgetaucht + Alarm)"] = "Man deck gun + AA automatically (surfaced + alarm)";
             m["Maschinenraum automatisch besetzen, wenn ein Motor läuft"] = "Man the engine room automatically when an engine is running";
-            m["Horcher automatisch besetzen (getaucht oder bei Alarm)"] = "Man the hydrophone automatically (submerged or on alarm)";
+            m["Hydrophon automatisch besetzen (getaucht oder bei Alarm)"] = "Man the hydrophone automatically (submerged or on alarm)";
             m["Funkraum automatisch besetzen (wenn das Funkgerät empfangen kann)"] = "Man the radio room automatically (when the radio can receive)";
             m["Matrosen pro Offizier automatisch: alle Matrosen an Bord passen in die Gruppen (kein 10/6 mehr)"] = "Sailors per officer automatic: all sailors aboard fit into the groups (no more 10/6)";
             m["Matrosen pro Offizier höchstens (0 = Spiel-Wert)"] = "Sailors per officer at most (0 = game value)";
@@ -770,7 +770,7 @@ namespace UboatToolkit
             m["H\u00e4fen haben eine gleichm\u00e4\u00dfige Mischung aller Torpedo-Typen"] = "Ports have an even mix of all torpedo types";
             m["Meeresboden immer laden, wenn das Wasser flacher als ~300 m ist (nur Reise-System \u201eRealistisch\u201c)"] = "Always load the seabed when the water is shallower than ~300 m (only travel system „Realistic“)";
             m["Realistische Sprungschicht (25-150 m je nach Wassertemperatur, darunter schwerer zu orten)"] = "Realistic thermocline (25-150 m depending on water temperature, harder to detect below)";
-            m["  Unter der Sprungschicht h\u00f6rt der eigene Horcher Schiffe oben schlechter"] = "  Below the thermocline your own hydrophone hears ships above worse";
+            m["  Unter der Sprungschicht h\u00f6rt das eigene Hydrophon Schiffe oben schlechter"] = "  Below the thermocline your own hydrophone hears ships above worse";
             m["  Kurze Meldung beim Unter-/\u00dcberqueren der Sprungschicht"] = "  Short message when passing below/above the thermocline";
             m["Fix: Gegenstände mit gesperrter Kollisionsform (Bin, Clock, Folder) zählen wieder, keine rote Meldung"] = "Fix: items with a locked collision shape (Bin, Clock, Folder) count again, no red message";
             m["Fix: Matrosen, die neben dem Laufweg feststecken, werden zurückgesetzt"] = "Fix: sailors stuck next to the walkway get reset";
@@ -889,13 +889,13 @@ namespace UboatToolkit
             m["    Umschauen glätten (Sekunden)"] = "    Smooth looking around (seconds)";
             m["  freie Kamera: Mauszeiger ausblenden"] = "  free camera: hide mouse cursor";
             m["  bei Zwischensequenzen nicht eingreifen"] = "  do not interfere during cutscenes";
-            m["Stationen (Horcher, Vorhaltrechner, Torpedoraum ...): Zoom, Umschauen, Drehknöpfe"] = "Stations (hydrophone, TDC, torpedo room ...): zoom, look around, dials";
+            m["Stationen (Hydrophon, Vorhaltrechner, Torpedoraum ...): Zoom, Umschauen, Drehknöpfe"] = "Stations (hydrophone, TDC, torpedo room ...): zoom, look around, dials";
             m["  Umschauen: 0 = wie Ich-Sicht (Mitte-Punkt), 1 = Blick dreht zum Mauszeiger"] = "  Look around: 0 = like first person (centre dot), 1 = view turns towards the mouse cursor";
             m["  Umschau-Tempo (1 = wie Ich-Sicht)"] = "  Look-around speed (1 = like first person)";
             m["  wie weit die Ansicht gleiten darf"] = "  how far the view may slide";
             m["  wie weit die Ansicht drehen darf (Grad)"] = "  how far the view may turn (degrees)";
             m["  Zoom bis (Grad, kleiner = näher)"] = "  Zoom up to (degrees, smaller = closer)";
-            m["  Horcher: 0 = gleiten, 1 = drehen"] = "  Hydrophone: 0 = slide, 1 = turn";
+            m["  Hydrophon: 0 = gleiten, 1 = drehen"] = "  Hydrophone: 0 = slide, 1 = turn";
             m["  Vorhaltrechner: 0 = gleiten, 1 = drehen"] = "  TDC: 0 = slide, 1 = turn";
             m["  Torpedoraum/Feuerleitung: 0 = gleiten, 1 = drehen"] = "  Torpedo room/fire control: 0 = slide, 1 = turn";
             m["  Schusswinkel-Empfänger: 0 = gleiten, 1 = drehen"] = "  Firing angle receiver: 0 = slide, 1 = turn";
@@ -906,7 +906,7 @@ namespace UboatToolkit
             m["  Schusswinkel-Empfänger: Gleiten hoch/runter (x)"] = "  Firing angle receiver: slide up/down (x)";
             m["  Torpedoraum: Standpunkt nach vorn (m)"] = "  Torpedo room: viewpoint forward (m)";
             m["  Tooltips erst zeigen, wenn Mauszeiger frei ist"] = "  Show tooltips only when the mouse cursor is free";
-            m["  Horcher-Anzeige erst zeigen, wenn Mauszeiger frei ist"] = "  Show hydrophone display only when the mouse cursor is free";
+            m["  Hydrophon-Anzeige erst zeigen, wenn Mauszeiger frei ist"] = "  Show hydrophone display only when the mouse cursor is free";
             m["  Drehknöpfe folgen der Maus direkt"] = "  Dials follow the mouse directly";
             m["  Drehknopf-Empfindlichkeit (Bildschirm-Anteil für ganzen Bereich)"] = "  Dial sensitivity (screen share for the whole range)";
             m["  mit Shift fein einstellen (x)"] = "  fine adjust with Shift (x)";
@@ -991,7 +991,7 @@ namespace UboatToolkit
             m["  automatisch pingen alle x Sekunden unter Wasser (0 = nur per Taste)"] = "  ping automatically every x seconds underwater (0 = only by key)";
             m["  automatisch nicht bei Alarm (leise bleiben)"] = "  not automatically on alarm (stay quiet)";
             m["  nur getaucht"] = "  only when submerged";
-            m["  Horchraum muss besetzt sein"] = "  Hydrophone room must be manned";
+            m["  Hydrophon muss besetzt sein"] = "  Hydrophone room must be manned";
             m["Luft: volle Besatzung taucht immer gleich lange, egal wie groß"] = "Air: full crew always stays down the same time, no matter how big";
             m["  Tauchzeit bei voller Besatzung (Stunden)"] = "  Dive time with full crew (hours)";
             m["  Gefangene verbrauchen Luft mit"] = "  Prisoners use up air too";
@@ -1053,8 +1053,8 @@ namespace UboatToolkit
             m["KI-Schützen: schneller einschießen (1 = Spiel)"] = "AI gunners: range in faster (1 = game)";
             m["KI-Schützen: beim Zielwechsel so viel % vom Einschießen behalten (55 = Spiel)"] = "AI gunners: keep this many % of ranging when switching targets (55 = game)";
             m["KI-Schützen: Zusatz-Streuung, wenn Ziel nicht mit Augen gesehen, in % (100 = Spiel)"] = "AI gunners: extra spread when the target is not seen by eye, in % (100 = game)";
-            m["Horcher besetzt: hört so viel % weiter (0 = Spiel)"] = "Hydrophone manned: hears this many % farther (0 = game)";
-            m["Horcher besetzt: Peilung so viel % genauer (0 = Spiel)"] = "Hydrophone manned: bearing this many % more exact (0 = game)";
+            m["Hydrophon besetzt: hört so viel % weiter (0 = Spiel)"] = "Hydrophone manned: hears this many % farther (0 = game)";
+            m["Hydrophon besetzt: Peilung so viel % genauer (0 = Spiel)"] = "Hydrophone manned: bearing this many % more exact (0 = game)";
             m["Granaten schleudern getroffene Schiffe nicht weg (Schaden bleibt voll)"] = "Shells do not fling hit ships away (damage stays full)";
             m["88mm: Rückstoß nach oben (0 = keiner, 1 = Spiel)"] = "88mm: upward recoil (0 = none, 1 = game)";
             m["Flak: Rückstoß nach oben (0 = keiner, 1 = Spiel)"] = "AA: upward recoil (0 = none, 1 = game)";
@@ -1081,7 +1081,7 @@ namespace UboatToolkit
             m["Flak schießt automatisch auch auf Schiffe"] = "AA also fires at ships automatically";
             m["Schussgeräusch höchstens alle x Sek. (0 = aus, gegen Tonprobleme)"] = "Firing sound at most every x sec. (0 = off, against sound problems)";
             m["Sehrohr bis zu x m ausfahren (0 = aus) (Cheat #34)"] = "Extend periscope up to x m (0 = off) (cheat #34)";
-            m["Boot unentdeckbar (Sicht, Sonar, Horchgerät, Radar)"] = "Boat undetectable (sight, sonar, hydrophone, radar)";
+            m["Boot unentdeckbar (Sicht, Sonar, Hydrophon, Radar)"] = "Boat undetectable (sight, sonar, hydrophone, radar)";
             m["Aimbot: 100 % Einschuss, keine Streuung, eigene Schüsse treffen mit Vorhalt (bis 30 Grad)"] = "Aimbot: 100 % ranging, no spread, own shots hit with lead (up to 30 degrees)";
             m["Deckgeschütz + Flak: Munition unendlich"] = "Deck gun + AA: unlimited ammo";
             m["Torpedos unendlich: Rohr lädt nach dem Schuss sofort neu (#26)"] = "Unlimited torpedoes: tube reloads instantly after firing (#26)";
@@ -1107,7 +1107,7 @@ namespace UboatToolkit
             m["Physik-Takt folgt der Bildrate (bei wenig FPS längere Schritte, Spiel läuft nicht mehr in Zeitlupe)"] = "Physics rate follows the frame rate (longer steps at low FPS, game no longer runs in slow motion)";
             m["nie weniger als x Schritte pro Sekunde (Spiel nutzt 25 bei Zeitraffer x5)"] = "never fewer than x steps per second (game uses 25 at time compression x5)";
             m["Luken-Sicherung: Turmluke unter Wasser immer schließen (auch wenn noch jemand an Deck ist)"] = "Hatch safety: always close the tower hatch under water (even if someone is still on deck)";
-            m["Reichweite Horchgerät x (1 = Spiel)"] = "Hydrophone range x (1 = game)";
+            m["Reichweite Hydrophon x (1 = Spiel)"] = "Hydrophone range x (1 = game)";
             m["Reichweite aktives Sonar (Bordgerät) x (1 = Spiel)"] = "Active sonar (boat device) range x (1 = game)";
             m["Reichweite Radar x (1 = Spiel)"] = "Radar range x (1 = game)";
             m["Reichweite Radarwarner x (1 = Spiel)"] = "Radar detector range x (1 = game)";
@@ -1143,7 +1143,7 @@ namespace UboatToolkit
             m["Deck-Crew bleibt beim Tauchen draußen, schießt weiter + ertrinkt nie"] = "Deck crew stays outside when diving, keeps firing + never drowns";
             m["  >> Alle heilen (Wunden, Blutungen, Krankheiten, wieder aufstehen)"] = "  >> Heal everyone (wounds, bleeding, illness, get back up)";
             m["Funk-Empfang in jeder Tiefe"] = "Radio reception at any depth";
-            m["Horchgerät hört voll, auch aufgetaucht und bei hoher Fahrt"] = "Hydrophone hears fully, even surfaced and at high speed";
+            m["Hydrophon hört voll, auch aufgetaucht und bei hoher Fahrt"] = "Hydrophone hears fully, even surfaced and at high speed";
             m["Zielerfassung genau: Tempo, Kurs, Entfernung exakt statt geschätzt"] = "Exact target data: speed, course, range exact instead of estimated";
             m["Panzer-Rumpf: Schaden am Boot x (1 = normal, 0 = kein Schaden)"] = "Armoured hull: damage to the boat x (1 = normal, 0 = no damage)";
             m["Rumpf schützt die Crew: keine Verletzungen durch Treffer"] = "Hull protects the crew: no injuries from hits";
@@ -1193,7 +1193,7 @@ namespace UboatToolkit
             m["  Steuerstand wechselt nicht ständig den Platz (Zentrale/Turm), wenn das Angriffssehrohr besetzt wird"] = "  Helm does not keep changing place (control room/tower) when the attack periscope gets manned";
             m["    frühestens nach ... Sekunden wieder wechseln"] = "    change again after ... seconds at the earliest";
             m["  Findet ein Mann keinen Weg zu seinem Posten, wird er hingesetzt (statt aufzugeben)"] = "  If a man finds no way to his post he is set there (instead of giving up)";
-            m["Obergrenze Horchgerät, Sonar, Radar in km (mehr geht nie)"] = "Upper limit hydrophone, sonar, radar in km (never more)";
+            m["Obergrenze Hydrophon, Sonar, Radar in km (mehr geht nie)"] = "Upper limit hydrophone, sonar, radar in km (never more)";
             m["Obergrenze Sichtweite (Ausguck, Sehrohr) in km (mehr geht nie)"] = "Upper limit sight range (lookout, periscope) in km (never more)";
             m["Ruder mittschiffs"] = "Rudder amidships";
             m["Kurs-Sperre (mit fein)"] = "Course lock (with fine)";
@@ -1240,7 +1240,7 @@ namespace UboatToolkit
             m["Spiel-Log klein halten: nur Warnungen + Fehler in Player.log (spart Festplatte + RAM)"] = "Keep the game log small: only warnings + errors in Player.log (saves disk + RAM)";
             m["Karte: Pixel-Messung der Raster-Beschriftung ins Log (Kontrast, Lesbarkeit, je Stil und Ebene)"] = "Map: pixel measurement of the grid labels into the log (contrast, readability, per style and level)";
             m["Ausguck: ausführliches Log (Sicht, Rauch, Meldungen)"] = "Lookout: detailed log (sight, smoke, reports)";
-            m["Schützen/Horcher: Log"] = "Gunners/hydrophone: log";
+            m["Schützen/Hydrophon: Log"] = "Gunners/hydrophone: log";
             m["Crew-KI: ausführliches Log (große Dateien, Ordner UboatToolkit/CrewKI, ab nächstem Start)"] = "Crew AI: detailed log (big files, folder UboatToolkit/CrewKI, from next start)";
             m["Speicher-Müllabfuhr: max. ms pro Bild (0 = Spielwert, kleiner = weniger Ruckler)"] = "Memory garbage collection: max. ms per frame (0 = game value, smaller = less stutter)";
             m["Cache aufräumen beim Spielstart: alte Daten-Cache, Absturzberichte, Mod-Logs (Spielstände nie)"] = "Clean cache at game start: old data cache, crash reports, mod logs (never saves)";
@@ -1333,7 +1333,7 @@ namespace UboatToolkit
             m["Steam nicht gefunden"] = "Steam not found";
             m[" Erfolge freigeschaltet"] = " achievements unlocked";
             m["Sonar: nur getaucht"] = "Sonar: submerged only";
-            m["Sonar: Horchraum ist nicht besetzt"] = "Sonar: hydrophone room is not manned";
+            m["Sonar: Hydrophon ist nicht besetzt"] = "Sonar: hydrophone room is not manned";
             m["Werte aus UboatToolkit.ini"] = "Values from UboatToolkit.ini";
             m["Einstellungen lesen fehlgeschlagen: "] = "Reading settings failed: ";
             m["Matrosen anwerben fehlgeschlagen"] = "Recruiting sailors failed";
@@ -1453,7 +1453,7 @@ namespace UboatToolkit
             m[" (0 = verbraucht, 1 = kostenlos, 2 = erzeugt)"] = " (0 = consumes, 1 = free, 2 = generates)";
             m["Alle Warthog-Funktionen nur auf U-1337 (Type XXX), nicht auf anderen Booten"] = "All Warthog features only on U-1337 (Type XXX), not on other boats";
             m["Gummibeschichtung: Sonar-Ortbarkeit x (1 = ohne, 0 = unsichtbar)"] = "Rubber coating: sonar detectability x (1 = none, 0 = invisible)";
-            m["Gummibeschichtung: Horch-Ortbarkeit x (1 = normal)"] = "Rubber coating: hydrophone detectability x (1 = normal)";
+            m["Gummibeschichtung: Hydrophon-Ortbarkeit x (1 = normal)"] = "Rubber coating: hydrophone detectability x (1 = normal)";
             m["Finnen: engere Kurven, weniger Rollen, schneller Tiefe wechseln"] = "Fins: tighter turns, less rolling, faster depth changes";
             m["  Kurven: Drehkraft x"] = "  Turns: turning force x";
             m["  Rollen: Dämpfung x"] = "  Rolling: damping x";
@@ -1481,7 +1481,7 @@ namespace UboatToolkit
             m["Lüftung immer an und lautlos, auch bei Schleichfahrt"] = "Ventilation always on and silent, even in silent running";
             m["Sauerstoff per Elektrolyse: keine Kalipatronen mehr"] = "Oxygen by electrolysis: no more potash cartridges";
             m["Alle Verbraucher generieren Strom"] = "All consumers generate power";
-            m["Passives Sonar 360°: immer an, auch ohne Horcher"] = "Passive sonar 360°: always on, even without a hydrophone operator";
+            m["Passives Sonar 360°: immer an, auch ohne Hydrophon"] = "Passive sonar 360°: always on, even without a hydrophone operator";
             m["  aufgetaucht und bei hoher Fahrt genauso gut"] = "  just as good surfaced and at high speed";
             m["  Reichweite x"] = "  Range x";
             m["  Kontakte auf der Karte zeigen"] = "  Show contacts on the map";
@@ -2000,7 +2000,7 @@ namespace UboatToolkit
             new[] { "geleit", "konvoi", "convoy", "eskorte", "geleitschutz", "escort" },
             new[] { "lager", "stapel", "vorrat", "inventar", "storage", "stack", "platz", "slot" },
             new[] { "essen", "nahrung", "proviant", "food", "verpflegung", "kueche" },
-            new[] { "horch", "hydrophon", "sonar", "ghg", "hydrophone", "lausch" },
+            new[] { "horch", "hydrophon", "sonar", "ghg", "hydrophone", "lausch", "horcher", "horchgeraet", "horchraum" },
             new[] { "radar", "funkmess", "ortung", "detect", "entdeck", "sichtbar", "kontakt" },
             new[] { "funk", "radio", "funkspruch", "enigma" },
             new[] { "licht", "lampe", "beleuchtung", "light", "rotlicht", "blaulicht", "scheinwerfer" },
@@ -2390,7 +2390,7 @@ namespace UboatToolkit
             Bool(QoL, "AutoManEngines", "Maschinenraum automatisch besetzen, wenn ein Motor läuft", false);
             Bool(QoL, "RudderLockNote", "Hinweis, wenn das Ruder von Hand festgestellt ist und das Boot im Kreis fährt", true);
             Bool(QoL, "HatchSafety", "Luken-Sicherung: Turmluke unter Wasser immer schließen (auch wenn noch jemand an Deck ist)", true);
-            Bool(QoL, "AutoManHydrophone", "Horcher automatisch besetzen (getaucht oder bei Alarm)", true);
+            Bool(QoL, "AutoManHydrophone", "Hydrophon automatisch besetzen (getaucht oder bei Alarm)", true);
             Bool(QoL, "AutoManRadio", "Funkraum automatisch besetzen (wenn das Funkgerät empfangen kann)", true);
             Bool(QoL, "FollowersAuto", "Matrosen pro Offizier automatisch: alle Matrosen an Bord passen in die Gruppen (kein 10/6 mehr)", true);
             Num(QoL, "MaxFollowers", "Matrosen pro Offizier höchstens (0 = Spiel-Wert)", 0, 0, 20, 1);
@@ -2489,7 +2489,7 @@ namespace UboatToolkit
             Bool(QoL, "SeaFloorShallow", "Meeresboden immer laden, wenn das Wasser flacher als ~300 m ist (nur Reise-System \u201eRealistisch\u201c)", true);
             Num(QoL, "SeaFloorMaxCompression", "  nur bis Zeitraffer x (darüber kein Nachladen = keine Ruckler/Flicken)", 100, 1, 5000, 10);
             Bool(QoL, "SeaLayer", "Realistische Sprungschicht (25-150 m je nach Wassertemperatur, darunter schwerer zu orten)", true);
-            Bool(QoL, "SeaLayerHearing", "  Unter der Sprungschicht h\u00f6rt der eigene Horcher Schiffe oben schlechter", true);
+            Bool(QoL, "SeaLayerHearing", "  Unter der Sprungschicht h\u00f6rt das eigene Hydrophon Schiffe oben schlechter", true);
             Bool(QoL, "SeaLayerNote", "  Kurze Meldung beim Unter-/\u00dcberqueren der Sprungschicht", true);
             Bool(QoL, "FixUnreadableColliders", "Fix: Gegenstände mit gesperrter Kollisionsform (Bin, Clock, Folder) zählen wieder, keine rote Meldung", true);
             Bool(QoL, "FixOffNavmeshCrew", "Fix: Matrosen, die neben dem Laufweg feststecken, werden zurückgesetzt", true);
@@ -2634,13 +2634,13 @@ namespace UboatToolkit
             Num(QoL, "CamLookSmooth", "    Umschauen glätten (Sekunden)", 0.08f, 0, 2, 0.02f);
             Bool(QoL, "CamHideCursor", "  freie Kamera: Mauszeiger ausblenden", true);
             Bool(QoL, "CamProtectScripted", "  bei Zwischensequenzen nicht eingreifen", true);
-            Bool(QoL, "StationZoom", "Stationen (Horcher, Vorhaltrechner, Torpedoraum ...): Zoom, Umschauen, Drehknöpfe", true);
+            Bool(QoL, "StationZoom", "Stationen (Hydrophon, Vorhaltrechner, Torpedoraum ...): Zoom, Umschauen, Drehknöpfe", true);
             Num(QoL, "StLookMode", "  Umschauen: 0 = wie Ich-Sicht (Mitte-Punkt), 1 = Blick dreht zum Mauszeiger", 0, 0, 1, 1);
             Num(QoL, "StPanSpeed", "  Umschau-Tempo (1 = wie Ich-Sicht)", 1, 0.1f, 5, 0.1f);
             Num(QoL, "StMaxPan", "  wie weit die Ansicht gleiten darf", 1.25f, 0, 4, 0.05f);
             Num(QoL, "StMaxLook", "  wie weit die Ansicht drehen darf (Grad)", 35, 0, 90, 1);
             Num(QoL, "StMinFov", "  Zoom bis (Grad, kleiner = näher)", 22, 5, 60, 1);
-            Num(QoL, "StHydroLook", "  Horcher: 0 = gleiten, 1 = drehen", 1, 0, 1, 1);
+            Num(QoL, "StHydroLook", "  Hydrophon: 0 = gleiten, 1 = drehen", 1, 0, 1, 1);
             Num(QoL, "StTdcLook", "  Vorhaltrechner: 0 = gleiten, 1 = drehen", 0, 0, 1, 1);
             Num(QoL, "StTorpLook", "  Torpedoraum/Feuerleitung: 0 = gleiten, 1 = drehen", 1, 0, 1, 1);
             Num(QoL, "StGyroLook", "  Schusswinkel-Empfänger: 0 = gleiten, 1 = drehen", 0, 0, 1, 1);
@@ -2651,7 +2651,7 @@ namespace UboatToolkit
             Num(QoL, "StGyroY", "  Schusswinkel-Empfänger: Gleiten hoch/runter (x)", 0.35f, 0, 2, 0.05f);
             Num(QoL, "StTorpForward", "  Torpedoraum: Standpunkt nach vorn (m)", 0.6f, -2, 2, 0.1f);
             Bool(QoL, "StHideTooltips", "  Tooltips erst zeigen, wenn Mauszeiger frei ist", true);
-            Bool(QoL, "StHideReadout", "  Horcher-Anzeige erst zeigen, wenn Mauszeiger frei ist", true);
+            Bool(QoL, "StHideReadout", "  Hydrophon-Anzeige erst zeigen, wenn Mauszeiger frei ist", true);
             Bool(QoL, "StDialDirect", "  Drehknöpfe folgen der Maus direkt", true);
             Num(QoL, "StDialRange", "  Drehknopf-Empfindlichkeit (Bildschirm-Anteil für ganzen Bereich)", 0.4f, 0.05f, 2, 0.05f);
             Num(QoL, "StDialFine", "  mit Shift fein einstellen (x)", 0.05f, 0.01f, 1, 0.01f);
@@ -2747,7 +2747,7 @@ namespace UboatToolkit
             Num(QoL, "SonarAutoSeconds", "  automatisch pingen alle x Sekunden unter Wasser (0 = nur per Taste)", 0, 0, 600, 5);
             Bool(QoL, "SonarAutoQuiet", "  automatisch nicht bei Alarm (leise bleiben)", true);
             Bool(QoL, "SonarSubmergedOnly", "  nur getaucht", true);
-            Bool(QoL, "SonarNeedsOperator", "  Horchraum muss besetzt sein", true);
+            Bool(QoL, "SonarNeedsOperator", "  Hydrophon muss besetzt sein", true);
             Bool(QoL, "AirByCrew", "Luft: volle Besatzung taucht immer gleich lange, egal wie groß", true);
             Num(QoL, "AirHours", "  Tauchzeit bei voller Besatzung (Stunden)", 11, 0.25f, 48, 0.25f);
             Bool(QoL, "AirPrisoners", "  Gefangene verbrauchen Luft mit", false);
@@ -2811,8 +2811,8 @@ namespace UboatToolkit
             Num(QoL, "GunnerRangingSpeed", "KI-Schützen: schneller einschießen (1 = Spiel)", 2, 1, 5, 0.25f);
             Num(QoL, "GunnerKeepRanging", "KI-Schützen: beim Zielwechsel so viel % vom Einschießen behalten (55 = Spiel)", 75, 0, 100, 5);
             Num(QoL, "GunnerNightPenalty", "KI-Schützen: Zusatz-Streuung, wenn Ziel nicht mit Augen gesehen, in % (100 = Spiel)", 50, 0, 100, 10);
-            Num(QoL, "HorcherRange", "Horcher besetzt: hört so viel % weiter (0 = Spiel)", 25, 0, 100, 5);
-            Num(QoL, "HorcherBearing", "Horcher besetzt: Peilung so viel % genauer (0 = Spiel)", 30, 0, 90, 5);
+            Num(QoL, "HorcherRange", "Hydrophon besetzt: hört so viel % weiter (0 = Spiel)", 25, 0, 100, 5);
+            Num(QoL, "HorcherBearing", "Hydrophon besetzt: Peilung so viel % genauer (0 = Spiel)", 30, 0, 90, 5);
             Bool(QoL, "NoShellPush", "Granaten schleudern getroffene Schiffe nicht weg (Schaden bleibt voll)", true);
             Num(QoL, "DeckGunRecoil", "88mm: Rückstoß nach oben (0 = keiner, 1 = Spiel)", 0, 0, 1, 0.1f);
             Num(QoL, "AAGunRecoil", "Flak: Rückstoß nach oben (0 = keiner, 1 = Spiel)", 0, 0, 1, 0.1f);
@@ -2846,7 +2846,7 @@ namespace UboatToolkit
 
             // ---------- Cheats (single player) ----------
             Num(Cheat, "CheatPeriscopeHeight", "Sehrohr bis zu x m ausfahren (0 = aus) (Cheat #34)", 0, 0, 100, 1);
-            Bool(Cheat, "CheatUndetectable", "Boot unentdeckbar (Sicht, Sonar, Horchgerät, Radar)", false);
+            Bool(Cheat, "CheatUndetectable", "Boot unentdeckbar (Sicht, Sonar, Hydrophon, Radar)", false);
             // 0.4.32 (DoMe 2026-11-18): enemy-weakening cheats, one switch per weapon kind, all off by default. Own weapons are never touched.
             Bool(Cheat, "CheatEnemyNoRanging", "Gegner schwächen: Gegner-Kanonen können sich nicht einschießen (werden nie genauer)", false);
             Bool(Cheat, "CheatPacifistGuns", "Gegner ist Pazifist: Gegner-Kanonen und Gegner-Flak feuern nicht (Schiffe, Häfen, Flugzeuge)", false);
@@ -2888,11 +2888,11 @@ namespace UboatToolkit
             Num(Cheat, "CheatDetect", "Kontakte dauerhaft auf der Karte (0 = aus, 1 = nur Ziele, 2 = alle)", 0, 0, 2, 1);
             Num(Cheat, "CheatDetectKm", "  nur im Umkreis von x km (0 = überall)", 0, 0, 2000, 50);
             // 0.4.4 (DoMe 2026-11-17): one factor per sensor instead of one for all. 1 = game value.
-            Num(Cheat, "CheatRangeHydro", "Reichweite Horchgerät x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
+            Num(Cheat, "CheatRangeHydro", "Reichweite Hydrophon x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Num(Cheat, "CheatRangeSonar", "Reichweite aktives Sonar (Bordgerät) x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Num(Cheat, "CheatRangeRadar", "Reichweite Radar x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Num(Cheat, "CheatRangeRadarWarn", "Reichweite Radarwarner x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
-            Num(Cheat, "CheatRangeMaxKm", "Obergrenze Horchgerät, Sonar, Radar in km (mehr geht nie, gilt immer, auch mit Warthog- und Horcher-Bonus)", 1000, 20, 20000, 10);
+            Num(Cheat, "CheatRangeMaxKm", "Obergrenze Hydrophon, Sonar, Radar in km (mehr geht nie, gilt immer, auch mit Warthog- und Hydrophon-Bonus)", 1000, 20, 20000, 10);
             Num(Cheat, "CheatRangeMaxKmLookout", "Obergrenze Sichtweite (Ausguck, Sehrohr) in km (mehr geht nie)", 1000, 10, 5000, 10);
             Num(Cheat, "CheatRangeLookout", "Reichweite Ausguck und Sehrohr x (1 = Spiel)", 1, 0.25f, 50, 0.25f);
             Bool(Cheat, "CheatDeepDive", "Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)", false);
@@ -2935,8 +2935,8 @@ namespace UboatToolkit
             Bool(Cheat, "CheatNoDrown", "Crew ertrinkt draußen nie", false);
             Bool(Cheat, "CheatHealNow", "  >> Alle heilen (Wunden, Blutungen, Krankheiten, wieder aufstehen)", false);
             Bool(Cheat, "CheatRadioAnyDepth", "Funk-Empfang in jeder Tiefe", false);
-            Bool(Cheat, "CheatHydrophoneAlways", "Horchgerät hört voll, auch aufgetaucht", false);
-            Bool(Cheat, "CheatHydrophoneFast", "Horchgerät hört voll, auch bei hoher Fahrt", false);
+            Bool(Cheat, "CheatHydrophoneAlways", "Hydrophon hört voll, auch aufgetaucht", false);
+            Bool(Cheat, "CheatHydrophoneFast", "Hydrophon hört voll, auch bei hoher Fahrt", false);
             Bool(Cheat, "CheatInstantSolution", "Schusslösung sofort: Ziel ist beim ersten Sichten voll erfasst (Typ, Tempo, Kurs, Entfernung)", false);
             Bool(Cheat, "CheatExactTargets", "Zielerfassung genau: Tempo, Kurs, Entfernung exakt statt geschätzt", false);
             Num(Cheat, "CheatHullArmour", "Panzer-Rumpf: Schaden am Boot x (1 = normal, 0 = kein Schaden)", 1, 0, 1, 0.05f);
@@ -2951,6 +2951,7 @@ namespace UboatToolkit
             Num(Cheat, "SinkConvoyRange", "  Reichweite in km", 20, 1, 100, 1);
             Num(Cheat, "SinkConvoyTorpedoes", "  Torpedos pro Schiff", 3, 1, 10, 1);
             Bool(Cheat, "CheatMissionTarget", "Auftrag „Schiff finden/versenken“: genaue Lage des Ziels alle 30 s als Meldung (Entfernung, Peilung, Kurs, Fahrt)", false);
+            Bool(QoL, "DepthTrimHold", "Tiefe nachführen: Boot steht genau auf der Zieltiefe (gleicht das Durchhängen bei langsamer Fahrt aus)", false);
             Bool(QoL, "DiveButtonsAtSpeed", "Tauchknöpfe zusätzlich neben dem Fahrtregler (Kopie der Knöpfe vom Tiefenmesser)", false);
             Num(QoL, "DiveButtonsX", "Tauchknöpfe-Kopie: nach rechts verschieben (Bildpunkte, minus = links)", 0, -800, 800, 10);
             Num(QoL, "DiveButtonsY", "Tauchknöpfe-Kopie: nach oben verschieben (Bildpunkte, minus = unten)", 0, -800, 800, 10);
@@ -3047,7 +3048,7 @@ namespace UboatToolkit
             Bool(Tools, "GameLogFilter", "Spiel-Log klein halten: nur Warnungen + Fehler in Player.log (spart Festplatte + RAM)", true);
             Bool(Tools, "MapPixelSample", "Karte: Pixel-Messung der Raster-Beschriftung ins Log (Kontrast, Lesbarkeit, je Stil und Ebene)", false);
             Bool(Tools, "LookoutLog", "Ausguck: ausführliches Log (Sicht, Rauch, Meldungen)", false);
-            Bool(Tools, "CrewSkillLog", "Schützen/Horcher: Log", false);
+            Bool(Tools, "CrewSkillLog", "Schützen/Hydrophon: Log", false);
             Bool(Tools, "DiagLogs", "Fehlersuche: Crew-Logs eingeschaltet halten (Crew-KI + Offiziers-Wachen; aus = die einzelnen Schalter gelten)", true);
             Bool(Tools, "CrewAILog", "Crew-KI: ausführliches Log (große Dateien, Ordner UboatToolkit/CrewKI, ab nächstem Start)", false);
             Num(Tools, "GcSliceMs", "Speicher-Müllabfuhr: max. ms pro Bild (0 = Spielwert, kleiner = weniger Ruckler)", 0, 0, 10, 0.5f);
@@ -3148,7 +3149,7 @@ namespace UboatToolkit
             new[] { "Torpedos", "AutoReload", "ReloadAllNow", "Torpedo", "EasyTDC", "TubeDisplay", "CheatInfiniteTorpedoes", "CheatNoDuds", "CheatTorpedoSpeed", "CheatRemoteTorpedo", "CheatInstantSolution", "CheatExactTargets", "PortT5Min" },
             new[] { "Funk", "Radio", "CheatRadio" },
             new[] { "Sehrohr & Optik", "Optics", "Periscope", "Reticle", "ScopeRemember", "NightOptics", "CheatPeriscope" },
-            new[] { "Horcher & Sonar", "Horcher", "ActiveSonar", "CheatHydrophone", "CheatSonar", "CheatRange" },
+            new[] { "Hydrophon & Sonar", "Horcher", "ActiveSonar", "CheatHydrophone", "CheatSonar", "CheatRange" },
             new[] { "Licht & Helligkeit", "AutoLight", "AutoSearchlight", "NightBright", "InteriorBright", "MuteLightCallouts" },
             new[] { "Zeitraffer", "StopTime", "AntiGrounding" },
             new[] { "Karte", "Map", "NavInfo", "SeafloorAlways", "SeaFloorShallow" },
@@ -3330,6 +3331,33 @@ namespace UboatToolkit
             "CheatImmortalCrew", "CheatNoRagdoll", "CheatDeckCrewStays", "CheatGunsUnderWater", "CheatDeckCrewStays", "CheatNoDrown",
             "CheatEscortEasy", "CheatEscortFullSpeed", "CheatEscortEasy", "CheatEscortNoDamage", "CheatHydrophoneAlways", "CheatHydrophoneFast",
             "CheatNoWeight", "CheatNoMassLimit", "WhSilentVent", "WhVentAlwaysOn" };
+        // 0.4.40 (DoMe: "schon wieder ein eigener name fürs hydrophon ... wir brauchen bald ne alias tabelle"):
+        // one name per thing, the word the game itself shows. First entry = the name used in every label, log line and
+        // notice; the rest are old words that must not appear in a label any more (the menu search still finds them
+        // through the synonym table). Checked at every start, result in the log.
+        public static readonly string[][] Terms =
+        {
+            new[] { "Hydrophon", "Horchgerät", "Horcher", "Horchraum", "Lauschgerät", "GHG" },
+            new[] { "Sehrohr", "Periskop" },
+            new[] { "Tauchzelle", "Ballasttank", "Ballast-Tank" },
+            new[] { "Zeitraffer", "Zeitbeschleunigung", "Zeitkompression" },
+        };
+        public static void CheckTerms()
+        {
+            int bad = 0; var sb = new System.Text.StringBuilder();
+            foreach (var o in All)
+            {
+                if (o == null || o.Label == null) continue;
+                foreach (var row in Terms)
+                    for (int k = 1; k < row.Length; k++)
+                        if (o.Label.IndexOf(row[k], System.StringComparison.OrdinalIgnoreCase) >= 0)
+                        { bad++; if (bad <= 10) sb.Append(" [").Append(o.Key).Append(": ").Append(row[k]).Append(" statt ").Append(row[0]).Append("]"); }
+            }
+            var names = new System.Text.StringBuilder();
+            foreach (var row in Terms) names.Append(names.Length > 0 ? ", " : "").Append(row[0]);
+            Util.Log("Begriffe: " + bad + " Abweichungen in " + All.Count + " Menütexten (feste Namen: " + names + ")" + sb);
+        }
+
         public static void Load()
         {
             try
@@ -3441,6 +3469,7 @@ namespace UboatToolkit
             try
             {
                 Settings.Load();
+                Util.Safe("Begriffe", () => Settings.CheckTerms());
                 DebugLog.Write("START", "UBOAT Toolkit wird geladen, Unity " + Application.unityVersion + ", Spiel " + Application.version);
                 DebugLog.DumpSettings("Start");
                 try { UboatToolkit.Modules.CacheCheck.Install(); } catch (Exception ce) { Debug.Log(Tag + " cache check: " + ce.Message); }
@@ -4427,7 +4456,7 @@ namespace UboatToolkit
             OneScale(p, ModifierName).Value = factor <= 0f ? 1f : factor;
         }
 
-        // 0.4.19 (measured 2026-11-18: "xUboatToolkit=5 xUboatToolkit=5 xToolkit Horcher=2 xToolkit Horcher=2" on the
+        // 0.4.19 (measured 2026-11-18: "xUboatToolkit=5 xUboatToolkit=5 xToolkit Hydrophon=2 xToolkit Hydrophon=2" on the
         // hydrophone = 5063 km instead of 506). The game stores a parameter's factors in the savegame. After loading,
         // the stored factor is still there and ours was added a second time. This returns exactly ONE factor with
         // that name (compared by text) and removes every further one.
