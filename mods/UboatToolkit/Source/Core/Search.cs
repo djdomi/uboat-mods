@@ -184,71 +184,132 @@ namespace UboatToolkit
             return res;
         }
 
-        private static List<string> Synonyms(string w, string stem)
+        // 0.4.25 (DoMe 2026-11-18: "lenz" and "pumpe" gave different hits). The words that stand for the typed word:
+        // the word itself and, if it belongs to a row of the table, every word of that row. Every word of a row gives
+        // exactly the same list, so the hits and their order no longer depend on which of the words was typed.
+        private static List<string> Group(string w, string stem)
         {
-            var res = new List<string>();
+            var res = new List<string> { w };
+            bool exact = false;
+            foreach (var row in synonyms)
+                foreach (var x in row)
+                    if (x == w || x == stem) { exact = true; foreach (var y in row) if (!res.Contains(y)) res.Add(y); break; }
+            if (exact) return res;
+            // no row has the word itself: a row fits when the word is the beginning of one of its words or the other way round
             foreach (var row in synonyms)
             {
                 bool fits = false;
                 foreach (var x in row)
-                    if (x == w || x == stem || (w.Length >= 3 && x.StartsWith(w)) || (x.Length >= 4 && w.StartsWith(x))) { fits = true; break; }
-                if (!fits) continue;
-                foreach (var x in row) if (x != w && !res.Contains(x)) res.Add(x);
+                    if ((w.Length >= 4 && x.StartsWith(w)) || (x.Length >= 4 && w.StartsWith(x))) { fits = true; break; }
+                if (fits) foreach (var y in row) if (!res.Contains(y)) res.Add(y);
             }
             return res;
         }
 
-        private static bool Has(string hay, string x) => x.Length >= 3 ? hay.Contains(x) : hay.Contains(" " + x + " ");
-
-        private static int ScoreWord(Entry e, string w, string stem, List<string> syn, List<string> fuzzy)
+        // How well one word fits one setting, without any helpers.
+        private static int Direct(Entry e, string w)
         {
             foreach (var t in e.LabelTokens) if (t == w) return 120;
-            if (w.Length < 3)
-            {
-                // very short words ("aa", "t5", "88") only count as whole words, else they sit inside half the menu
-                if (e.Other.Contains(" " + w + " ")) return 50;
-                foreach (var x in syn) if (Has(e.Label, x)) return 40;
-                foreach (var x in syn) if (Has(e.Other, x)) return 30;
-                return 0;
-            }
+            // very short words ("aa", "t5", "88") only count as whole words, else they sit inside half the menu
+            if (w.Length < 3) return e.Other.Contains(" " + w + " ") ? 50 : 0;
             foreach (var t in e.LabelTokens) if (t.StartsWith(w)) return 100;
             if (e.Label.Contains(w)) return 80;
+            string stem = Stem(w);
             if (stem.Length >= 4 && stem != w && e.Label.Contains(stem)) return 70;
             if (e.Other.Contains(w)) return 50;
             if (stem.Length >= 4 && stem != w && e.Other.Contains(stem)) return 45;
-            foreach (var x in syn) if (Has(e.Label, x)) return 40;
-            foreach (var x in syn) if (Has(e.Other, x)) return 30;
+            return 0;
+        }
+
+        // Best fit over all words of the group. With "fuzzy" (only used when the word found nothing at all) look-alikes count too.
+        private static int ScoreWord(Entry e, List<string> group, List<string> fuzzy)
+        {
+            int best = 0;
+            foreach (var x in group) { int s = Direct(e, x); if (s > best) best = s; }
+            if (best > 0 || fuzzy == null) return best;
             foreach (var x in fuzzy) if (e.Label.Contains(x)) return 25;
             foreach (var x in fuzzy) if (e.Other.Contains(x)) return 15;
             return 0;
+        }
+
+        // Proof in the log, once per start: every word of a row must give the same hits in the same order.
+        private static bool tested;
+        private static void SelfTest()
+        {
+            if (tested) return;
+            tested = true;
+            try
+            {
+                var count = new Dictionary<string, int>();
+                foreach (var row in synonyms) foreach (var x in row) { int n; count.TryGetValue(x, out n); count[x] = n + 1; }
+                int rows = 0, same = 0; var bad = new StringBuilder();
+                foreach (var row in synonyms)
+                {
+                    string first = null, firstWord = null; bool ok = true; int hits = 0;
+                    foreach (var x in row)
+                    {
+                        if (count[x] != 1) continue;                       // a word that stands in two rows belongs to both topics
+                        var res = Compute(x);
+                        var keys = new List<string>();
+                        foreach (var kv in res) keys.Add(kv.Value.ToString("000") + kv.Key.Key);
+                        keys.Sort(StringComparer.Ordinal);
+                        string sig = string.Join("|", keys.ToArray());
+                        if (first == null) { first = sig; firstWord = x; hits = res.Count; }
+                        else if (sig != first) { ok = false; bad.Append(" [").Append(firstWord).Append(" / ").Append(x).Append("]"); break; }
+                    }
+                    if (first == null) continue;
+                    rows++; if (ok) same++;
+                    if (row[0] == "lenz") Util.Log("Suche: \"lenz\", \"pumpe\", \"bilge\", \"pump\" liefern " + (ok ? "dieselben " + hits + " Treffer in derselben Reihenfolge" : "NICHT dieselben Treffer"));
+                }
+                Util.Log("Suche: Selbsttest, " + same + " von " + rows + " Wortgruppen liefern für jedes ihrer Wörter dieselben Treffer" + (bad.Length > 0 ? ". Abweichend:" + bad : ""));
+            }
+            catch (Exception ex) { Util.Log("Suche: Selbsttest Fehler " + ex.GetType().Name); }
+        }
+
+        private static Dictionary<Opt, int> Compute(string q) { return Compute(q, null); }
+        private static Dictionary<Opt, int> Compute(string q, bool[] anyOut)
+        {
+            var res = new Dictionary<Opt, int>();
+            var words = q.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (words.Length == 0) return res;
+            var groups = new List<string>[words.Length];
+            var fuzz = new List<string>[words.Length];
+            var any = new bool[words.Length];
+            for (int i = 0; i < words.Length; i++) groups[i] = Group(words[i], Stem(words[i]));
+            // first without look-alikes: which words find something by themselves or through their row?
+            foreach (var e in index)
+                for (int i = 0; i < words.Length; i++)
+                    if (!any[i] && ScoreWord(e, groups[i], null) > 0) any[i] = true;
+            // typing mistakes are only forgiven for a word that found nothing at all
+            for (int i = 0; i < words.Length; i++) if (!any[i]) fuzz[i] = Fuzzy(words[i]);
+            foreach (var e in index)
+            {
+                int total = 0; bool all = true;
+                for (int i = 0; i < words.Length; i++)
+                {
+                    int sc = ScoreWord(e, groups[i], fuzz[i]);
+                    if (sc > 0) any[i] = true;
+                    if (sc == 0) all = false;
+                    total += sc;
+                }
+                if (all) res[e.O] = total;
+            }
+            if (anyOut != null) for (int i = 0; i < words.Length && i < anyOut.Length; i++) anyOut[i] = any[i];
+            return res;
         }
 
         // All settings that fit the search text, with a score (higher = better hit).
         public static Dictionary<Opt, int> Run(string query)
         {
             if (index == null || index.Count != Settings.All.Count) { Build(); cachedQuery = null; }
+            SelfTest();
             string q = Norm(query).Trim();
             if (q == cachedQuery) return cached;
             cachedQuery = q; cached.Clear(); Suggestion = "";
             var words = q.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (words.Length == 0) return cached;
-            var stems = new string[words.Length];
-            var syns = new List<string>[words.Length];
-            var fuzz = new List<string>[words.Length];
             var any = new bool[words.Length];
-            for (int i = 0; i < words.Length; i++) { stems[i] = Stem(words[i]); syns[i] = Synonyms(words[i], stems[i]); fuzz[i] = Fuzzy(words[i]); }
-            foreach (var e in index)
-            {
-                int total = 0; bool all = true;
-                for (int i = 0; i < words.Length; i++)
-                {
-                    int s = ScoreWord(e, words[i], stems[i], syns[i], fuzz[i]);
-                    if (s > 0) any[i] = true;
-                    if (s == 0) all = false;
-                    total += s;
-                }
-                if (all) cached[e.O] = total;
-            }
+            foreach (var kv in Compute(q, any)) cached[kv.Key] = kv.Value;
             if (cached.Count == 0)
             {
                 // which word found nothing at all? offer the closest known word for it
