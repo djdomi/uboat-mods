@@ -932,6 +932,28 @@ namespace UboatToolkit.Modules
             if (Util.PlayerShip == null) return;
             if (Keys.Down("KeyRemoteTorpedo") && Settings.B("CheatRemoteTorpedo")) Util.Safe("RemoteTorpedo", RemoteTorpedo);
             if (Keys.Down("KeySinkConvoy")) { var o = Settings.Get("CheatSinkConvoy"); if (o != null) o.Value = 1; }
+            // 0.4.60: the torpedoes of "Sink the convoy" start a few per frame instead of all in one frame.
+            for (int i = 0; i < 4 && pending.Count > 0; i++)
+            {
+                var e = pending[pending.Count - 1]; pending.RemoveAt(pending.Count - 1);
+                if (e != null && e.Health > 0f) { Util.Safe("SinkConvoy spawn", () => Spawn(e, "G7a Torpedo T1 - Pi1.1")); spawned++; }
+                if (pending.Count == 0) Util.Log("Konvoi versenken: fertig, " + spawned + " Torpedos erzeugt (nicht aus Rohr oder Lager). Torpedos an Bord vorher " + stockBefore + ", jetzt " + Stock());
+            }
+        }
+
+        private static readonly System.Collections.Generic.List<Entity> pending = new System.Collections.Generic.List<Entity>();
+        private static int spawned, stockBefore;
+        // torpedoes in the boat's tubes and storages (crew backpacks excluded)
+        private static int Stock()
+        {
+            int n = 0;
+            foreach (var l in Util.Find<TorpedoLauncher>()) if (l != null && l.Torpedo != null && Util.IsPlayers(l)) n++;
+            foreach (var st in Util.Find<Storage>())
+            {
+                if (st == null || st is TorpedoLauncherGroup || st.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() != null) continue;
+                for (int i = 0; i < Util.Slots(st); i++) if (st.GetItemAt(i) is StoredTorpedo) n++;
+            }
+            return n;
         }
 
         public override void Tick()
@@ -956,13 +978,16 @@ namespace UboatToolkit.Modules
             float range = Settings.F("SinkConvoyRange") * 1000f;
             int per = Mathf.Max(1, (int)Settings.F("SinkConvoyTorpedoes"));
             int ships = 0;
+            if (pending.Count > 0) { ToolkitRunner.ShowNotice("Sink the convoy läuft noch (" + pending.Count + " Torpedos offen)", 4f); Util.Log("Konvoi versenken: Taste ignoriert, noch " + pending.Count + " Torpedos offen"); return; }
+            spawned = 0; stockBefore = Stock();
             foreach (var e in Entity.List.ToArray())
             {
                 if (!IsEnemyShip(e, me)) continue;
                 if ((e.transform.position - ship.transform.position).magnitude > range) continue;
-                for (int i = 0; i < per; i++) Spawn(e, "G7a Torpedo T1 - Pi1.1");
+                for (int i = 0; i < per; i++) pending.Add(e);
                 ships++;
             }
+            Util.Log("Konvoi versenken: " + ships + " Schiffe, " + pending.Count + " Torpedos, 4 pro Bild");
             ToolkitRunner.ShowNotice(ships > 0 ? "Sink the convoy: " + ships + " Schiffe im Visier" : "Kein Gegner in Reichweite", 6f);
         }
 
