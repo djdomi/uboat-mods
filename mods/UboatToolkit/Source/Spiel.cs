@@ -7592,3 +7592,77 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+// ====================================================================================================
+// Abschnitt: Auftragsziel genau (0.4.35)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Missions;
+
+    // DoMe 2026-11-18: "gibt das Spiel her, wo auf den Meter genau das eigentliche Ziel ist? ... SS Fairwood finden ...
+    // Mission teilweise verbuggt". Game code (SinkShipMission): the target is one ship of a moving convoy or warship
+    // group. "Find" is done when that GROUP appears in 3D near the boat, "Sink" when the ship is sunk. The mission only
+    // listens for the sinking. When the group reaches its port and is removed, nothing ends the mission: it stays
+    // open for ever. This part reads the group's exact map position (display only, changes nothing) and writes into
+    // the log what state the target is in. Scope: map/mission data only, no boat, no enemy is changed.
+    public class MissionTargetInfo : ModuleBase
+    {
+        private static readonly System.Reflection.FieldInfo GroupF = AccessTools.Field(typeof(SinkShipMission), "groupToAttack");
+        private static readonly System.Reflection.FieldInfo EntityF = AccessTools.Field(typeof(SinkShipMission), "targetEntity");
+        private float next, nextNotice; private string lastState = "";
+
+        private static void Collect(IMission m, List<SinkShipMission> found, int depth)
+        {
+            if (m == null || depth > 6) return;
+            var s = m as SinkShipMission; if (s != null) found.Add(s);
+            var mm = m as Mission; if (mm == null) return;
+            foreach (var c in mm.Children) Collect(c, found, depth + 1);
+        }
+
+        public override void Tick()
+        {
+            if (Time.unscaledTime < next) return;
+            next = Time.unscaledTime + 10f;
+            var career = Util.Career; var w = Game.Wolfpack;
+            if (career == null || w == null || GroupF == null || EntityF == null) return;
+            var list = new List<SinkShipMission>();
+            Collect(career.CurrentAssignment as IMission, list, 0);
+            if (list.Count == 0) { if (lastState != "") { lastState = ""; Util.Log("Auftragsziel: kein Auftrag „Schiff finden/versenken“ mehr aktiv"); } return; }
+            foreach (var m in list)
+            {
+                var grp = GroupF.GetValue(m) as SandboxGroup; var ent = EntityF.GetValue(m) as SandboxEntity;
+                string name = ent == null ? "?" : (ent.RequestIdentitity() != null ? ent.RequestIdentitity().Name : ent.Name);
+                string state, text;
+                if (ent == null || !grp)
+                {
+                    state = name + "|weg";
+                    text = "Auftragsziel " + name + ": Die Schiffsgruppe gibt es nicht mehr (im Hafen angekommen oder aufgelöst). Der Auftrag kann so nicht mehr erfüllt werden; das Spiel beendet ihn in diesem Fall nicht von selbst.";
+                }
+                else
+                {
+                    Vector2 d = grp.Position - w.Position;
+                    float km = d.magnitude, brg = Mathf.Atan2(d.x, d.y) * Mathf.Rad2Deg; if (brg < 0f) brg += 360f;
+                    var mob = grp as SandboxMobileGroup;
+                    float crs = Mathf.Atan2(grp.Up.x, grp.Up.y) * Mathf.Rad2Deg; if (crs < 0f) crs += 360f;
+                    state = name + "|" + m.Stage + "|" + grp.SpawnState + "|" + ent.IsPacified;
+                    text = "Auftragsziel " + name + " (Stufe " + m.Stage + "): " + km.ToString("0.0") + " km entfernt, Peilung " + brg.ToString("000") + "°, Kurs " + crs.ToString("000") + "°"
+                        + (mob != null ? ", Fahrt " + mob.Velocity.ToString("0.0") + " (Kartenwert), noch " + mob.Route.Count + " Wegpunkte" : ", steht")
+                        + ", Gruppe " + grp.Name + " mit " + grp.Entities.Count + " Schiffen, in 3D: " + (grp.SpawnState == SpawnState.Spawned ? "ja" : "nein") + (ent.IsPacified ? ", Ziel ist schon ausgeschaltet" : "");
+                }
+                bool changed = state != lastState; lastState = state;
+                if (changed) Util.Log(text);
+                if (Settings.B("CheatMissionTarget") && (changed || Time.unscaledTime >= nextNotice))
+                {
+                    nextNotice = Time.unscaledTime + 30f;
+                    if (!changed) Util.Log(text);
+                    ToolkitRunner.ShowNotice(text, 12f);
+                }
+            }
+        }
+    }
+}

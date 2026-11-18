@@ -4582,3 +4582,111 @@ namespace UboatToolkit.Modules
     }
 }
 
+
+// ====================================================================================================
+// Abschnitt: Tauchknöpfe neben dem Fahrtregler (0.4.35)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UnityEngine.UI;
+
+    // DoMe 2026-11-18: "lassen sich die tauchknöpfe duplizieren neben der geschwindigkeit?"
+    // The six depth toggles of ShipControlUI (surface, deck awash, periscope, max safe depth, hydrophone check, dive
+    // schedule) sit at the depth meter. This part draws six own buttons with the same pictures under the telegraph
+    // container. A click only switches the game's own toggle, so the game's own code gives the order.
+    // Scope: player HUD only.
+    public class DiveButtonsCopy : ModuleBase
+    {
+        private static readonly string[] Fields = { "depthSurfaceToggle", "depthDeckAwashToggle", "depthPeriscopeToggle", "depthHullCrushToggle", "depthHydrophoneCheckToggle", "depthScheduleToggle" };
+        private GameObject root; private readonly Toggle[] orig = new Toggle[6]; private readonly RectTransform[] mine = new RectTransform[6];
+        private readonly GameObject[] mark = new GameObject[6];
+        private Transform depthC, teleC; private float next; private bool failed; private string lastPos = "";
+
+        public override void Tick()
+        {
+            if (!Settings.B("DiveButtonsAtSpeed"))
+            {
+                if (root != null) { Object.Destroy(root); root = null; Util.Log("Tauchknöpfe: Kopie am Fahrtregler entfernt (Schalter aus)"); }
+                failed = false; return;
+            }
+            if (root == null)
+            {
+                if (failed || Time.unscaledTime < next) return;
+                next = Time.unscaledTime + 2f;
+                try { Build(); } catch (System.Exception e) { failed = true; Util.Log("Tauchknöpfe: Kopie nicht gebaut, Fehler: " + e.Message); }
+                return;
+            }
+            if (depthC == null || teleC == null || orig[0] == null) { Object.Destroy(root); root = null; return; }
+            Vector3 add = new Vector3(Settings.F("DiveButtonsX"), Settings.F("DiveButtonsY"), 0f);
+            for (int i = 0; i < 6; i++)
+            {
+                if (mine[i] == null || orig[i] == null) continue;
+                mine[i].position = teleC.TransformPoint(depthC.InverseTransformPoint(orig[i].transform.position) + add);
+                if (mark[i] != null && mark[i].activeSelf != orig[i].isOn) mark[i].SetActive(orig[i].isOn);
+            }
+            Vector3 o = depthC.InverseTransformPoint(orig[0].transform.position) + add;
+            string p = Mathf.RoundToInt(o.x) + "/" + Mathf.RoundToInt(o.y);
+            if (p != lastPos) { lastPos = p; Util.Log("Tauchknöpfe: oberster Knopf der Kopie steht " + p + " Bildpunkte (rechts/hoch) neben der Mitte des Fahrtreglers"); }
+        }
+
+        private static RectTransform Picture(Image src, Transform parent, Transform srcRoot, bool click)
+        {
+            var go = new GameObject("Bild", typeof(RectTransform));
+            var rt = (RectTransform)go.transform; rt.SetParent(parent, false);
+            var srt = (RectTransform)src.transform;
+            rt.sizeDelta = srt.rect.size; rt.pivot = srt.pivot;
+            rt.localPosition = srcRoot.InverseTransformPoint(srt.position);
+            var img = go.AddComponent<Image>();
+            img.sprite = src.sprite; img.color = src.color; img.type = src.type; img.material = src.material;
+            img.preserveAspect = src.preserveAspect; img.raycastTarget = click;
+            return rt;
+        }
+
+        private void Build()
+        {
+            var ui = Object.FindObjectOfType<UBOAT.Game.UI.ShipControlUI>();
+            if (ui == null) return;
+            for (int i = 0; i < 6; i++)
+            {
+                orig[i] = AccessTools.Field(typeof(UBOAT.Game.UI.ShipControlUI), Fields[i])?.GetValue(ui) as Toggle;
+                if (orig[i] == null) { failed = true; Util.Log("Tauchknöpfe: Knopf " + Fields[i] + " nicht gefunden, keine Kopie"); return; }
+            }
+            depthC = (AccessTools.Field(typeof(UBOAT.Game.UI.ShipControlUI), "depthMeterContainer")?.GetValue(ui) as GameObject)?.transform;
+            teleC = (AccessTools.Field(typeof(UBOAT.Game.UI.ShipControlUI), "telegraphContainer")?.GetValue(ui) as GameObject)?.transform;
+            if (depthC == null || teleC == null) { failed = true; Util.Log("Tauchknöpfe: Tiefenmesser oder Fahrtregler nicht gefunden, keine Kopie"); return; }
+            root = new GameObject("UboatToolkit Tauchknöpfe Kopie", typeof(RectTransform));
+            root.transform.SetParent(teleC, false);
+            int pics = 0;
+            for (int i = 0; i < 6; i++)
+            {
+                int k = i;
+                var go = new GameObject(Fields[i], typeof(RectTransform));
+                mine[i] = (RectTransform)go.transform; mine[i].SetParent(root.transform, false);
+                mine[i].sizeDelta = ((RectTransform)orig[i].transform).rect.size;
+                mark[i] = null; bool first = true;
+                foreach (var src in orig[i].GetComponentsInChildren<Image>(true))
+                {
+                    if (src.sprite == null && src.color.a < 0.01f) continue;
+                    var rt = Picture(src, mine[i], orig[i].transform, first);
+                    if (first)
+                    {
+                        var b = rt.gameObject.AddComponent<Button>();
+                        b.onClick.AddListener(() =>
+                        {
+                            if (orig[k] == null) return;
+                            orig[k].isOn = !orig[k].isOn;
+                            Util.Log("Tauchknöpfe: Kopie gedrückt, Spielknopf " + Fields[k] + " = " + (orig[k].isOn ? "an" : "aus") + " (nur eigenes Boot)");
+                        });
+                        first = false;
+                    }
+                    if (orig[i].graphic != null && src == orig[i].graphic) { mark[i] = rt.gameObject; rt.gameObject.SetActive(orig[i].isOn); }
+                    pics++;
+                }
+            }
+            lastPos = "";
+            Util.Log("Tauchknöpfe: 6 eigene Knöpfe am Fahrtregler gebaut (" + pics + " Bilder vom Tiefenmesser übernommen). Wirkt nur auf die Anzeige des eigenen Boots.");
+        }
+    }
+}

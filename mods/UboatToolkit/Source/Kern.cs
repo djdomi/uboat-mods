@@ -2950,6 +2950,10 @@ namespace UboatToolkit
             Bool(Cheat, "CheatSinkConvoy", "  >> Sink the convoy: alle Gegner-Schiffe in Reichweite bekommen Torpedos", false);
             Num(Cheat, "SinkConvoyRange", "  Reichweite in km", 20, 1, 100, 1);
             Num(Cheat, "SinkConvoyTorpedoes", "  Torpedos pro Schiff", 3, 1, 10, 1);
+            Bool(Cheat, "CheatMissionTarget", "Auftrag „Schiff finden/versenken“: genaue Lage des Ziels alle 30 s als Meldung (Entfernung, Peilung, Kurs, Fahrt)", false);
+            Bool(QoL, "DiveButtonsAtSpeed", "Tauchknöpfe zusätzlich neben dem Fahrtregler (Kopie der Knöpfe vom Tiefenmesser)", false);
+            Num(QoL, "DiveButtonsX", "Tauchknöpfe-Kopie: nach rechts verschieben (Bildpunkte, minus = links)", 0, -800, 800, 10);
+            Num(QoL, "DiveButtonsY", "Tauchknöpfe-Kopie: nach oben verschieben (Bildpunkte, minus = unten)", 0, -800, 800, 10);
             Bool(Cheat, "DepthChargeCounter", "Wasserbomben-Zähler für den Erfolg „Survivor“ anzeigen (100 in einer Begegnung, näher als 1,5 km)", true);
             Bool(Cheat, "CheatSpawnConvoy", "  >> Konvoi spawnen (Gegner-Konvoi taucht vor dir auf)", false);
             Num(Cheat, "SpawnConvoyKm", "  Abstand voraus in km", 15, 2, 100, 1);
@@ -3528,6 +3532,8 @@ namespace UboatToolkit
             Modules.Add(new Modules.MilkCows());
             Modules.Add(new Modules.Ballast());
             Modules.Add(new Modules.SnorkelGuard());
+            Modules.Add(new Modules.MissionTargetInfo());
+            Modules.Add(new Modules.DiveButtonsCopy());
             Modules.Add(new Modules.CrewGear());
             Modules.Add(new Modules.Medical());
             Modules.Add(new Modules.Repairs());
