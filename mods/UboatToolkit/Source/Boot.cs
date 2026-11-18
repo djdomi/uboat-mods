@@ -3081,9 +3081,12 @@ namespace UboatToolkit.Modules
         // (ordered up and performing), the air in the boat gains at least +x: whatever is used, plus x on top.
         // Never lowers anything; snorkel down or not working = our value is 0.
         private float airLogAt; private float lastAdd = -1f;
-        private static float factorCached; private static float factorAt = -999f;
+        private static float factorCached; private static float factorAt = -999f; private static bool factorFound;
         private static float DisplayFactor()
         {
+            // 0.4.55: the value never changes during a game; once it was read from the game's oxygen display it is kept.
+            // Before, all objects of the game were searched again every 60 s ("Langsam: SnorkelGuard.Tick 245 ms" with a convoy).
+            if (factorFound) return factorCached;
             if (factorCached > 0f && Time.unscaledTime - factorAt < 60f) return factorCached;
             factorAt = Time.unscaledTime; float f = 6000f;
             try
@@ -3095,7 +3098,7 @@ namespace UboatToolkit.Modules
                     var res = t.Field("resource").GetValue() as UBOAT.Game.Core.Data.Resource;
                     if (res == null || res.Name != "Oxygen") continue;
                     float v = t.Field("tooltipGainMultiplier").GetValue<float>();
-                    if (v > 0f) { f = v; break; }
+                    if (v > 0f) { f = v; factorFound = true; break; }
                 }
             }
             catch { }

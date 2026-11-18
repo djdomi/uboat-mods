@@ -4869,7 +4869,7 @@ namespace UboatToolkit.Modules
         private const float PureMapHeight = 800f;   // same height the game uses for "map only" (free camera lock)
         private const float FarSpray = 2000f;        // the game's own border between detail steps Low and VeryLow
 
-        private float nextFast, nextScan, nextLog;
+        private float nextFast, nextScan, nextLog; private int scanStep;
         private bool mapPaused, mapShadow, mapLod;
         private readonly List<ParticleSystem> paused = new List<ParticleSystem>();
         private readonly Dictionary<ParticleSystem, ParticleSystemCullingMode> cull = new Dictionary<ParticleSystem, ParticleSystemCullingMode>();
@@ -4897,13 +4897,15 @@ namespace UboatToolkit.Modules
             Util.Safe("Save.MapEffects", () => MapEffects(map && Settings.B("SaveMapEffects"), now));
             Util.Safe("Save.MapShadows", () => MapShadows(map && Settings.B("SaveMapShadows")));
             Util.Safe("Save.MapDetail", () => MapDetail(map && Settings.B("SaveMapDetail")));
+            // 0.4.55: the four searches through the whole scene never run in the same picture; one of them every 3 s,
+            // so each comes round every 12 s (a search costs more the more ships are loaded).
             if (now >= nextScan)
             {
-                nextScan = now + 10f;
-                Util.Safe("Save.Unseen", () => Unseen(Settings.B("SaveUnseenEffects")));
-                Util.Safe("Save.MeshGpu", () => MeshGpu(Settings.B("SaveMeshParticlesGpu")));
-                Util.Safe("Save.FarSpray", () => Spray(Settings.B("SaveFarSpray")));
-                Util.Safe("Save.Markers", () => Markers(Settings.B("SaveMarkersOwnCanvas")));
+                nextScan = now + 3f; scanStep = (scanStep + 1) % 4;
+                if (scanStep == 0) Util.Safe("Save.Unseen", () => Unseen(Settings.B("SaveUnseenEffects")));
+                else if (scanStep == 1) Util.Safe("Save.MeshGpu", () => MeshGpu(Settings.B("SaveMeshParticlesGpu")));
+                else if (scanStep == 2) Util.Safe("Save.FarSpray", () => Spray(Settings.B("SaveFarSpray")));
+                else Util.Safe("Save.Markers", () => Markers(Settings.B("SaveMarkersOwnCanvas")));
             }
             if (now >= nextLog)
             {
@@ -4928,7 +4930,7 @@ namespace UboatToolkit.Modules
             if (on)
             {
                 if (mapPaused && now < nextMapScan) return;
-                nextMapScan = now + 5f; mapPaused = true;
+                nextMapScan = now + 15f; mapPaused = true;
                 foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
                 {
                     if (p == null || !p.isPlaying || p.isPaused) continue;
@@ -5142,6 +5144,65 @@ namespace UboatToolkit.Patches
             nextLog = Time.unscaledTime + 60f;
             Util.Log("Routen-Suche der Schiffe (Zählung, nur lesen): " + calls + " mal in der letzten Minute, zusammen " + sum.ToString("0") + " ms auf dem Hauptkern, längste einzelne " + longest.ToString("0.0") + " ms");
             calls = 0; sum = 0; longest = 0;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/SaveCpu.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::System.Runtime.CompilerServices;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Scene.Entities;
+
+    // 0.4.55: the game forces a memory clean-up whenever its memory grew by 100 MB (crew models of a ship coming
+    // close, new terrain). That stops the picture for up to 39 ms. With the switch on this happens only while a save
+    // is loading; the game's own clean-up in small steps (3 ms slices) keeps running.
+    [HarmonyPatch(typeof(GameState), nameof(GameState.CollectMemory))]
+    internal static class NoForcedGc_Patch
+    {
+        public static int Skipped; private static float nextLog;
+        private static bool Prefix()
+        {
+            if (!Settings.B("SaveNoForcedGc") || UboatToolkit.Modules.SaveTools_LoadSpeedPatch.IsLoading || UboatToolkit.Modules.OfficerWatch.Loading()) return true;
+            Skipped++;
+            if (Time.unscaledTime >= nextLog)
+            {
+                nextLog = Time.unscaledTime + 60f;
+                Util.Log("Sparen: erzwungenes Speicher-Aufräumen des Spiels " + Skipped + " mal ausgelassen (Speicher jetzt " + (System.GC.GetTotalMemory(false) / 1048576L) + " MB)");
+            }
+            return false;
+        }
+    }
+
+    // 0.4.55: the game writes the spray strength of every ship in every physics step, also when the ship keeps its
+    // speed. With the switch on it is written only when the speed step changed by more than 1 %.
+    [HarmonyPatch(typeof(ShipEffectsController), "FixedUpdate")]
+    internal static class SprayOnChange_Patch
+    {
+        private class Last { public float V = -1f; }
+        private static readonly ConditionalWeakTable<ShipEffectsController, Last> last = new ConditionalWeakTable<ShipEffectsController, Last>();
+        public static int Ran, Skipped; private static float nextLog;
+        private static bool Prefix(ShipEffectsController __instance, Ship ___ship, float ___maxVelocity)
+        {
+            if (!Settings.B("SaveSprayOnChange") || ___ship == null || ___maxVelocity <= 0f) return true;
+            float v = ___ship.AverageVelocity / ___maxVelocity;
+            if (v > 1f) v = 1f; else if (v < 0.15f) v = 0f;
+            var l = last.GetOrCreateValue(__instance);
+            bool skip = Mathf.Abs(v - l.V) < 0.01f && !(v == 0f && l.V != 0f) && !(v == 1f && l.V != 1f);
+            if (skip) Skipped++; else { Ran++; l.V = v; }
+            if (Time.unscaledTime >= nextLog)
+            {
+                nextLog = Time.unscaledTime + 60f;
+                Util.Log("Sparen: Gischt-Stärke gesetzt " + Ran + " mal, ausgelassen " + Skipped + " mal in der letzten Minute");
+                Ran = 0; Skipped = 0;
+            }
+            return !skip;
         }
     }
 }
