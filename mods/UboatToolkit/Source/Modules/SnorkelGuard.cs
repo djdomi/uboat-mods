@@ -16,12 +16,35 @@ namespace UboatToolkit.Modules
         // (ordered up and performing), the air in the boat gains at least +x: whatever is used, plus x on top.
         // Never lowers anything; snorkel down or not working = our value is 0.
         private float airLogAt; private float lastAdd = -1f;
+        private static float factorCached; private static float factorAt = -999f;
+        private static float DisplayFactor()
+        {
+            if (factorCached > 0f && Time.unscaledTime - factorAt < 60f) return factorCached;
+            factorAt = Time.unscaledTime; float f = 6000f;
+            try
+            {
+                foreach (var g in Resources.FindObjectsOfTypeAll<UBOAT.Game.UI.Resources.ResourceGUI>())
+                {
+                    if (g == null) continue;
+                    var t = Traverse.Create(g);
+                    var res = t.Field("resource").GetValue() as UBOAT.Game.Core.Data.Resource;
+                    if (res == null || res.Name != "Oxygen") continue;
+                    float v = t.Field("tooltipGainMultiplier").GetValue<float>();
+                    if (v > 0f) { f = v; break; }
+                }
+            }
+            catch { }
+            return factorCached = f;
+        }
         private void Air(PlayableSubmarine sub, Snorkel sn)
         {
             var oxygen = sub.GetResource("Oxygen");
             if (oxygen == null) return;
             var m = Util.OneDelta(oxygen.Gain, "Toolkit Schnorchel");
-            float plus = Settings.F("SnorkelAirPlus"), add = 0f;
+            // 0.4.25: the setting is the number the game SHOWS for the air ("+10 per min"). The game's own value is that
+            // number divided by the display factor of its air gauge (6000 unless the gauge says otherwise).
+            float shown = Settings.F("SnorkelAirPlus"), factor = DisplayFactor();
+            float plus = shown / factor, add = 0f;
             bool works = sn != null && sn.ShouldMastBeRaised && sn.Performance.Value > 0.05f;
             if (plus > 0f && works)
             {
@@ -33,7 +56,7 @@ namespace UboatToolkit.Modules
             if ((add > 0f) != (lastAdd > 0f) || (add > 0f && Time.unscaledTime > airLogAt))
             {
                 airLogAt = Time.unscaledTime + 60f;
-                Util.Log(add > 0f ? "Schnorchel-Luft: Verbrauch gedeckt und +" + plus.ToString("0.#") + " dazu (unser Zusatz " + add.ToString("0.##") + ", Luft-Bilanz jetzt " + oxygen.Gain.Value.ToString("0.##") + ")"
+                Util.Log(add > 0f ? "Schnorchel-Luft: Verbrauch gedeckt und +" + shown.ToString("0.#") + " dazu, wie im Spiel angezeigt (Anzeige-Faktor " + factor.ToString("0") + "; unser Zusatz angezeigt +" + (add * factor).ToString("0.#") + ", Luft-Bilanz jetzt angezeigt " + (oxygen.Gain.Value * factor).ToString("+0.#;-0.#;0") + " pro Minute, Luft im Boot " + (oxygen.Amount / Mathf.Max(0.0001f, (float)oxygen.Capacity) * 100f).ToString("0") + " %)"
                                   : "Schnorchel-Luft: kein Zusatz (Schnorchel " + (sn == null ? "nicht an Bord" : works ? "liefert selbst genug" : "arbeitet nicht") + ")");
             }
             lastAdd = add;

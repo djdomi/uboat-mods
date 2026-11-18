@@ -69,7 +69,7 @@ namespace UboatToolkit
             Bool(QoL, "BallastDieselBlow", "Ballast: aufgetaucht Tanks mit Diesel-Abgas leerblasen (spart Pressluft) (#23)", true);
             Num(QoL, "BallastDieselBlowRate", "  Diesel-Ausblasen: % Tank pro Sekunde", 2, 0.5f, 20, 0.5f);
             Bool(QoL, "SnorkelKeepHead", "Schnorchel: liegt der Kopf unter Wasser, Zieltiefe in kleinen Schritten anheben (nur bei aktivem Schnorchel)", true);
-            Num(QoL, "SnorkelAirPlus", "Schnorchel: liefert immer den Luft-Verbrauch und x dazu (0 = Spiel)", 10, 0, 100, 1);
+            Num(QoL, "SnorkelAirPlus", "Schnorchel: liefert immer den Luft-Verbrauch und x dazu (Zahl wie in der Luft-Anzeige des Spiels, pro Minute; 0 = Spiel)", 10, 0, 100, 1);
             Num(QoL, "BallastFastDive", "Ballast: schneller fluten beim Tauchen (1 = normal) (#23)", 1, 1, 5, 0.25f);
             Bool(QoL, "NoAutoCarryWounded", "Verletzte nicht automatisch wegtragen", false);
             Bool(QoL, "AutoFirstAid", "Verletzte/Kranke automatisch versorgen (Erste Hilfe) (#29)", true);
