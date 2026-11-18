@@ -2532,23 +2532,27 @@ namespace UboatToolkit
             Bool(QoL, "ReticleSound", "  Klick-Ton beim Umschalten", true);
             Num(QoL, "ReticleSoundVolume", "    Lautstärke", 1, 0, 2, 0.1f);
             Bool(QoL, "GunSmokeOff", "Eigene Geschütze ohne Mündungsfeuer und Rauch (freie Sicht beim Schießen)", true);
-            Bool(QoL, "DeckGunSeaState", "Deckgeschütz und Seegang (Streuung, Ladezeit, Sperre bei Sturm, feindliche Kanonen)", true);
+            Bool(QoL, "DeckGunSeaState", "Eigene Geschütze und Seegang (Streuung, Ladezeit, Sperre bei Sturm; je Wert einzeln abschaltbar)", true);
             Num(QoL, "DgsCalm", "  ruhig bis Windstärke (keine Strafe)", 4, 0, 12, 0.5f);
             Num(QoL, "DgsRough", "  volle Strafe ab Windstärke", 8, 0, 12, 0.5f);
-            Num(QoL, "DgsDisable", "  Geschütz gesperrt ab Windstärke (Leuchtgranaten gehen immer)", 7, 0, 12, 0.5f);
-            Num(QoL, "DgsMaxSpread", "  Streuung bei voller Strafe (x)", 3, 1, 10, 0.25f);
-            Num(QoL, "DgsMaxReload", "  Ladezeit bei voller Strafe (x)", 2, 1, 5, 0.25f);
-            Bool(QoL, "DgsAllShips", "  gilt für alle Schiffe (auch Feinde)", true);
-            Bool(QoL, "DgsAA", "  gilt auch für Flak", false);
+            Num(QoL, "DgsDisable", "  Geschütz gesperrt ab Windstärke (12 = nie; Leuchtgranaten gehen immer)", 7, 0, 12, 0.5f);
+            Num(QoL, "DgsMaxSpread", "  Streuung bei voller Strafe (x, 1 = aus)", 3, 1, 10, 0.25f);
+            Num(QoL, "DgsMaxReload", "  Ladezeit bei voller Strafe (x, 1 = aus)", 2, 1, 5, 0.25f);
+            Bool(QoL, "DgsAA", "  gilt auch für Flak (eigene; Gegner-Flak nur mit dem Gegner-Schalter)", false);
             Bool(QoL, "DgsManualAim", "  Handzielen bekommt dieselbe Streuung und schießt sich ein", true);
-            Num(QoL, "DgsNpcSpread", "  Feind-Kanonen: Streuung in % (100 = Spiel; vergrößert auch den kleinsten Fehlschuss)", 200, 100, 500, 25);
-            Num(QoL, "DgsNpcFloor", "  Feind-Kanonen: kleinster Fehlschuss (m pro km)", 4, 0, 20, 1);
-            Num(QoL, "DgsNpcRanging", "  Feind-Kanonen: Einschießen in % (100 = Spiel)", 50, 10, 100, 5);
-            Num(QoL, "EnemyShellSpeedPct", "  Feind-Kanonen: Mündungsgeschwindigkeit in % vom Spielwert (100 = Spiel)", 100, 20, 100, 5);
-            Bool(QoL, "DgsNpcEvenOut", "  C3 und Tanker schießen sich ein wie andere Frachter", true);
-            Bool(QoL, "DgsKnockout", "  eigene Granaten können Feind-Kanonen ausschalten", true);
-            Num(QoL, "DgsKnockoutPct", "    Schaden an der Kanone in %", 200, 50, 500, 25);
-            Num(QoL, "DgsKnockoutRadius", "    Radius in Metern", 6, 1, 20, 1);
+            // 0.4.31 (DoMe 2026-11-18: weakening the enemy is fine, but every effect with its own switch; nothing here ever helps an enemy)
+            Bool(QoL, "DgsAllShips", "Gegner schwächen: Seegang wirkt auch auf Gegner-Kanonen (Werte wie oben)", true);
+            Bool(QoL, "DgsNpcSpreadOn", "Gegner schwächen: Gegner-Kanonen streuen mehr", true);
+            Num(QoL, "DgsNpcSpread", "  Streuung in % (100 = Spiel; vergrößert auch den kleinsten Fehlschuss)", 200, 100, 500, 25);
+            Num(QoL, "DgsNpcFloor", "  kleinster Fehlschuss (m pro km, 0 = aus)", 4, 0, 20, 1);
+            Bool(QoL, "DgsNpcRangingOn", "Gegner schwächen: Gegner-Kanonen schießen sich langsamer ein", true);
+            Num(QoL, "DgsNpcRanging", "  Einschießen in % (100 = Spiel)", 50, 10, 100, 5);
+            Bool(QoL, "DgsNpcEvenOut", "Gegner schwächen: C3 und Tanker schießen sich ein wie andere Frachter", true);
+            Bool(QoL, "EnemyShellSpeedOn", "Gegner schwächen: Gegner-Granaten fliegen langsamer", true);
+            Num(QoL, "EnemyShellSpeedPct", "  Mündungsgeschwindigkeit in % vom Spielwert (100 = Spiel)", 100, 20, 100, 5);
+            Bool(QoL, "DgsKnockout", "Eigene Granaten können Gegner-Kanonen ausschalten", true);
+            Num(QoL, "DgsKnockoutPct", "  Schaden an der Kanone in %", 200, 50, 500, 25);
+            Num(QoL, "DgsKnockoutRadius", "  Radius in Metern", 6, 1, 20, 1);
             Bool(QoL, "ScopeRemember", "Sehrohr-Anzeige-Fix (Ansicht, Zoom, Stations-Knopf)", true);
             Bool(QoL, "ScopeRememberView", "  Ansicht und Zoom je Sehrohr merken", true);
             Bool(QoL, "ScopeStationLast", "  Stations-Knopf führt zum zuletzt benutzten Sehrohr", true);
@@ -3344,6 +3348,10 @@ namespace UboatToolkit
                 // 0.4.28 (DoMe: separate "switch ventilation on" and "insert absorber"): the old joint switch is carried over once.
                 // "Moral voll" also removed stress; that part is the existing switch "Kein Stress" now (carried over once).
                 if (!seen.Contains("NoPauseDark") && B("CheatFullDiscipline") && !B("NoStress")) { Set("NoStress", 1); Util.Log("Schalter geteilt: „Kein Stress“ an, weil „Moral immer voll“ das bisher mit erledigt hat"); }
+                // 0.4.31: the enemy-gun effects were all under "Deckgeschütz und Seegang". They are separate switches now and
+                // no longer need that main switch; if it was off, they start off, so nothing changes by itself.
+                if (!seen.Contains("DgsNpcSpreadOn") && seen.Contains("DeckGunSeaState") && !B("DeckGunSeaState"))
+                { foreach (var k in new[] { "DgsAllShips", "DgsNpcSpreadOn", "DgsNpcRangingOn", "DgsNpcEvenOut", "DgsKnockout" }) Set(k, 0); Util.Log("Schalter geteilt: Gegner-Kanonen-Schalter starten aus, weil „Geschütze und Seegang“ aus war"); }
                 // Rule (DoMe 2026-11-18): one switch = one effect. Split[] lists old joint switch -> new separate switch.
                 for (int i = 0; i + 1 < Split.Length; i += 2)
                     if (seen.Contains(Split[i]) && !seen.Contains(Split[i + 1]) && Get(Split[i + 1]) != null)

@@ -78,10 +78,10 @@ namespace UboatToolkit.Modules
 
         public static bool Applies(Gun gun)
         {
-            if (gun == null || !SeaGunCfg.On) return false;
-            if (gun.IsAntiAircraftWeapon && !SeaGunCfg.AA) return false;
-            if (!SeaGunCfg.AllShips && !(gun.ParentEntity is PlayerShip)) return false;
-            return true;
+            if (gun == null) return false;
+            // 0.4.31: own guns = "DeckGunSeaState" (+ "DgsAA" for flak); every other gun = "DgsAllShips" alone (weakens them)
+            if (gun.ParentEntity is PlayerShip) return SeaGunCfg.On && (!gun.IsAntiAircraftWeapon || SeaGunCfg.AA);
+            return SeaGunCfg.AllShips && (!gun.IsAntiAircraftWeapon || SeaGunCfg.AA);
         }
 
         public static float SpreadMul(Gun gun) => Applies(gun) ? Mathf.Lerp(1f, SeaGunCfg.MaxSpread, Severity()) : 1f;
@@ -115,7 +115,7 @@ namespace UboatToolkit.Modules
     {
         private static readonly FieldInfo CurrentAccuracyField = AccessTools.Field(typeof(Gun), "currentAccuracy");
 
-        public static bool Applies(Gun gun) => gun != null && SeaGunCfg.On && InScope(gun.ParentEntity);
+        public static bool Applies(Gun gun) => gun != null && InScope(gun.ParentEntity);
 
         public static bool InScope(Entity e)
         {
@@ -149,7 +149,7 @@ namespace UboatToolkit.Modules
 
         public static float AdjustSpread(float spread, Gun gun)
         {
-            if (!Applies(gun)) return spread;
+            if (!Applies(gun) || !Settings.B("DgsNpcSpreadOn")) return spread;
             spread *= SeaGunCfg.NpcSpread / 100f;
             // 0.4.22 (option audit): a gun that has ranged in has spread 0 in the game, and x % of 0 stays 0. So the
             // percentage also raises the smallest miss; else the option did nothing against a ranged-in port gun.
@@ -160,7 +160,7 @@ namespace UboatToolkit.Modules
         public static float AdjustRanging(float next, Gun gun)
         {
             if (!Applies(gun) || CurrentAccuracyField == null) return next;
-            float k = SeaGunCfg.NpcRanging / 100f;
+            float k = Settings.B("DgsNpcRangingOn") ? SeaGunCfg.NpcRanging / 100f : 1f;
             if (SeaGunCfg.NpcEvenOut && LacksMerchantCut(gun.ParentEntity)) k *= 0.35f;
             if (k >= 0.999f) return next;
             float prev = (float)CurrentAccuracyField.GetValue(gun);
@@ -180,7 +180,7 @@ namespace UboatToolkit.Modules
         {
             try
             {
-                if (!SeaGunCfg.On || !SeaGunCfg.Knockout) return;
+                if (!SeaGunCfg.Knockout) return;
                 if (e == null || e.DamageType != DamageType.Projectile || !(e.AppliedBy is PlayerShip)) return;
                 var hit = e.DamagedEntities;
                 if (hit == null) return;
@@ -426,7 +426,7 @@ namespace UboatToolkit.Modules
                         foreach (var f in ty.GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.DeclaredOnly))
                             if (f.FieldType == typeof(UBOAT.Game.Core.Data.Parameter)) paramFields.Add(f);
                 }
-                int guns = 0, bad = 0; float pct = Mathf.Clamp(Settings.F("EnemyShellSpeedPct"), 20f, 100f);
+                int guns = 0, bad = 0; float pct = Settings.B("EnemyShellSpeedOn") ? Mathf.Clamp(Settings.F("EnemyShellSpeedPct"), 20f, 100f) : 100f;
                 foreach (var g in PortDefense.AllGuns())
                 {
                     if (g == null || Util.IsPlayers(g) || g.ParentEntity is PlayerShip) continue;
@@ -1798,7 +1798,7 @@ namespace UboatToolkit.Modules
             if (__instance == null || Util.IsPlayers(__instance) || !EnemyGunnery.InScope(__instance.ParentEntity)) return;
             float game = Util.Original<float>(__instance, "shellSpeed");
             float now = Traverse.Create(__instance).Field("shellSpeed").GetValue<float>();
-            float pct = Mathf.Clamp(Settings.F("EnemyShellSpeedPct"), 20f, 100f);
+            float pct = Settings.B("EnemyShellSpeedOn") ? Mathf.Clamp(Settings.F("EnemyShellSpeedPct"), 20f, 100f) : 100f;
             float want = game * pct / 100f;
             if (Mathf.Abs(now - want) > 0.01f) Util.SetField(__instance, "shellSpeed", want);
             string key = __instance.name + "/" + (__instance.ParentEntity != null ? __instance.ParentEntity.name : "?");
