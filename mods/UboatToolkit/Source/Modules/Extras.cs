@@ -102,7 +102,7 @@ namespace UboatToolkit.Modules
         {
             var ship = Util.PlayerShip;
             float d = Mathf.Max(0f, ship.TargetDepth + delta);
-            ship.SetTargetDepth(d);
+            Owners.Depth(ship, "Tiefen-Taste (du)", Owners.Player, d, false, true);
             ToolkitRunner.ShowNotice("Zieltiefe " + d.ToString("0") + " m", 2f);
         }
 

@@ -78,3 +78,36 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+namespace UboatToolkit.Modules
+{
+    // 0.4.28 (DoMe: short error popups, e.g. when buying upgrades): with the developer console enabled the GAME shows
+    // "Error Logged" on its notification bar for every logged exception (DevConsole.Application_logMessageReceived).
+    // The popup is skipped; the error itself stays in the game log, and the Toolkit log counts them once per minute.
+    [HarmonyLib.HarmonyPatch]
+    internal static class GameTuning_DevConsolePopupPatch
+    {
+        private static int skipped; private static float nextLog;
+        private static bool Prepare() => TargetMethod() != null;
+        private static System.Reflection.MethodBase TargetMethod()
+        {
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.UI.DevConsole.DevConsole");
+            return t == null ? null : HarmonyLib.AccessTools.Method(t, "Application_logMessageReceived");
+        }
+        private static bool Prefix(string condition, UnityEngine.LogType type)
+        {
+            if (!Settings.B("DevConsole") || !Settings.B("DevConsoleNoErrorPopup")) return true;
+            if (type == UnityEngine.LogType.Exception)
+            {
+                skipped++;
+                if (UnityEngine.Time.unscaledTime >= nextLog)
+                {
+                    nextLog = UnityEngine.Time.unscaledTime + 60f;
+                    string first = condition ?? ""; if (first.Length > 160) first = first.Substring(0, 160);
+                    Util.Log("Konsole: Meldung „Fehler protokolliert“ unterdrückt, " + skipped + " Fehler seit Start, zuletzt: " + first);
+                }
+            }
+            return false;
+        }
+    }
+}

@@ -89,8 +89,7 @@ namespace UboatToolkit.Modules
             float old = sub.TargetDepth, want = Mathf.Max(2f, old - 0.5f);
             if (want >= old - 0.01f) return;
             nextStep = now + 5f;
-            sub.SetDepthPreset(DepthPreset.None, true);
-            sub.SetTargetDepth(want, true, false);
+            if (!Owners.Depth(Util.PlayerShip, "Schnorchel-Wächter", Owners.Safety, want, true, false)) return;
             Util.Log("Schnorchel: Kopf " + head.ToString("0.0") + " m unter Wasser, Zieltiefe " + old.ToString("0.0") + " -> " + want.ToString("0.0") + " m");
             ToolkitRunner.ShowNotice("Schnorchel-Kopf unter Wasser: Zieltiefe " + want.ToString("0.0") + " m", 4f);
         }

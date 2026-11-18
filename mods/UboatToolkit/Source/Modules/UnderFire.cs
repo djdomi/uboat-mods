@@ -110,7 +110,7 @@ namespace UboatToolkit.Modules
                     case Act.Dive:
                         ship.StartAlarm("Crash Diving", true);
                         ship.FollowDiveSchedule = false;
-                        CourseCfg.SetDepthPreset?.Invoke(ship, new object[] { DepthPreset.MaxSafeDepth, false });
+                        Owners.Preset(ship, "Unter Beschuss: Alarmtauchen", Owners.Safety, DepthPreset.MaxSafeDepth, false);
                         ship.OrderEngineGear(5, false);
                         break;
                     case Act.Evade:

@@ -98,8 +98,9 @@ namespace UboatToolkit.Modules
             }
         }
 
-        private static void Preset(PlayerShip s, DepthPreset p, bool instant) => CourseCfg.SetDepthPreset.Invoke(s, new object[] { p, instant });
-        private static void SetDepth(PlayerShip s, float d, bool instant) => CourseCfg.SetTargetDepth.Invoke(s, new object[] { d, false, instant });
+        // 0.4.28: one owner for the ordered depth. A preset "None" is only the step before a metre value: Owners.Depth sets it itself.
+        private static void Preset(PlayerShip s, DepthPreset p, bool instant) { if (p != DepthPreset.None) Owners.Preset(s, "Kurs-/Tiefentasten (du)", Owners.Player, p, instant); }
+        private static void SetDepth(PlayerShip s, float d, bool instant) { Owners.Depth(s, "Kurs-/Tiefentasten (du)", Owners.Player, d, false, instant); }
 
         private static void Depth(PlayerShip ship, bool fine, bool coarse)
         {

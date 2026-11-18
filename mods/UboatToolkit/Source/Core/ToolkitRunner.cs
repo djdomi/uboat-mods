@@ -104,7 +104,7 @@ namespace UboatToolkit
             // EVERY hotkey (Keys.Down returns false while capturing) and the menu key (DoMe: Ctrl+Alt+M no effect, F10 several times).
             if (!menuOpen && Keys.Capturing != null) { Util.Log("Tasten-Aufnahme hing bei geschlossenem Menü, beendet"); Keys.Capturing = null; }
             Keys.CaptureFrame();
-            if (saveAt > 0f && Time.unscaledTime >= saveAt && !Input.GetMouseButton(0) && Keys.Capturing == null)
+            if (saveAt > 0f && (Time.unscaledTime >= saveAt || !menuOpen) && !Input.GetMouseButton(0) && Keys.Capturing == null)
             { saveAt = 0f; Settings.Save(); Util.Log("Einstellungen von selbst gespeichert (Änderung im Menü)"); }
             // Menu key: works even with Ctrl/Shift/Alt still held and while a key capture hangs (F10 must always close).
             var mk = Keys.Code("KeyMenu", KeyCode.F10);
@@ -275,6 +275,13 @@ namespace UboatToolkit
         }
         private static string dragSliderKey;
         private static float saveAt;
+        // 0.4.28 (audit: a change made less than 2 s before quitting was lost)
+        private void OnApplicationQuit()
+        {
+            if (saveAt <= 0f) return;
+            saveAt = 0f;
+            try { Settings.Save(); Util.Log("Einstellungen beim Beenden gespeichert (offene Änderung im Menü)"); } catch (System.Exception e) { Util.Log("Einstellungen beim Beenden: " + e.Message); }
+        }
         // fold: this row gets the fold arrow of its fine settings; suffix: text behind the name
         private void DrawOptRow(Opt o, bool fold, string suffix)
         {

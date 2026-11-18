@@ -10,7 +10,8 @@ namespace UboatToolkit.Modules
         private bool limited;
         private float nextSwitch;
         private static UBOAT.Game.Core.Time.GameTime gameTime;
-        private static float gameStep = -1f;   // the game's own physics step (1/75 s)
+        internal static float gameStep = -1f;   // the game's own physics step (1/75 s)
+        internal const float GameStepMax = 1f / 75f;
         private float nextCensus, autoHz, nextPhysLine; private int autoWait;
 
         // 0.3.69 physics rate (DoMe: get performance out of the engine). Measured: with 48 ships the physics took
@@ -21,7 +22,7 @@ namespace UboatToolkit.Modules
         {
             if (gameTime == null) gameTime = Object.FindObjectOfType<UBOAT.Game.Core.Time.GameTime>();
             if (gameTime == null) return;
-            if (gameStep < 0f) gameStep = gameTime.FixedDeltaTime;
+            if (gameStep < 0f) gameStep = Mathf.Min(gameTime.FixedDeltaTime, GameStepMax);   // 0.4.28: never learn an already lowered value as "the game value"
             float hz = Settings.F("PhysicsHz");
             float want = hz >= 20f ? Mathf.Max(gameStep, 1f / hz) : gameStep;
             // time compression: back to the game's own step (the game multiplies it there itself); pause: leave alone
@@ -49,6 +50,11 @@ namespace UboatToolkit.Modules
             if (Time.unscaledTime >= nextPhysLine)
             {
                 nextPhysLine = Time.unscaledTime + 60f;
+                // 0.4.28 (DoMe: boat bobs in time compression, log showed 12 steps/s where the game itself uses 18):
+                // compare with the game's own formula and say so.
+                float own = 1f / (gameStep * (1f + (Mathf.Max(1f, Time.timeScale) - 1f) * 0.5f));
+                if (Time.timeScale > 1.01f && 1f / Time.fixedDeltaTime < own - 0.5f)
+                    Util.Log("Physik: WARNUNG Takt im Zeitraffer gröber als das Spiel selbst (" + (1f / Time.fixedDeltaTime).ToString("0") + " statt " + own.ToString("0") + " pro Sekunde), Grundwert " + (1f / gameTime.FixedDeltaTime).ToString("0") + ", lädt gerade " + (SaveTools_LoadSpeedPatch.IsLoading ? "ja" : "nein"));
                 Util.Log("Physik: Takt " + (1f / Time.fixedDeltaTime).ToString("0") + " pro Sekunde, höchstens " + (Time.maximumDeltaTime / Time.fixedDeltaTime).ToString("0.#") + " Schritte pro Bild, Zeitraffer x" + Time.timeScale.ToString("0.#") + ", FPS " + ExplosionLimit_Patch.Fps().ToString("0") + ", Automatik " + (Settings.B("PhysicsFollowFps") ? (Time.timeScale > 1.01f ? "ruht (Zeitraffer, Spiel regelt selbst)" : "an") : "aus"));
             }
             // Census for the next tuning step: what is in the physics scene when it is slow (max. every 2 min).
@@ -150,6 +156,37 @@ namespace UboatToolkit.Modules
                 smooth = UnityEngine.Mathf.MoveTowards(smooth, want, 0.02f * UnityEngine.Time.unscaledDeltaTime);   // slow: 0.1 per 5 s, no flicker
             }
             __result *= smooth;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // 0.4.28: "PhysicsHz" lowered the base step (e.g. 50 per second). The module set it back for time compression only
+    // in its next tick (up to 1 s later), so the game calculated its compression step from the lowered base
+    // (log 09:13:28: 12 steps per second at x7.2, the game alone uses 18). Now the base is the game's own value
+    // BEFORE the game calculates, so the Toolkit never makes the physics coarser in time compression.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.Time.GameTime), "TimeScale_Changed")]
+    internal static class AutoDetail_CompressionBasePatch
+    {
+        private static float lastLog;
+        private static void Prefix(UBOAT.Game.Core.Time.GameTime __instance, UBOAT.Game.Core.Data.Parameter parameter)
+        {
+            try
+            {
+                if (parameter == null || parameter.Value <= 1.01f) return;
+                float own = AutoDetail.gameStep > 0f ? AutoDetail.gameStep : AutoDetail.GameStepMax;
+                var f = HarmonyLib.Traverse.Create(__instance).Field("fixedDeltaTime");
+                float cur = f.GetValue<float>();
+                if (cur <= own + 0.00001f) return;
+                f.SetValue(own);
+                if (Time.unscaledTime - lastLog > 30f)
+                {
+                    lastLog = Time.unscaledTime;
+                    Util.Log("Physik: Zeitraffer x" + parameter.Value.ToString("0.#") + ", Grundwert vorher " + (1f / cur).ToString("0") + " pro Sekunde, jetzt Spielwert " + (1f / own).ToString("0"));
+                }
+            }
+            catch (System.Exception e) { Util.Log("Physik: Zeitraffer-Grundwert Fehler " + e.Message); }
         }
     }
 }

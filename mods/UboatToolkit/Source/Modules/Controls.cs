@@ -84,7 +84,7 @@ namespace UboatToolkit.Modules
                 armed = false;
                 ship.StartAlarm("Crash Diving");
                 ship.FollowDiveSchedule = false;
-                ship.SetDepthPreset(DepthPreset.MaxSafeDepth, false);
+                Owners.Preset(ship, "Alarmtauchen bei Flugzeug", Owners.Safety, DepthPreset.MaxSafeDepth, false);
                 ship.OrderEngineGear(5, false);
                 Util.Log("Alarmtauchen: feindliches Flugzeug gesichtet");
             });

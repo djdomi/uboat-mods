@@ -88,12 +88,12 @@ namespace UboatToolkit.Modules
                 if (Keys.Down(depthKeys[i]))
                 {
                     float s = steps[i];
-                    Util.Safe("Helm.Depth", () => { float t = UnityEngine.Mathf.Max(0f, ship.TargetDepth + s); ship.SetDepthPreset(DepthPreset.None, true); ship.SetTargetDepth(t, false, true); });
+                    Util.Safe("Helm.Depth", () => Owners.Depth(ship, "Tiefen-Taste (du)", Owners.Player, ship.TargetDepth + s, false, true));
                     return;
                 }
-            if (Keys.Down("KeyPeriscopeDepth")) { Util.Safe("Helm.Scope", () => ship.SetDepthPreset(DepthPreset.Periscope, false)); return; }
-            if (Keys.Down("KeyMaxDepth")) { Util.Safe("Helm.Max", () => ship.SetDepthPreset(DepthPreset.MaxSafeDepth, false)); return; }
-            if (Keys.Down("KeyHoldDepth")) Util.Safe("Helm.Hold", () => { float t = ship.DeckDepthUnclamped; ship.SetDepthPreset(DepthPreset.None, true); ship.SetTargetDepth(UnityEngine.Mathf.Max(0f, t), false, true); });
+            if (Keys.Down("KeyPeriscopeDepth")) { Util.Safe("Helm.Scope", () => Owners.Preset(ship, "Taste Sehrohrtiefe (du)", Owners.Player, DepthPreset.Periscope, false)); return; }
+            if (Keys.Down("KeyMaxDepth")) { Util.Safe("Helm.Max", () => Owners.Preset(ship, "Taste größte Tiefe (du)", Owners.Player, DepthPreset.MaxSafeDepth, false)); return; }
+            if (Keys.Down("KeyHoldDepth")) Util.Safe("Helm.Hold", () => Owners.Depth(ship, "Taste Tiefe halten (du)", Owners.Player, ship.DeckDepthUnclamped, false, true));
         }
     }
 

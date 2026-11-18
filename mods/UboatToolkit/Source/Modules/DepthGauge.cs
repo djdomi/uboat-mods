@@ -58,11 +58,11 @@ namespace UboatToolkit.Modules
         }
         private static float Current(PlayerShip ship) => Mathf.Max(0f, ship.DeckDepthUnclamped);   // same value as the game's own depth meter and target depth
 
-        private static void SetTarget(PlayerShip ship, float depth)
+        // 0.4.28: the ordered depth is written only by Owners.Depth (one owner). "auto" = the autopilot asks.
+        private static void SetTarget(PlayerShip ship, float depth) { SetTarget(ship, depth, false); }
+        private static void SetTarget(PlayerShip ship, float depth, bool auto)
         {
-            float t = Mathf.Max(0f, depth);
-            ship.SetDepthPreset(DepthPreset.None, true);
-            ship.SetTargetDepth(t, true, false);
+            Owners.Depth(ship, auto ? "Bodenabstand-Autopilot" : "Tiefen-Anzeige (du)", auto ? Owners.Auto : Owners.Player, depth, true, false);
         }
 
         private bool lastPilotOn;
@@ -177,7 +177,7 @@ namespace UboatToolkit.Modules
             {
                 if (float.IsNaN(lastBed)) { pilotText = "Aufsetzen: Grund unbekannt"; return; }
                 float t = lastBed - keel - 0.3f;
-                if (Mathf.Abs(ship.TargetDepth - t) > 0.5f) SetTarget(ship, t);
+                if (Mathf.Abs(ship.TargetDepth - t) > 0.5f) SetTarget(ship, t, true);
                 Util.Safe("Depth.Silent", () =>
                 {
                     var src = InjectionFramework.Instance.GetInstance<UBOAT.Game.Scene.Tasks.ISilentRunningController>();
@@ -216,7 +216,7 @@ namespace UboatToolkit.Modules
             {
                 Util.Log("Bodenabstand: Grund=" + bed.ToString("F1") + " Kiel-Versatz=" + keel.ToString("F1") + " Ziel=" + target.ToString("F1")
                     + " altesZiel=" + ship.TargetDepth.ToString("F1") + " Depth=" + ship.Depth.ToString("F1") + " Offset=" + ship.VerticalOriginOffset.ToString("F1") + " Unterkante=" + ship.BottomDepth.ToString("F1"));
-                SetTarget(ship, target);
+                SetTarget(ship, target, true);
             }
             pilotText = "Autopilot: Ziel " + target.ToString("F0") + " m, Grund " + bed.ToString("F0") + " m";
         }

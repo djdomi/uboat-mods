@@ -166,7 +166,7 @@ namespace UboatToolkit.Modules.Warthog
             }
 
             // ---- thrusters
-            if (!Settings.B("WhThrusters")) { heldHeading = float.NaN; WarthogThrusterGauge.Cmd = 0f; WarthogThrusterGauge.Bow = WarthogThrusterGauge.Stern = 0f; return; }
+            if (!Settings.B("WhThrusters")) { SetEnergy(ship, 0f); heldHeading = float.NaN; WarthogThrusterGauge.Cmd = 0f; WarthogThrusterGauge.Bow = WarthogThrusterGauge.Stern = 0f; return; }
             float cmd = 0f;
             if (Keys.Held("KeyWhThrustLeft")) cmd -= 1f;
             if (Keys.Held("KeyWhThrustRight")) cmd += 1f;

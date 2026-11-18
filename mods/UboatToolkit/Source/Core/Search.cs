@@ -62,7 +62,7 @@ namespace UboatToolkit
             new[] { "karte", "map", "navigation", "kurs", "wegpunkt" },
             new[] { "zeit", "time", "zeitraffer", "beschleunig", "compression" },
             new[] { "kamera", "camera", "ansicht", "sicht", "view", "zoom" },
-            new[] { "luft", "sauerstoff", "air", "oxygen", "co2", "lueftung", "atmen" },
+            new[] { "luft", "sauerstoff", "air", "oxygen", "co2", "lueftung", "lüftung", "ventilation", "absorber", "kalipatrone", "atmen" },
             new[] { "druck", "pressure", "druckkoerper", "rumpf", "hull", "huelle" },
             new[] { "hafen", "port", "dock", "bunker", "basis", "stuetzpunkt" },
             new[] { "laden", "nachladen", "reload", "beladen", "loading" },

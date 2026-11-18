@@ -27,11 +27,14 @@ namespace UboatToolkit.Modules
             foreach (var v in Util.Find<Ventilation>())
             {
                 Util.ScaleParameter(Traverse.Create(v).Field("noise").GetValue<Parameter>(), Mathf.Max(0.01f, noise));
-                if (Settings.B("AutoVentilation") && ship.SubmergedOrGoingToSubmerge)
+                // 0.4.28 (DoMe): two independent switches
+                if (!ship.SubmergedOrGoingToSubmerge) continue;
+                if (Settings.B("AutoVentilation") && v.HasDisableFlag(DeviceDisableFlag.TurnedOff))
                 {
                     v.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
-                    if (v.Item == null) GiveAbsorber(ship, v);
+                    Util.Log("Lüftung: automatisch eingeschaltet (unter Wasser)");
                 }
+                if (Settings.B("AutoAbsorber") && v.Item == null) GiveAbsorber(ship, v);
             }
             foreach (var a in Util.Find<PotassiumAbsorber>())
                 Util.ScaleParameter(a.Duration, absorber);

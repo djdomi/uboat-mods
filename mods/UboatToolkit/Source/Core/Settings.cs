@@ -108,7 +108,8 @@ namespace UboatToolkit
             Num(QoL, "VentilationNoise", "Lüftung: Lautstärke/Geräusch x (1 = normal) (#36)", 0.3f, 0.05f, 1, 0.05f);
             Num(QoL, "AbsorberDuration", "  Absorber (Kalipatrone) hält x länger", 2, 1, 10, 0.5f);
             Bool(QoL, "CompressorNoAir", "  E-Kompressor verbraucht keine Luft im Boot", true);
-            Bool(QoL, "AutoVentilation", "  Unter Wasser: Lüftung automatisch an + Absorber einsetzen", true);
+            Bool(QoL, "AutoVentilation", "  Unter Wasser: Lüftung automatisch einschalten", true);
+            Bool(QoL, "AutoAbsorber", "  Unter Wasser: Absorber (Kalipatrone) automatisch in die Lüftung einsetzen", true);
             Bool(QoL, "EmergencyOxygen", "  Notfall-Sauerstoff: etwas mehr als der Verbrauch, wenn die Luft sinkt", true);
             Bool(QoL, "FullCrewAtStart", "Volle Besatzung ab Start (vor der ersten Feindfahrt) (#37)", true);
             Num(QoL, "FullCrewSize", "  Gewünschte Besatzung (Männer, in der INI ohne Obergrenze)", 90, 10, 200, 1);
@@ -568,10 +569,10 @@ namespace UboatToolkit
             Num(Cheat, "AutoExpandMax", "  Höchstens so viele Plätze pro Lager", 100, 10, 300, 10);
             Num(Cheat, "StorageMinSlots", "  Lager mindestens x Plätze, sofort (0 = aus)", 0, 0, 200, 5);
             Num(Cheat, "CheatStackSize", "Lager: x mehr pro Platz stapeln (1 = normal, INI ohne Obergrenze)", 1, 1, 1000, 10);
-            Num(Cheat, "CheatMinStackSize", "  Lager: mindestens so viele pro Platz (0 = aus)", 100000, 0, 1000000, 1000);
+            Num(Cheat, "CheatMinStackSize", "  Lager: mindestens so viele pro Platz (0 = aus)", 0, 0, 1000000, 1000);
             Bool(Cheat, "CheatMergeStacks", "  Lager: gleiche Sachen automatisch zu einem Stapel zusammenlegen", true);
             Bool(Cheat, "CheatStackAll", "  Lager: auch Sachen stapeln, die im Spiel nur einzeln gehen (alle Waren außer Diesel)", true);
-            Num(Cheat, "CheatShopStock", "  Händler im Hafen hat von jeder Ware mindestens so viel (0 = wie im Spiel)", 100000, 0, 1000000, 1000);
+            Num(Cheat, "CheatShopStock", "  Händler im Hafen hat von jeder Ware mindestens so viel (0 = wie im Spiel)", 0, 0, 1000000, 1000);
             Num(Cheat, "CheatDetect", "Kontakte dauerhaft auf der Karte (0 = aus, 1 = nur Ziele, 2 = alle)", 0, 0, 2, 1);
             Num(Cheat, "CheatDetectKm", "  nur im Umkreis von x km (0 = überall)", 0, 0, 2000, 50);
             // 0.4.4 (DoMe 2026-11-17): one factor per sensor instead of one for all. 1 = game value.
@@ -601,6 +602,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatRepairSpeed", "Reparieren x schneller (1 = normal, 1000 = ca. 1 Sek.)", 1, 1, 1000, 10);
             Num(Cheat, "CheatResearchSpeed", "Forschung/Aufgaben im Hauptquartier x schneller", 1, 1, 1000, 10);
             Bool(Cheat, "DevConsole", "Entwickler-Konsole des Spiels einschalten (mit „Erfolge immer erlaubt“ ohne Achievement-Verlust)", false);
+            Bool(Cheat, "DevConsoleNoErrorPopup", "  ohne die kurze Meldung „Fehler protokolliert“ bei jedem internen Fehler (steht weiter im Log)", true);
             Bool(Cheat, "CheatInstantResearch", "Forschung + Aufgaben im Hauptquartier sofort fertig", false);
             Bool(Cheat, "CheatNoResearchRequirements", "Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum, kein Offizier nötig", false);
             Bool(Cheat, "CheatResearchAll", "  >> Alles erforschen", false);
@@ -697,8 +699,8 @@ namespace UboatToolkit
             Key("KeyAmidships", "Ruder mittschiffs", "Ctrl+UpArrow");
             Key("KeyDeeper5", "Tiefe: 5 m tiefer", "Ctrl+F");
             Key("KeyShallower5", "Tiefe: 5 m h\u00f6her", "Ctrl+R");
-            Key("KeyDeeper20", "Tiefe: 20 m tiefer", "Ctrl+Shift+F");
-            Key("KeyShallower20", "Tiefe: 20 m h\u00f6her", "Ctrl+Shift+R");
+            Key("KeyDeeper20", "Tiefe: 20 m tiefer", "Ctrl+Shift+PageDown");
+            Key("KeyShallower20", "Tiefe: 20 m h\u00f6her", "Ctrl+Shift+PageUp");
             Key("KeyPeriscopeDepth", "Tiefe: Sehrohrtiefe", "Ctrl+P");
             Key("KeyMaxDepth", "Tiefe: maximale sichere Tiefe", "Ctrl+C");
             Key("KeyHoldDepth", "Tiefe: aktuelle Tiefe halten", "Ctrl+H");
@@ -998,12 +1000,14 @@ namespace UboatToolkit
         public static Opt Get(string key) => byKey.TryGetValue(key, out var o) ? o : null;
         public static void Set(string key, float v) { if (byKey.TryGetValue(key, out var o)) o.Value = Math.Max(o.Min, Math.Min(o.Max, v)); }
 
+        // old joint switch, new separate switch (the old key keeps the first effect)
+        private static readonly string[] Split = { "AutoVentilation", "AutoAbsorber" };
         public static void Load()
         {
             try
             {
                 if (!File.Exists(FilePath)) { Save(); return; }
-                float legacySensor = 0f; bool newSensorKeys = false;
+                float legacySensor = 0f; bool newSensorKeys = false; var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (var raw in File.ReadAllLines(FilePath))
                 {
                     var line = raw.Trim();
@@ -1014,6 +1018,7 @@ namespace UboatToolkit
                     // 0.4.4: the old single factor "CheatSensorRange" is carried over once into the new single factors.
                     if (keyName == "CheatSensorRange") { float.TryParse(line.Substring(eq + 1).Trim().Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out legacySensor); continue; }
                     if (keyName.StartsWith("CheatRange")) newSensorKeys = true;
+                    seen.Add(keyName);
                     var o = Get(keyName);
                     if (o == null) continue;
                     if (o.IsKey) { o.Text = line.Substring(eq + 1).Trim(); continue; }
@@ -1026,6 +1031,11 @@ namespace UboatToolkit
                 // needed for the open crew problems are switched on at every start.
                 if (legacySensor > 0f && !newSensorKeys)
                     foreach (var k in new[] { "CheatRangeHydro", "CheatRangeSonar", "CheatRangeRadar", "CheatRangeRadarWarn", "CheatRangeLookout" }) Set(k, legacySensor);
+                // 0.4.28 (DoMe: separate "switch ventilation on" and "insert absorber"): the old joint switch is carried over once.
+                // Rule (DoMe 2026-11-18): one switch = one effect. Split[] lists old joint switch -> new separate switch.
+                for (int i = 0; i + 1 < Split.Length; i += 2)
+                    if (seen.Contains(Split[i]) && !seen.Contains(Split[i + 1]) && Get(Split[i + 1]) != null)
+                    { Set(Split[i + 1], F(Split[i])); Util.Log("Schalter geteilt: „" + Get(Split[i + 1]).Label.Trim() + "“ übernimmt den Wert des alten Kombi-Schalters (" + (B(Split[i]) ? "an" : "aus") + ")"); }
                 if (B("DiagLogs")) { Set("CrewAILog", 1); Set("OfficerWatchLog", 1); }
                 // Write back so new settings from a mod update appear in the file.
                 Save();
