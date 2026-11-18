@@ -5134,16 +5134,30 @@ namespace UboatToolkit.Patches
             foreach (var m in AccessTools.GetDeclaredMethods(typeof(WorldNavMesh))) if (m.Name == "FindPath") yield return m;
         }
 
-        private static void Prefix(out double __state) { __state = Time.realtimeSinceStartupAsDouble; }
+        // 0.4.57: also counts how many searches asked exactly the same question again within 5 s (same start, same goal,
+        // same settings). Only such repeats could be answered from a remembered result.
+        private static readonly Dictionary<long, float> seen = new Dictionary<long, float>();
+        private static int repeats; private static double repeatMs;
+        private static void Prefix(object[] __args, out double __state)
+        {
+            __state = Time.realtimeSinceStartupAsDouble;
+            long h = 17;
+            if (__args != null) foreach (var a in __args) { if (a is System.Collections.IEnumerable && !(a is string)) continue; h = h * 31 + (a != null ? a.GetHashCode() : 0); }
+            float t; bool rep = seen.TryGetValue(h, out t) && Time.unscaledTime - t < 5f;
+            seen[h] = Time.unscaledTime;
+            if (rep) { repeats++; __state = -__state; }
+            if (seen.Count > 5000) seen.Clear();
+        }
 
         private static void Postfix(double __state)
         {
+            bool wasRepeat = __state < 0; if (wasRepeat) __state = -__state;
             double ms = (Time.realtimeSinceStartupAsDouble - __state) * 1000.0;
-            calls++; sum += ms; if (ms > longest) longest = ms;
+            calls++; sum += ms; if (ms > longest) longest = ms; if (wasRepeat) repeatMs += ms;
             if (Time.unscaledTime < nextLog) return;
             nextLog = Time.unscaledTime + 60f;
-            Util.Log("Routen-Suche der Schiffe (Zählung, nur lesen): " + calls + " mal in der letzten Minute, zusammen " + sum.ToString("0") + " ms auf dem Hauptkern, längste einzelne " + longest.ToString("0.0") + " ms");
-            calls = 0; sum = 0; longest = 0;
+            Util.Log("Routen-Suche der Schiffe (Zählung, nur lesen): " + calls + " mal in der letzten Minute, zusammen " + sum.ToString("0") + " ms auf dem Hauptkern, längste einzelne " + longest.ToString("0.0") + " ms; davon dieselbe Frage erneut binnen 5 s: " + repeats + " mal, " + repeatMs.ToString("0") + " ms");
+            calls = 0; sum = 0; longest = 0; repeats = 0; repeatMs = 0;
         }
     }
 }
@@ -5243,4 +5257,37 @@ namespace UboatToolkit.Patches
             jobs = 0; kicks = 0;
         }
     }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/DetectionCount.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Entities;
+
+    // 0.4.57: "who sees whom" - every ship checks every other ship with each of its sensors. Count only (how often, how
+    // long on the main core, how many sight-line rays), once per minute, nothing is changed. Decides the next step.
+    [HarmonyPatch(typeof(Observator), "LowFrequencyUpdate")]
+    internal static class DetectionCount_Patch
+    {
+        internal static int Rays;
+        private static int calls; private static double sum, longest; private static float nextLog;
+        private static void Prefix(out double __state) { __state = Time.realtimeSinceStartupAsDouble; }
+        private static void Postfix(double __state)
+        {
+            double ms = (Time.realtimeSinceStartupAsDouble - __state) * 1000.0;
+            calls++; sum += ms; if (ms > longest) longest = ms;
+            if (Time.unscaledTime < nextLog) return;
+            nextLog = Time.unscaledTime + 60f;
+            Util.Log("Gegner-Erkennung (Zählung, nur lesen): " + calls + " Durchläufe in der letzten Minute, zusammen " + sum.ToString("0") + " ms auf dem Hauptkern, längster " + longest.ToString("0.0") + " ms, Sichtlinien-Strahlen " + Rays);
+            calls = 0; sum = 0; longest = 0; Rays = 0;
+        }
+    }
+    [HarmonyPatch(typeof(Observator), nameof(Observator.HasVisualLOS))]
+    internal static class DetectionRayV_Patch { private static void Prefix() { DetectionCount_Patch.Rays++; } }
+    [HarmonyPatch(typeof(Observator), nameof(Observator.HasSoundLOS))]
+    internal static class DetectionRayS_Patch { private static void Prefix() { DetectionCount_Patch.Rays++; } }
 }
