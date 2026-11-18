@@ -2368,6 +2368,7 @@ namespace UboatToolkit
         static Settings()
         {
             // ---------- QoL ----------
+            Bool(QoL, "GameOnly", "NUR SPIEL-VERHALTEN: alle Automatiken des Toolkits aus (Cheats, Anzeigen und Fehler-Fixe bleiben). Zum Vergleichen, ob ein Fehler vom Toolkit kommt", false);
             Bool(QoL, "AwashGuns", "Vorgeflutet: Turmluke bleibt offen, Crew darf an Deck (#24)", true);
             Num(QoL, "RadioSpeed", "Funk: so viel schneller senden (1 = normal) (#11)", 10, 1, 100, 1);
             Bool(QoL, "RadioUndetectable", "Funk: Gegner kann dich nicht anpeilen (#12)", true);
@@ -3350,8 +3351,34 @@ namespace UboatToolkit
 
         public static bool Changed(Opt o) => !o.IsKey && Math.Abs(o.Value - o.Default) > 0.0001f;
 
-        public static bool B(string key) => byKey.TryGetValue(key, out var o) && o.On;
-        public static float F(string key) => byKey.TryGetValue(key, out var o) ? o.Value : 0f;
+        // 0.4.49 (DoMe 2026-11-18: "umso mehr optionen ... umso schlimmer"): one switch that makes every automatic part
+        // read "off" without touching the stored values. Cheats, displays and bug fixes are not in the list.
+        private static readonly HashSet<string> Automatics = new HashSet<string> {
+            "AwashGuns", "AwashTrim", "DepthTrimHold", "BallastDieselBlow", "SnorkelKeepHead", "AutoSnorkel", "SnorkelAir", "SnorkelVent",
+            "AutoDepth", "AutoDepthBottom", "AutoDepthBottomSilent", "AutoCrashDive", "RouteLead",
+            "AutoHatches", "HatchSafety", "HatchPressureLock", "HatchEqualize",
+            "KeepHelm", "KeepDepthStation", "KeepNavTable", "EchoSailor", "AutoManGuns", "AutoManFlak", "AutoManEngines",
+            "AutoManHydrophone", "AutoManRadio", "AutoFirstAid", "AutoFetchMedKit", "AutoDamageControl", "AutoWorkshop",
+            "AutoReloadTubes", "AutoPump", "AutoLight", "AutoSearchlight", "AutoVentilation", "AutoAbsorber", "CrewAIOverhaul" };
+        private static Opt gameOnlyOpt; private static bool gameOnlyLast;
+        public static bool GameOnly
+        {
+            get
+            {
+                if (gameOnlyOpt == null && !byKey.TryGetValue("GameOnly", out gameOnlyOpt)) return false;
+                bool on = gameOnlyOpt.On;
+                if (on != gameOnlyLast)
+                {
+                    gameOnlyLast = on;
+                    int n = 0; var sb = new System.Text.StringBuilder();
+                    foreach (var k in Automatics) { Opt a; if (byKey.TryGetValue(k, out a) && a.On) { n++; sb.Append(' ').Append(k); } }
+                    Util.Log("Nur Spiel-Verhalten " + (on ? "AN: " + n + " eingeschaltete Automatiken ruhen jetzt (+ Unter Beschuss):" + sb : "AUS: " + n + " Automatiken arbeiten wieder:" + sb));
+                }
+                return on;
+            }
+        }
+        public static bool B(string key) => byKey.TryGetValue(key, out var o) && o.On && !(GameOnly && Automatics.Contains(key));
+        public static float F(string key) => byKey.TryGetValue(key, out var o) ? (key == "UnderFireMode" && GameOnly ? 0f : o.Value) : 0f;
         public static Opt Get(string key) => byKey.TryGetValue(key, out var o) ? o : null;
         public static void Set(string key, float v) { if (byKey.TryGetValue(key, out var o)) o.Value = Math.Max(o.Min, Math.Min(o.Max, v)); }
 
