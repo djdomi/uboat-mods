@@ -9148,7 +9148,7 @@ namespace UboatToolkit.Modules
     public class Watch : ModuleBase
     {
         private DynamicContactsController contacts;
-        private float nextAutosave = -1f, lastBackup = -9999f;
+        private float nextAutosave = -1f, lastBackup = -9999f; private string noted;
         private int lastCheatCount = -1;
         private readonly System.Collections.Generic.Dictionary<string, bool> warned = new System.Collections.Generic.Dictionary<string, bool>();
 
@@ -9189,12 +9189,23 @@ namespace UboatToolkit.Modules
             float min = Settings.F("AutoSaveMinutes");
             if (min <= 0f) { nextAutosave = -1f; return; }
             if (nextAutosave < 0f) { nextAutosave = Time.unscaledTime + min * 60f; return; }
+            // 0.4.42 (DoMe: "autosave kommt mehrfach vor, als wenn die time sich überschneiden"): the game has its own
+            // auto-save clock (every x minutes, on docking, on leaving to the menu) and this part had a second one that
+            // knew nothing of the others, so two saves could follow each other within a minute. Now EVERY save of the
+            // game (by hand, quick save, the game's auto-save, ours) restarts this clock: the next one comes x minutes
+            // after the last save, whoever made it.
+            if (AutoSaveClock.LastSave > 0f && AutoSaveClock.LastSave + min * 60f > nextAutosave)
+            {
+                nextAutosave = AutoSaveClock.LastSave + min * 60f;
+                if (AutoSaveClock.LastName != noted) { noted = AutoSaveClock.LastName; Util.Log("Auto-Speichern: Uhr neu gestellt, weil gerade gespeichert wurde (" + noted + "). Nächstes in " + min.ToString("0") + " min"); }
+            }
             if (Time.unscaledTime < nextAutosave || !Game.CanSave() || PortWindowOpen()) return;
             nextAutosave = Time.unscaledTime + min * 60f;
             var saver = Game.Tasks?.GetRunningTask<AutoSaver>();
             if (saver == null) return;
             saver.DoAutoSave();
-            Util.Log("Auto-Speichern");
+            noted = AutoSaveClock.LastName;
+            Util.Log("Auto-Speichern (Toolkit-Uhr, " + min.ToString("0") + " min seit dem letzten Speichern)");
         }
 
         private void Backup()
@@ -9245,3 +9256,25 @@ namespace UboatToolkit.Modules
     }
 }
 
+
+// ====================================================================================================
+// Abschnitt: Auto-Speichern, eine Uhr für alle (0.4.42)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.Serialization;
+
+    // Remembers when the game last wrote a savegame, whoever asked for it. Read by the auto-save part. Changes nothing.
+    [HarmonyPatch(typeof(SavesManager), "Save")]
+    internal static class AutoSaveClock
+    {
+        internal static float LastSave = -1f; internal static string LastName = "";
+        private static void Postfix(string name)
+        {
+            LastSave = Time.unscaledTime; LastName = name ?? "";
+            Util.Log("Speichern: Spielstand \"" + LastName + "\" wird geschrieben");
+        }
+    }
+}
