@@ -928,13 +928,19 @@ namespace UboatToolkit.Modules
                 Util.ScaleParameter(d.GroupDetectionRange, m);
                 // 0.4.19 (DoMe: "limiter, nicht größer als 1000 km"): our factor is cut back so that the range of the
                 // player's sensor never exceeds the limit. Near range is in metres, far range in kilometres.
-                if (mine && m > 1f)
+                // 0.4.39 (DoMe: "ich kann immer noch halb europa abhorchen, was muss ich limitieren"): the limit now holds
+                // always, not only when our own factor is above 1, so the Warthog and listener bonuses cannot pass it. For
+                // the hydrophone the boat's own listening factor counts too, because the game multiplies it in afterwards
+                // (the map circle showed far range x boat factor, which the old check never saw).
+                if (mine)
                 {
                     float cap = Mathf.Max(10f, Settings.F(kind == 0 ? "CheatRangeMaxKmLookout" : "CheatRangeMaxKm"));
                     Util.Safe("Sensor-Grenze", () =>
                     {
-                        if (d.DetectionRange != null && d.DetectionRange.Value > cap * 1000f) { Util.ScaleParameter(d.DetectionRange, Mathf.Max(0.05f, m * cap * 1000f / d.DetectionRange.Value)); capped++; }
-                        if (d.GroupDetectionRange != null && d.GroupDetectionRange.Value > cap) { Util.ScaleParameter(d.GroupDetectionRange, Mathf.Max(0.05f, m * cap / d.GroupDetectionRange.Value)); capped++; }
+                        float hsc = 1f;
+                        if (kind == 1) { try { hsc = Mathf.Max(0.01f, (float)ship.HydroacousticDetectorsRangeScale); } catch { } }
+                        if (d.DetectionRange != null && d.DetectionRange.Value * hsc > cap * 1000f) { Util.ScaleParameter(d.DetectionRange, Mathf.Max(0.01f, m * cap * 1000f / (d.DetectionRange.Value * hsc))); capped++; }
+                        if (d.GroupDetectionRange != null && d.GroupDetectionRange.Value * hsc > cap) { Util.ScaleParameter(d.GroupDetectionRange, Mathf.Max(0.01f, m * cap / (d.GroupDetectionRange.Value * hsc))); capped++; }
                     });
                 }
                 if (mine && sensorLog && d.DetectionRange != null)

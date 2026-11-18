@@ -2892,7 +2892,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatRangeSonar", "Reichweite aktives Sonar (Bordgerät) x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Num(Cheat, "CheatRangeRadar", "Reichweite Radar x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Num(Cheat, "CheatRangeRadarWarn", "Reichweite Radarwarner x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
-            Num(Cheat, "CheatRangeMaxKm", "Obergrenze Horchgerät, Sonar, Radar in km (mehr geht nie)", 1000, 50, 20000, 50);
+            Num(Cheat, "CheatRangeMaxKm", "Obergrenze Horchgerät, Sonar, Radar in km (mehr geht nie, gilt immer, auch mit Warthog- und Horcher-Bonus)", 1000, 20, 20000, 10);
             Num(Cheat, "CheatRangeMaxKmLookout", "Obergrenze Sichtweite (Ausguck, Sehrohr) in km (mehr geht nie)", 1000, 10, 5000, 10);
             Num(Cheat, "CheatRangeLookout", "Reichweite Ausguck und Sehrohr x (1 = Spiel)", 1, 0.25f, 50, 0.25f);
             Bool(Cheat, "CheatDeepDive", "Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)", false);
