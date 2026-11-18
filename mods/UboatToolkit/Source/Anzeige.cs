@@ -5109,3 +5109,39 @@ namespace UboatToolkit.Patches
         }
     }
 }
+
+// ====================================================================================================
+// Abschnitt: Patches/RouteSearchCount.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+
+    // 0.4.54 (DoMe 2026-11-18: "nutzen wir NavMeshQuery / asynchrone Wege?"). The game searches every ship and convoy
+    // route in one piece on the main core. This only counts how often and how long, once per minute, nothing is changed.
+    [HarmonyPatch]
+    internal static class RouteSearchCount_Patch
+    {
+        private static int calls; private static double sum, longest; private static float nextLog;
+
+        private static IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            foreach (var m in AccessTools.GetDeclaredMethods(typeof(WorldNavMesh))) if (m.Name == "FindPath") yield return m;
+        }
+
+        private static void Prefix(out double __state) { __state = Time.realtimeSinceStartupAsDouble; }
+
+        private static void Postfix(double __state)
+        {
+            double ms = (Time.realtimeSinceStartupAsDouble - __state) * 1000.0;
+            calls++; sum += ms; if (ms > longest) longest = ms;
+            if (Time.unscaledTime < nextLog) return;
+            nextLog = Time.unscaledTime + 60f;
+            Util.Log("Routen-Suche der Schiffe (Zählung, nur lesen): " + calls + " mal in der letzten Minute, zusammen " + sum.ToString("0") + " ms auf dem Hauptkern, längste einzelne " + longest.ToString("0.0") + " ms");
+            calls = 0; sum = 0; longest = 0;
+        }
+    }
+}
