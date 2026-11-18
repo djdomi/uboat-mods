@@ -3111,6 +3111,7 @@ namespace UboatToolkit.Modules
             }
             lastAdd = add;
         }
+        private float deckLast, deckAt = -1f, calmSince = -1f;
         public override void Tick()
         {
             var sub = Util.PlayerShip as PlayableSubmarine;
@@ -3118,8 +3119,8 @@ namespace UboatToolkit.Modules
             Snorkel sn = null;
             foreach (var x in Util.Find<Snorkel>()) if (x != null && Util.IsPlayers(x)) { sn = x; break; }
             Util.Safe("Snorkel.Air", () => Air(sub, sn));
-            if (!Settings.B("SnorkelKeepHead")) { upSince = wetSince = -1f; return; }
-            if (sn == null || !sn.ShouldMastBeRaised || !sub.SubmergedOrGoingToSubmerge) { upSince = wetSince = -1f; return; }
+            if (!Settings.B("SnorkelKeepHead")) { upSince = wetSince = deckAt = calmSince = -1f; return; }
+            if (sn == null || !sn.ShouldMastBeRaised || !sub.SubmergedOrGoingToSubmerge) { upSince = wetSince = deckAt = calmSince = -1f; return; }
             float now = Time.time;
             if (upSince < 0f) upSince = now;
             var tip = Traverse.Create(sn).Field("tip").GetValue<Transform>();
@@ -3127,7 +3128,19 @@ namespace UboatToolkit.Modules
             // water level from the game's own deck depth (same basis as its depth meter)
             float water = sub.transform.position.y - sub.VerticalOriginOffset + sub.DeckDepthUnclamped;
             float head = water - tip.position.y;                      // + = head under water
-            bool atDepth = Mathf.Abs(sub.DeckDepthUnclamped - sub.TargetDepth) < 1f;
+            // 0.4.38: log 2026-11-18 14:35 showed the boat resting 1.4 m BELOW its ordered depth (deck 5.9, order 4.5) with
+            // the head 6 m under water, and the guard never acted because it waited for "within 1 m of the order".
+            // Now: the boat is at or below the order and has stopped rising or sinking (under 0.05 m/s for 10 s).
+            float deckNow = sub.DeckDepthUnclamped;
+            if (deckAt >= 0f && now - deckAt >= 1f)
+            {
+                float speed = Mathf.Abs(deckNow - deckLast) / (now - deckAt);
+                if (speed > 0.05f) calmSince = -1f; else if (calmSince < 0f) calmSince = now;
+                deckLast = deckNow; deckAt = now;
+            }
+            else if (deckAt < 0f) { deckLast = deckNow; deckAt = now; calmSince = -1f; }
+            bool calm = calmSince >= 0f && now - calmSince >= 10f;
+            bool atDepth = Mathf.Abs(deckNow - sub.TargetDepth) < 1f || (deckNow > sub.TargetDepth && calm);
             if (Time.unscaledTime > nextLine)
             {
                 nextLine = Time.unscaledTime + 60f;

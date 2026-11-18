@@ -2065,3 +2065,63 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+// ====================================================================================================
+// Abschnitt: Torpedo-Treffer im Log (0.4.38)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Utilities;
+
+    // DoMe 2026-11-18: "der frachter serpa pinto hat 4 torpedos gefressen und steht noch?" The log had no line for
+    // hits on other ships. This part only reads: for every explosion of one of OUR torpedoes it writes which ships
+    // were in the blast, their state before and after, and the damage value the game used. Changes nothing.
+    [HarmonyPatch(typeof(DamageUtility), nameof(DamageUtility.ApplyDamage))]
+    internal static class TorpedoHitLog_Patch
+    {
+        private static readonly Collider[] buf = new Collider[256];
+        private static readonly List<Entity> ships = new List<Entity>();
+        private static readonly List<float> before = new List<float>();
+        private static readonly List<float> hullBefore = new List<float>();
+
+        private static float HullOf(Entity e) { try { return e.Hull != null ? e.Hull.ProjectedHealth : -1f; } catch { return -1f; } }
+
+        [HarmonyPriority(Priority.Last)]
+        private static void Prefix(Entity appliedBy, Vector3 position, float damageRadius, DamageType damageType)
+        {
+            ships.Clear(); before.Clear(); hullBefore.Clear();
+            var own = Util.PlayerShip;
+            if (damageType != DamageType.Torpedo || own == null || appliedBy != own) return;
+            int n = Physics.OverlapSphereNonAlloc(position, damageRadius * 1.35f, buf, 1090049, QueryTriggerInteraction.Collide);
+            for (int i = 0; i < n && i < buf.Length; i++)
+            {
+                var e = buf[i] != null ? buf[i].GetComponentInParent<Entity>() : null;
+                if (e == null || ships.Contains(e)) continue;
+                ships.Add(e); before.Add(e.Health); hullBefore.Add(HullOf(e));
+            }
+        }
+
+        [HarmonyPriority(Priority.Last)]
+        private static void Postfix(Entity appliedBy, Vector3 position, float damageRadius, float damage, DamageType damageType)
+        {
+            var own = Util.PlayerShip;
+            if (damageType != DamageType.Torpedo || own == null || appliedBy != own) return;
+            if (ships.Count == 0) { Util.Log("Torpedo-Treffer: Explosion (Schaden " + damage.ToString("0") + ", Radius " + damageRadius.ToString("0.0") + " m), aber kein Schiff im Radius"); return; }
+            for (int i = 0; i < ships.Count; i++)
+            {
+                var e = ships[i]; if (e == null) continue;
+                string who = e == own ? "eigenes Boot" : (e.Country != null && own.Country != null ? e.Country.CountryCode + ", " + own.Country.GetRelationWith(e.Country) : "ohne Land");
+                float hb = hullBefore[i], ha = HullOf(e);
+                Util.Log("Torpedo-Treffer: " + e.Name + " (" + who + "), Abstand zur Explosion " + (e.transform.position - position).magnitude.ToString("0") + " m von Schiffsmitte, Schaden-Wert " + damage.ToString("0")
+                    + ", Zustand " + (before[i] * 100f).ToString("0") + " % -> " + (e.Health * 100f).ToString("0") + " %"
+                    + (hb >= 0f ? ", Rumpf " + (hb * 100f).ToString("0") + " % -> " + (ha * 100f).ToString("0") + " %" : ", ohne Rumpf-Daten"));
+            }
+            ships.Clear();
+        }
+    }
+}
