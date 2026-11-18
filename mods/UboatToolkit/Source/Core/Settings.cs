@@ -81,6 +81,8 @@ namespace UboatToolkit
             Num(QoL, "AntiGroundingMaxX", "  Zeitraffer dann begrenzen auf x (1 = ganz aus)", 60, 1, 1000, 1);
             Num(QoL, "AntiGroundingKm", "  nur warnen, wenn Land näher als (km)", 5, 0.5f, 50, 0.5f);
             Bool(QoL, "KeepHelm", "Steuerstand immer besetzt: freier Matrose geht hin (ohne Steuermann reagiert das Ruder nicht)", true);
+            Bool(QoL, "HelmCalm", "  Steuerstand wechselt nicht ständig den Platz (Zentrale/Turm), wenn das Angriffssehrohr besetzt wird", true);
+            Num(QoL, "HelmCalmSeconds", "    frühestens nach ... Sekunden wieder wechseln", 60f, 5f, 600f, 5f);
             Bool(QoL, "KeepDepthStation", "Tiefenruder immer besetzt: freier Matrose geht hin (#34)", true);
             Bool(QoL, "KeepNavTable", "Kartentisch immer besetzt (spart Diesel): freier Matrose geht hin (#35)", true);
             Num(QoL, "StationDelay", "  Sekunden leer, bevor jemand geschickt wird", 15, 0, 120, 5);
@@ -818,7 +820,7 @@ namespace UboatToolkit
             new[] { "Diesel, Strom & Luft", "CheatFull", "EnergySaver", "AirByCrew", "LowWarn", "Rebreather", "Ventilation" },
             new[] { "Luken", "AutoHatches", "HatchPressure", "FastHatch" },
             new[] { "Rumpf & Schaden", "CheatDeepDive", "CheatNoHull", "CheatHullArmour", "CheatRepair", "DamageReport" },
-            new[] { "Stationen besetzen", "AutoMan", "KeepHelm", "KeepDepthStation", "KeepNavTable", "SailorsNavTable", "AwashGuns", "EchoSailor" },
+            new[] { "Stationen besetzen", "AutoMan", "KeepHelm", "HelmCalm", "KeepDepthStation", "KeepNavTable", "SailorsNavTable", "AwashGuns", "EchoSailor" },
             new[] { "Offiziere", "Follower", "MaxFollowers", "Officer", "CheatExtraSkill", "CheatUnlimitedSkill", "CheatSkills", "CheatAllSkills", "CheatLinguist", "ExtraOfficers", "CheatSpecPoints" },
             new[] { "Crew-KI", "CrewAI", "CrewAi", "CrewLod", "NoCrewCollisions" },
             new[] { "Lager", "AutoWorkshop", "TightPack", "CheatNoSupply", "CheatNoWeight", "AutoExpandStorage", "CheatStack" },

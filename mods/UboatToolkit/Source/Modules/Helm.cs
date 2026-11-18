@@ -27,6 +27,7 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             if (!Util.ShipReady || ship.Rudders == null || ship.Rudders.Length == 0 || ship.Rudders[0] == null) return;
             var r = ship.Rudders[0];
+            HelmCalm_Patch.Tick();
             // 0.4.12: rudder out of order = nobody at the helm (game rule with expanded schedules)
             if (!r.IsFunctional && Settings.B("CheatRudderNoHelmsman")) { foreach (var x in ship.Rudders) if (x != null) x.IsFunctional = true; }
             if (UnityEngine.Time.unscaledTime >= nextHelmLine)
@@ -112,6 +113,76 @@ namespace UboatToolkit.Modules
             tries[__instance] = n + 1;
             __result = 30f;   // ask again in 30 s
             return false;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // 0.4.16 (measured 2026-11-18 on DoMe's boat: the helmsman comes and goes every ~12 s, "Path to target is invalid:
+    // Slot, Work, Helmsman Station on Conning Tower Interior"). The game has two helm places: control room and conning
+    // tower. HelmsmanStation.ValidateSlotsState moves the helm to the tower whenever somebody RESERVES the attack
+    // periscope (or the control room is flooded) and back when the reservation ends, switching the other place off.
+    // Every change throws the helmsman out; with expanded schedules the rudder is dead while he walks.
+    // Now the place changes at most every x seconds (flooding always switches at once), and every change is logged
+    // with the name of the man at the attack periscope.
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Items.HelmsmanStation), "ValidateSlotsState")]
+    internal static class HelmCalm_Patch
+    {
+        private static readonly AccessTools.FieldRef<UBOAT.Game.Scene.Items.HelmsmanStation, UBOAT.Game.Scene.Interactions.InteractableSlot> scope =
+            AccessTools.FieldRefAccess<UBOAT.Game.Scene.Items.HelmsmanStation, UBOAT.Game.Scene.Interactions.InteractableSlot>("attackPeriscopeInteractableSlot");
+        private static readonly AccessTools.FieldRef<UBOAT.Game.Scene.Items.HelmsmanStation, UBOAT.Game.Scene.Interactions.InteractableSlot[]> tower =
+            AccessTools.FieldRefAccess<UBOAT.Game.Scene.Items.HelmsmanStation, UBOAT.Game.Scene.Interactions.InteractableSlot[]>("conningTowerSlots");
+        private static readonly AccessTools.FieldRef<UBOAT.Game.Scene.Items.HelmsmanStation, UBOAT.Game.Scene.Interactions.InteractableSlot[]> room =
+            AccessTools.FieldRefAccess<UBOAT.Game.Scene.Items.HelmsmanStation, UBOAT.Game.Scene.Interactions.InteractableSlot[]>("controlRoomSlots");
+        private static readonly System.Reflection.MethodInfo validate = AccessTools.Method(typeof(UBOAT.Game.Scene.Items.HelmsmanStation), "ValidateSlotsState");
+
+        private static float lastSwitch = -999f, nextLine;
+        private static UBOAT.Game.Scene.Items.HelmsmanStation pending;
+        internal static int Switches, Held, Calls;
+        private static bool bypass;
+
+        private static bool Prefix(UBOAT.Game.Scene.Items.HelmsmanStation __instance)
+        {
+            Calls++;
+            if (bypass) return true;
+            try
+            {
+                var t = tower(__instance); var r = room(__instance); var s = scope(__instance);
+                if (t == null || r == null || t.Length == 0 || r.Length == 0 || t[0] == null) return true;
+                bool flooded = true;
+                for (int i = 0; i < r.Length; i++) if (r[i] != null && !r[i].IsBelowWater) { flooded = false; break; }
+                var who = s != null ? s.ReservingCharacter : null;
+                bool wantTower = flooded || who != null;
+                bool isTower = t[0].gameObject.activeSelf;
+                if (wantTower == isTower) return true;            // nothing changes, let the game tidy up
+                float now = UnityEngine.Time.unscaledTime;
+                float min = Settings.B("HelmCalm") ? Settings.F("HelmCalmSeconds") : 0f;
+                if (!flooded && now - lastSwitch < min) { Held++; pending = __instance; return false; }
+                lastSwitch = now; Switches++; pending = null;
+                if (Switches <= 60)
+                    Util.Log("Steuerstand: Platz wechselt in " + (wantTower ? "den Turm" : "die Zentrale") + ". Grund: " +
+                        (flooded ? "Zentrale unter Wasser" : who != null ? "Angriffssehrohr reserviert von " + who.name : "Angriffssehrohr wieder frei"));
+            }
+            catch (System.Exception e) { Util.Log("Steuerstand: Platz-Prüfung Fehler " + e.GetType().Name); }
+            return true;
+        }
+
+        // called once per second from Helm.Tick: carry out a change that was held back, and write the minute line
+        internal static void Tick()
+        {
+            float now = UnityEngine.Time.unscaledTime;
+            if (pending != null && now - lastSwitch >= (Settings.B("HelmCalm") ? Settings.F("HelmCalmSeconds") : 0f))
+            {
+                var p = pending; pending = null;
+                if (p) Util.Safe("Helm.Calm", () => { bypass = true; try { validate.Invoke(p, null); } finally { bypass = false; } lastSwitch = now; Switches++; });
+            }
+            if (now >= nextLine)
+            {
+                nextLine = now + 60f;
+                if (Calls > 0) Util.Log("Steuerstand: Platz geprüft " + Calls + " mal, gewechselt " + Switches + " mal, zurückgehalten " + Held + " mal (höchstens alle " + Settings.F("HelmCalmSeconds").ToString("0") + " s)");
+                Calls = 0; Switches = 0; Held = 0;
+            }
         }
     }
 }
