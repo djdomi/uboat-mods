@@ -30,13 +30,13 @@ namespace UboatToolkit.Modules
             }
             // log every change of the ordered depth (to trace "forced dives")
             float td = sub.TargetDepth;
-            if (float.IsNaN(lastTarget) || Mathf.Abs(td - lastTarget) > 1f) { if (!float.IsNaN(lastTarget)) Util.Log("Zieltiefe geändert: " + lastTarget.ToString("F0") + " -> " + td.ToString("F0") + " m (Preset " + sub.DepthPreset + ", Tiefe " + sub.Depth.ToString("F1") + ")"); lastTarget = td; }
+            if (float.IsNaN(lastTarget) || Mathf.Abs(td - lastTarget) > 1f) { if (!float.IsNaN(lastTarget)) Util.Log("Zieltiefe geändert: " + lastTarget.ToString("F0") + " -> " + td.ToString("F0") + " m (Preset " + sub.DepthPreset + ", Tiefe " + sub.DeckDepthUnclamped.ToString("F1") + ")"); lastTarget = td; }
             // log unwanted sinking: ordered depth at the surface but the boat is deeper than 8 m
-            if (td <= 5f && sub.Depth > 8f && Time.unscaledTime >= sinkLogAt)
+            if (td <= 5f && sub.DeckDepthUnclamped > 8f && Time.unscaledTime >= sinkLogAt)
             {
                 sinkLogAt = Time.unscaledTime + 30f;
                 var rb = sub.RigidBody;
-                Util.Log("Absinken: Tiefe " + sub.Depth.ToString("F1") + " m bei Zieltiefe " + td.ToString("F0") + ", Zeitraffer " + Time.timeScale.ToString("0.#") +
+                Util.Log("Absinken: Tiefe " + sub.DeckDepthUnclamped.ToString("F1") + " m bei Zieltiefe " + td.ToString("F0") + ", Zeitraffer " + Time.timeScale.ToString("0.#") +
                     ", Speed-Cheat " + sf.ToString("0.#") + ", Fahrt " + (rb != null ? (rb.velocity.magnitude * 1.944f).ToString("0.0") : "?") + " kn, Ruder-Ausgleich x" + (float.IsNaN(lastComp) ? 1f : lastComp).ToString("0.00") +
                     ", Neigung " + (rb != null ? Vector3.SignedAngle(Vector3.ProjectOnPlane(sub.transform.forward, Vector3.up), sub.transform.forward, sub.transform.right).ToString("0.0") : "?") + "°");
             }

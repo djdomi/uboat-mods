@@ -47,7 +47,7 @@ namespace UboatToolkit.Modules
                     last.Count++; last.Hull += e.Damage; last.Crew += e.CrewDamage; last.Time = Time.unscaledTime;
                     return;
                 }
-                string state = "Boot: " + (ship.Submerged ? Mathf.RoundToInt(ship.Depth) + " m tief" : "aufgetaucht") +
+                string state = "Boot: " + (ship.Submerged ? Mathf.RoundToInt(ship.DeckDepth) + " m tief" : "aufgetaucht") +
                                ", " + (ship.AverageVelocity * 1.943844f).ToString("0.0") + " kn";
                 var en = new Entry
                 {
@@ -96,7 +96,7 @@ namespace UboatToolkit.Modules
         {
             switch (e.DamageType)
             {
-                case DamageType.WaterPressure: return "Grund: zu tief für den Rumpf (" + Mathf.RoundToInt(ship.Depth) + " m).";
+                case DamageType.WaterPressure: return "Grund: zu tief für den Rumpf (" + Mathf.RoundToInt(ship.DeckDepth) + " m).";
                 case DamageType.Collision: return "Grund: Berührung mit " + (e.AppliedBy != null && e.AppliedBy != ship ? Clean(e.AppliedBy.name) : "Grund/Hindernis") + ".";
                 case DamageType.Fire: return "Grund: Brand in diesem Raum.";
                 case DamageType.Mine: return "Grund: in ein Minenfeld gefahren.";

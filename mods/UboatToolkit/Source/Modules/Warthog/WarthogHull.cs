@@ -83,7 +83,7 @@ namespace UboatToolkit.Modules.Warthog
                 float massK = Mathf.Clamp(ship.RigidBody.mass / 866000f, 1f, 4f);
                 float deck = Util.SafeGet(() => ship.DeckDepth, 0f);
                 float falloff = 0.2f + 0.8f * Mathf.Exp(Mathf.Min(0f, (deck - 12f) * -0.02f));
-                float err = Util.SafeGet(() => Mathf.Abs(ship.TargetDepth - ship.Depth), 100f);
+                float err = Util.SafeGet(() => Mathf.Abs(ship.TargetDepth - ship.DeckDepthUnclamped), 100f);
                 float near = Mathf.Clamp01((err - 8f) / 22f);   // 0 within 8 m of the ordered depth, 1 beyond 30 m
                 float s = Mathf.Lerp(1f, Mathf.Clamp(slider, 0.25f, 10f), near);
                 f = Mathf.Clamp(massK / falloff * s, 0.25f, 60f);
