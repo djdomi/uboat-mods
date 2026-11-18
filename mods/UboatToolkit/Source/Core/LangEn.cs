@@ -551,6 +551,7 @@ namespace UboatToolkit
             m["  Lange Lade-Bilder: mindestens 0,5 s laden pro Bild (Ladebild ruckelt, Laden deutlich kürzer)"] = "  Long loading frames: at least 0.5 s of loading per frame (loading screen stutters, loading much shorter)";
             m["  Steuerstand wechselt nicht ständig den Platz (Zentrale/Turm), wenn das Angriffssehrohr besetzt wird"] = "  Helm does not keep changing place (control room/tower) when the attack periscope gets manned";
             m["    frühestens nach ... Sekunden wieder wechseln"] = "    change again after ... seconds at the earliest";
+            m["  Findet ein Mann keinen Weg zu seinem Posten, wird er hingesetzt (statt aufzugeben)"] = "  If a man finds no way to his post he is set there (instead of giving up)";
             m["Ruder mittschiffs"] = "Rudder amidships";
             m["Kurs-Sperre (mit fein)"] = "Course lock (with fine)";
             m["Tiefer (mit fein/grob, beim Loslassen)"] = "Deeper (with fine/coarse, on release)";

@@ -44,7 +44,7 @@ namespace UboatToolkit.Modules
                 Util.Log("Crew-KI: " + (Seconds * 1000.0).ToString("0") + " ms pro Minute in " + Calls + " Aufrufen, " + Skipped + " übersprungen (schlafend, nicht sichtbar)");
             {
                 long t = CrewAi.OptCounters.GoToThrottled, n = CrewAi.OptCounters.GoToNeeded;
-                if (nextLog > 0f) Util.Log("Crew-Wege: " + PathInvalid + " mal \"Weg ungültig\" in der Minute; Weg-Wiederholungen: " + (t - lastThrottled) + " überflüssige geschluckt, " + (n - lastNeeded) + " nötige durchgelassen");
+                if (nextLog > 0f) Util.Log("Crew-Wege: " + PathInvalid + " mal \"Weg ungültig\" in der Minute; Weg-Wiederholungen: " + (t - lastThrottled) + " überflüssige geschluckt, " + (n - lastNeeded) + " nötige durchgelassen; " + CrewWarp_Patch.Warped + " Mann an den Platz gesetzt"); CrewWarp_Patch.Warped = 0;
                 lastThrottled = t; lastNeeded = n; PathInvalid = 0;
             }
             if (Held > 0) { Util.Log("Crew-KI: " + Held + " Aufrufe angehalten, weil das Boot noch lädt"); Held = 0; }
@@ -103,6 +103,44 @@ namespace UboatToolkit.Modules
         private static void Prefix(string text)
         {
             if (text != null && text.StartsWith("Path to target is invalid", System.StringComparison.Ordinal)) CrewAiThrottle.PathInvalid++;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // 0.4.18 (DoMe: "können wir ihn auch teleportieren?"). When the game gives a walking target up as unreachable it
+    // cancels the walk and the man's job with it. The game has a second mode for exactly this case (used in stories):
+    // set the man onto the target. For player crew with a job or an order and a real place as target (a slot at a
+    // station, a bunk ...) that mode is used now, so the post gets manned instead of staying empty.
+    [HarmonyPatch(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "Cancel")]
+    internal static class CrewWarp_Patch
+    {
+        private static readonly AccessTools.FieldRef<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable> mode =
+            AccessTools.FieldRefAccess<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable>("targetUnreachableAction");
+        private static readonly AccessTools.FieldRef<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, Transform> place =
+            AccessTools.FieldRefAccess<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, Transform>("loggingTarget");
+        private static readonly System.Reflection.FieldInfo navField = AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "navigator");
+        internal static int Warped;
+        private static int lines;
+
+        [HarmonyPriority(Priority.Last)]
+        private static void Prefix(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour __instance)
+        {
+            try
+            {
+                if (!Settings.B("CrewWarpNoPath") || __instance == null) return;
+                if (mode(__instance) != UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable.CancelBehaviour) return;
+                var t = place(__instance);
+                if (t == null) return;                                   // no real place (free walking): leave it to the game
+                var nav = navField != null ? navField.GetValue(__instance) as UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator : null;
+                var pc = nav != null ? nav.Character as PlayableCharacter : null;
+                if (pc == null || pc.Action == null) return;             // only our crew, only with a job or an order
+                mode(__instance) = UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable.Warp;
+                Warped++;
+                if (lines < 80) { lines++; Util.Log("Crew-Wege: " + pc.Name + " findet keinen Weg zu \"" + t.name + "\"" + (t.parent != null ? " (" + t.parent.name + ")" : "") + " und wird hingesetzt (Aufgabe " + pc.Action.GetType().Name + ")"); }
+            }
+            catch (System.Exception e) { if (lines < 80) { lines++; Util.Log("Crew-Wege: Hinsetzen Fehler " + e.GetType().Name); } }
         }
     }
 }

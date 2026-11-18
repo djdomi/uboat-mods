@@ -277,6 +277,7 @@ namespace UboatToolkit
             Num(QoL, "AutoVirtualMin", "  kleinster Simulations-Abstand bei sehr wenig FPS (1 = Spiel, 0.5 = halb)", 0.5f, 0.2f, 1f, 0.1f);
             Bool(QoL, "ExplosionLimit", "Explosions-Effekte begrenzen: kleiner + höchstens x pro Sekunde (Schaden bleibt gleich)", true);
             Num(QoL, "CrewAiSleepEvery", "Schlafende, nicht sichtbare Matrosen denken nur jedes x-te Bild (1 = Spiel, jedes Bild)", 3f, 1f, 10f, 1f);
+            Bool(QoL, "CrewWarpNoPath", "  Findet ein Mann keinen Weg zu seinem Posten, wird er hingesetzt (statt aufzugeben)", true);
             Bool(QoL, "CrewAiWaitLoad", "  Crew-KI wartet, bis das Boot fertig geladen ist (gegen Fehler beim Laden)", true);
             Num(QoL, "PhysicsHz", "Physik-Takt pro Sekunde (0 = Spielwert 60; 50 spart ein Sechstel Physik-Rechenzeit)", 50f, 0f, 75f, 5f);
             Bool(QoL, "WolfpackOncePerFrame", "Schiffsgruppen um das Boot nur einmal pro Bild suchen (Spiel: in jedem Physik-Schritt, also 2-3 mal pro Bild)", true);
