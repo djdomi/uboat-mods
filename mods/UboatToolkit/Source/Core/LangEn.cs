@@ -552,6 +552,8 @@ namespace UboatToolkit
             m["  Steuerstand wechselt nicht ständig den Platz (Zentrale/Turm), wenn das Angriffssehrohr besetzt wird"] = "  Helm does not keep changing place (control room/tower) when the attack periscope gets manned";
             m["    frühestens nach ... Sekunden wieder wechseln"] = "    change again after ... seconds at the earliest";
             m["  Findet ein Mann keinen Weg zu seinem Posten, wird er hingesetzt (statt aufzugeben)"] = "  If a man finds no way to his post he is set there (instead of giving up)";
+            m["Obergrenze Horchgerät, Sonar, Radar in km (mehr geht nie)"] = "Upper limit hydrophone, sonar, radar in km (never more)";
+            m["Obergrenze Sichtweite (Ausguck, Sehrohr) in km (mehr geht nie)"] = "Upper limit sight range (lookout, periscope) in km (never more)";
             m["Ruder mittschiffs"] = "Rudder amidships";
             m["Kurs-Sperre (mit fein)"] = "Course lock (with fine)";
             m["Tiefer (mit fein/grob, beim Loslassen)"] = "Deeper (with fine/coarse, on release)";

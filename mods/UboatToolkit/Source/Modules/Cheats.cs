@@ -21,6 +21,7 @@ namespace UboatToolkit.Modules
         private static bool sensorHooked;
         private static string hydroParts;
         // every part that goes into a range value: base parts (+) and factors (x), by name
+        private int capped;
         private static string Parts(Parameter p)
         {
             if (p == null) return "-";
@@ -57,6 +58,17 @@ namespace UboatToolkit.Modules
                 float m = mine ? Mathf.Max(0.05f, Settings.F(SensorKeys[kind])) : 1f;
                 Util.ScaleParameter(d.DetectionRange, m);
                 Util.ScaleParameter(d.GroupDetectionRange, m);
+                // 0.4.19 (DoMe: "limiter, nicht größer als 1000 km"): our factor is cut back so that the range of the
+                // player's sensor never exceeds the limit. Near range is in metres, far range in kilometres.
+                if (mine && m > 1f)
+                {
+                    float cap = Mathf.Max(10f, Settings.F(kind == 0 ? "CheatRangeMaxKmLookout" : "CheatRangeMaxKm"));
+                    Util.Safe("Sensor-Grenze", () =>
+                    {
+                        if (d.DetectionRange != null && d.DetectionRange.Value > cap * 1000f) { Util.ScaleParameter(d.DetectionRange, Mathf.Max(0.05f, m * cap * 1000f / d.DetectionRange.Value)); capped++; }
+                        if (d.GroupDetectionRange != null && d.GroupDetectionRange.Value > cap) { Util.ScaleParameter(d.GroupDetectionRange, Mathf.Max(0.05f, m * cap / d.GroupDetectionRange.Value)); capped++; }
+                    });
+                }
                 if (mine && sensorLog && d.DetectionRange != null)
                 {
                     float near = d.DetectionRange.Value / 1000f, far = d.GroupDetectionRange != null ? d.GroupDetectionRange.Value : 0f;
@@ -88,6 +100,8 @@ namespace UboatToolkit.Modules
                     nextSensorLine = Time.unscaledTime + 60f;
                     var sb = new System.Text.StringBuilder("Sensoren (nur eigenes Boot):");
                     for (int i = 0; i < SensorKeys.Length; i++) sb.Append(" ").Append(SensorKeys[i].Substring(10)).Append(" x").Append(Settings.F(SensorKeys[i]).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)).Append(" ").Append(sensorNow[i] ?? "(nicht an Bord)").Append(";");
+                    sb.Append(". Grenze Sicht ").Append(Settings.F("CheatRangeMaxKmLookout").ToString("0")).Append(" km, übrige ").Append(Settings.F("CheatRangeMaxKm").ToString("0")).Append(" km, ").Append(capped).Append(" mal gekürzt, doppelte Faktoren entfernt: ").Append(Util.DuplicatesRemoved);
+                    capped = 0;
                     Util.Log(sb.ToString());
                     if (hydroParts != null) { Util.Log(hydroParts); hydroParts = null; }
                 }

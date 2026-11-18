@@ -29,10 +29,10 @@ namespace UboatToolkit.Modules.Warthog
                 var t = Traverse.Create(h);
                 // 360°: the arc check uses |angle| <= arc, so 190° with fade covers every direction
                 var arc = t.Field("hydrophoneDetectionArc").GetValue<Parameter>();
-                if (arc != null) { var m = arc.GetScaleModifier("Warthog 360", true); float baseArc = arc.GetValueExcludingModifier("Warthog 360"); m.Value = passive && baseArc > 1f ? Mathf.Max(1f, 190f / baseArc) : 1f; }
+                if (arc != null) { var m = Util.OneScale(arc, "Warthog 360"); float baseArc = arc.GetValueExcludingModifier("Warthog 360"); m.Value = passive && baseArc > 1f ? Mathf.Max(1f, 190f / baseArc) : 1f; }
                 // range slider
-                h.DetectionRange.GetScaleModifier("Warthog Range", true).Value = passive ? Settings.F("WhPassiveRange") : 1f;
-                h.GroupDetectionRange.GetScaleModifier("Warthog Range", true).Value = passive ? Settings.F("WhPassiveRange") : 1f;
+                Util.OneScale(h.DetectionRange, "Warthog Range").Value = passive ? Settings.F("WhPassiveRange") : 1f;
+                Util.OneScale(h.GroupDetectionRange, "Warthog Range").Value = passive ? Settings.F("WhPassiveRange") : 1f;
                 // surfaced / fast = as good as submerged / slow: done where the game sets these values (HydroSame in SensorCheats.cs)
                 // always on: no operator needed
                 if (passive && !h.enabled) h.SetDisableFlag(DeviceDisableFlag.Unmanned, false);

@@ -259,7 +259,38 @@ namespace UboatToolkit
         public static void ScaleParameter(Parameter p, float factor)
         {
             if (p == null) return;
-            p.GetScaleModifier(ModifierName, true).Value = factor <= 0f ? 1f : factor;
+            OneScale(p, ModifierName).Value = factor <= 0f ? 1f : factor;
+        }
+
+        // 0.4.19 (measured 2026-11-18: "xUboatToolkit=5 xUboatToolkit=5 xToolkit Horcher=2 xToolkit Horcher=2" on the
+        // hydrophone = 5063 km instead of 506). The game stores a parameter's factors in the savegame. After loading,
+        // the stored factor is still there and ours was added a second time. This returns exactly ONE factor with
+        // that name (compared by text) and removes every further one.
+        internal static int DuplicatesRemoved;
+        public static Modifier OneScale(Parameter p, string name)
+        {
+            var list = p.ScaleModifiers; Modifier keep = null; int extra = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var m = list[i];
+                if (m == null || m.Name != name) continue;
+                if (keep == null) keep = m; else extra++;
+            }
+            if (extra > 0)
+            {
+                for (int i = list.Count - 1; i >= 0; i--) { var m = list[i]; if (m != null && m != keep && m.Name == name) list.RemoveAt(i); }
+                DuplicatesRemoved += extra;
+                float v = keep.Value; keep.Value = v == 1f ? 1.0001f : 1f; keep.Value = v;   // makes the game recompute the value
+                Log("Doppelter Faktor entfernt: \"" + name + "\" stand " + (extra + 1) + " mal an " + (p.Name ?? "?") + " (aus dem Spielstand), jetzt 1 mal");
+            }
+            return keep ?? p.AddScaleModifier(name);
+        }
+        public static void DropScale(Parameter p, string name)
+        {
+            if (p == null) return;
+            var list = p.ScaleModifiers; bool any = false;
+            for (int i = list.Count - 1; i >= 0; i--) { var m = list[i]; if (m != null && m.Name == name) { if (!any) { any = true; m.Value = 1f; } list.RemoveAt(i); } }
+            if (any) { var t = p.AddScaleModifier("Toolkit tmp"); t.Value = 1f; p.RemoveScaleModifiers("Toolkit tmp"); }
         }
 
         // Remembers the original value of a private field per object, so a feature can be switched off again.

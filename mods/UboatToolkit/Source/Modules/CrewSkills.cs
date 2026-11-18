@@ -43,18 +43,20 @@ namespace UboatToolkit.Modules
             HydrophoneManned = manned;
 
             bool want = manned && hydro != null && pct > 0f;
+            // 0.4.19: a bonus stored in the savegame stays on the hydrophone after loading although nobody listens
+            if (!want && hydro != null && boosted.Count == 0) { Util.DropScale(hydro.DetectionRange, ModName); Util.DropScale(hydro.GroupDetectionRange, ModName); }
             // Drop the bonus when nobody listens, the setting changed or the hydrophone is another one.
             if (boosted.Count > 0 && (!want || pct != lastRange || !boosted.Contains(hydro)))
             {
                 foreach (var h in boosted)
-                    if (h != null) { h.DetectionRange.RemoveScaleModifiers(ModName); h.GroupDetectionRange.RemoveScaleModifiers(ModName); }
+                    if (h != null) { Util.DropScale(h.DetectionRange, ModName); Util.DropScale(h.GroupDetectionRange, ModName); }
                 boosted.Clear();
             }
             if (want && boosted.Count == 0)
             {
                 float f = 1f + pct / 100f;
-                hydro.DetectionRange.AddScaleModifier(ModName).Value = f;
-                hydro.GroupDetectionRange.AddScaleModifier(ModName).Value = f;
+                Util.OneScale(hydro.DetectionRange, ModName).Value = f;
+                Util.OneScale(hydro.GroupDetectionRange, ModName).Value = f;
                 boosted.Add(hydro);
                 lastRange = pct;
                 if (Settings.B("CrewSkillLog")) Util.Log("Horcher: Reichweite x" + f.ToString("0.00") + " (Horcher besetzt)");
