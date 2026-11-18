@@ -9214,9 +9214,17 @@ namespace UboatToolkit.Modules
             if (lastCheatCount >= 0 && n > lastCheatCount && Settings.B("BackupBeforeCheats")
                 && Time.unscaledTime - lastBackup > 600f && Game.CanSave() && !PortWindowOpen())
             {
+                // 0.4.43 (log 2026-11-18: save by hand 14:33:01, our backup 14:33:44): no second savegame when the game was
+                // saved within the last 5 minutes, that save already is the state before the cheat.
                 lastBackup = Time.unscaledTime;
-                Game.Saves.Save("UboatToolkit_Backup");
-                ToolkitRunner.ShowNotice("Backup gespeichert (UboatToolkit_Backup), Cheat ist an.");
+                if (AutoSaveClock.LastSave > 0f && Time.unscaledTime - AutoSaveClock.LastSave < 300f)
+                    Util.Log("Sicherung vor Cheat: ausgelassen, vor " + (Time.unscaledTime - AutoSaveClock.LastSave).ToString("0") + " s wurde schon gespeichert (" + AutoSaveClock.LastName + ")");
+                else
+                {
+                    Util.Log("Sicherung vor Cheat: Grund = ein Cheat wurde eingeschaltet (" + lastCheatCount + " -> " + n + " aktive Cheats)");
+                    Game.Saves.Save("UboatToolkit_Backup");
+                    ToolkitRunner.ShowNotice("Backup gespeichert (UboatToolkit_Backup), Cheat ist an.");
+                }
             }
             lastCheatCount = n;
         }
