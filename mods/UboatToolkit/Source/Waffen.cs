@@ -2150,3 +2150,120 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+// ====================================================================================================
+// Abschnitt: Schützen verteilen ihre Ziele (0.4.61)
+// ====================================================================================================
+// DoMe 2026-11-18: "die KI schützen sind dumm wie brot, die beschießen alle das gleiche ziel". The game's
+// Gun.FindBestTarget returns the first fitting contact of the boat's observation list, so every gun gets the
+// same one. Own guns only: a gun keeps the game's choice unless another fitting contact of the same kind
+// (ship / aircraft) has fewer of our manned guns on it. The player's own target (TargetOverride) always wins.
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+
+    [HarmonyPatch(typeof(Gun), "FindBestTarget")]
+    internal static class GunSpread_Patch
+    {
+        private static readonly AccessTools.FieldRef<Gun, Entity> Auto = AccessTools.FieldRefAccess<Gun, Entity>("autoTarget");
+        private static readonly AccessTools.FieldRef<Gun, Observator> Obs = AccessTools.FieldRefAccess<Gun, Observator>("parentObservator");
+        private static readonly System.Reflection.FieldInfo InterF = AccessTools.Field(typeof(Gun), "interactable");
+        private static readonly List<Entity> cand = new List<Entity>();
+        private static float nextLog;
+        private static int changes;
+
+        private static bool Manned(Gun g)
+        {
+            try
+            {
+                var i = InterF != null ? InterF.GetValue(g) : null;
+                if (i == null) return false;
+                var c = Traverse.Create(i).Property("InteractingCharacters").GetValue() as System.Collections.ICollection;
+                return c != null && c.Count > 0;
+            }
+            catch { return false; }
+        }
+
+        private static int Load(Gun self, Gun[] guns, Entity e)
+        {
+            int n = 0;
+            for (int i = 0; i < guns.Length; i++)
+            {
+                var g = guns[i];
+                if (g == null || g == self || !g.isActiveAndEnabled) continue;
+                var t = g.TargetingMode == ArtilleryTargetingMode.Custom ? g.TargetOverride : Auto(g);
+                if (t == e && Manned(g)) n++;
+            }
+            return n;
+        }
+
+        [HarmonyPriority(Priority.Last)]
+        private static void Postfix(Gun __instance, bool ships, bool allowAircraft, ref Entity __result)
+        {
+            if (__result == null || !Settings.B("GunSpreadTargets") || !Util.IsPlayers(__instance)) return;
+            if (__result == __instance.TargetOverride) return;
+            // both kinds at once: the two inner searches (one kind each) were already spread
+            if (ships && allowAircraft && Settings.B("AAGunBothTargets")) return;
+            try
+            {
+                var obs = Obs(__instance);
+                var guns = obs != null ? obs.Guns : null;
+                if (guns == null || guns.Length < 2) return;
+                int bestLoad = Load(__instance, guns, __result);
+                if (bestLoad == 0) return;                       // nobody else shoots at it
+                bool air = __result is Aircraft;
+                Vector3 pos = __instance.transform.position;
+                float maxAir = Settings.B("AASaveAmmo") ? Settings.F("AAEngageKm") * 1000f : float.MaxValue;
+                var list = obs.GetObservationsDirect();
+                var own = obs.SandboxEntity != null ? obs.SandboxEntity.FalseFlagCountry : null;
+                if (own == null) return;
+                cand.Clear();
+                for (int i = list.Count - 1; i >= 0; i--)
+                {
+                    var o = list[i];
+                    if (o == null || !o.IsInitialized) continue;
+                    var e = o.Entity;
+                    if (e == null || e == __result || e is Torpedo || (e is Aircraft) != air || e.Health <= 0f) continue;
+                    if (e.SandboxEntity == null || own.GetRelationWith(e.SandboxEntity.PerceivedCountry) != Country.Relation.Enemy) continue;
+                    if (!o.IsObservedVia(DirectObservationType.Visual)) continue;
+                    if (!(e.DeckDepth < 4f || (e.DeckDepth < 12f && (!(e is ISubmarine) || !e.SubmergedOrGoingToSubmerge)))) continue;
+                    if (e.Blueprint == null || e.Blueprint.Type == null || !e.Blueprint.Type.IsValidAutoAttackTarget) continue;
+                    if (air && Vector3.Distance(pos, e.transform.position) > maxAir) continue;
+                    cand.Add(e);
+                }
+                if (cand.Count == 0) return;
+                // the gun's present target stays when it is no worse (no hopping between targets)
+                var cur = Auto(__instance);
+                Entity pick = null; float pickDist = float.MaxValue;
+                for (int i = 0; i < cand.Count; i++)
+                {
+                    var e = cand[i];
+                    int l = Load(__instance, guns, e);
+                    float d = (e.transform.position - pos).sqrMagnitude;
+                    if (e == cur) d = -1f;
+                    if (l < bestLoad || (pick != null && l == bestLoad && d < pickDist))
+                    {
+                        if (!__instance.HasLOS(pos, e)) continue;
+                        bestLoad = l; pick = e; pickDist = d;
+                    }
+                }
+                if (pick == null) return;
+                if (pick != cur) changes++;
+                __result = pick;
+                if (Time.unscaledTime > nextLog)
+                {
+                    nextLog = Time.unscaledTime + 60f;
+                    var seen = new HashSet<Entity>(); int manned = 0;
+                    foreach (var g in guns) { if (g == null || !Manned(g)) continue; manned++; var t = g == __instance ? pick : Auto(g); if (t != null) seen.Add(t); }
+                    Util.Log("Schützen verteilt: " + manned + " besetzte Geschütze auf " + seen.Count + " verschiedene Ziele, " + changes + " Zielwechsel in dieser Sitzung");
+                }
+            }
+            catch (System.Exception ex) { if (Time.unscaledTime > nextLog) { nextLog = Time.unscaledTime + 60f; Util.Log("Schützen verteilen: Fehler " + ex.GetType().Name + " " + ex.Message); } }
+        }
+    }
+}
