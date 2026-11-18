@@ -4903,10 +4903,16 @@ namespace UboatToolkit.Modules
                 Util.Safe("Save.Unseen", () => Unseen(Settings.B("SaveUnseenEffects")));
                 Util.Safe("Save.MeshGpu", () => MeshGpu(Settings.B("SaveMeshParticlesGpu")));
                 Util.Safe("Save.FarSpray", () => Spray(Settings.B("SaveFarSpray")));
+                Util.Safe("Save.Markers", () => Markers(Settings.B("SaveMarkersOwnCanvas")));
             }
             if (now >= nextLog)
             {
                 nextLog = now + 60f;
+                if (Settings.B("SaveMarkersOwnCanvas") || Settings.B("SaveWedgesCalm"))
+                {
+                    Util.Log("Sparen: Kontakt-Markierungen mit eigener Zeichenfläche " + markerCanvas.Count + "; Kontakt-Keile neu gebaut " + UboatToolkit.Patches.WedgeCalm_Patch.Ran + " mal, übersprungen " + UboatToolkit.Patches.WedgeCalm_Patch.Skipped + " mal in der letzten Minute");
+                    UboatToolkit.Patches.WedgeCalm_Patch.Ran = 0; UboatToolkit.Patches.WedgeCalm_Patch.Skipped = 0;
+                }
                 if (Settings.B("SaveMapEffects") || Settings.B("SaveMapShadows") || Settings.B("SaveMapDetail") || Settings.B("SaveUnseenEffects") || Settings.B("SaveMeshParticlesGpu") || Settings.B("SaveFarSpray"))
                     Util.Log("Sparen: reine Karte " + mapSeconds.ToString("0") + " s in der letzten Minute; angehaltene Effekte auf der Karte " + nMapPaused + (mapPaused ? " (jetzt)" : "")
                         + ", Schatten auf der Karte " + (mapShadow ? "aus" : "normal") + ", Detail auf der Karte " + (mapLod ? "niedrig" : "normal")
@@ -4996,6 +5002,39 @@ namespace UboatToolkit.Modules
             }
         }
 
+        // Every contact marker gets its own small drawing surface. Moving one marker then no longer makes the processor
+        // rebuild the picture of ALL markers; the graphics card just draws each small surface again.
+        private readonly List<Component> markerCanvas = new List<Component>();
+        private readonly HashSet<GameObject> markerDone = new HashSet<GameObject>();
+        private static readonly System.Reflection.FieldInfo Rep3d = AccessTools.Field(typeof(UBOAT.Game.UI.Map.EntityMarkerUI), "representation3d");
+        private void Markers(bool on)
+        {
+            if (!on)
+            {
+                if (markerCanvas.Count == 0) return;
+                for (int i = markerCanvas.Count - 1; i >= 0; i--) if (markerCanvas[i] != null) Object.Destroy(markerCanvas[i]);   // raycasters were added last, so they go first
+                Util.Log("Sparen: eigene Zeichenflächen der Kontakt-Markierungen entfernt (" + markerCanvas.Count + " Teile)");
+                markerCanvas.Clear(); markerDone.Clear();
+                return;
+            }
+            foreach (var m in Object.FindObjectsOfType<UBOAT.Game.UI.Map.EntityMarkerUI>())
+            {
+                if (m == null) continue;
+                Own(m.gameObject);
+                var r = Rep3d != null ? Rep3d.GetValue(m) as RectTransform : null;
+                if (r != null) Own(r.gameObject);
+            }
+            markerCanvas.RemoveAll(x => x == null); markerDone.RemoveWhere(x => x == null);
+        }
+        private void Own(GameObject go)
+        {
+            if (go == null || !markerDone.Add(go) || go.GetComponent<Canvas>() != null) return;
+            var parent = go.transform.parent != null ? go.transform.parent.GetComponentInParent<Canvas>() : null;
+            if (parent == null) return;
+            markerCanvas.Add(go.AddComponent<Canvas>());
+            if (parent.GetComponent<UnityEngine.UI.GraphicRaycaster>() != null) markerCanvas.Add(go.AddComponent<UnityEngine.UI.GraphicRaycaster>());   // keeps hover and click
+        }
+
         // spray control and bow wave of ships farther than 2 km (or everything while only the map is shown) rest
         private void Spray(bool on)
         {
@@ -5019,6 +5058,54 @@ namespace UboatToolkit.Modules
                 else if (!far && !b.enabled && sprayOff.Contains(b)) { b.enabled = true; sprayOff.Remove(b); }
             }
             sprayOff.RemoveWhere(x => x == null); nSpray = sprayOff.Count;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/WedgeCalm.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::System.Runtime.CompilerServices;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.UI;
+    using global::UBOAT.Game.Scene.Camera;
+
+    // 0.4.53: the game rebuilds every contact wedge (the pink bearing fans) in every picture, also when nothing moved.
+    // With the switch on, a wedge that stands still is rebuilt 4 times per second only; as soon as it moves again or the
+    // camera height changes, it is rebuilt in every picture as before. Picture only.
+    [HarmonyPatch(typeof(DynamicContactVisualizationUI), "LateUpdate")]
+    internal static class WedgeCalm_Patch
+    {
+        private class State { public bool Still; public float At, CamY; }
+        private static readonly ConditionalWeakTable<DynamicContactVisualizationUI, State> states = new ConditionalWeakTable<DynamicContactVisualizationUI, State>();
+        public static int Ran, Skipped;
+
+        private static bool Prefix(DynamicContactVisualizationUI __instance, float ___displayedBearing, float ___displayedDistance, float ___displayedSpreadAngle, ref float ___displayTime, out Vector3 __state)
+        {
+            __state = new Vector3(___displayedBearing, ___displayedDistance, ___displayedSpreadAngle);
+            if (!Settings.B("SaveWedgesCalm")) return true;
+            var st = states.GetOrCreateValue(__instance);
+            var cam = MainCamera.Instance; float y = cam != null ? cam.transform.position.y : 0f;
+            if (st.Still && ___displayTime > 3f && Time.unscaledTime - st.At < 0.25f && Mathf.Abs(y - st.CamY) <= 0.005f * Mathf.Max(1f, Mathf.Abs(st.CamY)))
+            {
+                ___displayTime += Time.unscaledDeltaTime; Skipped++;
+                __state.x = float.NaN;
+                return false;
+            }
+            return true;
+        }
+
+        private static void Postfix(DynamicContactVisualizationUI __instance, float ___displayedBearing, float ___displayedDistance, float ___displayedSpreadAngle, Vector3 __state)
+        {
+            if (float.IsNaN(__state.x) || !Settings.B("SaveWedgesCalm")) return;
+            Ran++;
+            var st = states.GetOrCreateValue(__instance);
+            var cam = MainCamera.Instance;
+            st.Still = Mathf.Abs(Mathf.DeltaAngle(___displayedBearing, __state.x)) < 0.01f && Mathf.Abs(___displayedDistance - __state.y) < 0.002f * Mathf.Max(1f, __state.y) && Mathf.Abs(___displayedSpreadAngle - __state.z) < 0.0001f;
+            st.At = Time.unscaledTime; st.CamY = cam != null ? cam.transform.position.y : 0f;
         }
     }
 }

@@ -2374,6 +2374,8 @@ namespace UboatToolkit
             Bool(QoL, "SaveMapDetail", "Sparen: reine Kartenansicht zeichnet alles in niedriger Detailstufe", false);
             Bool(QoL, "SaveUnseenEffects", "Sparen: Rauch, Feuer und Gischt außerhalb des Bildes anhalten (qualmt erst wieder, wenn du hinsiehst)", false);
             Bool(QoL, "SaveFarSpray", "Sparen: Gischt und Bugwelle nur bei Schiffen näher als 2 km (Schornstein-Rauch bleibt)", false);
+            Bool(QoL, "SaveMarkersOwnCanvas", "Grafikkarte: jede Kontakt-Markierung bekommt eine eigene Zeichenfläche (Prozessor baut nicht mehr alle neu, wenn sich eine bewegt)", false);
+            Bool(QoL, "SaveWedgesCalm", "Sparen: Kontakt-Keile nur neu bauen, wenn sie sich bewegen", false);
             Bool(QoL, "SaveMeshParticlesGpu", "Grafikkarte: Trümmer-Partikel aus 3D-Modellen gesammelt zeichnen", false);
             Bool(QoL, "AwashGuns", "Vorgeflutet: Turmluke bleibt offen, Crew darf an Deck (#24)", true);
             Num(QoL, "RadioSpeed", "Funk: so viel schneller senden (1 = normal) (#11)", 10, 1, 100, 1);
