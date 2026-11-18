@@ -2712,7 +2712,11 @@ namespace UboatToolkit.Modules
             if (want <= 0f) { Util.DropDelta(c.OfficersOnBoardLimit, "Toolkit Officers"); officerMod = null; return; }
             officerMod = Util.OneDelta(c.OfficersOnBoardLimit, "Toolkit Officers");
             if (officerMod.Value != want) officerMod.Value = want;
+            // 0.4.41 (DoMe: "ich kann plötzlich nur noch 19 offiziere mitnehmen"): the sum is written out whenever it changes
+            float total = c.OfficersOnBoardLimit.Value;
+            if (total != officerShown) { officerShown = total; Util.Log("Offiziere an Bord: Spiel " + (total - want).ToString("0") + " + Toolkit " + want.ToString("0") + " = " + total.ToString("0") + " erlaubt (Regler geht bis +60)"); }
         }
+        private float officerShown = -1f;
 
         // More sailors allowed on board. "Volle Crew" recruits up to FullCrewSize men, but the game
         // only lets 20 sailors aboard a Type VII. With "SailorsFollowFullCrew" on, the sailor limit is
