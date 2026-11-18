@@ -4846,3 +4846,179 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+// ====================================================================================================
+// Abschnitt: Modules/ViewSavings.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Camera;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene;
+    using global::DWS.Common.InjectionFramework;
+
+    // 0.4.52 (DoMe 2026-11-18: "sachen die man aktuell nicht sieht braucht man ja nicht berechnen ... kartenmodus").
+    // Picture only: nothing here changes what a ship does, sees or hits. One switch = one effect, all off by default,
+    // everything is put back when the switch goes off or the map closes. One log line per minute with the counts.
+    public class ViewSavings : ModuleBase
+    {
+        private const float PureMapHeight = 800f;   // same height the game uses for "map only" (free camera lock)
+        private const float FarSpray = 2000f;        // the game's own border between detail steps Low and VeryLow
+
+        private float nextFast, nextScan, nextLog;
+        private bool mapPaused, mapShadow, mapLod;
+        private readonly List<ParticleSystem> paused = new List<ParticleSystem>();
+        private readonly Dictionary<ParticleSystem, ParticleSystemCullingMode> cull = new Dictionary<ParticleSystem, ParticleSystemCullingMode>();
+        private readonly HashSet<ParticleSystemRenderer> inst = new HashSet<ParticleSystemRenderer>();
+        private readonly HashSet<Behaviour> sprayOff = new HashSet<Behaviour>();
+        private MapCameraController mapCam; private UserSettings user;
+        private static readonly System.Reflection.FieldInfo ShadowField = AccessTools.Field(typeof(MapCameraController), "shadowDistance");
+        private static readonly System.Type BowType = AccessTools.TypeByName("PlayWay.Water.ShipBowWavesEmitter");
+        private int nMapPaused, nCull, nInst, nSpray; private float mapSeconds;
+
+        private static bool PureMap()
+        {
+            var cam = MainCamera.Instance;
+            return cam != null && cam.CurrentMode == CameraMode.Map && cam.transform.position.y > PureMapHeight;
+        }
+
+        public override void Tick()
+        {
+            float now = Time.unscaledTime;
+            if (now < nextFast) return;
+            float step = now - (nextFast - 0.5f); nextFast = now + 0.5f;
+            if (Util.PlayerShip == null) return;
+            bool map = PureMap();
+            if (map) mapSeconds += Mathf.Clamp(step, 0f, 2f);
+            Util.Safe("Save.MapEffects", () => MapEffects(map && Settings.B("SaveMapEffects"), now));
+            Util.Safe("Save.MapShadows", () => MapShadows(map && Settings.B("SaveMapShadows")));
+            Util.Safe("Save.MapDetail", () => MapDetail(map && Settings.B("SaveMapDetail")));
+            if (now >= nextScan)
+            {
+                nextScan = now + 10f;
+                Util.Safe("Save.Unseen", () => Unseen(Settings.B("SaveUnseenEffects")));
+                Util.Safe("Save.MeshGpu", () => MeshGpu(Settings.B("SaveMeshParticlesGpu")));
+                Util.Safe("Save.FarSpray", () => Spray(Settings.B("SaveFarSpray")));
+            }
+            if (now >= nextLog)
+            {
+                nextLog = now + 60f;
+                if (Settings.B("SaveMapEffects") || Settings.B("SaveMapShadows") || Settings.B("SaveMapDetail") || Settings.B("SaveUnseenEffects") || Settings.B("SaveMeshParticlesGpu") || Settings.B("SaveFarSpray"))
+                    Util.Log("Sparen: reine Karte " + mapSeconds.ToString("0") + " s in der letzten Minute; angehaltene Effekte auf der Karte " + nMapPaused + (mapPaused ? " (jetzt)" : "")
+                        + ", Schatten auf der Karte " + (mapShadow ? "aus" : "normal") + ", Detail auf der Karte " + (mapLod ? "niedrig" : "normal")
+                        + "; Effekte mit Anhalten außerhalb des Bildes " + nCull + "; Trümmer-Partikel gesammelt gezeichnet " + nInst + "; Gischt/Bugwelle ferner Schiffe aus " + nSpray);
+                mapSeconds = 0f;
+            }
+        }
+
+        // map only: every running smoke/fire/spray effect waits and goes on exactly where it stopped
+        private float nextMapScan;
+        private void MapEffects(bool on, float now)
+        {
+            if (on)
+            {
+                if (mapPaused && now < nextMapScan) return;
+                nextMapScan = now + 5f; mapPaused = true;
+                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
+                {
+                    if (p == null || !p.isPlaying || p.isPaused) continue;
+                    p.Pause(false); paused.Add(p);
+                }
+                nMapPaused = paused.Count;
+            }
+            else if (mapPaused)
+            {
+                mapPaused = false; int back = 0;
+                foreach (var p in paused) if (p != null && p.isPaused) { p.Play(false); back++; }
+                Util.Log("Sparen: Karte verlassen, " + back + " von " + paused.Count + " angehaltenen Effekten laufen weiter");
+                paused.Clear();
+            }
+        }
+
+        private void MapShadows(bool on)
+        {
+            if (on == mapShadow || ShadowField == null) return;
+            if (mapCam == null && MainCamera.Instance != null) mapCam = AccessTools.Field(typeof(MainCamera), "mapController").GetValue(MainCamera.Instance) as MapCameraController;
+            if (mapCam == null) return;
+            ShadowField.SetValue(mapCam, on ? 1f : 900f); mapShadow = on;
+            Util.Log("Sparen: Schatten in der reinen Kartenansicht " + (on ? "aus (Reichweite 1 m)" : "wieder wie im Spiel (900 m)"));
+        }
+
+        private void MapDetail(bool on)
+        {
+            if (on == mapLod) return;
+            if (user == null) user = ScriptableObjectSingleton.LoadSingleton<UserSettings>();
+            if (user == null) return;
+            if (on) user.OverrideLODBias(0.15f); else user.ResetLODBias();
+            mapLod = on;
+            Util.Log("Sparen: Detailstufe in der reinen Kartenansicht " + (on ? "niedrig (0,15)" : "wieder wie eingestellt (" + QualitySettings.lodBias.ToString("0.00") + ")"));
+        }
+
+        // 3D view: an effect outside the picture waits ("qualmt erst wieder, wenn du hinsiehst")
+        private void Unseen(bool on)
+        {
+            if (on)
+            {
+                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
+                {
+                    if (p == null || cull.ContainsKey(p)) continue;
+                    var m = p.main; cull[p] = m.cullingMode;
+                    if (m.cullingMode != ParticleSystemCullingMode.Pause) m.cullingMode = ParticleSystemCullingMode.Pause;
+                }
+                if (cull.Count > 4000) { var dead = new List<ParticleSystem>(); foreach (var k in cull.Keys) if (k == null) dead.Add(k); foreach (var k in dead) cull.Remove(k); }
+                nCull = cull.Count;
+            }
+            else if (cull.Count > 0)
+            {
+                foreach (var kv in cull) if (kv.Key != null) { var m = kv.Key.main; m.cullingMode = kv.Value; }
+                Util.Log("Sparen: Anhalten außerhalb des Bildes aus, " + cull.Count + " Effekte wieder wie im Spiel");
+                cull.Clear(); nCull = 0;
+            }
+        }
+
+        // debris made of 3D models: the graphics card draws all pieces of one effect in one go
+        private void MeshGpu(bool on)
+        {
+            if (on)
+            {
+                foreach (var r in Object.FindObjectsOfType<ParticleSystemRenderer>())
+                    if (r != null && r.renderMode == ParticleSystemRenderMode.Mesh && !r.enableGPUInstancing) { r.enableGPUInstancing = true; inst.Add(r); }
+                inst.RemoveWhere(x => x == null); nInst = inst.Count;
+            }
+            else if (inst.Count > 0)
+            {
+                foreach (var r in inst) if (r != null) r.enableGPUInstancing = false;
+                inst.Clear(); nInst = 0;
+            }
+        }
+
+        // spray control and bow wave of ships farther than 2 km (or everything while only the map is shown) rest
+        private void Spray(bool on)
+        {
+            if (!on)
+            {
+                if (sprayOff.Count > 0) { foreach (var b in sprayOff) if (b != null) b.enabled = true; sprayOff.Clear(); nSpray = 0; }
+                return;
+            }
+            var cam = MainCamera.Instance; if (cam == null) return;
+            Vector3 c = cam.transform.position; bool map = PureMap();
+            var own = Util.PlayerShip != null ? Util.PlayerShip.transform : null;
+            var list = new List<Behaviour>();
+            foreach (var s in Object.FindObjectsOfType<ShipEffectsController>()) list.Add(s);
+            if (BowType != null) foreach (var o in Object.FindObjectsOfType(BowType)) { var b = o as Behaviour; if (b != null) list.Add(b); }
+            foreach (var b in sprayOff) if (b != null && !b.enabled) list.Add(b);
+            foreach (var b in list)
+            {
+                if (b == null || (own != null && b.transform.IsChildOf(own))) continue;
+                bool far = map || (b.transform.position - c).sqrMagnitude > FarSpray * FarSpray;
+                if (far && b.enabled) { b.enabled = false; sprayOff.Add(b); }
+                else if (!far && !b.enabled && sprayOff.Contains(b)) { b.enabled = true; sprayOff.Remove(b); }
+            }
+            sprayOff.RemoveWhere(x => x == null); nSpray = sprayOff.Count;
+        }
+    }
+}

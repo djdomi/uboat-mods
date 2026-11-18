@@ -2369,6 +2369,12 @@ namespace UboatToolkit
         {
             // ---------- QoL ----------
             Bool(QoL, "GameOnly", "NUR SPIEL-VERHALTEN: alle Automatiken des Toolkits aus (Cheats, Anzeigen und Fehler-Fixe bleiben). Zum Vergleichen, ob ein Fehler vom Toolkit kommt", false);
+            Bool(QoL, "SaveMapEffects", "Sparen: reine Kartenansicht hält Rauch, Feuer und Gischt aller Schiffe an (laufen weiter, wenn du die Karte verlässt)", false);
+            Bool(QoL, "SaveMapShadows", "Sparen: reine Kartenansicht rechnet keine Schatten", false);
+            Bool(QoL, "SaveMapDetail", "Sparen: reine Kartenansicht zeichnet alles in niedriger Detailstufe", false);
+            Bool(QoL, "SaveUnseenEffects", "Sparen: Rauch, Feuer und Gischt außerhalb des Bildes anhalten (qualmt erst wieder, wenn du hinsiehst)", false);
+            Bool(QoL, "SaveFarSpray", "Sparen: Gischt und Bugwelle nur bei Schiffen näher als 2 km (Schornstein-Rauch bleibt)", false);
+            Bool(QoL, "SaveMeshParticlesGpu", "Grafikkarte: Trümmer-Partikel aus 3D-Modellen gesammelt zeichnen", false);
             Bool(QoL, "AwashGuns", "Vorgeflutet: Turmluke bleibt offen, Crew darf an Deck (#24)", true);
             Num(QoL, "RadioSpeed", "Funk: so viel schneller senden (1 = normal) (#11)", 10, 1, 100, 1);
             Bool(QoL, "RadioUndetectable", "Funk: Gegner kann dich nicht anpeilen (#12)", true);
@@ -3623,6 +3629,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.DiveButtonsCopy());
             Modules.Add(new Modules.AwashTrim());
             Modules.Add(new Modules.GpuAudit());
+            Modules.Add(new Modules.ViewSavings());
             Modules.Add(new Modules.CrewGear());
             Modules.Add(new Modules.Medical());
             Modules.Add(new Modules.Repairs());
