@@ -3622,6 +3622,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.MissionTargetInfo());
             Modules.Add(new Modules.DiveButtonsCopy());
             Modules.Add(new Modules.AwashTrim());
+            Modules.Add(new Modules.GpuAudit());
             Modules.Add(new Modules.CrewGear());
             Modules.Add(new Modules.Medical());
             Modules.Add(new Modules.Repairs());

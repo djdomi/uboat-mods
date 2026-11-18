@@ -4766,3 +4766,69 @@ namespace UboatToolkit.Modules
         }
     }
 }
+
+// ====================================================================================================
+// Abschnitt: Modules/GpuAudit.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::UnityEngine;
+
+    // 0.4.50 (DoMe 2026-11-18: "vollinvestigation was man alles auf die GPU auslagern kann"). Read-only count of what the
+    // processor prepares for drawing, every 5 minutes, so that each later step has a number before and after.
+    public class GpuAudit : ModuleBase
+    {
+        private float next = 60f;
+        public override void Tick()
+        {
+            if (Time.unscaledTime < next || Util.PlayerShip == null) return;
+            next = Time.unscaledTime + 300f;
+            Util.Safe("GpuAudit", () =>
+            {
+                double t0 = Time.realtimeSinceStartupAsDouble;
+                var mats = new HashSet<Material>(); var meshes = new Dictionary<Mesh, int>();
+                int rend = 0, visible = 0, noInst = 0, rendNoInst = 0, repeat = 0, repeatNoInst = 0;
+                foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
+                {
+                    if (r == null || !r.enabled) continue;
+                    rend++; if (r.isVisible) visible++;
+                    var m = r.sharedMaterial; bool inst = m != null && m.enableInstancing;
+                    if (m != null && mats.Add(m) && !inst) noInst++;
+                    if (!inst) rendNoInst++;
+                    var f = r.GetComponent<MeshFilter>(); var mesh = f != null ? f.sharedMesh : null;
+                    if (mesh == null) continue;
+                    int c; meshes.TryGetValue(mesh, out c); meshes[mesh] = c + 1;
+                    if (c >= 1) { repeat++; if (!inst) repeatNoInst++; }
+                }
+                int skin = 0, skinVisible = 0, bones = 0;
+                foreach (var s in Object.FindObjectsOfType<SkinnedMeshRenderer>())
+                {
+                    if (s == null || !s.enabled) continue;
+                    skin++; if (s.isVisible) { skinVisible++; bones += s.bones != null ? s.bones.Length : 0; }
+                }
+                int ps = 0, playing = 0, alive = 0, meshMode = 0, meshNoInst = 0;
+                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
+                {
+                    if (p == null) continue;
+                    ps++; if (p.isPlaying) playing++; alive += p.particleCount;
+                    var pr = p.GetComponent<ParticleSystemRenderer>();
+                    if (pr != null && pr.renderMode == ParticleSystemRenderMode.Mesh) { meshMode++; if (!pr.enableGPUInstancing) meshNoInst++; }
+                }
+                int canvases = 0, graphics = 0;
+                foreach (var c in Object.FindObjectsOfType<Canvas>()) if (c != null && c.isActiveAndEnabled) canvases++;
+                foreach (var g in Object.FindObjectsOfType<UnityEngine.UI.Graphic>()) if (g != null && g.isActiveAndEnabled) graphics++;
+                int markers = Object.FindObjectsOfType<UBOAT.Game.UI.Map.EntityMarkerUI>().Length;
+                int ships = Object.FindObjectsOfType<UBOAT.Game.Scene.Entities.Ship>().Length;
+                double ms = (Time.realtimeSinceStartupAsDouble - t0) * 1000.0;
+                Util.Log("Zeichnen (Zählung, nur lesen): Schiffe " + ships + "; Teile " + rend + " (im Bild " + visible + "), davon ohne Gruppen-Zeichnen " + rendNoInst
+                    + "; gleiche Teile mehrfach " + repeat + ", davon ohne Gruppen-Zeichnen " + repeatNoInst + "; Materialien " + mats.Count + ", ohne Gruppen-Zeichnen " + noInst
+                    + "; Figuren-Modelle " + skin + " (im Bild " + skinVisible + ", Knochen " + bones + "); Partikel-Systeme " + ps + " (laufen " + playing + ", Partikel " + alive
+                    + ", aus 3D-Modellen " + meshMode + ", davon ohne Gruppen-Zeichnen " + meshNoInst + "); Oberfläche: Flächen " + canvases + ", Elemente " + graphics
+                    + ", Kontakt-Markierungen " + markers + "; Grafikkarte: " + SystemInfo.graphicsDeviceType + ", Gruppen-Zeichnen möglich " + SystemInfo.supportsInstancing
+                    + ", Rechen-Shader " + SystemInfo.supportsComputeShaders + ", Zeichnen auf mehreren Kernen " + SystemInfo.graphicsMultiThreaded + " (" + SystemInfo.renderingThreadingMode + ")"
+                    + ", Prozessor-Kerne " + SystemInfo.processorCount + "; Zählung dauerte " + ms.ToString("0") + " ms");
+            });
+        }
+    }
+}
