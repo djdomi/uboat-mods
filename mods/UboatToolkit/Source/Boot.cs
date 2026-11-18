@@ -110,10 +110,19 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(PlayerShip), nameof(PlayerShip.ShouldExteriorHatchBeClosed), MethodType.Getter)]
     internal static class AwashGuns_HatchPatch
     {
+        private static float nextNote;
         private static void Postfix(PlayerShip __instance, ref bool __result)
         {
             if (!Settings.B("AwashGuns") || !__result) return;
             if (__instance.DepthPreset != DepthPreset.DeckAwash) return;
+            // 0.4.46 (DoMe: "glaubst du nicht, dass hier Optionen gegeneinander wirken?"): with "Vorfluten bis zur
+            // Zieltiefe" the deck really goes under water. Rank: water safety first. The hatch stays open only while the
+            // deck is at most 1 m under water; deeper than that the game's own rule (hatch closed) holds again.
+            if (__instance.DeckDepthUnclamped > 1f)
+            {
+                if (UnityEngine.Time.unscaledTime > nextNote) { nextNote = UnityEngine.Time.unscaledTime + 60f; Util.Log("Vorgeflutet: Deck " + __instance.DeckDepthUnclamped.ToString("0.0") + " m unter Wasser, Turmluke bleibt zu (Sicherheit geht vor Deck-Zugang)"); }
+                return;
+            }
 
             // Re-check the weather part of the original rule; only the "deck awash" reason is removed.
             var weather = Traverse.Create(typeof(PlayerShip)).Field("weather").GetValue<Weather>();
