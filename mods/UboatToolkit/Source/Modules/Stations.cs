@@ -221,7 +221,7 @@ namespace UboatToolkit.Modules
             act.GetActionInfos(infos, h, ActionContext.Normal, true);
             foreach (var i in infos)
                 if (i.ActionTemplate != null && i.State == ActionState.Enabled &&
-                    (i.ActionTemplate is BasicWorkAction || i.ActionTemplate is UseNavigationTableAction ||
+                    (i.ActionTemplate is BasicWorkAction || i.ActionTemplate is WorkAtHelmsmanStation || i.ActionTemplate is UseNavigationTableAction ||
                      i.ActionTemplate is UseGun || i.ActionTemplate is ManageEnginesAction ||
                      i.ActionTemplate is HydrophoneUseAction || i.ActionTemplate is SailorRadioUsageAction))
                     return i.ActionTemplate;
