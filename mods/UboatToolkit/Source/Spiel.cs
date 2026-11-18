@@ -6783,6 +6783,35 @@ namespace UboatToolkit.Modules
         // per frame were spent OUTSIDE the loop (drawing the loading screen, waiting for the graphics card) while the
         // reader thread stood still). Fewer, longer frames: at least 500 ms of loading per frame.
         internal static bool Long => Settings.B("FastLoadLongFrames");
+
+        // true once the game's reader thread really reads the save (SavesManager.isActivelyDeserializing); before that it
+        // waits for the boat and port scenes, which only advance with drawn frames.
+        private static object readOwner; private static System.Reflection.FieldInfo readField; private static object readMgr;
+        private static long readSince; private static int sceneFrames;
+        internal static bool Reading()
+        {
+            try
+            {
+                var a = active;
+                if (a == null) return true;
+                if (!ReferenceEquals(readOwner, a))
+                {
+                    readOwner = a; readSince = 0; sceneFrames = 0;
+                    var f = AccessTools.Field(a.GetType(), "<>4__this");
+                    readMgr = f == null ? null : f.GetValue(a);
+                    readField = AccessTools.Field(typeof(SavesManager), "isActivelyDeserializing");
+                }
+                if (readMgr == null || readField == null) return true;
+                bool r = (bool)readField.GetValue(readMgr);
+                if (r && readSince == 0)
+                {
+                    readSince = LoadClock.Now();
+                    Util.Log("Laden: Szenen (Boot, Hafen) fertig nach " + LoadClock.Seconds(readSince - loadStart).ToString("0.0", CultureInfo.InvariantCulture) + " s und " + frames + " Bildern, davon " + SaveTools_IdlePatch.SceneIdle() + " s gewartet. Jetzt wird der Spielstand gelesen.");
+                }
+                return r;
+            }
+            catch { return true; }
+        }
         internal static float BudgetMs() => Mathf.Max(Mathf.Clamp(Settings.F("FastLoadBudgetMs"), 16f, 1000f), Long ? 500f : 0f);
 
         public static int MaxActions() => !On ? VanillaActions : Long ? 1000000 : Mathf.Clamp(Mathf.RoundToInt(Settings.F("FastLoadMaxActions")), 500, 1000000);
@@ -6878,6 +6907,8 @@ namespace UboatToolkit.Modules
             if (ok) served++; else timedOut++;
             long w = LoadClock.Now() - start;
             idleFrame += w; idleLoad += w;
+            // 0.4.34: time waited in a row without a single job (reset by every job)
+            if (ok) emptyRun = 0; else { emptyRun += w; if (!SaveTools_LoadSpeedPatch.Reading()) idleScene += w; }
             return ok;
         }
 
@@ -6886,17 +6917,29 @@ namespace UboatToolkit.Modules
             // 0.3.71: measured 2026-11-16: the loader thread ran at only 25-53 % of a core. It needs the main thread for
             // many small jobs and stands still while the main thread is away drawing the frame. With the old 16 ms the
             // main thread left after 16 ms of waiting in 2551 of 2800 frames. Now it stays ("FastLoadIdleMs", default 100).
-            double idleMs = Mathf.Max(Mathf.Clamp(Settings.F("FastLoadIdleMs"), 2f, 1000f), SaveTools_LoadSpeedPatch.Long ? 500f : 0f);
-            if (!installed || idleFrame < (long)(idleMs * LoadClock.Frequency / 1000.0)) return false;
+            // 0.4.34 (DoMe 2026-11-18: loading takes minutes; log 14:02: 124.9 s, of that 69.8 s waited on an empty queue,
+            // the boat interior scene alone took 28.8 s). Cause: before the save is read, the game loads the boat and port
+            // scenes. Unity finishes such a scene only step by step, one step per drawn frame. In that phase the reader
+            // thread gives no jobs, and the "long frames" option kept every frame waiting 500 ms on the empty queue = 2 frames
+            // per second, so the scenes crawled. Now:
+            //  - while scenes load (reader not yet reading the save): leave the frame at the first empty wait;
+            //  - while the save is read: leave when nothing came for "FastLoadIdleMs" IN A ROW (before: 500 ms in total).
+            if (!installed) return false;
+            bool reading = SaveTools_LoadSpeedPatch.Reading();
+            double runMs = reading ? Mathf.Clamp(Settings.F("FastLoadIdleMs"), 2f, 1000f) : 1.0;
+            double totalMs = Mathf.Max(Mathf.Clamp(Settings.F("FastLoadIdleMs"), 2f, 1000f), SaveTools_LoadSpeedPatch.Long ? 500f : 0f);
+            if (emptyRun < (long)(runMs * LoadClock.Frequency / 1000.0) && idleFrame < (long)(totalMs * LoadClock.Frequency / 1000.0)) return false;
             if (!yielded) { yielded = true; framesYielded++; }
             return true;
         }
 
-        public static void BeginFrame() { idleFrame = 0; yielded = false; }
-        public static void ResetLoad() { framesYielded = 0; idleLoad = 0; served = 0; timedOut = 0; BeginFrame(); }
+        private static long emptyRun, idleScene;
+        public static void BeginFrame() { idleFrame = 0; emptyRun = 0; yielded = false; }
+        public static void ResetLoad() { framesYielded = 0; idleLoad = 0; idleScene = 0; served = 0; timedOut = 0; BeginFrame(); }
+        internal static string SceneIdle() => LoadClock.Seconds(idleScene).ToString("0.0", CultureInfo.InvariantCulture);
 
         public static string Summarise(int frames) => !installed ? "" :
-            " Gewartet " + LoadClock.Seconds(idleLoad).ToString("0.0", CultureInfo.InvariantCulture) + " s auf leere Warteschlange; " + framesYielded + " von " + frames + " Bildern früher beendet (Grenze " + Settings.F("FastLoadIdleMs").ToString("0") + " ms); Warten endete " + served + "x mit Auftrag, " + timedOut + "x leer.";
+            " Gewartet " + LoadClock.Seconds(idleLoad).ToString("0.0", CultureInfo.InvariantCulture) + " s auf leere Warteschlange; " + framesYielded + " von " + frames + " Bildern früher beendet (Grenze " + Settings.F("FastLoadIdleMs").ToString("0") + " ms); Warten endete " + served + "x mit Auftrag, " + timedOut + "x leer; vom Warten " + SceneIdle() + " s während Boot- und Hafen-Szene luden.";
     }
 
     // The loader's worker thread may only queue 40 jobs for the main thread, then it stops and waits.
