@@ -4600,6 +4600,7 @@ namespace UboatToolkit.Modules
     public class DiveButtonsCopy : ModuleBase
     {
         private static readonly string[] Fields = { "depthSurfaceToggle", "depthDeckAwashToggle", "depthPeriscopeToggle", "depthHullCrushToggle", "depthHydrophoneCheckToggle", "depthScheduleToggle" };
+        private static readonly UBOAT.Game.Scene.Entities.DepthPreset[] Presets = { UBOAT.Game.Scene.Entities.DepthPreset.Surface, UBOAT.Game.Scene.Entities.DepthPreset.DeckAwash, UBOAT.Game.Scene.Entities.DepthPreset.Periscope, UBOAT.Game.Scene.Entities.DepthPreset.MaxSafeDepth, UBOAT.Game.Scene.Entities.DepthPreset.HydrophoneCheck, UBOAT.Game.Scene.Entities.DepthPreset.None };
         private GameObject root; private readonly Toggle[] orig = new Toggle[6]; private readonly RectTransform[] mine = new RectTransform[6];
         private readonly GameObject[] mark = new GameObject[6];
         private Transform depthC, teleC; private float next; private bool failed; private string lastPos = "";
@@ -4625,7 +4626,10 @@ namespace UboatToolkit.Modules
             {
                 if (mine[i] == null || orig[i] == null) continue;
                 mine[i].position = teleC.TransformPoint(depthC.InverseTransformPoint(orig[i].transform.position) + add);
-                if (mark[i] != null && mark[i].activeSelf != orig[i].isOn) mark[i].SetActive(orig[i].isOn);
+                // the ring shows the boat's real order, not the game toggle (which is only kept current while the depth meter is open)
+                var sh = Util.PlayerShip;
+                bool lit = sh != null && (i == 5 ? sh.FollowDiveSchedule : (!sh.FollowDiveSchedule && sh.DepthPreset == Presets[i]));
+                if (mark[i] != null && mark[i].activeSelf != lit) mark[i].SetActive(lit);
             }
             if (frame != null && bar != null) frame.position = teleC.TransformPoint(depthC.InverseTransformPoint(bar.position) + add);
             Vector3 o = depthC.InverseTransformPoint(orig[0].transform.position) + add;
@@ -4700,8 +4704,20 @@ namespace UboatToolkit.Modules
                         b.onClick.AddListener(() =>
                         {
                             if (orig[k] == null) return;
-                            orig[k].isOn = !orig[k].isOn;
-                            Util.Log("Tauchknöpfe: Kopie gedrückt, Spielknopf " + Fields[k] + " = " + (orig[k].isOn ? "an" : "aus") + " (nur eigenes Boot)");
+                            // 0.4.47 (DoMe: "seit dem ... sind diese wirkungslos"): 0.4.37 switched the game's toggle. While the
+                            // depth meter is closed its toggle group does not switch the other toggles off, so two were on and
+                            // the game took the old one (it asks them in a fixed order) -> no effect. Now the order goes
+                            // straight to the boat, exactly what the game's own button handler does (ShipControlUI.OnDepthToggle),
+                            // and the game sets its own toggles from the boat afterwards.
+                            var ship = Util.PlayerShip; if (ship == null) return;
+                            bool wasOn = k == 5 ? ship.FollowDiveSchedule : (!ship.FollowDiveSchedule && ship.DepthPreset == Presets[k]);
+                            if (k == 5) ship.FollowDiveSchedule = !wasOn;
+                            else
+                            {
+                                ship.FollowDiveSchedule = false;
+                                Owners.Preset(ship, "Tauchknopf am Fahrtregler (du)", Owners.Player, wasOn ? UBOAT.Game.Scene.Entities.DepthPreset.None : Presets[k], false);
+                            }
+                            Util.Log("Tauchknöpfe: Kopie gedrückt, " + Fields[k] + " -> Befehl ans Boot: " + (k == 5 ? "Tauchplan " + (ship.FollowDiveSchedule ? "an" : "aus") : ship.DepthPreset.ToString()) + ", Zieltiefe " + ship.TargetDepth.ToString("0.0") + " m (nur eigenes Boot)");
                         });
                         first = false;
                     }
@@ -4713,6 +4729,40 @@ namespace UboatToolkit.Modules
             int rings = 0; for (int i = 0; i < 6; i++) if (mark[i] != null) rings++;
             Util.Log("Tauchknöpfe: Rahmen übernommen: " + (frames > 0 ? "ja" : "nein") + ", Mauszeiger-Effekt übernommen: ja (Art " + orig[0].transition + "), Ring für aktiven Knopf übernommen: " + rings + " von 6");
             Util.Log("Tauchknöpfe: 6 eigene Knöpfe am Fahrtregler gebaut (" + pics + " Bilder der Spielknöpfe, " + frames + " Bilder vom Rahmen der Leiste übernommen). Wirkt nur auf die Anzeige des eigenen Boots.");
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Karten-Markierung ohne Schiff (0.4.47)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Game log 2026-11-18: "Error in execution queue method EntityMarkersManager.DoLateUpdate: NullReferenceException at
+    // EntityMarkerUI.UpdateMarker", 10 to 12 times a minute, and each one opened the developer console for a moment
+    // (DoMe: "ploppt dauerhaft kurz die debug console auf"). A ship marker on the map/screen pointed at a ship that no
+    // longer exists. The marker is hidden instead; when its ship is back the game shows it again. Player display only.
+    [HarmonyPatch(typeof(UBOAT.Game.UI.Map.EntityMarkerUI), "UpdateMarker")]
+    internal static class EntityMarkerGuard_Patch
+    {
+        private static int caught; private static float nextLog;
+        private static System.Exception Finalizer(System.Exception __exception, UBOAT.Game.UI.Map.EntityMarkerUI __instance)
+        {
+            if (__exception == null) return null;
+            if (!(__exception is System.NullReferenceException) && !(__exception is MissingReferenceException)) return __exception;
+            caught++;
+            string name = "?";
+            try { if (__instance != null) { name = __instance.name; __instance.gameObject.SetActive(false); } } catch { }
+            if (Time.unscaledTime > nextLog)
+            {
+                nextLog = Time.unscaledTime + 60f;
+                string where = __exception.StackTrace ?? ""; int n = where.IndexOf('\n'); if (n > 0) where = where.Substring(0, n);
+                Util.Log("Karten-Markierung: " + caught + " mal zeigte eine Markierung auf ein Schiff, das es nicht mehr gibt (zuletzt " + name + "). Markierung ausgeblendet, kein Fehler mehr im Spiel-Log. Stelle: " + where.Trim());
+            }
+            return null;
         }
     }
 }
