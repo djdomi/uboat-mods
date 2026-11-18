@@ -5291,3 +5291,55 @@ namespace UboatToolkit.Patches
     [HarmonyPatch(typeof(Observator), nameof(Observator.HasSoundLOS))]
     internal static class DetectionRayS_Patch { private static void Prefix() { DetectionCount_Patch.Rays++; } }
 }
+
+// ====================================================================================================
+// Abschnitt: Patches/MissingTypeGuard.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // 0.4.58 (DoMe 2026-11-18 19:23: "die debug konsole dreht durch"). After a quick travel to a port the game asked in
+    // every picture for an entity type named "Port 03B" (that is a port MODEL name, no such type exists) and wrote an
+    // error each time: about 430 errors per minute, each one opening the developer console. The question is answered
+    // exactly as before ("no such type"); only the repeated error line is left out. The first time the caller is logged.
+    [HarmonyPatch]
+    internal static class MissingTypeGuard_Patch
+    {
+        private static readonly Dictionary<string, int> missing = new Dictionary<string, int>();
+        private static float nextLog; private static int skipped;
+        private static System.Reflection.MethodBase target;
+        private static bool Prepare()
+        {
+            target = AccessTools.Method(typeof(UBOAT.Game.Sandbox.EntityTypesDatabase), "GetEntityType", new[] { typeof(string) });
+            return target != null;
+        }
+        private static System.Reflection.MethodBase TargetMethod() => target;
+
+        private static bool Prefix(string name, ref UBOAT.Game.Scene.Entities.EntityType __result)
+        {
+            int n;
+            if (name == null || !missing.TryGetValue(name, out n)) return true;
+            missing[name] = n + 1; skipped++;
+            __result = null;
+            if (Time.unscaledTime >= nextLog)
+            {
+                nextLog = Time.unscaledTime + 60f;
+                Util.Log("Fehlender Typ: " + skipped + " wiederholte Fehlermeldungen des Spiels in der letzten Minute ausgelassen (" + name + " bisher " + (n + 1) + " mal gefragt)");
+                skipped = 0;
+            }
+            return false;
+        }
+
+        private static void Postfix(string name, UBOAT.Game.Scene.Entities.EntityType __result)
+        {
+            if (__result != null || name == null || missing.ContainsKey(name)) return;
+            missing[name] = 1;
+            string who = "";
+            try { var lines = System.Environment.StackTrace.Split('\n'); int shown = 0; for (int i = 0; i < lines.Length && shown < 5; i++) { var l = lines[i].Trim(); if (l.Contains("MissingTypeGuard") || l.Contains("Environment") || l.Contains("GetEntityType")) continue; who += " | " + l; shown++; } } catch { }
+            Util.Log("Fehlender Typ: das Spiel fragt nach \"" + name + "\", den es in den Daten nicht gibt. Erste Meldung bleibt, Wiederholungen werden ausgelassen. Gefragt von:" + who);
+        }
+    }
+}
