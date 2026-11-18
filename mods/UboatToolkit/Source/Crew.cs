@@ -8775,7 +8775,26 @@ namespace UboatToolkit.Modules
             // 0.4.10 (DoMe 2026-11-17: boat floods suddenly): on an alarm dive the deck is still dry for some seconds; in that
             // time men were sent to the guns although the boat was already diving. With men on deck the game does not lock
             // the tower hatch, so the boat dived with an open hatch and filled within seconds. Never while diving.
-            bool guns = ship.DeckDepth < 1f && !ship.SubmergedOrGoingToSubmerge && (((Settings.B("AutoManGuns") || Settings.B("AutoManFlak")) && ship.Alarmed) || Time.unscaledTime < UnderFire.ManGunsUntil);
+            // 0.4.48 (DoMe: depth buttons "wirkungslos"; log 17:14:53 order 10.5 m, 90 s later ballast tanks 2-7 still empty,
+            // 11 men on deck): the game opens the flood valves only when the tower hatch is closed and locked
+            // (FloodBallastTanksAction), and our gun automation kept men outside, so the dive never started.
+            // Rank: YOUR dive order beats every gun automation. Men this part sent to a gun are called off at once.
+            bool diveOrder = ship.TargetDepth > 0.5f;
+            if (diveOrder && ship.DeckDepth < 3f && Time.unscaledTime > nextDiveCall)
+            {
+                nextDiveCall = Time.unscaledTime + 2f;
+                UnderFire.ManGunsUntil = 0f;
+                int called = 0;
+                foreach (var h in crew.Characters)
+                {
+                    if (h == null) continue;
+                    var a = h.Action;
+                    if (a == null || a.Activator == null || !(a.Activator.AssociatedEquipment is Gun)) continue;
+                    h.StopCurrentAction(true); called++;
+                }
+                if (called > 0) Util.Log("Tauchbefehl hat Vorrang (Zieltiefe " + ship.TargetDepth.ToString("0.0") + " m): " + called + " Mann von den Geschützen abgezogen, damit die Turmluke schließt und die Tauchzellen fluten");
+            }
+            bool guns = !diveOrder && ship.DeckDepth < 1f && !ship.SubmergedOrGoingToSubmerge && (((Settings.B("AutoManGuns") || Settings.B("AutoManFlak")) && ship.Alarmed) || Time.unscaledTime < UnderFire.ManGunsUntil);
             bool gunsAll = Time.unscaledTime < UnderFire.ManGunsUntil;
             Util.Safe("Luken-Sicherung", () => HatchSafety(ship));
             bool engines = Settings.B("AutoManEngines") && !ship.Docked;
@@ -8826,7 +8845,7 @@ namespace UboatToolkit.Modules
                 hadMax = max > 0f || auto;
             }
         }
-        private bool hadMax; private int headO = -1, headS = -1;
+        private bool hadMax; private int headO = -1, headS = -1; private float nextDiveCall;
         private float lastPing = -9999f, lastPingReal = -9999f;
 
         // Sends the nearest free sailor to do one action at this activator (for one-off jobs).

@@ -1092,7 +1092,8 @@ namespace UboatToolkit.Modules
             if (pilotOn != lastPilotOn)
             {
                 lastPilotOn = pilotOn;
-                ToolkitRunner.ShowNotice("Bodenabstand-Autopilot " + (pilotOn ? "AN (Strg+B schaltet aus)" : "AUS"), 4f);
+                var keyOpt = Settings.Get("KeyAutoDepth"); string keyName = keyOpt != null && !string.IsNullOrEmpty(keyOpt.Text) ? keyOpt.Text : "Menü";
+                ToolkitRunner.ShowNotice("Bodenabstand-Autopilot " + (pilotOn ? "AN (" + keyName + " schaltet aus)" : "AUS"), 6f);
                 Util.Log("Bodenabstand-Autopilot " + (pilotOn ? "an" : "aus"));
             }
             // 0.4.22 (option audit): "Aufsetzen" switched silent running on and never off again.
@@ -1142,12 +1143,17 @@ namespace UboatToolkit.Modules
             {
                 // 0.3.57 (DoMe: boat scrapes the ground): in shallow water never force "min depth" into the sea floor;
                 // go as deep as the water allows, at most up to the surface.
-                target = Mathf.Max(0f, target);
+                // 0.4.48 (DoMe 2026-11-18 17:17: autopilot ordered 0 m in the middle of an alarm dive and blew the tanks):
+                // the autopilot never orders the boat to the surface. Too shallow = warning only, your order stays.
                 if (now - lastWarn > 30f)
                 {
                     lastWarn = now;
                     Game.StopTimeCompression("Zu flach für den Bodenabstand! Grund bei " + bed.ToString("F0") + " m");
+                    ToolkitRunner.ShowNotice("Zu flach: Grund bei " + bed.ToString("F0") + " m. Der Autopilot taucht NICHT auf, dein Tiefenbefehl gilt.", 6f);
+                    Util.Log("Bodenabstand: zu flach (Grund " + bed.ToString("F1") + " m, sicher wären " + target.ToString("F1") + " m, kleinste Tiefe " + minD.ToString("F0") + " m). Der Autopilot greift nicht ein und taucht nicht auf; Zieltiefe bleibt " + ship.TargetDepth.ToString("F1") + " m");
                 }
+                pilotText = "Autopilot: zu flach (Grund " + bed.ToString("F0") + " m), dein Tiefenbefehl gilt";
+                return;
             }
             // 0.4.29 (contradiction audit: the autopilot overwrote every other depth order every 0.5 s - game buttons,
             // periscope/snorkel depth, crash dive). Now: a depth order that is not from the autopilot, or a chosen depth
@@ -3615,6 +3621,40 @@ namespace UboatToolkit.Modules
                 nextLog = Time.unscaledTime + 30f;
                 Util.Log("Vorfluten (nur eigenes Boot): Deck " + deck.ToString("0.00") + " m, Ziel " + ship.TargetDepth.ToString("0.00") + " m, nachgeflutet " + Total().ToString("0.0") + " m³ in " + added.Count + " Tauchzellen");
             }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/GameDepthOrders.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.UI;
+
+    // 0.4.48: the game's own depth buttons and depth meter count as YOUR order (rank 3). Before, only Toolkit keys did,
+    // so the automatic parts did not know that you had just ordered a depth with the game's buttons.
+    [HarmonyPatch(typeof(ShipControlUI), "OnDepthToggle")]
+    internal static class GameDepthButton_Patch
+    {
+        private static void Postfix(bool selected)
+        {
+            var ship = Util.PlayerShip;
+            if (!selected || ship == null) return;
+            Owners.Claim("Tiefen-Knopf des Spiels (du)", Owners.Player, "Tiefe " + ship.DepthPreset);
+        }
+    }
+
+    [HarmonyPatch(typeof(ShipControlUI), "UpdateDepthMeter")]
+    internal static class GameDepthMeter_Patch
+    {
+        private static void Prefix(out float __state) { var s = Util.PlayerShip; __state = s != null ? s.TargetDepth : -1f; }
+        private static void Postfix(float __state)
+        {
+            var s = Util.PlayerShip;
+            if (s == null || __state < 0f || UnityEngine.Mathf.Abs(s.TargetDepth - __state) < 0.25f) return;
+            Owners.Claim("Tiefenmesser des Spiels (du)", Owners.Player, "Zieltiefe " + s.TargetDepth.ToString("0.0") + " m");
         }
     }
 }

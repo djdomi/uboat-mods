@@ -1638,6 +1638,10 @@ namespace UboatToolkit
             return true;
         }
 
+        // 0.4.48: orders given with the game's own depth buttons and depth meter are registered too, so that no
+        // automatic part overrules them for the next 20 s and the log shows who decides.
+        public static void Claim(string who, int rank, string what) { Allow(who, rank, what); }
+
         // Ordered depth in metres (deck line, like the game's depth meter). Returns false when overruled.
         public static bool Depth(PlayerShip ship, string who, int rank, float depth, bool silent, bool allowAlarm)
         {
@@ -2482,7 +2486,7 @@ namespace UboatToolkit
             Bool(QoL, "AutoDepth", "Bodenabstand-Autopilot: hält Abstand zum Meeresgrund", false);
             Num(QoL, "AutoDepthClearance", "  Wasser unter dem Kiel (m, mindestens 5 gegen Physik-Hänger)", 10, 5, 50, 0.5f);
             Num(QoL, "AutoDepthLookAhead", "  Voraus schauen (m)", 400, 0, 2000, 50);
-            Num(QoL, "AutoDepthMin", "  Nie flacher als (m); ist das Wasser zu flach, geht das Boot so tief wie möglich und warnt", 12, 0, 50, 1);
+            Num(QoL, "AutoDepthMin", "  Nie flacher als (m); ist das Wasser zu flach, warnt er nur und taucht nie von selbst auf", 12, 0, 50, 1);
             Num(QoL, "AutoDepthMax", "  Nie tiefer als (m)", 300, 20, 5000, 10);
             Bool(QoL, "AutoDepthBottom", "  Aufsetzen: sanft auf den Grund legen", false);
             Bool(QoL, "AutoDepthBottomSilent", "  Aufsetzen: dabei Schleichfahrt einschalten", false);
