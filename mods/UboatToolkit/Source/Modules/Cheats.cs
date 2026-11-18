@@ -117,8 +117,8 @@ namespace UboatToolkit.Modules
             bool und = Settings.B("CheatUndetectable");
             Util.Safe("Undetectable.Noise", () =>
             {
-                ship.HydrophoneDetectability.GetScaleModifier(Util.ModifierName, true).Value = und ? 0f : 1f;
-                ship.SandboxEntity.SignatureRadius.GetScaleModifier(Util.ModifierName, true).Value = und ? 0f : 1f;
+                Util.OneScale(ship.HydrophoneDetectability, Util.ModifierName).Value = und ? 0f : 1f;
+                Util.OneScale(ship.SandboxEntity.SignatureRadius, Util.ModifierName).Value = und ? 0f : 1f;
             });
 
             Util.ScaleParameter(t.Field("hullCrackThreshold").GetValue<Parameter>(), Settings.B("CheatDeepDive") ? 100f : 1f);
@@ -166,7 +166,7 @@ namespace UboatToolkit.Modules
         {
             var g = ship.Discipline != null ? ship.Discipline.Gain : null;
             if (g == null) return;
-            var m = g.GetDeltaModifier(MoraleMod, true);
+            var m = Util.OneDelta(g, MoraleMod);
             float want = 0f;
             if (Settings.B("CheatFullDiscipline"))
             {

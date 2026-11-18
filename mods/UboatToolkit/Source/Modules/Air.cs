@@ -45,7 +45,7 @@ namespace UboatToolkit.Modules
         {
             var oxygen = ship.GetResource("Oxygen");
             if (oxygen == null) return;
-            if (emergency == null) emergency = oxygen.Gain.AddDeltaModifier("UboatToolkit Emergency Oxygen");
+            emergency = Util.OneDelta(oxygen.Gain, "UboatToolkit Emergency Oxygen");
             if (!Settings.B("EmergencyOxygen") || !ship.SubmergedOrGoingToSubmerge) { emergency.Value = 0f; return; }
             float net = (float)oxygen.Gain - emergency.Value;      // what the boat does without us
             emergency.Value = net < 0f ? -net * 1.05f : 0f;        // just a bit more than the use

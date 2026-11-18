@@ -30,7 +30,7 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             if (ship == null) return;
             // louder while pinging
-            if (loud == null) loud = ship.HydrophoneDetectability.AddDeltaModifier("Toolkit Sonar");
+            loud = Util.OneDelta(ship.HydrophoneDetectability, "Toolkit Sonar");   // 0.4.20: exactly one, also after loading
             float want = Settings.B("ActiveSonar") && Active ? Settings.F("SonarLoudness") : 0f;
             if (loud.Value != want) loud.Value = want;
 

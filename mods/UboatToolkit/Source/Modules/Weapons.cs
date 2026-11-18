@@ -95,7 +95,7 @@ namespace UboatToolkit.Modules
                     foreach (var f in new[] { "minVerticalRecoil", "maxVerticalRecoil", "horizontalRecoil" })
                     {
                         var par = tg.Field(f).GetValue<Parameter>();
-                        if (par != null) par.GetScaleModifier(Util.ModifierName, true).Value = rec;
+                        if (par != null) Util.OneScale(par, Util.ModifierName).Value = rec;
                     }
                 }
 

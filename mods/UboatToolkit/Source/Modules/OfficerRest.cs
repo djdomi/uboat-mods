@@ -166,7 +166,7 @@ namespace UboatToolkit.Modules
         private static void SetScale(Parameter p, string name, float v)
         {
             var m = p.GetScaleModifier(name, false);
-            if (m == null) { if (Math.Abs(v - 1f) < 0.0005f) return; m = p.GetScaleModifier(name, true); if (m == null) return; }
+            if (m == null) { if (Math.Abs(v - 1f) < 0.0005f) return; m = Util.OneScale(p, name); if (m == null) return; }
             if (Math.Abs(m.Value - v) > 0.0005f) m.Value = v;
         }
 

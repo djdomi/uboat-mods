@@ -103,7 +103,7 @@ namespace UboatToolkit.Modules.Warthog
             if (p == null) return;
             if (float.IsNaN(sheetCrush))
             {
-                float mod = Util.SafeGet(() => p.GetScaleModifier("Warthog Crush Depth", true).Value, 1f);
+                float mod = Util.SafeGet(() => Util.OneScale(p, "Warthog Crush Depth").Value, 1f);
                 float raw = Mathf.Abs(Util.SafeGet(() => (float)p, 0f)) / Mathf.Max(0.0001f, mod);
                 sheetCrush = raw > 1f ? raw : 3000f;
             }
@@ -122,7 +122,7 @@ namespace UboatToolkit.Modules.Warthog
         static void Scale(Parameter p, float f, string name)
         {
             if (p == null) return;
-            var m = p.GetScaleModifier(name, true);
+            var m = Util.OneScale(p, name);
             float v = Mathf.Max(0.0001f, f);      // 0 would make the boat "undefined"; tiny = practically invisible
             if (m.Value != v) m.Value = v;
         }
@@ -313,8 +313,7 @@ namespace UboatToolkit.Modules.Warthog
             // entries (save/load, boat change) once, then keep exactly one.
             if (thrusterEnergy == null || !ReferenceEquals(thrusterOwner, ship))
             {
-                energy.Gain.RemoveDeltaModifiers("Warthog Thrusters");
-                thrusterEnergy = energy.Gain.AddDeltaModifier("Warthog Thrusters");
+                thrusterEnergy = Util.OneDelta(energy.Gain, "Warthog Thrusters");
                 thrusterOwner = ship;
             }
             use = WarthogPower.Apply("WarthogThrusters", use);

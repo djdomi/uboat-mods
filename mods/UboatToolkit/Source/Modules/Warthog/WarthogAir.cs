@@ -23,7 +23,7 @@ namespace UboatToolkit.Modules.Warthog
             foreach (var v in Util.Find<Ventilation>())
             {
                 var noise = Traverse.Create(v).Field("noise").GetValue<Parameter>();
-                if (noise != null) noise.GetScaleModifier("Warthog Silent", true).Value = silent ? 0.0001f : 1f;
+                if (noise != null) Util.OneScale(noise, "Warthog Silent").Value = silent ? 0.0001f : 1f;
                 if (silent && !v.enabled) v.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
             }
         }

@@ -94,7 +94,7 @@ namespace UboatToolkit.Modules.Warthog
             {
                 bool c88 = on && Settings.B("WhCaliber88");   // exactly 88 mm, else the gun's own 105 mm
                 Util.SetParameter(g.Calibre, c88 ? 88f : 0f);
-                g.ReloadTime.GetScaleModifier("Warthog Calibre", true).Value = c88 ? 0.75f : 1f;
+                Util.OneScale(g.ReloadTime, "Warthog Calibre").Value = c88 ? 0.75f : 1f;
             }
         }
 

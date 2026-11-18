@@ -52,7 +52,7 @@ namespace UboatToolkit.Modules
             if (kitchen == null) kitchen = UnityEngine.Object.FindObjectOfType<Kitchen>();
             if (kitchen == null) return;
             var rate = kitchen.FoodConsumptionRate;
-            var mod = rate.GetScaleModifier(FoodMod, true);
+            var mod = Util.OneScale(rate, FoodMod);
             float scale = 1f;
             if (Settings.B("FoodByCrew"))
             {

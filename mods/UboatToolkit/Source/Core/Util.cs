@@ -232,7 +232,7 @@ namespace UboatToolkit
         public static void SetParameter(Parameter p, float target)
         {
             if (p == null) return;
-            var m = p.GetScaleModifier(ModifierName, true);
+            var m = OneScale(p, ModifierName);
             if (target <= 0f) { m.Value = 1f; return; }
             float baseValue = p.GetValueExcludingModifier(ModifierName);
             m.Value = Mathf.Abs(baseValue) > 0.0001f ? target / baseValue : 1f;
@@ -284,6 +284,31 @@ namespace UboatToolkit
                 Log("Doppelter Faktor entfernt: \"" + name + "\" stand " + (extra + 1) + " mal an " + (p.Name ?? "?") + " (aus dem Spielstand), jetzt 1 mal");
             }
             return keep ?? p.AddScaleModifier(name);
+        }
+        // same for added values ("delta"). create = false: only tidy up and return the one that is there (or null).
+        public static Modifier OneDelta(Parameter p, string name, bool create = true)
+        {
+            var list = p.DeltaModifiers; Modifier keep = null; int extra = 0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                var m = list[i];
+                if (m == null || m.Name != name) continue;
+                if (keep == null) keep = m; else extra++;
+            }
+            if (extra > 0)
+            {
+                for (int i = list.Count - 1; i >= 0; i--) { var m = list[i]; if (m != null && m != keep && m.Name == name) list.RemoveAt(i); }
+                DuplicatesRemoved += extra;
+                float v = keep.Value; keep.Value = v + 1f; keep.Value = v;   // makes the game recompute the value
+                Log("Doppelter Wert entfernt: \"" + name + "\" stand " + (extra + 1) + " mal an " + (p.Name ?? "?") + " (aus dem Spielstand), jetzt 1 mal");
+            }
+            return keep ?? (create ? p.AddDeltaModifier(name) : null);
+        }
+        public static void DropDelta(Parameter p, string name)
+        {
+            if (p == null) return;
+            var m = OneDelta(p, name, false);
+            if (m != null) m.Remove();
         }
         public static void DropScale(Parameter p, string name)
         {

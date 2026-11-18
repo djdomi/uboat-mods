@@ -83,8 +83,9 @@ namespace UboatToolkit.Modules
             float want = Settings.F("ExtraOfficers");
             if (c == null) return;
             if (!ReferenceEquals(c, officerCareer)) { officerMod = null; officerCareer = c; }
-            if (want <= 0f) { if (officerMod != null) { officerMod.Remove(); officerMod = null; } return; }
-            if (officerMod == null) officerMod = c.OfficersOnBoardLimit.AddDeltaModifier("Toolkit Officers");
+            // 0.4.20: the value stored in the savegame is found again (by name) instead of adding a second one
+            if (want <= 0f) { Util.DropDelta(c.OfficersOnBoardLimit, "Toolkit Officers"); officerMod = null; return; }
+            officerMod = Util.OneDelta(c.OfficersOnBoardLimit, "Toolkit Officers");
             if (officerMod.Value != want) officerMod.Value = want;
         }
 
@@ -99,13 +100,16 @@ namespace UboatToolkit.Modules
             var c = Util.Career;
             if (c == null) return;
             if (!ReferenceEquals(c, sailorCareer)) { sailorMod = null; sailorCareer = c; }
+            // 0.4.20 (log: "Matrosen an Bord: jetzt bis 1438 erlaubt"): the extra places stored in the savegame were
+            // counted as the game's own limit and new ones were added on top after every load.
+            sailorMod = Util.OneDelta(c.SailorsOnBoardLimit, "Toolkit Sailors", false);
             float game = c.SailorsOnBoardLimit.Value - (sailorMod != null ? sailorMod.Value : 0f);
             float want = 0f;
             if (Settings.B("SailorsFollowFullCrew") && Settings.B("FullCrewAtStart"))
                 want = Mathf.Max(0f, Settings.F("FullCrewSize") - c.OfficersOnBoardLimit.Value - 1f - game);   // -1 = commander
             want += Mathf.Max(0f, Settings.F("ExtraSailors"));
             if (want <= 0f) { if (sailorMod != null) { sailorMod.Remove(); sailorMod = null; } return; }
-            if (sailorMod == null) sailorMod = c.SailorsOnBoardLimit.AddDeltaModifier("Toolkit Sailors");
+            if (sailorMod == null) sailorMod = Util.OneDelta(c.SailorsOnBoardLimit, "Toolkit Sailors");
             want = Mathf.Round(want);
             if (sailorMod.Value != want) { sailorMod.Value = want; Util.Log("Matrosen an Bord: jetzt bis " + Mathf.RoundToInt(game + want) + " erlaubt"); }
         }

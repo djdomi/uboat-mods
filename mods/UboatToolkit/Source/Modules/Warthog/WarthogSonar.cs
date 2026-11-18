@@ -42,7 +42,7 @@ namespace UboatToolkit.Modules.Warthog
             if (ship == null) return;   // 0.3.58: NRE without a boat (port, menus)
             if (ship.Energy != null)
             {
-                if (energy == null) { ship.Energy.Gain.RemoveDeltaModifiers("Warthog Sonar"); energy = ship.Energy.Gain.AddDeltaModifier("Warthog Sonar"); }
+                energy = Util.OneDelta(ship.Energy.Gain, "Warthog Sonar");
                 int arrays = (Settings.B("WhSonarBow") ? 1 : 0) + (Settings.B("WhSonarMid") ? 1 : 0) + (Settings.B("WhSonarStern") ? 1 : 0);
                 float use = passive ? WarthogPower.Apply("WarthogSonar", arrays * 0.00002f) : 0f;
                 if (energy.Value != -use) energy.Value = -use;
