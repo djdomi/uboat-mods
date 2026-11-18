@@ -232,7 +232,7 @@ namespace UboatToolkit.Modules.StationCtl
                 return;
             }
             bool blocked = ___gameInput != null && ___gameInput.HasActiveBlockades();
-            if (!blocked && Input.GetKeyDown(StationCfg.CursorToggleKey))
+            if (!blocked && Keys.LoneTap(StationCfg.CursorToggleKey))
             {
                 cursorReleased = !cursorReleased;
                 if (!cursorReleased && StationCfg.HideTooltipsUntilCursorFreed)

@@ -136,7 +136,6 @@ namespace UboatToolkit.Modules
             if (Settings.B("CheatFullDiscipline"))
             {
                 Fill(ship.Discipline);
-                if (ship.Stress != null) ship.Stress.Amount = 0;
             }
             Util.Safe("Moral", () => NoMoraleLoss(ship));
             if (Settings.B("NoStress") && ship.Stress != null) ship.Stress.Amount = 0;

@@ -15,6 +15,7 @@ namespace UboatToolkit.Modules.Warthog
     public class WarthogAir : ModuleBase
     {
         internal static bool SilentVent => WarthogSettings.Active(Util.PlayerShip) && Settings.B("WhSilentVent");
+        internal static bool AlwaysOn => WarthogSettings.Active(Util.PlayerShip) && Settings.B("WhVentAlwaysOn");
         internal static bool Electrolysis => WarthogSettings.Active(Util.PlayerShip) && Settings.B("WhElectrolysis");
 
         public override void Tick()
@@ -24,7 +25,7 @@ namespace UboatToolkit.Modules.Warthog
             {
                 var noise = Traverse.Create(v).Field("noise").GetValue<Parameter>();
                 if (noise != null) Util.OneScale(noise, "Warthog Silent").Value = silent ? 0.0001f : 1f;
-                if (silent && !v.enabled) v.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
+                if (AlwaysOn && !v.enabled) v.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
             }
         }
     }
@@ -35,7 +36,7 @@ namespace UboatToolkit.Modules.Warthog
     {
         private static bool Prefix(UBOAT.Game.Scene.Characters.Activators.Activator activator)
         {
-            if (activator == null || !WarthogAir.SilentVent) return true;
+            if (activator == null || !WarthogAir.AlwaysOn) return true;
             return activator.GetComponent<Ventilation>() == null;   // skip only the ventilation
         }
     }

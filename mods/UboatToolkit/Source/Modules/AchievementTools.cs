@@ -96,7 +96,7 @@ namespace UboatToolkit.Modules
             if (done != null && done.On) { done.Value = 0; Util.Safe("MissionDone", () => Run(true)); }
             var step = Settings.Get("CheatMissionStep");
             if (step != null && step.On) { step.Value = 0; Util.Safe("MissionStep", () => Run(false)); }
-            if (Settings.B("CheatEscortEasy")) Util.Safe("EscortEasy", EscortEasy);
+            if (Settings.B("CheatEscortEasy") || Settings.B("CheatEscortFullSpeed") || Settings.B("CheatEscortNoDamage")) Util.Safe("EscortEasy", EscortEasy);
             else
             {
                 if (escProtected.Count > 0) { foreach (var x in escProtected) if (x != null) x.IsProtected = false; escProtected.Clear(); }
@@ -114,6 +114,17 @@ namespace UboatToolkit.Modules
         private static readonly System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity> escProtected = new System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity>();
         // 0.4.22 (option audit): switching the cheat off gives the assignment its attackers back. The far-away spawn time
         // is itself the mark that the cheat was active (it is stored in the savegame), so this also works after loading.
+        private static void EscortAttackersBack()
+        {
+            var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
+            if (e == null || escNext == null || (long)escNext.GetValue(e) < long.MaxValue / 4) return;
+            var gt = Traverse.Create(e).Field("gameTime").GetValue();
+            if (gt == null) return;
+            long now = Traverse.Create(gt).Property("StoryTicks").GetValue<long>();
+            escNext.SetValue(e, now + (long)(UnityEngine.Random.Range(0.4f, 1.4f) * 8.64E+11f));
+            Util.Log("[Auftrag] Geleitschutz: Angreifer kommen wieder (nächster in 0,4 bis 1,4 Tagen)");
+        }
+
         private static void EscortEasyOff()
         {
             var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
@@ -131,14 +142,23 @@ namespace UboatToolkit.Modules
         {
             var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
             if (e == null) { escLogged = false; return; }
-            if (escNext != null) escNext.SetValue(e, long.MaxValue / 2);
-            if (escScale != null && (float)escScale.GetValue(e) < 1f) escScale.SetValue(e, 1f);
+            // 0.4.29: three separate switches
+            bool noAtt = Settings.B("CheatEscortEasy"), full = Settings.B("CheatEscortFullSpeed"), noDmg = Settings.B("CheatEscortNoDamage");
+            if (noAtt) { if (escNext != null) escNext.SetValue(e, long.MaxValue / 2); }
+            else Util.Safe("EscortEasyOff", EscortAttackersBack);
+            if (full && escScale != null && (float)escScale.GetValue(e) < 1f) escScale.SetValue(e, 1f);
+            if (!noDmg)
+            {
+                if (escProtected.Count > 0) { foreach (var x in escProtected) if (x != null) x.IsProtected = false; escProtected.Clear(); Util.Log("[Auftrag] Geleitschutz: Geleit nimmt wieder Schaden"); }
+                if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer " + (noAtt ? "an" : "aus") + ", volle Fahrt " + (full ? "an" : "aus") + ", kein Schaden aus"); }
+                return;
+            }
             // the escorted ships take no damage (the game's own "protected" flag, used in its tutorials)
             var grp = escGroup == null ? null : escGroup.GetValue(e) as UBOAT.Game.Sandbox.SandboxGroup;
             if (grp)
                 foreach (var x in grp.Entities)
                     if (x != null && !x.IsProtected) { x.IsProtected = true; escProtected.Add(x); }
-            if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer, Geleit fährt volle Fahrt und nimmt keinen Schaden"); }
+            if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer " + (noAtt ? "an" : "aus") + ", volle Fahrt " + (full ? "an" : "aus") + ", kein Schaden an"); }
         }
 
         private static void Run(bool finish)

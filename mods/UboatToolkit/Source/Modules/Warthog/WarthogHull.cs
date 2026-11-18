@@ -27,7 +27,7 @@ namespace UboatToolkit.Modules.Warthog
             Scale(ship.HydrophoneDetectability, on ? Settings.F("WhHydroNoise") : 1f, "Warthog Coating");
             Scale(ship.VerticalSteersPerformance, on && Settings.B("WhFins") ? Settings.F("WhFinDepth") : 1f, "Warthog Fins");
             if (on && WarthogSettings.IsWarthog(ship)) MirrorBadge(ship);
-            if (WarthogSettings.IsWarthog(ship)) SpeedFactor(ship, on ? Settings.F("WhSpeedFactor") : 1f);
+            Owners.WarthogSpeed = on && WarthogSettings.IsWarthog(ship) && !Util.WarthogModOwns(ship) ? Settings.F("WhSpeedFactor") : 1f;   // 0.4.29: one writer (Navigation)
             if (WarthogSettings.IsWarthog(ship)) DiveSpeed(ship, on ? Settings.F("WhDiveSpeed") : 0f);
             if (on && WarthogSettings.IsWarthog(ship)) CrushLimit(ship, Settings.F("WhCrushDepth"));
             // berth position (used by the game at the next docking): forward shift + side shift away from the pier
@@ -104,7 +104,10 @@ namespace UboatToolkit.Modules.Warthog
             if (float.IsNaN(sheetCrush))
             {
                 float mod = Util.SafeGet(() => Util.OneScale(p, "Warthog Crush Depth").Value, 1f);
-                float raw = Mathf.Abs(Util.SafeGet(() => (float)p, 0f)) / Mathf.Max(0.0001f, mod);
+                // 0.4.29 (contradiction audit): "Tieftauchen" (x100 on the same value) was taken as the sheet value
+                float deep = Util.SafeGet(() => Util.OneScale(p, Util.ModifierName).Value, 1f);
+                float raw = Mathf.Abs(Util.SafeGet(() => (float)p, 0f)) / Mathf.Max(0.0001f, mod) / Mathf.Max(0.0001f, deep);
+                Util.Log("[Warthog] Zerstörungstiefe: Blattwert " + raw.ToString("0") + " m (ohne Warthog-Faktor " + mod.ToString("0.##") + " und ohne Tieftauch-Faktor " + deep.ToString("0.##") + ")");
                 sheetCrush = raw > 1f ? raw : 3000f;
             }
             Scale(p, Mathf.Max(100f, wantMeters) / sheetCrush, "Warthog Crush Depth");

@@ -29,7 +29,7 @@ namespace UboatToolkit.Modules
                 Util.ScaleParameter(Traverse.Create(v).Field("noise").GetValue<Parameter>(), Mathf.Max(0.01f, noise));
                 // 0.4.28 (DoMe): two independent switches
                 if (!ship.SubmergedOrGoingToSubmerge) continue;
-                if (Settings.B("AutoVentilation") && v.HasDisableFlag(DeviceDisableFlag.TurnedOff))
+                if (Settings.B("AutoVentilation") && v.HasDisableFlag(DeviceDisableFlag.TurnedOff) && !Silent())
                 {
                     v.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
                     Util.Log("Lüftung: automatisch eingeschaltet (unter Wasser)");
@@ -42,6 +42,21 @@ namespace UboatToolkit.Modules
                 Util.ScaleParameter(Traverse.Create(c).Field("oxygenUsage").GetValue<Parameter>(), compressorFree ? 0.001f : 1f);
 
             EmergencyOxygen(ship);
+        }
+
+        // 0.4.29 (contradiction audit): silent running switches the ventilation off; the automatic switched it on again
+        // every second. Silent running wins.
+        private static float silentLog;
+        internal static bool Silent()
+        {
+            try
+            {
+                var src = DWS.Common.InjectionFramework.InjectionFramework.Instance.GetInstance<UBOAT.Game.Scene.Tasks.ISilentRunningController>();
+                if (src == null || !src.IsSilentRunningEnabled) return false;
+                if (Time.unscaledTime > silentLog) { silentLog = Time.unscaledTime + 120f; Util.Log("Lüftung: Schleichfahrt ist an, die Automatik schaltet die Lüftung nicht ein"); }
+                return true;
+            }
+            catch { return false; }
         }
 
         private void EmergencyOxygen(UBOAT.Game.Scene.Entities.PlayerShip ship)

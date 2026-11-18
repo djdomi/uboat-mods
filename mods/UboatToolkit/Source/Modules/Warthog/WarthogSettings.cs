@@ -62,7 +62,8 @@ namespace UboatToolkit.Modules.Warthog
             Num("WhPumpEnergy", "  Strom je Pumpe bei voller Leistung (Anteil x 0,0001/s)", 1f, 0f, 10f, 0.5f);
 
             // --- Luft + Strom
-            Bool("WhSilentVent", "Lüftung immer an und lautlos, auch bei Schleichfahrt", true);
+            Bool("WhSilentVent", "Lüftung lautlos", true);
+            Bool("WhVentAlwaysOn", "Lüftung immer an, auch bei Schleichfahrt", true);
             Bool("WhElectrolysis", "Sauerstoff per Elektrolyse: keine Kalipatronen mehr", true);
             Bool("WhAllGenerate", "Alle Verbraucher generieren Strom", false);
             WarthogPower.RegisterOptions(Num); // one indented line per device under the top switch

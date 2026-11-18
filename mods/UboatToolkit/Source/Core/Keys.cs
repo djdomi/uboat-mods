@@ -50,8 +50,18 @@ namespace UboatToolkit
         // "Rohre laden" AND "20 m höher"; both fired). The first option in menu order with a combination owns it;
         // every other option with the same combination does nothing and is named in the log once.
         private static readonly System.Collections.Generic.HashSet<string> dupLogged = new System.Collections.Generic.HashSet<string>();
+        // While "Kurs- und Tiefen-Tasten" is on, that part owns its keys (F, R, P, C, arrows with Ctrl/Shift). Any other
+        // Toolkit hotkey on the same key does nothing then (audit: turns and depth were done twice, turn-about cancelled itself).
+        private static readonly string[] CourseOwned = { "KeyCourseDeeper", "KeyCourseShallower", "KeyCoursePeriscope", "KeyCourseMaxDepth", "KeyCoursePort", "KeyCourseStarboard", "KeyCourseAbout", "KeyCourseAmidships" };
         private static bool Owns(Opt o, Parsed k)
         {
+            if (Settings.B("CourseKeys") && !o.Key.StartsWith("KeyCourse", StringComparison.Ordinal))
+                foreach (var ck in CourseOwned)
+                    if (Code(ck, KeyCode.None) == k.Code && k.Code != KeyCode.None)
+                    {
+                        if (dupLogged.Add(o.Key + "|course")) Util.Log("Tasten: " + o.Text + " („" + o.Label + "“) ruht, solange „Kurs- und Tiefen-Tasten“ an ist. Diese Taste gehört dort zu „" + (Settings.Get(ck)?.Label ?? ck) + "“.");
+                        return false;
+                    }
             foreach (var other in Settings.All)
             {
                 if (!other.IsKey || string.IsNullOrEmpty(other.Text)) continue;
@@ -84,6 +94,30 @@ namespace UboatToolkit
             if (o == null || string.IsNullOrEmpty(o.Text)) return KeyCode.None;
             if (Enum.TryParse<KeyCode>(o.Text.Trim(), true, out var single)) return single;
             return Parse(o.Text, out var code, out _, out _, out _) ? code : fallback;
+        }
+
+        // 0.4.29 (audit: menu key "Ctrl+Alt+M" also fired on plain M): the modifiers named in the binding must be held
+        // (more may be held, so the menu still closes while Shift is down).
+        public static bool ModsHeld(string key)
+        {
+            var o = Settings.Get(key);
+            if (o == null || string.IsNullOrEmpty(o.Text)) return false;
+            if (Enum.TryParse<KeyCode>(o.Text.Trim(), true, out _)) return true;
+            return Parse(o.Text, out _, out var c, out var sh, out var a) && (!c || Ctrl) && (!sh || Shift) && (!a || Alt);
+        }
+        // A modifier key bound alone (station cursor on LeftAlt) counts only when it was pressed and released with
+        // no other key in between; before, every Alt combination toggled the cursor too.
+        private static KeyCode loneKey = KeyCode.None; private static bool loneClean;
+        public static bool LoneTap(KeyCode k)
+        {
+            if (k == KeyCode.None) return false;
+            if (!IsModifier(k)) return Input.GetKeyDown(k);
+            if (Input.GetKeyDown(k)) { loneKey = k; loneClean = true; return false; }
+            if (loneKey != k) return false;
+            if (Input.GetKey(k)) { if (Input.anyKeyDown) loneClean = false; return false; }
+            bool ok = Input.GetKeyUp(k) && loneClean;
+            loneKey = KeyCode.None;
+            return ok;
         }
 
         public static bool Ctrl => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);

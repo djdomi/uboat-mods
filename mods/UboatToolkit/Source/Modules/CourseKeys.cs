@@ -27,8 +27,8 @@ namespace UboatToolkit.Modules
             if (k == KeyCode.LeftAlt || k == KeyCode.RightAlt) return Keys.Alt;
             return false;
         }
-        public static bool Down(KeyCode k) => k != KeyCode.None && Input.GetKeyDown(k);
-        public static bool Up(KeyCode k) => k != KeyCode.None && Input.GetKeyUp(k);
+        public static bool Down(KeyCode k) => k != KeyCode.None && !Keys.Typing && Input.GetKeyDown(k);
+        public static bool Up(KeyCode k) => k != KeyCode.None && !Keys.Typing && Input.GetKeyUp(k);
         public static KeyCode Fine => K("KeyCourseFine", KeyCode.LeftControl);
         public static KeyCode Coarse => K("KeyCourseCoarse", KeyCode.LeftShift);
         public static bool AnyModifier() => Held(Fine) || Held(Coarse);

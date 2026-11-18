@@ -37,6 +37,7 @@ namespace UboatToolkit.Modules
             OneShot("SwapShiftsNow", SwapShifts);
             OneShot("SortStorageNow", SortStorage);
             OneShot("CheatUnlockAll", UnlockAll);
+            OneShot("CheatUnlockBoats", UnlockBoats);
             OneShot("CheatQuickTravelNow", QuickTravel);
             OneShot("CallMilkCow", CallMilkCow);
             OneShot("CheatSpawnConvoy", SpawnConvoy);
@@ -243,11 +244,16 @@ namespace UboatToolkit.Modules
             if (db != null)
                 foreach (var e in db.GetEquipmentDirect())
                     if (e != null && !e.Researched) { e.Researched = true; items++; }
+            ToolkitRunner.ShowNotice("Freigeschaltet: " + items + " Ausrüstungen", 6f);
+        }
+
+        private static void UnlockBoats()
+        {
             var career = Util.Career;
             if (career != null)
                 foreach (var b in new[] { "Type IIA", "Type IID", "Type VIIB", "Type VIIC", "Type VIIC41", "Type IXA", "Type IXC", "Type IXC40" })
                     career.UnlockShip(b, true);
-            ToolkitRunner.ShowNotice("Freigeschaltet: " + items + " Ausrüstungen + alle Boote", 6f);
+            ToolkitRunner.ShowNotice(career != null ? "Alle Boote freigeschaltet" : "Keine Karriere geladen", 6f);
         }
 
         // Jumps to the end of the planned route on the map.

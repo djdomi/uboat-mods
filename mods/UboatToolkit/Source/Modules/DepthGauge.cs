@@ -17,7 +17,7 @@ namespace UboatToolkit.Modules
     {
         private const float W = 170f, H = 320f;
         private static readonly List<float> history = new List<float>();
-        private float nextSample, nextPilot, lastWarn;
+        private float nextSample, nextPilot, lastWarn, pilotSet = float.NaN, pilotHold;
         private static string pilotText = "";
         private static float lastBed = float.NaN;
 
@@ -74,8 +74,8 @@ namespace UboatToolkit.Modules
 
             if (Settings.B("DepthHotkeys"))
             {
-                bool deeper = Input.GetKeyDown(Keys.Code("KeyDepthDeeper", KeyCode.PageDown));
-                bool higher = Input.GetKeyDown(Keys.Code("KeyDepthShallower", KeyCode.PageUp));
+                bool deeper = !Keys.Typing && Keys.ModsHeld("KeyDepthDeeper") && Input.GetKeyDown(Keys.Code("KeyDepthDeeper", KeyCode.PageDown));
+                bool higher = !Keys.Typing && Keys.ModsHeld("KeyDepthShallower") && Input.GetKeyDown(Keys.Code("KeyDepthShallower", KeyCode.PageUp));
                 if ((deeper || higher) && !Keys.Ctrl)
                 {
                     float s = Step() * (deeper ? 1f : -1f);
@@ -159,7 +159,7 @@ namespace UboatToolkit.Modules
                 Util.Log("Bodenabstand-Autopilot " + (pilotOn ? "an" : "aus"));
             }
             // 0.4.22 (option audit): "Aufsetzen" switched silent running on and never off again.
-            if (silentByUs && !(pilotOn && Settings.B("AutoDepthBottom")))
+            if (silentByUs && !(pilotOn && Settings.B("AutoDepthBottom") && Settings.B("AutoDepthBottomSilent")))
             {
                 silentByUs = false;
                 Util.Safe("Depth.SilentOff", () =>
@@ -178,7 +178,7 @@ namespace UboatToolkit.Modules
                 if (float.IsNaN(lastBed)) { pilotText = "Aufsetzen: Grund unbekannt"; return; }
                 float t = lastBed - keel - 0.3f;
                 if (Mathf.Abs(ship.TargetDepth - t) > 0.5f) SetTarget(ship, t, true);
-                Util.Safe("Depth.Silent", () =>
+                if (Settings.B("AutoDepthBottomSilent")) Util.Safe("Depth.Silent", () =>
                 {
                     var src = InjectionFramework.Instance.GetInstance<UBOAT.Game.Scene.Tasks.ISilentRunningController>();
                     if (src != null && !src.IsSilentRunningEnabled && ship.BottomDepth > lastBed - 5f) { src.SetSilentRunningEnabled(true, true); silentByUs = true; Util.Log("Aufsetzen: Schleichfahrt an"); }
@@ -212,8 +212,23 @@ namespace UboatToolkit.Modules
                     Game.StopTimeCompression("Zu flach für den Bodenabstand! Grund bei " + bed.ToString("F0") + " m");
                 }
             }
+            // 0.4.29 (contradiction audit: the autopilot overwrote every other depth order every 0.5 s - game buttons,
+            // periscope/snorkel depth, crash dive). Now: a depth order that is not from the autopilot, or a chosen depth
+            // step of the game, is respected. The autopilot only steps in when that order would be deeper than the safe depth.
+            if (!float.IsNaN(pilotSet) && Mathf.Abs(ship.TargetDepth - pilotSet) > 0.5f)
+            {
+                pilotHold = now + 60f; pilotSet = float.NaN;
+                Util.Log("Bodenabstand: anderer Tiefenbefehl (" + ship.TargetDepth.ToString("F1") + " m), Autopilot wartet 60 s und greift nur ein, wenn das tiefer als sicher ist (" + target.ToString("F1") + " m)");
+            }
+            bool tooDeep = ship.TargetDepth > target + 0.5f;
+            if (!tooDeep && (ship.DepthPreset != DepthPreset.None || now < pilotHold))
+            {
+                pilotText = "Autopilot wartet (dein Tiefenbefehl gilt), sicher bis " + target.ToString("F0") + " m";
+                return;
+            }
             if (Mathf.Abs(ship.TargetDepth - target) > 0.5f)
             {
+                pilotSet = target;
                 Util.Log("Bodenabstand: Grund=" + bed.ToString("F1") + " Kiel-Versatz=" + keel.ToString("F1") + " Ziel=" + target.ToString("F1")
                     + " altesZiel=" + ship.TargetDepth.ToString("F1") + " Depth=" + ship.Depth.ToString("F1") + " Offset=" + ship.VerticalOriginOffset.ToString("F1") + " Unterkante=" + ship.BottomDepth.ToString("F1"));
                 SetTarget(ship, target, true);

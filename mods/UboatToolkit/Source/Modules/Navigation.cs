@@ -72,7 +72,7 @@ namespace UboatToolkit.Modules
             {
                 float orig = Util.Original<float>(p, "maxPower");
                 bool ours = ship != null && p.transform.IsChildOf(ship.transform);   // only OUR boat, enemies keep game value
-                Util.SetField(p, "maxPower", ours ? orig * f * f : orig);   // drag grows with speed², so force x f² ≈ speed x f
+                Util.SetField(p, "maxPower", ours ? orig * Owners.PropellerFactor(f) : orig);   // drag grows with speed², so force x f² ≈ speed x f
             }
             foreach (var e in Util.Find<PlayerShipEngine>())
             {

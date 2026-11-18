@@ -30,11 +30,13 @@ namespace UboatToolkit.Modules
     {
         private static void Prefix(PlayableCharacter __instance, ref float value)
         {
-            if (!Settings.B("CheatImmortalCrew")) return;
+            bool noWounds = Settings.B("CheatNoWounds");
+            if (!noWounds && !Settings.B("CheatImmortalCrew")) return;
             if (__instance.Data == null) return;
             var t = __instance.Data.CharacterType;
             if (t != PlayableCharacterData.Type.Sailor && t != PlayableCharacterData.Type.Officer && t != PlayableCharacterData.Type.Skipper) return;
-            if (value < __instance.Health) value = __instance.Health;
+            if (noWounds) { if (value < __instance.Health) value = __instance.Health; }
+            else if (value <= 0f) value = 0.01f;   // immortal only: health may drop, but never to death
         }
     }
 
@@ -43,7 +45,7 @@ namespace UboatToolkit.Modules
     {
         private static void Prefix(PlayableCharacter __instance, ref float value)
         {
-            if (!Settings.B("CheatImmortalCrew")) return;
+            if (!Settings.B("CheatImmortalCrew") && !Settings.B("CheatNoWounds")) return;
             if (value < __instance.BleedoutHealth) value = __instance.BleedoutHealth;
         }
     }

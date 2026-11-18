@@ -108,22 +108,43 @@ namespace UboatToolkit
             { saveAt = 0f; Settings.Save(); Util.Log("Einstellungen von selbst gespeichert (Änderung im Menü)"); }
             // Menu key: works even with Ctrl/Shift/Alt still held and while a key capture hangs (F10 must always close).
             var mk = Keys.Code("KeyMenu", KeyCode.F10);
-            if (mk != KeyCode.None && Input.GetKeyDown(mk)) MenuKey("Update");
+            if (mk != KeyCode.None && Input.GetKeyDown(mk) && Keys.ModsHeld("KeyMenu")) MenuKey("Update");
             if (mk == KeyCode.None || !Input.GetKey(mk)) guiKeyHeld = false;
             if (names == null) { names = new string[Modules.Count]; frameNames = new string[Modules.Count]; for (int i = 0; i < Modules.Count; i++) { names[i] = Modules[i].GetType().Name; frameNames[i] = names[i] + ".Frame"; } }
-            for (int i = 0; i < Modules.Count; i++) Timed(frameNames[i], Modules[i].Frame, 20.0);
+            for (int i = 0; i < Modules.Count; i++) { if (whRest && IsWh(i)) continue; Timed(frameNames[i], Modules[i].Frame, 20.0); }
 
             if (Time.unscaledTime >= nextState) { nextState = Time.unscaledTime + 60f; DebugLog.DumpState(); }
             if (Util.PlayerShip == null) return;
             // Each module runs once per second, but spread over the frames (one module per frame),
             // so there is no single heavy frame = no stutter.
             if (Time.unscaledTime < nextTick) return;
-            Timed(names[tickIndex] + ".Tick", Modules[tickIndex].Tick, 40.0);
+            // 0.4.29 (contradiction audit): with the separate Warthog mod installed and its boat (Type XXX) in use, the
+            // Toolkit's own Warthog parts rest completely. Before, their "off" paths still wrote values on that boat.
+            if (tickIndex == 0)
+            {
+                bool rest = Util.WarthogModOwns(Util.PlayerShip);
+                if (rest != whRest)
+                {
+                    whRest = rest; int n = 0; for (int i = 0; i < Modules.Count; i++) if (IsWh(i)) n++;
+                    Util.Log(rest ? "Warthog-Mod ist installiert und sein Boot ist in Benutzung: " + n + " Warthog-Teile des Toolkits ruhen ganz (Wirkung kommt allein vom Warthog-Mod)" : "Warthog-Teile des Toolkits arbeiten wieder (anderes Boot)");
+                }
+            }
+            if (!(whRest && IsWh(tickIndex))) Timed(names[tickIndex] + ".Tick", Modules[tickIndex].Tick, 40.0);
             tickIndex++;
             if (tickIndex >= Modules.Count) { tickIndex = 0; nextTick = Time.unscaledTime + 1f; }
         }
 
         private string[] names, frameNames;
+        private bool whRest; private bool[] whFlags;
+        private bool IsWh(int i)
+        {
+            if (whFlags == null || whFlags.Length != Modules.Count)
+            {
+                whFlags = new bool[Modules.Count];
+                for (int k = 0; k < Modules.Count; k++) { var ns = Modules[k].GetType().Namespace ?? ""; whFlags[k] = ns.EndsWith(".Warthog", System.StringComparison.Ordinal); }
+            }
+            return whFlags[i];
+        }
         // Stutter finder: any module step slower than the limit is logged with its name and the number of
         // garbage collections during it (max once per 30 s per step), so slow modules show up in the log.
         // Timing via LoadClock (reflection): naming the diagnostics namespace makes the game's mod check reject the mod.
@@ -171,7 +192,7 @@ namespace UboatToolkit
             if (mk != KeyCode.None)
             {
                 int k = Imgui.KeyEvent(mk);   // 1 = key down event for this key, 2 = key up, 0 = other
-                if (k == 1 && !guiKeyHeld) { guiKeyHeld = true; MenuKey("Fenster"); }
+                if (k == 1 && !guiKeyHeld && Keys.ModsHeld("KeyMenu")) { guiKeyHeld = true; MenuKey("Fenster"); }
                 else if (k == 2) guiKeyHeld = false;
             }
             UboatToolkit.Modules.DevConsoleHide.Close();

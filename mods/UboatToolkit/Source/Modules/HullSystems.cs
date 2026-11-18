@@ -59,7 +59,7 @@ namespace UboatToolkit.Modules
 
         private static void Postfix(Hatch __instance, ref bool __result)
         {
-            if (__result && Settings.B("HatchPressure") && TooBig(__instance)) __result = false;
+            if (__result && Settings.B("HatchPressureLock") && TooBig(__instance)) __result = false;
         }
     }
 
@@ -70,7 +70,7 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             Snorkel();
-            if (!Settings.B("HatchPressure") || !Settings.B("HatchEqualize")) return;
+            if (!Settings.B("HatchPressureLock") || !Settings.B("HatchEqualize")) return;
             // Speed is set in the menu; running ventilation (no disable flag = on and working) multiplies it.
             double rate = Settings.F("HatchEqualizeSpeed") / 100.0;
             float boost = Settings.F("VentEqualizeFaster");
@@ -105,8 +105,9 @@ namespace UboatToolkit.Modules
                 Traverse.Create(s).Field("automaticRaise").SetValue(auto);
                 if (s.ShouldMastBeRaised && ship.DeckDepth < 10f && s.Performance.Value > 0.5f) up = true;
             }
-            if (!up || !Settings.B("SnorkelAir")) return;
-            foreach (var v in Util.Find<Ventilation>()) v.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
+            if (!up) return;
+            if (Settings.B("SnorkelVent") && !Air.Silent()) foreach (var v in Util.Find<Ventilation>()) v.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
+            if (!Settings.B("SnorkelAir")) return;
             foreach (var c in Util.Find<Compartment>())
             {
                 double p = c.AirPressure;

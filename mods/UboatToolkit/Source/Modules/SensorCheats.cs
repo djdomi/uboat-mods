@@ -43,9 +43,10 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(Hydrophone), nameof(Hydrophone.AllowOnlyCrudeEstimations), MethodType.Getter)]
     internal static class Sensor_ExactTargetsPatch
     {
-        private static void Postfix(ref bool __result)
+        // 0.4.29 (player-only rule): only the player's own hydrophone, never an enemy one.
+        private static void Postfix(Hydrophone __instance, ref bool __result)
         {
-            if (Settings.B("CheatExactTargets")) __result = false;
+            if (Settings.B("CheatExactTargets") && Util.IsPlayers(__instance)) __result = false;
         }
     }
 
@@ -175,7 +176,7 @@ namespace UboatToolkit.Modules
         internal static bool Wanted(Hydrophone h)
         {
             if (h == null || !Util.IsPlayers(h)) return false;
-            if (Settings.B("CheatHydrophoneAlways")) return true;
+            if (Settings.B("CheatHydrophoneAlways") || Settings.B("CheatHydrophoneFast")) return true;
             return Warthog.WarthogSonar.On && Settings.B("WhPassive") && Settings.B("WhPassiveSame");
         }
 
@@ -183,11 +184,14 @@ namespace UboatToolkit.Modules
         {
             try
             {
-                if (targetF != null) targetF.SetValue(h, 1f);
+                // 0.4.29: two separate switches (surfaced / high speed); the Warthog passive sonar switch still means both
+                bool wh = Warthog.WarthogSonar.On && Settings.B("WhPassive") && Settings.B("WhPassiveSame");
+                bool surf = wh || Settings.B("CheatHydrophoneAlways"), fast = wh || Settings.B("CheatHydrophoneFast");
+                if (fast && targetF != null) targetF.SetValue(h, 1f);
                 // The game's range tween is NOT aborted any more: the map draws the green range circles from it (gone since 0.2.54).
                 var t = Traverse.Create(h);
-                foreach (var f in Mods) { var m = t.Field(f).GetValue<Modifier>(); if (m != null && m.Value != 1f) m.Value = 1f; }
-                if (!logged) { logged = true; Util.Log("Horcher: Abzug für Fahrt/aufgetaucht aufgehoben, Hörkreis fest (" + h.name + ")"); }
+                foreach (var f in Mods) { if (!(f.StartsWith("surface") ? surf : fast)) continue; var m = t.Field(f).GetValue<Modifier>(); if (m != null && m.Value != 1f) m.Value = 1f; }
+                if (!logged) { logged = true; Util.Log("Horcher (nur eigenes Gerät): Abzug aufgetaucht " + (surf ? "aufgehoben" : "wie im Spiel") + ", Abzug hohe Fahrt " + (fast ? "aufgehoben" : "wie im Spiel") + " (" + h.name + ")"); }
             }
             catch (System.Exception e) { Util.Log("Horcher: " + e.Message); }
         }

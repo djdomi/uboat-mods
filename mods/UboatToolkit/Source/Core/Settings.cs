@@ -47,7 +47,7 @@ namespace UboatToolkit
         static Settings()
         {
             // ---------- QoL ----------
-            Bool(QoL, "AwashGuns", "Vorgeflutet: Crew darf an Deckgeschütz + Flak (#24)", true);
+            Bool(QoL, "AwashGuns", "Vorgeflutet: Turmluke bleibt offen, Crew darf an Deck (#24)", true);
             Num(QoL, "RadioSpeed", "Funk: so viel schneller senden (1 = normal) (#11)", 10, 1, 100, 1);
             Bool(QoL, "RadioUndetectable", "Funk: Gegner kann dich nicht anpeilen (#12)", true);
             Bool(QoL, "RadioDecryptAll", "Funk: alle Funksprüche lesbar (auch fremd verschlüsselte)", true);
@@ -94,7 +94,8 @@ namespace UboatToolkit
             Bool(QoL, "EchoSailor", "Echolot als Matrosen-Aufgabe: unter Wasser geht ein freier Matrose hin und pingt", false);
             Bool(QoL, "EchoSailorQuiet", "  Bei Alarm nicht pingen (verrät sonst das Boot)", true);
             Num(QoL, "EchoSailorSeconds", "  Alle x Sekunden (Spielzeit läuft im Zeitraffer schneller)", 60, 10, 600, 10);
-            Bool(QoL, "AutoManGuns", "Deckgeschütz + Flak automatisch besetzen (aufgetaucht + Alarm)", false);
+            Bool(QoL, "AutoManGuns", "Deckgeschütz automatisch besetzen (aufgetaucht bei Alarm)", false);
+            Bool(QoL, "AutoManFlak", "Flak automatisch besetzen (aufgetaucht bei Alarm)", false);
             Bool(QoL, "AutoManEngines", "Maschinenraum automatisch besetzen, wenn ein Motor läuft", false);
             Bool(QoL, "RudderLockNote", "Hinweis, wenn das Ruder von Hand festgestellt ist und das Boot im Kreis fährt", true);
             Bool(QoL, "HatchSafety", "Luken-Sicherung: Turmluke unter Wasser immer schließen (auch wenn noch jemand an Deck ist)", true);
@@ -166,7 +167,8 @@ namespace UboatToolkit
             Num(QoL, "AutoDepthLookAhead", "  Voraus schauen (m)", 400, 0, 2000, 50);
             Num(QoL, "AutoDepthMin", "  Nie flacher als (m); ist das Wasser zu flach, geht das Boot so tief wie möglich und warnt", 12, 0, 50, 1);
             Num(QoL, "AutoDepthMax", "  Nie tiefer als (m)", 300, 20, 5000, 10);
-            Bool(QoL, "AutoDepthBottom", "  Aufsetzen: sanft auf den Grund legen + Schleichfahrt", false);
+            Bool(QoL, "AutoDepthBottom", "  Aufsetzen: sanft auf den Grund legen", false);
+            Bool(QoL, "AutoDepthBottomSilent", "  Aufsetzen: dabei Schleichfahrt einschalten", false);
             Bool(QoL, "AutoReloadTubes", "Leere Rohre automatisch aus dem Lager laden", true);
             Num(QoL, "AutoReloadSeconds", "  nach x Sekunden leer", 20, 0, 600, 5);
             Bool(QoL, "ReloadAllNow", "  >> Alle leeren Rohre aus dem Lager laden (Idee 2)", false);
@@ -174,13 +176,15 @@ namespace UboatToolkit
             Bool(QoL, "SortStorageNow", "  >> Lager aufräumen: gleiche Sachen stapeln, nach vorne rücken (Idee 5)", false);
             Bool(QoL, "CallMilkCow", "  >> Nächste Milchkuh zu mir holen", false);
             Bool(QoL, "BallastAlwaysAvailable", "Ballast-Befehle immer verfügbar (außer Ventil kaputt / Hafen)", true);
-            Bool(QoL, "HatchPressure", "Luken zeigen Luftdruck beider Räume + sperren bei großem Unterschied", true);
+            Bool(QoL, "HatchPressure", "Luken zeigen den Luftdruck beider Räume", true);
+            Bool(QoL, "HatchPressureLock", "Luken sperren bei großem Druckunterschied", true);
             Num(QoL, "HatchPressureLimit", "  Sperre ab Druck-Unterschied (bar, 0 = nie sperren)", 0.5f, 0, 5, 0.1f);
             Bool(QoL, "HatchEqualize", "  Druckausgleich: Luft strömt langsam nach, bis die Luke wieder aufgeht", true);
             Num(QoL, "HatchEqualizeSpeed", "  Druckausgleich: % vom Unterschied pro Sekunde", 10, 1, 100, 1);
             Num(QoL, "VentEqualizeFaster", "  Lüftung an: Druckausgleich x schneller (1 = kein Bonus)", 3, 1, 10, 0.5f);
             Bool(QoL, "AutoSnorkel", "Schnorchel fährt automatisch aus auf Sehrohrtiefe (1-10 m) und wieder ein", true);
-            Bool(QoL, "SnorkelAir", "  Schnorchel oben: Lüftung an + Luftdruck in allen Räumen schnell auf Normaldruck", true);
+            Bool(QoL, "SnorkelAir", "  Schnorchel oben: Luftdruck in allen Räumen schnell auf Normaldruck", true);
+            Bool(QoL, "SnorkelVent", "  Schnorchel oben: Lüftung einschalten", true);
             Bool(QoL, "AutoCrashDive", "Alarmtauchen automatisch, wenn ein feindliches Flugzeug gesichtet wird", false);
             Bool(QoL, "DiveSpeedCompensate", "Tiefenruder bei Speed-Cheat abschwächen (wirken wie bei normaler Fahrt)", true);
             Bool(QoL, "RouteLead", "Kurs: rechtzeitig vor dem Wegpunkt eindrehen (kein Bogen hinter dem Punkt)", true);
@@ -191,7 +195,7 @@ namespace UboatToolkit
             Bool(QoL, "PortT5Min", "Häfen: immer mindestens 4 T5 Zaunkönig im Laden (wenn es T5 schon gibt)", true);
             Bool(QoL, "TorpedoLatestPistol", "Häfen: von jedem Torpedo-Typ nur die neueste Zündpistole", true);
             Bool(QoL, "TorpedoMix", "H\u00e4fen haben eine gleichm\u00e4\u00dfige Mischung aller Torpedo-Typen", false);
-            Bool(QoL, "SeaFloorAlways", "Meeresboden immer laden, wenn das Wasser flacher als ~300 m ist (nur Reise-System \u201eRealistisch\u201c)", true);
+            Bool(QoL, "SeaFloorShallow", "Meeresboden immer laden, wenn das Wasser flacher als ~300 m ist (nur Reise-System \u201eRealistisch\u201c)", true);
             Num(QoL, "SeaFloorMaxCompression", "  nur bis Zeitraffer x (darüber kein Nachladen = keine Ruckler/Flicken)", 100, 1, 5000, 10);
             Bool(QoL, "SeaLayer", "Realistische Sprungschicht (25-150 m je nach Wassertemperatur, darunter schwerer zu orten)", true);
             Bool(QoL, "SeaLayerHearing", "  Unter der Sprungschicht h\u00f6rt der eigene Horcher Schiffe oben schlechter", true);
@@ -203,7 +207,8 @@ namespace UboatToolkit
             Bool(QoL, "SkipStartupIntros", "Start-Videos (Logos) beim Spielstart überspringen", true);
             Bool(QoL, "SkipIntroTutorial", "Neue Karriere: Einf\u00fchrungs-Tutorial \u00fcberspringen", true);
             Bool(QoL, "FixFadeReparent", "Fehler-Fix: Einblend-Effekt von Figuren (z. B. Hafenarbeiter) beim Ein-/Ausschalten nicht mehr falsch umh\u00e4ngen", true);
-            Bool(QoL, "NoPauseBlur", "Pause ohne Unsch\u00e4rfe und ohne dunkle Einblendung", false);
+            Bool(QoL, "NoPauseBlur", "Pause ohne Unsch\u00e4rfe", false);
+            Bool(QoL, "NoPauseDark", "Pause ohne dunkle Einblendung", false);
             Bool(QoL, "HideDevConsole", "Entwickler-Konsole nicht automatisch öffnen (Fehler landen trotzdem im Log)", true);
             Bool(QoL, "QuitWaitsForSave", "Beenden wartet, bis der Spielstand fertig geschrieben ist (sonst kaputter Spielstand)", true);
             Bool(QoL, "NoEdgeScroll", "Schnittansicht rutscht nicht weg, wenn die Maus den Bildschirmrand berührt", false);
@@ -548,7 +553,8 @@ namespace UboatToolkit
             Num(Cheat, "CheatPeriscopeHeight", "Sehrohr bis zu x m ausfahren (0 = aus) (Cheat #34)", 0, 0, 100, 1);
             Bool(Cheat, "CheatUndetectable", "Boot unentdeckbar (Sicht, Sonar, Horchgerät, Radar)", false);
             Bool(Cheat, "CheatPerfectAim", "Aimbot: 100 % Einschuss, keine Streuung, eigene Schüsse treffen mit Vorhalt (bis 30 Grad)", false);
-            Bool(Cheat, "CheatInfiniteGunAmmo", "Deckgeschütz + Flak: Munition unendlich", false);
+            Bool(Cheat, "CheatInfiniteGunAmmo", "Deckgeschütz: Munition unendlich", false);
+            Bool(Cheat, "CheatInfiniteFlakAmmo", "Flak: Munition unendlich", false);
             Bool(Cheat, "CheatSpecPoints", "Crew-Spezialisierungen (Tauchgang, Schleichfahrt, Disziplin): immer genug Punkte", false);
             Bool(Cheat, "CheatInfiniteTorpedoes", "Torpedos unendlich: Rohr lädt nach dem Schuss sofort neu (#26)", false);
             Bool(Cheat, "CheatAllT5", "  Nachgeladen wird immer ein T5 Zaunkönig (zielsuchend)", false);
@@ -561,9 +567,12 @@ namespace UboatToolkit
             Num(Cheat, "CheatPumpTestWaterM3", "Testwasser: so viele m³ (1-10)", 5, 1, 10, 1);
             Bool(Cheat, "CheatPumpTestWater", ">> Testwasser ins Boot: Grundreinigung durch Flutung (in den Raum der Kamera, sonst Zentrale)", false);
             Num(Cheat, "CheatCrewWalkSpeed", "Crew läuft x schneller (1 = normal)", 1, 1, 3, 0.25f);
-            Bool(Cheat, "CheatImmortalCrew", "Crew unsterblich + unverletzbar (keine Wunden, fällt nicht um)", false);
+            Bool(Cheat, "CheatImmortalCrew", "Crew unsterblich (stirbt nie)", false);
+            Bool(Cheat, "CheatNoWounds", "Crew unverletzbar (keine Wunden, verliert keine Gesundheit)", false);
+            Bool(Cheat, "CheatNoRagdoll", "Crew fällt bei Treffern nicht um", false);
             Bool(Cheat, "CheatNoSupplyUse", "Vorräte gehen nie aus (Essen, Ersatzteile, Verbandskästen ...)", false);
-            Bool(Cheat, "CheatNoWeight", "Munition + Gegenstände fast ohne Gewicht (0,0000001)", false);
+            Bool(Cheat, "CheatNoWeight", "Munition und Gegenstände fast ohne Gewicht (0,0000001)", false);
+            Bool(Cheat, "CheatNoMassLimit", "Lager ohne Gewichtsgrenze", false);
             Bool(Cheat, "AutoExpandStorage", "Lager wächst mit: fast voll = neue Plätze (Haupt-, Item-Lager, Küche)", false);
             Num(Cheat, "AutoExpandStep", "  So viele Plätze pro Erweiterung", 2, 1, 10, 1);
             Num(Cheat, "AutoExpandMax", "  Höchstens so viele Plätze pro Lager", 100, 10, 300, 10);
@@ -591,10 +600,12 @@ namespace UboatToolkit
             Bool(Cheat, "CheatFullBattery", "Batterie bleibt voll", false);
             Bool(Cheat, "CheatFullAir", "Luft unter Wasser unbegrenzt", false);
             Bool(Cheat, "CheatCrewNeverTired", "Crew wird nie müde", false);
-            Bool(Cheat, "CheatFullDiscipline", "Moral (Disziplin) immer voll und sinkt nie, kein Stress", false);
+            Bool(Cheat, "CheatFullDiscipline", "Moral (Disziplin) immer voll und sinkt nie", false);
             Bool(Cheat, "CheatAllAchievements", "  >> Alle Steam-Erfolge freischalten", false);
             Bool(Cheat, "CheatMissionDone", ">> Aktuellen Auftrag als erfüllt setzen (danach im Heimathafen abgeben)", false);
-            Bool(Cheat, "CheatEscortEasy", "Geleitschutz leicht gemacht: keine neuen Angreifer, Geleit fährt volle Fahrt und nimmt keinen Schaden", false);
+            Bool(Cheat, "CheatEscortEasy", "Geleitschutz: keine neuen Angreifer", false);
+            Bool(Cheat, "CheatEscortFullSpeed", "Geleitschutz: Geleit fährt volle Fahrt", false);
+            Bool(Cheat, "CheatEscortNoDamage", "Geleitschutz: Geleit nimmt keinen Schaden", false);
             Bool(Cheat, "CheatMissionStep", ">> Aktuellen Auftrag einen Schritt weiter schalten", false);
             Num(Cheat, "CheatMoney", "Geld: nie weniger als (0 = aus)", 0, 0, 1000000, 10000);
             Num(Cheat, "CheatReputation", "Ansehen (Ruf-Punkte): nie weniger als (0 = aus)", 0, 0, 1000, 10);
@@ -603,7 +614,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatResearchSpeed", "Forschung/Aufgaben im Hauptquartier x schneller", 1, 1, 1000, 10);
             Bool(Cheat, "DevConsole", "Entwickler-Konsole des Spiels einschalten (mit „Erfolge immer erlaubt“ ohne Achievement-Verlust)", false);
             Bool(Cheat, "DevConsoleNoErrorPopup", "  ohne die kurze Meldung „Fehler protokolliert“ bei jedem internen Fehler (steht weiter im Log)", true);
-            Bool(Cheat, "CheatInstantResearch", "Forschung + Aufgaben im Hauptquartier sofort fertig", false);
+            Bool(Cheat, "CheatInstantResearch", "Aufgaben im Hauptquartier (Forschung, Produktion) sofort fertig", false);
             Bool(Cheat, "CheatNoResearchRequirements", "Forschung ohne Voraussetzungen: keine Vorgänger-Forschung, kein Datum, kein Offizier nötig", false);
             Bool(Cheat, "CheatResearchAll", "  >> Alles erforschen", false);
             Num(Cheat, "CheatAddReputationAmount", "  Punkte pro Klick (für die zwei Knöpfe unten)", 10, 1, 1000000, 1);
@@ -611,14 +622,18 @@ namespace UboatToolkit
             Bool(Cheat, "CheatAddUpgradePoints", "  >> Upgrade-Punkte dazu", false);
             Num(Cheat, "CheatAddSailorsAmount", "Matrosen pro Klick (für den Knopf darunter)", 5, 1, 200, 1);
             Bool(Cheat, "CheatAddSailors", "  >> Matrosen anwerben (neue Männer kommen an Bord)", false);
-            Bool(Cheat, "CheatUnlockAll", "  >> Alle Upgrades + alle Boote freischalten", false);
+            Bool(Cheat, "CheatUnlockAll", "  >> Alle Upgrades freischalten", false);
+            Bool(Cheat, "CheatUnlockBoats", "  >> Alle Boote freischalten", false);
             Num(Cheat, "CheatTorpedoSpeed", "Torpedos x schneller (Rechner zielt mit, Treffer sicherer)", 1, 1, 5, 0.25f);
             Bool(Cheat, "CheatQuickTravel", "Schnellreise ans Kursziel per Taste (Tab „Tasten“)", false);
             Bool(Cheat, "CheatQuickTravelNow", "  >> Jetzt ans Kursziel springen", false);
-            Bool(Cheat, "CheatDeckCrewStays", "Deck-Crew bleibt beim Tauchen draußen, schießt weiter + ertrinkt nie", false);
+            Bool(Cheat, "CheatDeckCrewStays", "Deck-Crew bleibt beim Tauchen draußen", false);
+            Bool(Cheat, "CheatGunsUnderWater", "Eigene Geschütze bleiben beim Tauchen benutzbar", false);
+            Bool(Cheat, "CheatNoDrown", "Crew ertrinkt draußen nie", false);
             Bool(Cheat, "CheatHealNow", "  >> Alle heilen (Wunden, Blutungen, Krankheiten, wieder aufstehen)", false);
             Bool(Cheat, "CheatRadioAnyDepth", "Funk-Empfang in jeder Tiefe", false);
-            Bool(Cheat, "CheatHydrophoneAlways", "Horchgerät hört voll, auch aufgetaucht und bei hoher Fahrt", false);
+            Bool(Cheat, "CheatHydrophoneAlways", "Horchgerät hört voll, auch aufgetaucht", false);
+            Bool(Cheat, "CheatHydrophoneFast", "Horchgerät hört voll, auch bei hoher Fahrt", false);
             Bool(Cheat, "CheatInstantSolution", "Schusslösung sofort: Ziel ist beim ersten Sichten voll erfasst (Typ, Tempo, Kurs, Entfernung)", false);
             Bool(Cheat, "CheatExactTargets", "Zielerfassung genau: Tempo, Kurs, Entfernung exakt statt geschätzt", false);
             Num(Cheat, "CheatHullArmour", "Panzer-Rumpf: Schaden am Boot x (1 = normal, 0 = kein Schaden)", 1, 0, 1, 0.05f);
@@ -828,7 +843,7 @@ namespace UboatToolkit
             new[] { "Horcher & Sonar", "Horcher", "ActiveSonar", "CheatHydrophone", "CheatSonar", "CheatRange" },
             new[] { "Licht & Helligkeit", "AutoLight", "AutoSearchlight", "NightBright", "InteriorBright", "MuteLightCallouts" },
             new[] { "Zeitraffer", "StopTime", "AntiGrounding" },
-            new[] { "Karte", "Map", "NavInfo", "SeafloorAlways", "SeaFloorAlways" },
+            new[] { "Karte", "Map", "NavInfo", "SeafloorAlways", "SeaFloorShallow" },
             new[] { "Tauchen & Tiefe", "Ballast", "AutoDepth", "Depth", "DiveAngle", "AutoCrashDive", "AutoSnorkel", "SeaLayer", "DiveSpeed" },
             new[] { "Pumpen & Wasser", "AutoPump", "CheatPump", "CheatNeverFlood" },
             new[] { "Diesel, Strom & Luft", "CheatFull", "EnergySaver", "AirByCrew", "LowWarn", "Rebreather", "Ventilation" },
@@ -934,7 +949,7 @@ namespace UboatToolkit
             { "SeafloorAlways", GNav }, { "CheatLinguist", GCrew }, { "CheatNoSupplyUse", GPort },
             // 0.3.75: all "station is manned automatically" switches in one place, smoke with the guns
             { "AutoManGuns", GCrew }, { "AutoManRadio", GCrew }, { "AutoManEngines", GCrew }, { "AutoManHydrophone", GCrew },
-            { "GunSmokeOff", GWeap }, { "SeaFloorAlways", GNav }, { "MuteLightCallouts", GSens }, { "FastHatch", GBoat },
+            { "GunSmokeOff", GWeap }, { "SeaFloorShallow", GNav }, { "MuteLightCallouts", GSens }, { "FastHatch", GBoat },
         };
         // Keys: topic by key-name prefix (longest match first in this order).
         private static readonly string[][] keyGroups =
@@ -1001,7 +1016,12 @@ namespace UboatToolkit
         public static void Set(string key, float v) { if (byKey.TryGetValue(key, out var o)) o.Value = Math.Max(o.Min, Math.Min(o.Max, v)); }
 
         // old joint switch, new separate switch (the old key keeps the first effect)
-        private static readonly string[] Split = { "AutoVentilation", "AutoAbsorber" };
+        private static readonly string[] Split = { "AutoVentilation", "AutoAbsorber", "SeafloorAlways", "SeaFloorShallow",
+            "SnorkelAir", "SnorkelVent", "NoPauseBlur", "NoPauseDark", "AutoManGuns", "AutoManFlak", "AutoDepthBottom", "AutoDepthBottomSilent",
+            "HatchPressure", "HatchPressureLock", "CheatInfiniteGunAmmo", "CheatInfiniteFlakAmmo", "CheatImmortalCrew", "CheatNoWounds",
+            "CheatImmortalCrew", "CheatNoRagdoll", "CheatDeckCrewStays", "CheatGunsUnderWater", "CheatDeckCrewStays", "CheatNoDrown",
+            "CheatEscortEasy", "CheatEscortFullSpeed", "CheatEscortEasy", "CheatEscortNoDamage", "CheatHydrophoneAlways", "CheatHydrophoneFast",
+            "CheatNoWeight", "CheatNoMassLimit", "WhSilentVent", "WhVentAlwaysOn" };
         public static void Load()
         {
             try
@@ -1032,6 +1052,8 @@ namespace UboatToolkit
                 if (legacySensor > 0f && !newSensorKeys)
                     foreach (var k in new[] { "CheatRangeHydro", "CheatRangeSonar", "CheatRangeRadar", "CheatRangeRadarWarn", "CheatRangeLookout" }) Set(k, legacySensor);
                 // 0.4.28 (DoMe: separate "switch ventilation on" and "insert absorber"): the old joint switch is carried over once.
+                // "Moral voll" also removed stress; that part is the existing switch "Kein Stress" now (carried over once).
+                if (!seen.Contains("NoPauseDark") && B("CheatFullDiscipline") && !B("NoStress")) { Set("NoStress", 1); Util.Log("Schalter geteilt: „Kein Stress“ an, weil „Moral immer voll“ das bisher mit erledigt hat"); }
                 // Rule (DoMe 2026-11-18): one switch = one effect. Split[] lists old joint switch -> new separate switch.
                 for (int i = 0; i + 1 < Split.Length; i += 2)
                     if (seen.Contains(Split[i]) && !seen.Contains(Split[i + 1]) && Get(Split[i + 1]) != null)

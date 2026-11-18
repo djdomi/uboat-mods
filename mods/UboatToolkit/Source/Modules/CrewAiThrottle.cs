@@ -65,16 +65,18 @@ namespace UboatToolkit.Modules
             // 0.3.91 (DoMe: console flickers while loading, log full of crew-AI null errors on the Warthog): while a save
             // is still loading and in the first seconds of a new boat the crew AI of the player's boat waits, so it does
             // not look for beds, food or free space before the interior exists.
+            // 0.4.29 (player-only rule): only figures of the player's crew list are held or thinned, nobody else.
+            if (!owners.TryGetValue(__instance, out var pc))
+            {
+                if (owners.Count > 2000) owners.Clear();
+                pc = __instance.GetComponent<PlayableCharacter>();
+                owners[__instance] = pc;
+            }
+            if (pc == null) return true;
             if (CrewAiThrottle.Settle && (Time.unscaledTime < CrewAiThrottle.LoadingUntil || (Util.PlayerShip != null && !Util.ShipReady))) { CrewAiThrottle.Held++; return false; }
             int every = CrewAiThrottle.Every;
             if (every > 1)
             {
-                if (!owners.TryGetValue(__instance, out var pc))
-                {
-                    if (owners.Count > 2000) owners.Clear();
-                    pc = __instance.GetComponent<PlayableCharacter>();
-                    owners[__instance] = pc;
-                }
                 if (pc != null && !pc.IsVisible && pc.Action is SleepAction && (Time.frameCount + (__instance.GetInstanceID() & 0x3ff)) % every != 0)
                 {
                     CrewAiThrottle.Skipped++;

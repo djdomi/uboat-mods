@@ -32,7 +32,7 @@ namespace UboatToolkit.Modules
 
         internal static void Update(TerrainController tc, WorldGrid[] grids)
         {
-            if (!Settings.B("SeaFloorAlways") || wolfpack == null || wolfpack.IsInArea || grids == null || grids.Length == 0) { Forced = false; return; }
+            if (!Settings.B("SeaFloorShallow") || wolfpack == null || wolfpack.IsInArea || grids == null || grids.Length == 0) { Forced = false; return; }
             if (userSettings?.GameplaySettings != null && userSettings.GameplaySettings.travelSystem == TravelSystem.Dynamic) { Forced = false; return; }
             if (gameTime != null && (float)gameTime.TimeScale * gameTime.ArtificialTimeScale > Settings.F("SeaFloorMaxCompression")) { Forced = false; lastPos.x = float.NaN; return; }
 

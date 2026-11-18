@@ -94,7 +94,8 @@ namespace UboatToolkit.Modules
             // 0.4.10 (DoMe 2026-11-17: boat floods suddenly): on an alarm dive the deck is still dry for some seconds; in that
             // time men were sent to the guns although the boat was already diving. With men on deck the game does not lock
             // the tower hatch, so the boat dived with an open hatch and filled within seconds. Never while diving.
-            bool guns = ship.DeckDepth < 1f && !ship.SubmergedOrGoingToSubmerge && ((Settings.B("AutoManGuns") && ship.Alarmed) || Time.unscaledTime < UnderFire.ManGunsUntil);
+            bool guns = ship.DeckDepth < 1f && !ship.SubmergedOrGoingToSubmerge && (((Settings.B("AutoManGuns") || Settings.B("AutoManFlak")) && ship.Alarmed) || Time.unscaledTime < UnderFire.ManGunsUntil);
+            bool gunsAll = Time.unscaledTime < UnderFire.ManGunsUntil;
             Util.Safe("Luken-Sicherung", () => HatchSafety(ship));
             bool engines = Settings.B("AutoManEngines") && !ship.Docked;
             if (guns || engines)
@@ -102,7 +103,7 @@ namespace UboatToolkit.Modules
                 {
                     if (act == null) continue;
                     var eq = act.AssociatedEquipment;
-                    if (guns && eq is Gun) Keep(act, "Geschütz");
+                    if (guns && eq is Gun gg && (gunsAll || Settings.B(gg.IsAntiAircraftWeapon ? "AutoManFlak" : "AutoManGuns"))) Keep(act, gg.IsAntiAircraftWeapon ? "Flak" : "Geschütz");
                     else if (engines && eq is PlayerShipEngine eng && eng.GearIndex != 0) Keep(act, "Maschinenraum");
                 }
 

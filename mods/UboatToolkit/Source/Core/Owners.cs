@@ -14,6 +14,21 @@ namespace UboatToolkit
     internal static class Owners
     {
         public const int Player = 3, Safety = 2, Auto = 1;
+
+        // Second value: propeller power of OUR boat. Two parts wanted to write it (speed cheat and Warthog speed factor) and
+        // overwrote each other every second. Now both only state their factor here; Navigation writes game value x both.
+        public static float WarthogSpeed = 1f;
+        private static float lastSpeedLog = -1f;
+        public static float PropellerFactor(float cheat)
+        {
+            float w = Mathf.Clamp(WarthogSpeed, 0.5f, 2f), f = Mathf.Max(1f, cheat) * w;
+            if (Mathf.Abs(f - lastSpeedLog) > 0.001f)
+            {
+                lastSpeedLog = f;
+                Util.Log("Schraubenkraft (nur eigenes Boot): Spielwert x " + (f * f).ToString("0.##") + " (Tempo-Cheat x" + Mathf.Max(1f, cheat).ToString("0.##") + ", Warthog-Tempo x" + w.ToString("0.##") + ")");
+            }
+            return f * f;
+        }
         private static int rankNow; private static float until; private static string whoNow = "";
         private static readonly Dictionary<string, float> told = new Dictionary<string, float>();
 

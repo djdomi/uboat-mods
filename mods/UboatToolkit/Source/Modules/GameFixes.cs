@@ -348,7 +348,7 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(PauseOverlayUI), "ValidateState")]
     internal static class Fix_PauseOverlay
     {
-        private static void Postfix(PauseOverlayUI __instance) { if (Settings.B("NoPauseBlur") && __instance.gameObject.activeSelf) __instance.gameObject.SetActive(false); }
+        private static void Postfix(PauseOverlayUI __instance) { if (Settings.B("NoPauseDark") && __instance.gameObject.activeSelf) __instance.gameObject.SetActive(false); }
     }
 
 }

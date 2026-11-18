@@ -94,7 +94,8 @@ namespace UboatToolkit.Modules
             float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
             // 0.3.69 ("Langsam: Inventory.Tick ~48 ms" every 5 s): the full pass over all storages and items now runs
             // at once when a setting changed, otherwise only every 20 s. New items get their stack size right away (ApplyStack).
-            string state = noWeight + "/" + stack + "/" + minStack + "/" + Settings.F("CheatShopStock") + "/" + Settings.B("CheatMergeStacks") + "/" + ship.Docked;
+            bool noLimit = Settings.B("CheatNoMassLimit");
+            string state = noWeight + "/" + noLimit + "/" + stack + "/" + minStack + "/" + Settings.F("CheatShopStock") + "/" + Settings.B("CheatMergeStacks") + "/" + ship.Docked;
             if (state == lastState && Time.unscaledTime < next) return;
             next = Time.unscaledTime + (state != lastState ? 2f : 20f);
             lastState = state;
@@ -117,7 +118,7 @@ namespace UboatToolkit.Modules
                 // Never for diesel tanks: the game shows fuel % as (fuel mass / tank mass limit), so a bigger
                 // limit made the tank read 0 % and the boat "out of fuel" although it was full.
                 bool fuelTank = s.StorageType != null && s.StorageType.StartsWith("Fuel");
-                Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noWeight && !fuelTank ? 1000000f : 1f);
+                Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noLimit && !fuelTank ? 1000000f : 1f);
             }
             StackData.Apply();
             Util.Safe("ShopStock", ShopStock);

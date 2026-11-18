@@ -154,7 +154,7 @@ namespace UboatToolkit.Modules
 
             // Was only applied when the switch changed, so after a boat change or loading a save the new boat
             // never got it ("Flak hat keine unendliche Munition"). Now kept on the current boat every tick.
-            bool infinite = Settings.B("CheatInfiniteGunAmmo");
+            bool infinite = Settings.B("CheatInfiniteGunAmmo") && Settings.B("CheatInfiniteFlakAmmo");   // ship-wide flag only when both; one alone works per gun (Fire postfix)
             if (infinite || lastInfinite)
             {
                 if (ship.InfiniteAmmunition != infinite) ship.InfiniteAmmunition = infinite;
@@ -263,7 +263,7 @@ namespace UboatToolkit.Modules
         private static readonly AccessTools.FieldRef<Gun, int> AmmoCount = AccessTools.FieldRefAccess<Gun, int>("ammoCount");
         private static void Postfix(Gun __instance)
         {
-            if (!Settings.B("CheatInfiniteGunAmmo") || !Util.IsPlayers(__instance)) return;
+            if (!Settings.B(__instance.IsAntiAircraftWeapon ? "CheatInfiniteFlakAmmo" : "CheatInfiniteGunAmmo") || !Util.IsPlayers(__instance)) return;
             AmmoCount(__instance) = Mathf.Max(1, (int)__instance.MagazineSize.Value);
         }
     }

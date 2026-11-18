@@ -33,8 +33,9 @@ namespace UboatToolkit.Modules
         // Immortal also means unhurt: no bleeding wounds.
         private static bool Prefix(CharacterStatus status)
         {
-            if (Settings.B("CheatImmortalCrew") && (status is Dead || status is Bleeding)) return false;
-            return !(Settings.B("CheatDeckCrewStays") && status is Dead d && d.Cause == DeathCause.DrowningOffBoard);
+            if (Settings.B("CheatImmortalCrew") && status is Dead) return false;
+            if (Settings.B("CheatNoWounds") && status is Bleeding) return false;
+            return !(Settings.B("CheatNoDrown") && status is Dead d && d.Cause == DeathCause.DrowningOffBoard);
         }
     }
 
@@ -46,7 +47,7 @@ namespace UboatToolkit.Modules
         {
             // 0.4.22 (option audit, player-only rule): only OUR guns. Before, every gun in the scene kept working under
             // water, enemy submarines included.
-            if (Settings.B("CheatDeckCrewStays") && Util.IsPlayers(__instance) && !Util.WarthogModOwns(Util.PlayerShip)) __instance.SetDisableFlag(DeviceDisableFlag.Depth, false);
+            if (Settings.B("CheatGunsUnderWater") && Util.IsPlayers(__instance) && !Util.WarthogModOwns(Util.PlayerShip)) __instance.SetDisableFlag(DeviceDisableFlag.Depth, false);
         }
     }
 
@@ -54,7 +55,7 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(PlayableCharacter), nameof(PlayableCharacter.EnableRagdoll))]
     internal static class DeckCrew_NoRagdollPatch
     {
-        private static bool Prefix() => !Settings.B("CheatImmortalCrew");
+        private static bool Prefix() => !Settings.B("CheatNoRagdoll");
     }
 
     // One-shot heal: every crew member gets full health, wounds and illnesses are removed, the fallen stand up.
