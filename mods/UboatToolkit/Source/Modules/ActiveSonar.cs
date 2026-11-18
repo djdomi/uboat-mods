@@ -63,7 +63,7 @@ namespace UboatToolkit.Modules
             }
             string text = "Sonar-Ping: " + (n == 0 ? "nichts in " + (range / 1000f).ToString("0.0") + " km"
                 : n + " Kontakt(e), nächster " + Mathf.RoundToInt(best) + " m, Peilung " + Bearing(ship, near).ToString("000") + "°");
-            ToolkitRunner.ShowNotice(text, 5f);
+            if (Settings.B("SonarPingText") || !Settings.B("SonarScope")) ToolkitRunner.ShowNotice(text, 5f);
         }
 
         internal static bool InArc(PlayerShip ship, Entity e)

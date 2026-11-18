@@ -35,6 +35,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.Weapons());
             Modules.Add(new Modules.MilkCows());
             Modules.Add(new Modules.Ballast());
+            Modules.Add(new Modules.SnorkelGuard());
             Modules.Add(new Modules.CrewGear());
             Modules.Add(new Modules.Medical());
             Modules.Add(new Modules.Repairs());
@@ -487,6 +488,7 @@ namespace UboatToolkit
             {
                 UboatToolkit.Modules.DepthGauge.Draw();
                 UboatToolkit.Modules.Warthog.WarthogThrusterGauge.Draw();
+                UboatToolkit.Modules.SonarScope.Draw();
             }
             UboatToolkit.Modules.UnderFire.Draw();
             // open/close takes effect at a layout pass; a change between layout and repaint breaks the menu drawing

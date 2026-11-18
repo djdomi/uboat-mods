@@ -481,9 +481,27 @@ namespace UboatToolkit.Modules.CrewAi
 
                 string slotName = slot != null ? slot.name : "none";
                 string why = confirmedShape ? "matched shape but no slot found" : "shape did not match";
+                // 0.4.24: what the navmesh itself said (to tell "target cut off" from "man off the mesh")
+                string navInfo = "";
+                try
+                {
+                    var nf = AccessTools.Field(__instance.GetType(), "navigator");
+                    var tf = AccessTools.Field(__instance.GetType(), "target");
+                    var nv = nf != null ? nf.GetValue(__instance) as NavMeshNavigator : null;
+                    var ag = nv != null ? nv.Agent : null;
+                    if (ag != null && tf != null)
+                    {
+                        var tgt = (Vector3)tf.GetValue(__instance);
+                        navInfo = " | nav: mode=" + nv.AgentMode + " onMesh=" + ag.isOnNavMesh + " hasPath=" + ag.hasPath + " status=" + ag.pathStatus
+                                + " pathEndToTarget=" + (ag.hasPath ? (ag.pathEndPosition - tgt).magnitude.ToString("0.00") : "?")
+                                + " manToTarget=" + (ag.nextPosition - tgt).magnitude.ToString("0.0")
+                                + " slotUsers=" + (slot != null && slot.Interactable != null ? slot.Interactable.InteractingCharacters.Count.ToString() : "?");
+                    }
+                }
+                catch (Exception ne) { navInfo = " | nav: Fehler " + ne.GetType().Name; }
                 DiagLog.Write("[CancelProbe] " + who + " | attempts=" + attempts + " wasPathValid=" + wasValid +
                               " pathSet=" + pathSet + " unreachableAction=" + unreachableStr +
-                              " | target=" + targetDesc + " | slot=" + slotName + " | " + why);
+                              " | target=" + targetDesc + " | slot=" + slotName + " | " + why + navInfo);
             }
             catch (Exception e)
             {

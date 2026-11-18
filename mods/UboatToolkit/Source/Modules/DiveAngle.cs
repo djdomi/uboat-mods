@@ -15,6 +15,12 @@ namespace UboatToolkit.Modules
         {
             var sub = Util.PlayerShip as PlayableSubmarine;
             if (sub == null || Incl == null) return;
+            if (sub != boat)
+            {
+                // 0.4.24 (DoMe: "das Tool muss unterscheiden, wo es welche Höhe braucht"): the three heights, once per boat
+                Util.Log("Tiefen-Maße: Deck " + sub.DeckDepthUnclamped.ToString("0.0") + " m, Kiel " + sub.BottomDepth.ToString("0.0") + " m, Turm-Oberkante " + sub.Depth.ToString("0.0") +
+                    " m. Deck: Zieltiefe, Tiefe halten, Tiefenanzeige, Strahlruder, Flossen, Log. Kiel: Bodenabstand, Aufsetzen. Turm-Oberkante: nur Info (und Sprungschicht).");
+            }
             if (sub != boat) { boat = sub; original = Incl(sub); applied = float.NaN; lastComp = float.NaN; }   // 0.4.22: NaN = factor is written once per boat, also the plain 1 (a factor kept in the savegame is reset)
             if (Util.WarthogModOwns(Util.PlayerShip)) return;
             // Speed cheat x f: plane force grows with speed^2 -> f^2 too strong (DoMe: nose-down dives at speed, stop = boat rises).

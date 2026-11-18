@@ -68,6 +68,8 @@ namespace UboatToolkit
             Num(QoL, "CrewLodIdleFrames", "  Männer ohne Arbeit (stehen, ruhen, rauchen, schlafen) überlegen nur jedes x. Bild, auch sichtbar (1 = aus)", 10, 1, 60, 1);
             Bool(QoL, "BallastDieselBlow", "Ballast: aufgetaucht Tanks mit Diesel-Abgas leerblasen (spart Pressluft) (#23)", true);
             Num(QoL, "BallastDieselBlowRate", "  Diesel-Ausblasen: % Tank pro Sekunde", 2, 0.5f, 20, 0.5f);
+            Bool(QoL, "SnorkelKeepHead", "Schnorchel: liegt der Kopf unter Wasser, Zieltiefe in kleinen Schritten anheben (nur bei aktivem Schnorchel)", true);
+            Num(QoL, "SnorkelAirPlus", "Schnorchel: liefert immer den Luft-Verbrauch und x dazu (0 = Spiel)", 10, 0, 100, 1);
             Num(QoL, "BallastFastDive", "Ballast: schneller fluten beim Tauchen (1 = normal) (#23)", 1, 1, 5, 0.25f);
             Bool(QoL, "NoAutoCarryWounded", "Verletzte nicht automatisch wegtragen", false);
             Bool(QoL, "AutoFirstAid", "Verletzte/Kranke automatisch versorgen (Erste Hilfe) (#29)", true);
@@ -434,6 +436,13 @@ namespace UboatToolkit
             Num(QoL, "SonarArc", "  Suchwinkel (Grad, 360 = rundum)", 360, 10, 360, 5);
             Num(QoL, "SonarPingSeconds", "  ein Ping wirkt x Sekunden", 8, 1, 60, 1);
             Num(QoL, "SonarLoudness", "  so viel lauter sind wir beim Ping (für Gegner)", 0.5f, 0, 5, 0.05f);
+            Bool(QoL, "SonarScope", "Sonar-/Radar-Anzeige: runde Scheibe mit laufendem Zeiger (nur eigene Kontakte; mit der Maus verschiebbar)", true);
+            Num(QoL, "SonarScopeKm", "  Bereich der Scheibe in km (äußerer Ring)", 10, 1, 200, 1);
+            Num(QoL, "SonarScopeSize", "  Größe in Pixel", 220, 120, 600, 10);
+            Num(QoL, "SonarScopeSweep", "  Zeiger: Sekunden pro Umlauf", 4, 1, 30, 1);
+            Num(QoL, "SonarScopeX", "  Platz von links in %", 2, 0, 100, 1);
+            Num(QoL, "SonarScopeY", "  Platz von oben in %", 30, 0, 100, 1);
+            Bool(QoL, "SonarPingText", "  Ping-Ergebnis zusätzlich als Textzeile zeigen", true);
             Num(QoL, "SonarAutoSeconds", "  automatisch pingen alle x Sekunden unter Wasser (0 = nur per Taste)", 0, 0, 600, 5);
             Bool(QoL, "SonarAutoQuiet", "  automatisch nicht bei Alarm (leise bleiben)", true);
             Bool(QoL, "SonarSubmergedOnly", "  nur getaucht", true);
