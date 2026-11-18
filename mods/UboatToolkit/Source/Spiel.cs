@@ -7614,11 +7614,15 @@ namespace UboatToolkit.Modules
     {
         private static readonly System.Reflection.FieldInfo GroupF = AccessTools.Field(typeof(SinkShipMission), "groupToAttack");
         private static readonly System.Reflection.FieldInfo EntityF = AccessTools.Field(typeof(SinkShipMission), "targetEntity");
+        private static readonly System.Text.StringBuilder tree = new System.Text.StringBuilder();
         private float next, nextNotice; private string lastState = "";
 
+        private string lastTree = "";
         private static void Collect(IMission m, List<SinkShipMission> found, int depth)
         {
             if (m == null || depth > 6) return;
+            tree.Append(depth == 0 ? "" : " > ").Append(m.GetType().Name);
+            var st = AccessTools.Field(m.GetType(), "stage"); if (st != null) tree.Append(" (Stufe ").Append(st.GetValue(m)).Append(")");
             var s = m as SinkShipMission; if (s != null) found.Add(s);
             var mm = m as Mission; if (mm == null) return;
             foreach (var c in mm.Children) Collect(c, found, depth + 1);
@@ -7631,7 +7635,10 @@ namespace UboatToolkit.Modules
             var career = Util.Career; var w = Game.Wolfpack;
             if (career == null || w == null || GroupF == null || EntityF == null) return;
             var list = new List<SinkShipMission>();
+            tree.Length = 0;
             Collect(career.CurrentAssignment as IMission, list, 0);
+            string t = tree.ToString();
+            if (t != lastTree) { lastTree = t; Util.Log("Auftragsziel: aktive Aufträge im Spiel: " + (t == "" ? "keine" : t)); }
             if (list.Count == 0) { if (lastState != "") { lastState = ""; Util.Log("Auftragsziel: kein Auftrag „Schiff finden/versenken“ mehr aktiv"); } return; }
             foreach (var m in list)
             {
