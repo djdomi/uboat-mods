@@ -19,6 +19,7 @@ namespace UboatToolkit.Modules
 
         // 0.4.11 (DoMe: rudder dial stuck at 35 right, boat turns on the spot). The game's rudder dial sets the rudder
         // by hand ("Locked") and deletes the route; the helmsman then no longer steers until a new course is ordered.
+        private float nextHelmLine; private int helmEmptyLines;
         private int lastFn = -1; private float deadSince, nextDeadNote;
         private int lastLock = int.MinValue; private float lockSince, nextNote, nextLine;
         public override void Tick()
@@ -28,6 +29,21 @@ namespace UboatToolkit.Modules
             var r = ship.Rudders[0];
             // 0.4.12: rudder out of order = nobody at the helm (game rule with expanded schedules)
             if (!r.IsFunctional && Settings.B("CheatRudderNoHelmsman")) { foreach (var x in ship.Rudders) if (x != null) x.IsFunctional = true; }
+            if (UnityEngine.Time.unscaledTime >= nextHelmLine)
+            {
+                nextHelmLine = UnityEngine.Time.unscaledTime + 60f;
+                Util.Safe("Helm.Status", () =>
+                {
+                    foreach (var h in Util.Find<UBOAT.Game.Scene.Items.HelmsmanStation>())
+                    {
+                        if (h == null) continue;
+                        var a = h.GetComponent<UBOAT.Game.Scene.Characters.Activators.Activator>();
+                        int users = a != null ? a.Users.Count : -1;
+                        if (users <= 0) helmEmptyLines++; else helmEmptyLines = 0;
+                        Util.Log("Steuerstand: " + (users > 0 ? "besetzt" : "LEER (seit " + helmEmptyLines + " Minuten-Zeilen)") + ", Leistung " + h.Performance.Value.ToString("0.##") + ", Ruder in Betrieb: " + (r.IsFunctional ? "ja" : "nein") + ", Zeitraffer x" + UnityEngine.Time.timeScale.ToString("0"));
+                    }
+                });
+            }
             int fn = r.IsFunctional ? 1 : 0;
             if (fn != lastFn)
             {

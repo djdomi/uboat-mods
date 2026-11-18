@@ -32,7 +32,7 @@ namespace UboatToolkit.Modules
             if (Time.unscaledTime >= nextLine)
             {
                 if (nextLine > 0f && On) Util.Log("Crew-Detailstufen: " + Skipped + " mal Überlegen ausgesetzt, " + OrderKept + " mal nicht ausgesetzt wegen wartendem Befehl, " + Direct + " direkte Aufrufe des Spiels (Befehle) nie ausgesetzt; Werte " + Frames + "/" + IdleFrames);
-                nextLine = Time.unscaledTime + 60f; Skipped = 0; OrderKept = 0; Direct = 0;
+                nextLine = Time.unscaledTime + 60f; if (Urgent > 0) Util.Log("Crew-Detailstufen: " + Urgent + " mal nicht ausgesetzt, weil ein Pflicht-Posten leer war"); Skipped = 0; OrderKept = 0; Direct = 0; Urgent = 0;
             }
         }
 
@@ -42,6 +42,9 @@ namespace UboatToolkit.Modules
         internal static bool Skip(CharacterAI ai)
         {
             if (!On || Busy || ai == null || Time.timeScale <= 0f) return false;
+            // 0.4.13 (DoMe: many idle men, but the helm stays empty): while a station that must be manned is empty,
+            // nobody's thinking is paused, so the game's own shift jobs can fill it at once.
+            if (Time.unscaledTime < UrgentUntil) { Urgent++; return false; }
             // 0.4.5 (DoMe 2026-11-17: orders must be given twice and still are not carried out): the game calls
             // UpdateAI directly (68 places) right after an order is given or cancelled. Those calls were skipped
             // here too, so the man only noticed his order x frames later. Now only the routine call once per frame
@@ -63,6 +66,8 @@ namespace UboatToolkit.Modules
                 n = IdleFrames;
             }
             else if (Idle(ai)) n = Mathf.Max(n, IdleFrames);
+            // 0.4.13: in time compression x frames are x times more game time -> pause proportionally less
+            if (Time.timeScale > 1.5f) n = Mathf.RoundToInt(n / Time.timeScale);
             if (n <= 1) return false;
             int id = ai.GetInstanceID();
             if (id < 0) id = -id;
@@ -73,7 +78,8 @@ namespace UboatToolkit.Modules
         }
 
         internal static bool FrameCall;
-        internal static int Direct, OrderKept, Skipped;
+        internal static int Direct, OrderKept, Skipped, Urgent;
+        internal static float UrgentUntil;
         private float nextLine;
 
         private static bool HasWaitingOrder(CharacterAI ai)

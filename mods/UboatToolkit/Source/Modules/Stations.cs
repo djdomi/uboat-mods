@@ -179,6 +179,7 @@ namespace UboatToolkit.Modules
                 if (assignedAt.TryGetValue(act, out float at) && Time.time - at > 120f) { backoff.Remove(act); assignedAt.Remove(act); }
                 return;
             }
+            CrewLod.UrgentUntil = Time.unscaledTime + 3f;   // 0.4.13: a kept station is empty -> all men think every frame
             if (!emptySince.TryGetValue(act, out float since))
             {
                 emptySince[act] = Time.time;
