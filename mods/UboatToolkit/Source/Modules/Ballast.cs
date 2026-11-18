@@ -14,7 +14,7 @@ namespace UboatToolkit.Modules
         private float lastTime = -1f;
 
         private static readonly System.Collections.Generic.Dictionary<UBOAT.Game.Scene.Physics.Tank, double> lastWater = new System.Collections.Generic.Dictionary<UBOAT.Game.Scene.Physics.Tank, double>();
-        private static int helped; private static float nextLog;
+        private static int helped; private static float nextLog, nextTanks;
         public override void Tick()
         {
             float now = Time.time; // game time incl. time compression
@@ -25,6 +25,21 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             var tanks = ship.BallastTanks;
             if (tanks == null) return;
+
+            // 0.4.27: once a minute (every 10 s while the boat hangs more than 3 degrees) the trim angle and every tank,
+            // so a nose-down boat can be read from the log.
+            float pitch = Mathf.DeltaAngle(0f, ship.transform.eulerAngles.x);      // + = bow down
+            if (Time.unscaledTime > nextTanks)
+            {
+                nextTanks = Time.unscaledTime + (Mathf.Abs(pitch) > 3f ? 10f : 60f);
+                var sb = new System.Text.StringBuilder();
+                foreach (var t in tanks)
+                    if (t != null && t.Capacity > 0f)
+                        sb.Append(" [").Append(t.name).Append(" ").Append(t.TankType).Append(": Wasser ").Append((t.Water / t.Capacity * 100.0).ToString("0")).Append(" %, Luft ").Append(t.AirPressure.ToString("0.0")).Append(" bar")
+                          .Append(t.Fuel > 0.0 ? ", Diesel " + (t.Fuel / t.Capacity * 100.0).ToString("0") + " %" : "").Append(", Lage längs ").Append(ship.transform.InverseTransformPoint(t.transform.position).z.ToString("0")).Append(" m]");
+                Util.Log("Ballast: Neigung " + (pitch > 0f ? "Bug " + pitch.ToString("0.0") + "° nach unten" : "Bug " + (-pitch).ToString("0.0") + "° nach oben") + ", Deck " + ship.DeckDepthUnclamped.ToString("0.0") + " m, Zieltiefe " + ship.TargetDepth.ToString("0.0") +
+                    " m, Schnelltauchen x" + Settings.F("BallastFastDive").ToString("0.##") + ", Diesel-Anblasen " + (Settings.B("BallastDieselBlow") ? "an" : "aus") + "." + sb);
+            }
 
             bool surfaced = ship.DepthPreset == DepthPreset.Surface && !ship.SubmergedOrGoingToSubmerge && ship.TargetDepth < 0.05f;
             bool diving = ship.TargetDepth > 1f && ship.DepthPreset != DepthPreset.DeckAwash;
