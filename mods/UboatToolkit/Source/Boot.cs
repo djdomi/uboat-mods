@@ -167,7 +167,7 @@ namespace UboatToolkit.Modules
                 foreach (var t in tanks)
                     if (t != null && t.Capacity > 0f)
                         sb.Append(" [").Append(t.name).Append(" ").Append(t.TankType).Append(": Wasser ").Append((t.Water / t.Capacity * 100.0).ToString("0")).Append(" %, Luft ").Append(t.AirPressure.ToString("0.0")).Append(" bar")
-                          .Append(t.Fuel > 0.0 ? ", Diesel " + (t.Fuel / t.Capacity * 100.0).ToString("0") + " %" : "").Append(", Lage längs ").Append(ship.transform.InverseTransformPoint(t.transform.position).z.ToString("0")).Append(" m]");
+                          .Append(t.Fuel > 0.0 ? ", Diesel " + (t.Fuel / t.Capacity * 100.0).ToString("0") + " %" : "").Append(", Lage längs ").Append(t.CenterOfMass.z.ToString("0")).Append(" m]");
                 Util.Log("Ballast: Neigung " + (pitch > 0f ? "Bug " + pitch.ToString("0.0") + "° nach unten" : "Bug " + (-pitch).ToString("0.0") + "° nach oben") + ", Deck " + ship.DeckDepthUnclamped.ToString("0.0") + " m, Zieltiefe " + ship.TargetDepth.ToString("0.0") +
                     " m, Schnelltauchen x" + Settings.F("BallastFastDive").ToString("0.##") + ", Diesel-Anblasen " + (Settings.B("BallastDieselBlow") ? "an" : "aus") + "." + sb);
             }
@@ -3522,6 +3522,90 @@ namespace UboatToolkit.Modules
         {
             if (active) Util.Log("Tiefe nachgeführt: aus" + (why != null ? " (" + why + ")" : ""));
             active = false; sum = 0f; lastTarget = -1f;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Vorfluten bis zur Zieltiefe (0.4.44)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Entities;
+
+    // DoMe 2026-11-18: "also mir vorfluten tut jetzt gar nichts mehr". Log: the game floods exactly two ballast tanks
+    // (no. 4 and no. 8) and the deck stays 0.4 m ABOVE the water; the order is 0.45 m below. The missing 0.9 m is left
+    // to the dive planes, which have almost no force at such a small error. This part floods the other ballast tanks
+    // a little, evenly, until the deck stands on the ordered depth, and takes exactly that water out again when the
+    // boat lies too deep or the order ends. Own boat only, only while the order is "deck awash".
+    public class AwashTrim : ModuleBase
+    {
+        private static readonly Dictionary<UBOAT.Game.Scene.Physics.Tank, double> added = new Dictionary<UBOAT.Game.Scene.Physics.Tank, double>();
+        private float lastTime = -1f, nextLog, since = -1f; private bool wasOn;
+
+        private static double Total() { double s = 0; foreach (var kv in added) s += kv.Value; return s; }
+
+        private void GiveBack(string why)
+        {
+            double sum = 0;
+            foreach (var kv in added)
+            {
+                var t = kv.Key; if (t == null) continue;
+                double take = Math.Min(kv.Value, t.Water);
+                t.Water -= take; t.Air += take; sum += take;
+            }
+            added.Clear();
+            if (wasOn) Util.Log("Vorfluten: beendet (" + why + "), " + sum.ToString("0.0") + " m³ nachgeflutetes Wasser wieder aus den Tauchzellen genommen");
+            wasOn = false; since = -1f;
+        }
+
+        public override void Tick()
+        {
+            float now = Time.time;
+            float dt = lastTime < 0f ? 0f : Mathf.Clamp(now - lastTime, 0f, 5f);
+            lastTime = now;
+            var ship = Util.PlayerShip;
+            if (ship == null) { added.Clear(); wasOn = false; return; }
+            bool want = Settings.B("AwashTrim") && ship.DepthPreset == DepthPreset.DeckAwash && !ship.Docked && !Util.WarthogModOwns(ship);
+            if (!want) { if (wasOn || added.Count > 0) GiveBack(Settings.B("AwashTrim") ? "Befehl ist nicht mehr vorgeflutet" : "Schalter aus"); return; }
+            var tanks = ship.BallastTanks;
+            if (tanks == null || dt <= 0f) return;
+            if (since < 0f) since = now;
+            wasOn = true;
+            if (now - since < 15f) return;                         // let the game flood its own two tanks first
+            float deck = ship.DeckDepthUnclamped, err = ship.TargetDepth - deck;      // + = boat lies too high
+            if (Mathf.Abs(err) > 0.05f)
+            {
+                // share of each tank per second, slower close to the order
+                double step = 0.01 * Mathf.Clamp(err, -1f, 1f) * dt;
+                foreach (var t in tanks)
+                {
+                    if (t == null || t.Capacity <= 0.0) continue;
+                    double mine; added.TryGetValue(t, out mine);
+                    double d = t.Capacity * step;
+                    if (d > 0.0)
+                    {
+                        if (t.Water >= t.Capacity - t.Fuel - 1e-6) continue;          // full already (the game's own awash tanks)
+                        d = Math.Min(d, Math.Min(t.Air, t.Capacity - t.Fuel - t.Water));
+                        if (d <= 0.0) continue;
+                        t.Water += d; t.Air -= d; added[t] = mine + d;
+                    }
+                    else
+                    {
+                        d = Math.Min(-d, Math.Min(mine, t.Water));                      // only water this part put in
+                        if (d <= 0.0) continue;
+                        t.Water -= d; t.Air += d; added[t] = mine - d;
+                    }
+                }
+            }
+            if (Time.unscaledTime > nextLog)
+            {
+                nextLog = Time.unscaledTime + 30f;
+                Util.Log("Vorfluten (nur eigenes Boot): Deck " + deck.ToString("0.00") + " m, Ziel " + ship.TargetDepth.ToString("0.00") + " m, nachgeflutet " + Total().ToString("0.0") + " m³ in " + added.Count + " Tauchzellen");
+            }
         }
     }
 }

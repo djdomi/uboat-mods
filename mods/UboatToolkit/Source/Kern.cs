@@ -2952,6 +2952,7 @@ namespace UboatToolkit
             Num(Cheat, "SinkConvoyTorpedoes", "  Torpedos pro Schiff", 3, 1, 10, 1);
             Bool(Cheat, "CheatMissionTarget", "Auftrag „Schiff finden/versenken“: genaue Lage des Ziels alle 30 s als Meldung (Entfernung, Peilung, Kurs, Fahrt)", false);
             Bool(QoL, "DepthTrimHold", "Tiefe nachführen: Boot steht genau auf der Zieltiefe (gleicht das Durchhängen bei langsamer Fahrt aus)", false);
+            Bool(QoL, "AwashTrim", "Vorfluten bis zur Zieltiefe: flutet weitere Tauchzellen nach, bis das Deck wirklich überspült ist", false);
             Bool(QoL, "DiveButtonsAtSpeed", "Tauchknöpfe zusätzlich neben dem Fahrtregler (Kopie der Knöpfe vom Tiefenmesser)", false);
             Num(QoL, "DiveButtonsX", "Tauchknöpfe-Kopie: nach rechts verschieben (Bildpunkte, minus = links)", 0, -800, 800, 10);
             Num(QoL, "DiveButtonsY", "Tauchknöpfe-Kopie: nach oben verschieben (Bildpunkte, minus = unten)", 0, -800, 800, 10);
@@ -3563,6 +3564,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.SnorkelGuard());
             Modules.Add(new Modules.MissionTargetInfo());
             Modules.Add(new Modules.DiveButtonsCopy());
+            Modules.Add(new Modules.AwashTrim());
             Modules.Add(new Modules.CrewGear());
             Modules.Add(new Modules.Medical());
             Modules.Add(new Modules.Repairs());
