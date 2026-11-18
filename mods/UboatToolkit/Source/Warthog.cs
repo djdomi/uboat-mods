@@ -1005,7 +1005,7 @@ namespace UboatToolkit.Modules.Warthog
             {
                 if (d.type.StartsWith("Warthog")) continue; // own consumers apply the mode themselves
                 int mode = Mode(d.type);
-                int n = 0; float game = 0f, now = 0f;
+                int n = 0, chargers = 0; float game = 0f, now = 0f;
                 var comps = DevicesOfType(d.type);
                 foreach (var comp in comps)
                     foreach (var f in EnergyFields(comp.GetType()))
@@ -1015,12 +1015,18 @@ namespace UboatToolkit.Modules.Warthog
                         if (!slots.TryGetValue(m, out var s)) { s = new Slot { M = m, Game = m.Value }; slots[m] = s; }
                         // the game changed the value since we wrote -> that is the new game value
                         if (float.IsNaN(s.Written) || m.Value != s.Written) s.Game = m.Value;
-                        float want = mode == 1 ? 0f : mode == 2 ? Mathf.Abs(s.Game) : s.Game;
+                        // 0.4.59 (DoMe 2026-11-18 19:29, tooltip "Dieselmotoren -1,4/km" on the battery): a diesel that charges
+                        // the battery has a NEGATIVE game value here too (its usage parameter is negative, minus x minus = gain).
+                        // "erzeugt" turned that value positive, so the diesels drained the battery. An engine that can charge
+                        // the battery is left exactly as the game sets it.
+                        bool charger = Charges(comp);
+                        if (charger && log) chargers++;
+                        float want = charger ? s.Game : mode == 1 ? 0f : mode == 2 ? Mathf.Abs(s.Game) : s.Game;
                         if (m.Value != want) m.Value = want;
                         s.Written = want;
                         if (log) { n++; game += s.Game; now += want; }
                     }
-                if (log) sb.Append(" ").Append(d.label).Append(": ").Append(comps.Length).Append(" Geräte, ").Append(n).Append(" aktive Werte, Spiel ").Append(game.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" -> jetzt ").Append(now.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" (Modus ").Append(mode).Append(");");
+                if (log) sb.Append(" ").Append(d.label).Append(": ").Append(comps.Length).Append(" Geräte, ").Append(n).Append(" aktive Werte, Spiel ").Append(game.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" -> jetzt ").Append(now.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" (Modus ").Append(mode).Append(chargers > 0 ? ", davon " + chargers + " ladender Diesel unverändert" : "").Append(");");
             }
             if (log)
             {
@@ -1028,6 +1034,13 @@ namespace UboatToolkit.Modules.Warthog
                 try { var en = ship.GetResource("Energy"); if (en != null) sb.Append(" Batterie gesamt jetzt ").Append(en.Gain.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)).Append(" pro Sekunde, Teile").Append(PartsOf(en.Gain)); } catch { }
                 Util.Log(sb.ToString());
             }
+        }
+
+        private static readonly FieldInfo ChargeField = HarmonyLib.AccessTools.Field(typeof(UBOAT.Game.Scene.Items.PlayerShipEngine), "canChargeBatteries");
+        private static bool Charges(object comp)
+        {
+            if (ChargeField == null || !(comp is UBOAT.Game.Scene.Items.PlayerShipEngine)) return false;
+            try { return (bool)ChargeField.GetValue(comp); } catch { return false; }
         }
 
         private static string PartsOf(Parameter p)
