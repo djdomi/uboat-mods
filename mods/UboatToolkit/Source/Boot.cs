@@ -3490,7 +3490,7 @@ namespace UboatToolkit.Modules
         {
             if (target == null || !(target is PlayerShip) || Util.IsPlayers(__instance)) return;
             var owner = __instance.GetComponentInParent<Entity>();
-            if (owner != null) UnderFire.Report(owner, "Wir werden beschossen");
+            if (owner != null) { GunSpread_Patch.NoteAttacker(owner); UnderFire.Report(owner, "Wir werden beschossen"); }
         }
     }
 }

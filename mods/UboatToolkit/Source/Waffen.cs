@@ -1698,7 +1698,7 @@ namespace UboatToolkit.Modules
             {
                 // QoL: player guns attack ships AND aircraft (the game's menu only offers one or the other; enemy flak
                 // already uses both). Preference per gun type in Weapons_PreferPatch. "Clear" (hold fire) stays.
-                if (Settings.B("AAGunBothTargets") && Util.IsPlayers(gun) && !Util.WarthogModOwns(ship)
+                if (Settings.B("AAGunBothTargets") && Util.IsPlayers(gun) && !Util.WarthogModOwns(ship) && !GunModes.Single.Contains(gun.GetInstanceID())
                     && (gun.TargetingMode == ArtilleryTargetingMode.Ships || gun.TargetingMode == ArtilleryTargetingMode.Aircrafts))
                 {
                     gun.TargetingMode = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
@@ -1794,7 +1794,7 @@ namespace UboatToolkit.Modules
                 {
                     int id = gun.GetInstanceID();
                     bool both = Settings.B("AAvsShips");
-                    if (both && gun.TargetingMode == ArtilleryTargetingMode.Aircrafts)
+                    if (both && gun.TargetingMode == ArtilleryTargetingMode.Aircrafts && !GunModes.Single.Contains(id))
                     {
                         gun.TargetingMode = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
                         aaSwitched.Add(id);
@@ -2007,36 +2007,100 @@ namespace UboatToolkit.Modules
         }
     }
 
-    // 0.4.62: the game's gun menu knows "hold fire", "ships", "aircraft". Our combined mode (ships + aircraft) fell
-    // into "everything else" and was shown as "hold fire". While the game builds the menu, the gun reports the kind
-    // it prefers (deck gun: ships, flak: aircraft); the real mode is back right after.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Actions.UseGun), "RefreshTargetingMode")]
+    // 0.4.63 (DoMe 2026-11-18: "gibt es auch ein ordentlichen knopf? also am selben menü"): the game's gun menu has
+    // "hold fire", "ships", "aircraft". Own guns get a fourth button "ships and aircraft" in the same row. A click
+    // sets the whole gun group to both kinds (same order path and voice line as "ships"); the button is lit while
+    // the mode is active. A single kind picked in the menu stays a single kind (GunModes.Single).
+    internal static class GunModes
+    {
+        internal const ArtilleryTargetingMode Both = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
+        // guns whose single kind (only ships / only aircraft) the player picked in the menu himself
+        internal static readonly System.Collections.Generic.HashSet<int> Single = new System.Collections.Generic.HashSet<int>();
+        internal static bool On(Gun g) => g != null && Settings.B("AAGunBothTargets") && Util.IsPlayers(g) && !Util.WarthogModOwns(Util.PlayerShip);
+        internal static System.Collections.Generic.IEnumerable<Gun> Group(Gun g)
+        {
+            var grp = g.GetComponentInParent<TargetingDevicesGroup>();
+            if (grp != null && grp.TargetingDevices != null && System.Array.IndexOf(grp.TargetingDevices, g) != -1)
+            { foreach (var d in grp.TargetingDevices) if (d is Gun x && x != null) yield return x; }
+            else yield return g;
+        }
+    }
+
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.ContactsUI), "SetTargetingMode")]
     internal static class Weapons_BothModeMenuPatch
     {
-        private static readonly AccessTools.FieldRef<Gun, ArtilleryTargetingMode> ModeF = AccessTools.FieldRefAccess<Gun, ArtilleryTargetingMode>("targetingMode");
-        private const ArtilleryTargetingMode Both = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
-        private static bool logged;
-        private static void Prefix(UBOAT.Game.Scene.Characters.Actions.UseGun __instance, out Gun __state)
+        private static void Prefix(ITargetingDevice targetingDevice, ref string[] targetModes, ref string selectedMode, ref System.Action<string> onModeChosen)
         {
-            __state = null;
             try
             {
-                var g = __instance != null ? __instance.Gun : null;
-                if (g == null || ModeF(g) != Both || !Util.IsPlayers(g)) return;
-                ModeF(g) = g.IsAntiAircraftWeapon ? ArtilleryTargetingMode.Aircrafts : ArtilleryTargetingMode.Ships;
-                __state = g;
+                var g = targetingDevice as Gun;
+                if (!GunModes.On(g) || targetModes == null || onModeChosen == null) return;
+                if (System.Array.IndexOf(targetModes, "Ships") < 0 || System.Array.IndexOf(targetModes, "Aircrafts") < 0 || System.Array.IndexOf(targetModes, "Both") >= 0) return;
+                var list = new System.Collections.Generic.List<string>(targetModes); list.Add("Both");
+                targetModes = list.ToArray();
+                if (g.TargetingMode == GunModes.Both && g.TargetOverride == null) selectedMode = "Both";
+                var game = onModeChosen;
+                onModeChosen = mode =>
+                {
+                    if (mode == "Both")
+                    {
+                        game("Ships");                                  // the game's own order: group to ships, voice line
+                        int n = 0;
+                        foreach (var x in GunModes.Group(g)) { x.TargetingMode = GunModes.Both; GunModes.Single.Remove(x.GetInstanceID()); n++; }
+                        Util.Log("Geschütz-Menü: Knopf 'Schiffe und Flugzeuge' gedrückt, " + n + " Geschütz(e) der Gruppe auf beide Ziele");
+                        return;
+                    }
+                    game(mode);
+                    foreach (var x in GunModes.Group(g))
+                    {
+                        if (mode == "Ships" || mode == "Aircrafts") GunModes.Single.Add(x.GetInstanceID()); else GunModes.Single.Remove(x.GetInstanceID());
+                    }
+                    Util.Log("Geschütz-Menü: '" + mode + "' gewählt, bleibt so (kein Doppel-Modus von selbst)");
+                };
             }
-            catch { }
+            catch (System.Exception e) { Util.Log("Geschütz-Menü: Fehler " + e.GetType().Name + " " + e.Message); }
         }
-        private static void Finalizer(Gun __state)
+    }
+
+    // The fourth button's look: the game's "ships" button with the "aircraft" button as a small badge in the corner
+    // (both are the game's own pictures), and a tooltip in plain words.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.ContactsUI), "AddModeButton")]
+    internal static class Weapons_BothModeButtonPatch
+    {
+        private static bool logged;
+        private static void Postfix(UBOAT.Game.UI.ContactsUI __instance, string mode)
         {
-            if (__state == null) return;
+            if (mode != "Both") return;
             try
             {
-                ModeF(__state) = Both;
-                if (!logged) { logged = true; Util.Log("Geschütze: Menü zeigt im Doppel-Modus 'Schiffe' bzw. 'Flugzeuge' statt 'Feuer einstellen' (" + __state.name + ")"); }
+                var cont = Traverse.Create(__instance).Field("modesContainer").GetValue<RectTransform>();
+                if (cont == null || cont.childCount == 0) return;
+                var btn = cont.GetChild(cont.childCount - 1) as RectTransform;
+                var img = btn != null ? btn.GetComponent<UnityEngine.UI.Image>() : null;
+                var tog = btn != null ? btn.GetComponent<UnityEngine.UI.Toggle>() : null;
+                if (img == null) return;
+                img.sprite = Resources.Load<Sprite>("Icons/ContactsUI/Target - Ships");
+                if (tog != null)
+                {
+                    var st = tog.spriteState;
+                    st.highlightedSprite = Resources.Load<Sprite>("Icons/ContactsUI/Target - Ships - Highlighted");
+                    st.pressedSprite = Resources.Load<Sprite>("Icons/ContactsUI/Target - Ships - Pressed");
+                    st.disabledSprite = img.sprite;
+                    tog.spriteState = st;
+                }
+                var badge = new GameObject("Toolkit Aircraft Badge", typeof(RectTransform));
+                var rt = (RectTransform)badge.transform;
+                rt.SetParent(btn, false);
+                rt.SetAsFirstSibling();                                // below the game's "selected" overlay
+                rt.anchorMin = new Vector2(0.45f, 0.45f); rt.anchorMax = new Vector2(1f, 1f);
+                rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+                var bi = badge.AddComponent<UnityEngine.UI.Image>();
+                bi.sprite = Resources.Load<Sprite>("Icons/ContactsUI/Target - Aircrafts");
+                bi.raycastTarget = false; bi.preserveAspect = true;
+                UBOAT.Game.UI.Tooltip.SetTooltip(btn, () => "Schiffe und Flugzeuge");
+                if (!logged) { logged = true; Util.Log("Geschütz-Menü: vierter Knopf 'Schiffe und Flugzeuge' angelegt (Bild Schiffe " + (img.sprite != null ? "da" : "FEHLT") + ", Bild Flugzeuge " + (bi.sprite != null ? "da" : "FEHLT") + ")"); }
             }
-            catch { }
+            catch (System.Exception e) { Util.Log("Geschütz-Menü: Knopf-Bild Fehler " + e.GetType().Name + " " + e.Message); }
         }
     }
 }
@@ -2252,20 +2316,27 @@ namespace UboatToolkit.Modules
             return n;
         }
 
+        // 0.4.63 (DoMe: "wenn schon beschuss frei und man wird beschossen sollte die KI zuerst das schiff angreifen
+        // das uns angreift"): who fired at our boat, and when (unscaled seconds). Filled by UnderFire_GunPatch.
+        internal static readonly Dictionary<Entity, float> Attackers = new Dictionary<Entity, float>();
+        internal static void NoteAttacker(Entity e) { if (e != null) Attackers[e] = Time.unscaledTime; }
+        private static bool IsAttacker(Entity e) { float t; return Attackers.TryGetValue(e, out t) && Time.unscaledTime - t < 90f; }
+        private static readonly List<Entity> rejected = new List<Entity>();
+
         [HarmonyPriority(Priority.Last)]
         private static void Postfix(Gun __instance, bool ships, bool allowAircraft, ref Entity __result)
         {
-            if (__result == null || !Settings.B("GunSpreadTargets") || !Util.IsPlayers(__instance)) return;
+            if (__result == null) return;
+            bool spread = Settings.B("GunSpreadTargets"), att = Settings.B("GunAttackersFirst") && Attackers.Count > 0;
+            if ((!spread && !att) || !Util.IsPlayers(__instance)) return;
             if (__result == __instance.TargetOverride) return;
-            // both kinds at once: the two inner searches (one kind each) were already spread
+            // both kinds at once: the two inner searches (one kind each) were already handled
             if (ships && allowAircraft && Settings.B("AAGunBothTargets")) return;
             try
             {
                 var obs = Obs(__instance);
                 var guns = obs != null ? obs.Guns : null;
-                if (guns == null || guns.Length < 2) return;
-                int bestLoad = Load(__instance, guns, __result);
-                if (bestLoad == 0) return;                       // nobody else shoots at it
+                if (guns == null) return;
                 bool air = __result is Aircraft;
                 Vector3 pos = __instance.transform.position;
                 float maxAir = Settings.B("AASaveAmmo") ? Settings.F("AAEngageKm") * 1000f : float.MaxValue;
@@ -2278,42 +2349,58 @@ namespace UboatToolkit.Modules
                     var o = list[i];
                     if (o == null || !o.IsInitialized) continue;
                     var e = o.Entity;
-                    if (e == null || e == __result || e is Torpedo || (e is Aircraft) != air || e.Health <= 0f) continue;
-                    if (e.SandboxEntity == null || own.GetRelationWith(e.SandboxEntity.PerceivedCountry) != Country.Relation.Enemy) continue;
-                    if (!o.IsObservedVia(DirectObservationType.Visual)) continue;
-                    if (!(e.DeckDepth < 4f || (e.DeckDepth < 12f && (!(e is ISubmarine) || !e.SubmergedOrGoingToSubmerge)))) continue;
-                    if (e.Blueprint == null || e.Blueprint.Type == null || !e.Blueprint.Type.IsValidAutoAttackTarget) continue;
-                    if (air && Vector3.Distance(pos, e.transform.position) > maxAir) continue;
+                    if (e == null || e is Torpedo || (e is Aircraft) != air || e.Health <= 0f) continue;
+                    if (e != __result)
+                    {
+                        if (e.SandboxEntity == null || own.GetRelationWith(e.SandboxEntity.PerceivedCountry) != Country.Relation.Enemy) continue;
+                        if (!o.IsObservedVia(DirectObservationType.Visual)) continue;
+                        if (!(e.DeckDepth < 4f || (e.DeckDepth < 12f && (!(e is ISubmarine) || !e.SubmergedOrGoingToSubmerge)))) continue;
+                        if (e.Blueprint == null || e.Blueprint.Type == null || !e.Blueprint.Type.IsValidAutoAttackTarget) continue;
+                        if (air && Vector3.Distance(pos, e.transform.position) > maxAir) continue;
+                    }
                     cand.Add(e);
                 }
-                if (cand.Count == 0) return;
-                // the gun's present target stays when it is no worse (no hopping between targets)
+                if (cand.Count < 2) return;
+                // order: a ship that fires at us first (switch), then the one with fewest of our guns on it (switch),
+                // then the gun's present target (no hopping), then the game's own choice, then the nearest
                 var cur = Auto(__instance);
-                Entity pick = null; float pickDist = float.MaxValue;
-                for (int i = 0; i < cand.Count; i++)
+                rejected.Clear();
+                Entity pick = null; bool pickAtt = false;
+                for (int round = 0; round < 4 && pick == null; round++)
                 {
-                    var e = cand[i];
-                    int l = Load(__instance, guns, e);
-                    float d = (e.transform.position - pos).sqrMagnitude;
-                    if (e == cur) d = -1f;
-                    if (l < bestLoad || (pick != null && l == bestLoad && d < pickDist))
+                    Entity best = null; int bA = 0, bL = 0, bC = 0, bG = 0; float bD = 0f;
+                    for (int i = 0; i < cand.Count; i++)
                     {
-                        if (!__instance.HasLOS(pos, e)) continue;
-                        bestLoad = l; pick = e; pickDist = d;
+                        var e = cand[i];
+                        if (rejected.Contains(e)) continue;
+                        int kA = att && IsAttacker(e) ? 0 : 1, kL = spread ? Load(__instance, guns, e) : 0, kC = e == cur ? 0 : 1, kG = e == __result ? 0 : 1;
+                        float kD = (e.transform.position - pos).sqrMagnitude;
+                        bool better = best == null || kA < bA || (kA == bA && (kL < bL || (kL == bL && (kC < bC || (kC == bC && (kG < bG || (kG == bG && kD < bD)))))));
+                        if (better) { best = e; bA = kA; bL = kL; bC = kC; bG = kG; bD = kD; }
                     }
+                    if (best == null) break;
+                    if (best == __result || __instance.HasLOS(pos, best)) { pick = best; pickAtt = bA == 0; }
+                    else rejected.Add(best);
                 }
-                if (pick == null) return;
+                if (pick == null || pick == __result) { if (pick != null && pickAtt) LogNow(__instance, guns, pick, true); return; }
                 if (pick != cur) changes++;
                 __result = pick;
-                if (Time.unscaledTime > nextLog)
-                {
-                    nextLog = Time.unscaledTime + 60f;
-                    var seen = new HashSet<Entity>(); int manned = 0;
-                    foreach (var g in guns) { if (g == null || !Manned(g)) continue; manned++; var t = g == __instance ? pick : Auto(g); if (t != null) seen.Add(t); }
-                    Util.Log("Schützen verteilt: " + manned + " besetzte Geschütze auf " + seen.Count + " verschiedene Ziele, " + changes + " Zielwechsel in dieser Sitzung");
-                }
+                LogNow(__instance, guns, pick, pickAtt);
             }
             catch (System.Exception ex) { if (Time.unscaledTime > nextLog) { nextLog = Time.unscaledTime + 60f; Util.Log("Schützen verteilen: Fehler " + ex.GetType().Name + " " + ex.Message); } }
+        }
+
+        private static void LogNow(Gun self, Gun[] guns, Entity pick, bool attacker)
+        {
+            if (Time.unscaledTime < nextLog) return;
+            nextLog = Time.unscaledTime + 60f;
+            var seen = new HashSet<Entity>(); int manned = 0, known = 0;
+            foreach (var g in guns) { if (g == null || !Manned(g)) continue; manned++; var t = g == self ? pick : Auto(g); if (t != null) seen.Add(t); }
+            foreach (var kv in Attackers) if (kv.Key != null && Time.unscaledTime - kv.Value < 90f) known++;
+            Util.Log("Schützen: " + manned + " besetzte Geschütze auf " + seen.Count + " verschiedene Ziele, " + changes + " Zielwechsel; Angreifer bekannt: " + known
+                + "; " + self.name + " -> " + pick.name.Replace("(Clone)", "").Trim() + (attacker ? " (schießt auf uns)" : "")
+                + " [Verteilen " + (Settings.B("GunSpreadTargets") ? "an" : "aus") + ", Angreifer zuerst " + (Settings.B("GunAttackersFirst") ? "an" : "aus") + "]");
+            if (Attackers.Count > 40) Attackers.Clear();
         }
     }
 }

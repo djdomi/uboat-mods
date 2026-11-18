@@ -657,6 +657,7 @@ namespace UboatToolkit
             m["Funk: Gegner kann dich nicht anpeilen (#12)"] = "Radio: enemy cannot direction-find you (#12)";
             m["Funk: alle Funksprüche lesbar (auch fremd verschlüsselte)"] = "Radio: all messages readable (also foreign-encrypted)";
             m["Schützen verteilen ihre Ziele (nicht alle auf dasselbe; dein gewähltes Ziel hat Vorrang)"] = "Gunners spread their targets (not all on the same one; your chosen target wins)";
+            m["Schützen nehmen zuerst das Schiff oder Flugzeug, das auf uns schießt (dein gewähltes Ziel hat Vorrang)"] = "Gunners first take the ship or aircraft that fires at us (your chosen target wins)";
             m["Geschütze: Schiffe und Flugzeuge zugleich angreifen (88/105 zuerst Schiffe, Flak zuerst Flugzeuge)"] = "Guns: attack ships and aircraft together (88/105 prefer ships, AA prefers aircraft)";
             m["Geschütze: Feuermodus bleibt, wenn ein Kanonier (neu) ans Geschütz geht (sonst stellt das Spiel auf Feuer einstellen)"] = "Guns: keep fire mode when a gunner (re)starts at a gun (otherwise the game sets hold fire)";
             m["Meeresboden in der Nähe immer voll laden (auch tiefer als 650 m, für Sicht + Sonar/Tiefenmesser)"] = "Always fully load the nearby sea floor (also deeper than 650 m, for view + sonar/depth gauge)";
@@ -1921,6 +1922,7 @@ namespace UboatToolkit
             "UboatToolkit.Modules.GunSpread_Patch",
             "UboatToolkit.Modules.Weapons_KeepGunModePatch",
             "UboatToolkit.Modules.Weapons_BothModeMenuPatch",
+            "UboatToolkit.Modules.Weapons_BothModeButtonPatch",
             "UboatToolkit.Modules.WolfpackStep_Near",
             "UboatToolkit.Modules.WolfpackStep_Far",
             "UboatToolkit.Modules.Wolfpack_ParseReportPatch",
@@ -2876,6 +2878,7 @@ namespace UboatToolkit
             Num(Cheat, "PortDefenseMinutes", "  Hafengeschütz repariert nach (Minuten Spielzeit)", 30, 1, 240, 1);
             Num(Cheat, "PortDefenseHitM", "  Trefferradius (m)", 15, 3, 60, 1);
             Bool(QoL, "GunSpreadTargets", "Schützen verteilen ihre Ziele (nicht alle auf dasselbe; dein gewähltes Ziel hat Vorrang)", false);
+            Bool(QoL, "GunAttackersFirst", "Schützen nehmen zuerst das Schiff oder Flugzeug, das auf uns schießt (dein gewähltes Ziel hat Vorrang)", false);
             Bool(QoL, "AASaveAmmo", "Flugzeuge nur beschießen, wenn sie nah genug sind (spart Munition)", true);
             Num(QoL, "AAEngageKm", "  Flugzeuge: höchstens so weit beschießen (km)", 2.5f, 0.5f, 10f, 0.5f);
             Bool(QoL, "KeepGunMode", "Geschütze: Feuermodus bleibt, wenn ein Kanonier (neu) ans Geschütz geht (sonst stellt das Spiel auf Feuer einstellen)", true);
@@ -3191,7 +3194,7 @@ namespace UboatToolkit
             new[] { "Gesundheit & Moral", "AutoFirstAid", "NoAutoCarry", "CheatImmortal", "CheatCrewProtection", "NoStress", "CheatFullDiscipline", "CheatCrewNeverTired", "HotBunk", "FoodByCrew", "AutoDamageControl", "LeakTwoSailors" },
             new[] { "Strahlruder", "WhThrust", "WhVThrust" },
             new[] { "88mm", "DeckGun" },
-            new[] { "Flak", "AAGun", "AASaveAmmo", "AAvsShips", "GunSpreadTargets" },
+            new[] { "Flak", "AAGun", "AASaveAmmo", "AAvsShips", "GunSpreadTargets", "GunAttackersFirst" },
             new[] { "KI-Schützen", "Gunner", "GunGyro", "KeepGunMode", "CheatPerfectAim" },
             new[] { "Torpedos", "AutoReload", "ReloadAllNow", "Torpedo", "EasyTDC", "TubeDisplay", "CheatInfiniteTorpedoes", "CheatNoDuds", "CheatTorpedoSpeed", "CheatRemoteTorpedo", "CheatInstantSolution", "CheatExactTargets", "PortT5Min" },
             new[] { "Funk", "Radio", "CheatRadio" },
@@ -3369,7 +3372,7 @@ namespace UboatToolkit
         // 0.4.49 (DoMe 2026-11-18: "umso mehr optionen ... umso schlimmer"): one switch that makes every automatic part
         // read "off" without touching the stored values. Cheats, displays and bug fixes are not in the list.
         private static readonly HashSet<string> Automatics = new HashSet<string> {
-            "AwashGuns", "GunSpreadTargets", "AwashTrim", "DepthTrimHold", "BallastDieselBlow", "SnorkelKeepHead", "AutoSnorkel", "SnorkelAir", "SnorkelVent",
+            "AwashGuns", "GunSpreadTargets", "GunAttackersFirst", "AwashTrim", "DepthTrimHold", "BallastDieselBlow", "SnorkelKeepHead", "AutoSnorkel", "SnorkelAir", "SnorkelVent",
             "AutoDepth", "AutoDepthBottom", "AutoDepthBottomSilent", "AutoCrashDive", "RouteLead",
             "AutoHatches", "HatchSafety", "HatchPressureLock", "HatchEqualize",
             "KeepHelm", "KeepDepthStation", "KeepNavTable", "EchoSailor", "AutoManGuns", "AutoManFlak", "AutoManEngines",
