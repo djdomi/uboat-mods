@@ -1590,6 +1590,32 @@ namespace UboatToolkit
             }
             return f * f;
         }
+        // Third value (0.4.45, DoMe: "glaubst du nicht, dass hier Optionen gegeneinander wirken?"): the water in a ballast
+        // tank. Every part that fills or empties a tank asks here first. If another part moved the same tank the other
+        // way within the last 3 seconds, the part with the lower rank is refused (equal rank: the one that was first
+        // keeps the tank) and the clash is written into the log. Rank 3 = your own key, 1 = automatic.
+        private struct TankUse { public string Who; public int Rank, Sign; public float At; }
+        private static readonly Dictionary<object, TankUse> tankUse = new Dictionary<object, TankUse>();
+        private static readonly Dictionary<string, float> tankTold = new Dictionary<string, float>();
+        public static int TankClashes;
+        public static bool Tank(object tank, string who, int rank, int sign)
+        {
+            if (tank == null) return false;
+            float now = Time.unscaledTime; TankUse u;
+            if (tankUse.TryGetValue(tank, out u) && u.Who != who && u.Sign != sign && now - u.At < 3f && u.Rank >= rank)
+            {
+                TankClashes++;
+                string key = who + ">" + u.Who; float last;
+                if (!tankTold.TryGetValue(key, out last) || now - last > 30f)
+                {
+                    tankTold[key] = now;
+                    Util.Log("Tauchzellen: " + who + " will " + (sign > 0 ? "fluten" : "leeren") + ", aber " + u.Who + " " + (u.Sign > 0 ? "flutet" : "leert") + " dieselbe Tauchzelle gerade. " + who + " wartet (bisher " + TankClashes + " mal)");
+                }
+                return false;
+            }
+            tankUse[tank] = new TankUse { Who = who, Rank = rank, Sign = sign, At = now };
+            return true;
+        }
         private static int rankNow; private static float until; private static string whoNow = "";
         private static readonly Dictionary<string, float> told = new Dictionary<string, float>();
 

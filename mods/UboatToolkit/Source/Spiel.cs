@@ -3202,12 +3202,13 @@ namespace UboatToolkit.Modules
     public class DevConsoleHide : ModuleBase
     {
         private static bool logged, hooked;
-        private static int closed, reasons;
+        private static int closed, reasons; private static float nextCount;
         internal static void Close()
         {
             if (!Settings.B("HideDevConsole") || !UnityEngine.Debug.developerConsoleVisible) return;
             UnityEngine.Debug.developerConsoleVisible = false;
             closed++;
+            if (UnityEngine.Time.unscaledTime > nextCount) { nextCount = UnityEngine.Time.unscaledTime + 60f; Util.Log("Entwickler-Konsole: bisher " + closed + " mal sofort wieder geschlossen"); }
             if (!logged) { logged = true; Util.Log("Entwickler-Konsole geschlossen (Spiel läuft als Development Build: " + UnityEngine.Debug.isDebugBuild + ")"); }
         }
         internal static void Hook()
@@ -3223,6 +3224,14 @@ namespace UboatToolkit.Modules
                 if (reasons < 30) { reasons++; var line = c ?? ""; int n = line.IndexOf('\n'); if (n >= 0) line = line.Substring(0, n); if (line.Length > 160) line = line.Substring(0, 160); DebugLog.Write("INFO", "Konsole ausgelöst von (" + t + (was ? ", war offen" : "") + "): " + line); }
             };
             UnityEngine.Application.onBeforeRender += Close;
+            // 0.4.45 (DoMe: "ploppt dauerhaft kurz die debug console auf"): errors that Unity raises WHILE it draws the
+            // picture (log: SkinnedMeshRenderer "rendering stopped", AmbientOcclusion) open the console after the points
+            // above and it stayed on screen for that one frame. Now it is also closed after every camera has drawn,
+            // which is the last moment before the console itself is painted.
+            UnityEngine.Camera.onPostRender += cam => Close();
+            UnityEngine.Rendering.RenderPipelineManager.endCameraRendering += (ctx, cam) => Close();
+            UnityEngine.Rendering.RenderPipelineManager.endFrameRendering += (ctx, cams) => Close();
+            Util.Log("Entwickler-Konsole: wird jetzt auch nach dem Zeichnen jeder Kamera geschlossen");
         }
         private float nextLog;
         public override void Frame()

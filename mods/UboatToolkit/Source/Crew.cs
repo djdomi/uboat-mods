@@ -8811,6 +8811,7 @@ namespace UboatToolkit.Modules
             {
                 int officers = 0, sailors = 0;
                 foreach (var c in crew.Characters) { if (c == null) continue; if (c.IsOfficer) officers++; else sailors++; }
+                if (officers != headO || sailors != headS) { headO = officers; headS = sailors; Util.Log("Crew an Bord: " + officers + " Offiziere, " + sailors + " Matrosen, zusammen " + (officers + sailors) + " Mann"); }
                 float share = officers > 0 ? Mathf.Ceil(sailors / (float)officers) : 0f;
                 foreach (var c in crew.Characters)
                 {
@@ -8825,7 +8826,7 @@ namespace UboatToolkit.Modules
                 hadMax = max > 0f || auto;
             }
         }
-        private bool hadMax;
+        private bool hadMax; private int headO = -1, headS = -1;
         private float lastPing = -9999f, lastPingReal = -9999f;
 
         // Sends the nearest free sailor to do one action at this activator (for one-off jobs).
@@ -8840,7 +8841,7 @@ namespace UboatToolkit.Modules
                 foreach (var i in infos)
                     if (i.ActionTemplate != null && i.State == ActionState.Enabled && accept(i.ActionTemplate)) { t = i.ActionTemplate; break; }
                 if (t == null) continue;
-                float d = (h.transform.position - act.transform.position).sqrMagnitude;
+                float d = (h.transform.position - act.transform.position).sqrMagnitude * Busy(h);
                 if (d < bestD) { bestD = d; best = h; tmpl = t; }
             }
             if (best == null) return false;
@@ -8884,7 +8885,7 @@ namespace UboatToolkit.Modules
                 if (h == null || h.IsOfficer || !IsFree(h)) continue;
                 var t = FindWork(act, h);
                 if (t == null) continue;
-                float d = (h.transform.position - act.transform.position).sqrMagnitude;
+                float d = (h.transform.position - act.transform.position).sqrMagnitude * Busy(h);
                 if (d < bestD) { bestD = d; best = h; tmpl = t; }
             }
             if (best == null) return;
@@ -8931,8 +8932,15 @@ namespace UboatToolkit.Modules
         {
             if (h.Injury || h.Ai == null || !h.Ai.isActiveAndEnabled || h.IsImpersonated || h.IsSelected) return false;
             var a = h.Action;
+            // 0.4.45 (DoMe: "die funker sind dauerhaft am hoppen, genauso wie der rest der mannschaft"; crew log: the man at
+            // the chart table was torn away every 60 s for the echo sounder and sent back afterwards). A man who does a
+            // job this part gave him (marked with queue priority 90) is NOT free: no kept station and no one-off job
+            // may take him away from it.
+            if (a != null && a.QueuePriority >= 89.5f) return false;
             return a == null || (a.CanBeStopped && a.Role != null);
         }
+        // Lower = taken first: a man without any job before a man who has to drop his work.
+        private static float Busy(PlayableCharacter h) { return h.Action == null ? 1f : 9f; }
     }
 }
 
@@ -9283,6 +9291,44 @@ namespace UboatToolkit.Modules
         {
             LastSave = Time.unscaledTime; LastName = name ?? "";
             Util.Log("Speichern: Spielstand \"" + LastName + "\" wird geschrieben");
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Platz machen bei voller Crew (0.4.45)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.AI.Behaviours;
+
+    // DoMe 2026-11-18: "die funker sind dauerhaft am hoppen, genauso wie der rest der mannschaft". Crew log: with about
+    // 140 men on board one man switched 116 times in 4 minutes between "stands" and "steps aside" (the game's
+    // FreeSpaceBehaviour: a man moves away when another one stands on his spot). With "Crew läuft durcheinander durch"
+    // on, nobody can block anybody, so stepping aside has no use: it is switched off for our crew. Without that
+    // option a man steps aside at most once every 10 seconds. Own crew only (the behaviour exists only for it).
+    [HarmonyPatch(typeof(FreeSpaceBehaviour), "OnBehaviourBackgroundUpdate")]
+    internal static class FreeSpaceCalm_Patch
+    {
+        private static readonly System.Collections.Generic.Dictionary<FreeSpaceBehaviour, float> last = new System.Collections.Generic.Dictionary<FreeSpaceBehaviour, float>();
+        private static int skipped, allowed; private static float nextLog;
+
+        private static void Postfix(FreeSpaceBehaviour __instance)
+        {
+            if (__instance == null || __instance.Profit <= 0f) return;
+            bool through = Settings.B("NoCrewCollisions");
+            float now = Time.unscaledTime, at;
+            if (through || (last.TryGetValue(__instance, out at) && now - at < 10f)) { __instance.Profit = 0f; skipped++; }
+            else { last[__instance] = now; allowed++; }
+            if (now > nextLog)
+            {
+                nextLog = now + 60f;
+                Util.Log("Platz machen (nur eigene Crew): " + allowed + " mal erlaubt, " + skipped + " mal unterdrückt in der letzten Minute" + (through ? " (Crew läuft durcheinander durch: ganz aus)" : " (höchstens alle 10 s je Mann)"));
+                allowed = skipped = 0;
+                if (last.Count > 500) last.Clear();
+            }
         }
     }
 }

@@ -179,7 +179,7 @@ namespace UboatToolkit.Modules
             {
                 double rate = Settings.F("BallastDieselBlowRate") / 100.0;
                 foreach (var t in tanks)
-                    if (t != null && t.Water > 0.0)
+                    if (t != null && t.Water > 0.0 && Owners.Tank(t, "Diesel-Anblasen", 1, -1))
                     {
                         // 0.4.22 (option audit): the place of the water is filled with air (surface pressure 1 bar), else
                         // the tank was left at low pressure and sucked water back in.
@@ -202,7 +202,7 @@ namespace UboatToolkit.Modules
                     if (t == null) continue;
                     double was; bool known = lastWater.TryGetValue(t, out was);
                     double room = t.Capacity - t.Fuel - t.Air;              // free space that is not fuel and not air
-                    if (known && t.Water > was + 1e-6 && t.Water < room)
+                    if (known && t.Water > was + 1e-6 && t.Water < room && Owners.Tank(t, "Schnelltauchen", 1, 1))
                     {
                         t.Water = Math.Min(room, t.Water + t.Capacity * extra * dt);
                         helped++;
@@ -3180,7 +3180,7 @@ namespace UboatToolkit.Modules
             if (ship == null) return;
             Util.Log("Not-Taste Tanks: vorher " + State(ship));
             if (ship.BallastTanks != null)
-                foreach (var t in ship.BallastTanks) if (t != null) t.Water = 0.0;
+                foreach (var t in ship.BallastTanks) if (t != null) { Owners.Tank(t, "Not-Taste Tauchzellen leer (du)", 3, -1); t.Water = 0.0; }
             foreach (var p in Util.Find<TrimPump>())
             {
                 if (!Util.IsPlayers(p)) continue;
@@ -3590,13 +3590,13 @@ namespace UboatToolkit.Modules
                     {
                         if (t.Water >= t.Capacity - t.Fuel - 1e-6) continue;          // full already (the game's own awash tanks)
                         d = Math.Min(d, Math.Min(t.Air, t.Capacity - t.Fuel - t.Water));
-                        if (d <= 0.0) continue;
+                        if (d <= 0.0 || !Owners.Tank(t, "Vorfluten bis zur Zieltiefe", 1, 1)) continue;
                         t.Water += d; t.Air -= d; added[t] = mine + d;
                     }
                     else
                     {
                         d = Math.Min(-d, Math.Min(mine, t.Water));                      // only water this part put in
-                        if (d <= 0.0) continue;
+                        if (d <= 0.0 || !Owners.Tank(t, "Vorfluten bis zur Zieltiefe", 1, -1)) continue;
                         t.Water -= d; t.Air += d; added[t] = mine - d;
                     }
                 }
