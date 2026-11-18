@@ -4820,6 +4820,20 @@ namespace UboatToolkit.Modules
                 foreach (var g in Object.FindObjectsOfType<UnityEngine.UI.Graphic>()) if (g != null && g.isActiveAndEnabled) graphics++;
                 int markers = Object.FindObjectsOfType<UBOAT.Game.UI.Map.EntityMarkerUI>().Length;
                 int ships = Object.FindObjectsOfType<UBOAT.Game.Scene.Entities.Ship>().Length;
+                // water module (com.playway.water): values live in its settings objects, read by name
+                var wsb = new System.Text.StringBuilder();
+                foreach (var tn in new[] { "PlayWay.Water.WaterProjectSettings", "PlayWay.Water.WaterQualitySettings" })
+                {
+                    var tp = HarmonyLib.AccessTools.TypeByName(tn); if (tp == null) { wsb.Append(' ').Append(tn).Append(" fehlt;"); continue; }
+                    var ip = HarmonyLib.AccessTools.Property(tp, "Instance"); object inst = ip != null ? ip.GetValue(null, null) : null;
+                    if (inst == null) { wsb.Append(' ').Append(tn).Append(" ohne Instanz;"); continue; }
+                    foreach (var pn in new[] { "PhysicsThreads", "PhysicsThreadsPriority", "AllowCpuFFT", "AllowFloatingPointMipMaps", "SinglePrecision", "CurrentQualityLevel", "MaxSpectrumResolution", "AllowHighPrecisionTextures", "TileSizeScale", "WavesMode" })
+                    {
+                        var pp = HarmonyLib.AccessTools.Property(tp, pn);
+                        if (pp != null && pp.GetIndexParameters().Length == 0) wsb.Append(' ').Append(pn).Append('=').Append(System.Convert.ToString(pp.GetValue(inst, null), System.Globalization.CultureInfo.InvariantCulture)).Append(';');
+                    }
+                }
+                Util.Log("Wasser-Modul (nur lesen):" + wsb);
                 double ms = (Time.realtimeSinceStartupAsDouble - t0) * 1000.0;
                 Util.Log("Zeichnen (Zählung, nur lesen): Schiffe " + ships + "; Teile " + rend + " (im Bild " + visible + "), davon ohne Gruppen-Zeichnen " + rendNoInst
                     + "; gleiche Teile mehrfach " + repeat + ", davon ohne Gruppen-Zeichnen " + repeatNoInst + "; Materialien " + mats.Count + ", ohne Gruppen-Zeichnen " + noInst
