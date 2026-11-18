@@ -64,7 +64,7 @@ namespace UboatToolkit.Modules.CrewAi
                               " | attackPeriscopeSkipperOnly=" + PeriscopeToggles.AttackPeriscopeSkipperOnly +
                               " | keepHatchOrder=" + HatchToggles.KeepCommandersHatchOrder +
                               " | proximity=" + ProximityToggles.Enabled +
-                              " (falloff " + ProximityToggles.PerCompartmentFalloff +
+                              " (Abzug je Raum " + ProximityToggles.PerCompartmentStep +
                               "/compartment, floor " + ProximityToggles.MinScale + ")" +
                               " | transitLog=" + TransitToggles.Enabled +
                               " | noEatDuringAlarm=" + AlarmToggles.NoEatingDuringAlarm +

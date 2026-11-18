@@ -15,9 +15,9 @@ namespace UboatToolkit.Modules.CrewAi
     {
         public static bool Enabled => UboatToolkit.Settings.B("CrewNearbyJobs");
 
-        public const float PerCompartmentFalloff = 0.7f;
+        public const float PerCompartmentStep = 0.02f;
 
-        public const float MinScale = 0.30f;
+        public const float MinScale = 0.90f;
 
         public const int MaxHops = 12;
 
@@ -303,9 +303,12 @@ namespace UboatToolkit.Modules.CrewAi
                 int hops = CompartmentGraph.Hops(from, to);
                 if (hops <= 0) return;      // same compartment, or unknown
 
-                float scale = 1f;
-                for (int i = 0; i < hops; i++) scale *= ProximityToggles.PerCompartmentFalloff;
-                if (scale < ProximityToggles.MinScale) scale = ProximityToggles.MinScale;
+                // 0.4.14 (DoMe: assigned men with priorities do nothing, posts stay empty). The old discount was
+                // x0.7 per room down to x0.3: a helm job (priority 8) three rooms away fell to 2.7 and lost against
+                // any nearby job of priority 3, so the game's own priority order was turned upside down and far posts
+                // stayed empty. Now distance only breaks ties: 2 % per room, never more than 10 % in total, which
+                // cannot move a job below the next lower priority (9 > 8 > 7 ... stay in order).
+                float scale = Mathf.Max(ProximityToggles.MinScale, 1f - ProximityToggles.PerCompartmentStep * hops);
 
                 __result *= scale;
                 OptCounters.ProximityScaled++;
