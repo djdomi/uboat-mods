@@ -4603,6 +4603,7 @@ namespace UboatToolkit.Modules
         private GameObject root; private readonly Toggle[] orig = new Toggle[6]; private readonly RectTransform[] mine = new RectTransform[6];
         private readonly GameObject[] mark = new GameObject[6];
         private Transform depthC, teleC; private float next; private bool failed; private string lastPos = "";
+        private RectTransform frame; private Transform bar;
 
         public override void Tick()
         {
@@ -4626,6 +4627,7 @@ namespace UboatToolkit.Modules
                 mine[i].position = teleC.TransformPoint(depthC.InverseTransformPoint(orig[i].transform.position) + add);
                 if (mark[i] != null && mark[i].activeSelf != orig[i].isOn) mark[i].SetActive(orig[i].isOn);
             }
+            if (frame != null && bar != null) frame.position = teleC.TransformPoint(depthC.InverseTransformPoint(bar.position) + add);
             Vector3 o = depthC.InverseTransformPoint(orig[0].transform.position) + add;
             string p = Mathf.RoundToInt(o.x) + "/" + Mathf.RoundToInt(o.y);
             if (p != lastPos) { lastPos = p; Util.Log("Tauchknöpfe: oberster Knopf der Kopie steht " + p + " Bildpunkte (rechts/hoch) neben der Mitte des Fahrtreglers"); }
@@ -4641,6 +4643,8 @@ namespace UboatToolkit.Modules
             var img = go.AddComponent<Image>();
             img.sprite = src.sprite; img.color = src.color; img.type = src.type; img.material = src.material;
             img.preserveAspect = src.preserveAspect; img.raycastTarget = click;
+            img.pixelsPerUnitMultiplier = src.pixelsPerUnitMultiplier; img.fillCenter = src.fillCenter;
+            rt.localScale = srt.localScale; rt.localRotation = srt.localRotation;
             return rt;
         }
 
@@ -4659,6 +4663,21 @@ namespace UboatToolkit.Modules
             root = new GameObject("UboatToolkit Tauchknöpfe Kopie", typeof(RectTransform));
             root.transform.SetParent(teleC, false);
             int pics = 0;
+            // Frame of the bar: the pictures on the common parent of the six toggles, drawn behind the buttons.
+            frame = null; bar = orig[0].transform.parent; int frames = 0;
+            for (int i = 1; i < 6; i++) if (orig[i].transform.parent != bar) bar = null;
+            if (bar != null)
+            {
+                var fgo = new GameObject("Rahmen", typeof(RectTransform));
+                frame = (RectTransform)fgo.transform; frame.SetParent(root.transform, false);
+                frame.sizeDelta = ((RectTransform)bar).rect.size; frame.pivot = ((RectTransform)bar).pivot;
+                foreach (var src in bar.GetComponents<Image>()) { if (src.sprite == null && src.color.a < 0.01f) continue; Picture(src, frame, bar, false); frames++; }
+                foreach (Transform c in bar)
+                {
+                    if (c.GetComponentInChildren<Toggle>(true) != null) continue;
+                    foreach (var src in c.GetComponentsInChildren<Image>(true)) { if (!src.gameObject.activeInHierarchy || (src.sprite == null && src.color.a < 0.01f)) continue; Picture(src, frame, bar, false); frames++; }
+                }
+            }
             for (int i = 0; i < 6; i++)
             {
                 int k = i;
@@ -4669,10 +4688,15 @@ namespace UboatToolkit.Modules
                 foreach (var src in orig[i].GetComponentsInChildren<Image>(true))
                 {
                     if (src.sprite == null && src.color.a < 0.01f) continue;
+                    bool isMark = orig[i].graphic != null && src == orig[i].graphic;
+                    if (first && isMark) continue;
                     var rt = Picture(src, mine[i], orig[i].transform, first);
                     if (first)
                     {
                         var b = rt.gameObject.AddComponent<Button>();
+                        // same mouse-over and press look as the game's own toggle
+                        b.transition = orig[i].transition; b.colors = orig[i].colors; b.spriteState = orig[i].spriteState;
+                        b.targetGraphic = rt.GetComponent<Image>();
                         b.onClick.AddListener(() =>
                         {
                             if (orig[k] == null) return;
@@ -4686,7 +4710,9 @@ namespace UboatToolkit.Modules
                 }
             }
             lastPos = "";
-            Util.Log("Tauchknöpfe: 6 eigene Knöpfe am Fahrtregler gebaut (" + pics + " Bilder vom Tiefenmesser übernommen). Wirkt nur auf die Anzeige des eigenen Boots.");
+            int rings = 0; for (int i = 0; i < 6; i++) if (mark[i] != null) rings++;
+            Util.Log("Tauchknöpfe: Rahmen übernommen: " + (frames > 0 ? "ja" : "nein") + ", Mauszeiger-Effekt übernommen: ja (Art " + orig[0].transition + "), Ring für aktiven Knopf übernommen: " + rings + " von 6");
+            Util.Log("Tauchknöpfe: 6 eigene Knöpfe am Fahrtregler gebaut (" + pics + " Bilder der Spielknöpfe, " + frames + " Bilder vom Rahmen der Leiste übernommen). Wirkt nur auf die Anzeige des eigenen Boots.");
         }
     }
 }
