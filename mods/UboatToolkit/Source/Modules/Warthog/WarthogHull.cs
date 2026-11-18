@@ -156,7 +156,7 @@ namespace UboatToolkit.Modules.Warthog
                 // more turning: the game turns the boat with the rudder; add (factor-1) of a rudder-like torque
                 // game convention (Ship.FixedUpdate): Turn < 0 = turn to STARBOARD (positive yaw). 0.2.x used +Turn and
                 // pushed against the rudder -> "unsteerable". Yaw torque must be -Turn.
-                float turn = -ship.Turn; // -1..1, + = starboard
+                float turn = -EffTurn(ship); // -1..1, + = starboard
                 float extra = (Settings.F("WhFinTurn") - 1f) * turn * Mathf.Clamp(Mathf.Abs(speed) / 6f, 0f, 1.5f) * Mathf.Sign(speed == 0 ? 1 : speed);
                 if (Mathf.Abs(extra) > 0.001f) rb.AddTorque(ship.transform.up * extra * rb.inertiaTensor.y * 0.002f * k, ForceMode.Force);
                 // less roll: damp the roll part of the angular velocity
@@ -191,11 +191,11 @@ namespace UboatToolkit.Modules.Warthog
             if (cmd == 0f && !tc && Settings.B("WhThrusterWithRudder"))
             {
                 float fwd = Vector3.Dot(rb.velocity, ship.transform.forward);
-                cmd = Mathf.Clamp(-ship.Turn * (fwd < -0.2f ? -1f : 1f), -1f, 1f);
+                cmd = Mathf.Clamp(-EffTurn(ship) * (fwd < -0.2f ? -1f : 1f), -1f, 1f);
             }
 
             // hold the heading while our guns fire (recoil)
-            if (!tc && Settings.B("WhThrusterHoldFiring") && Time.time - LastGunShot < 3f && Mathf.Abs(ship.Turn) < 0.05f && Mathf.Abs(cmd) < 0.05f)
+            if (!tc && Settings.B("WhThrusterHoldFiring") && Time.time - LastGunShot < 3f && Mathf.Abs(EffTurn(ship)) < 0.05f && Mathf.Abs(cmd) < 0.05f)
             {
                 if (float.IsNaN(heldHeading)) heldHeading = ship.transform.eulerAngles.y;
                 float err = Mathf.DeltaAngle(ship.transform.eulerAngles.y, heldHeading);
@@ -213,6 +213,16 @@ namespace UboatToolkit.Modules.Warthog
         // Force per thruster F = Iy * power * 0.00175 / L (L = 2 x 40 m arm): with bow = -stern that gives the same turning
         // torque as before (power 6 = about 0.6 deg/s^2); with bow = stern the boat moves sideways.
         const float Arm = 40f;
+
+        // 0.4.11: ship.Turn is what the game's helmsman WANTS. When the player set the rudder by hand (rudder dial,
+        // "Locked"), the helmsman's wish is ignored by the game, but our thrusters and fins still followed it and
+        // pushed against the real rudder. Now they follow the rudder that is really set.
+        internal static float EffTurn(PlayerShip ship)
+        {
+            var r = ship.Rudders;
+            if (r != null && r.Length > 0 && r[0] != null && r[0].Locked) return r[0].TargetTurn;
+            return ship.Turn;
+        }
         private void Push(PlayerShip ship, Rigidbody rb, float bow, float stern, float k, string mode, string src)
         {
             bow = Mathf.Clamp(bow, -1f, 1f); stern = Mathf.Clamp(stern, -1f, 1f);

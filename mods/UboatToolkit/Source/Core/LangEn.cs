@@ -545,6 +545,7 @@ namespace UboatToolkit
             m["Kurs: nach Backbord"] = "Course: to port";
             m["Kurs: nach Steuerbord"] = "Course: to starboard";
             m["Kurs: wenden (180°)"] = "Course: turn around (180°)";
+            m["Hinweis, wenn das Ruder von Hand festgestellt ist und das Boot im Kreis fährt"] = "Notice when the rudder is set by hand and the boat runs in circles";
             m["Ruder mittschiffs"] = "Rudder amidships";
             m["Kurs-Sperre (mit fein)"] = "Course lock (with fine)";
             m["Tiefer (mit fein/grob, beim Loslassen)"] = "Deeper (with fine/coarse, on release)";

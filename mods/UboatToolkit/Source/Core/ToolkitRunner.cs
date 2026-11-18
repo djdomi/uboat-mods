@@ -103,6 +103,8 @@ namespace UboatToolkit
             // EVERY hotkey (Keys.Down returns false while capturing) and the menu key (DoMe: Ctrl+Alt+M no effect, F10 several times).
             if (!menuOpen && Keys.Capturing != null) { Util.Log("Tasten-Aufnahme hing bei geschlossenem Menü, beendet"); Keys.Capturing = null; }
             Keys.CaptureFrame();
+            if (saveAt > 0f && Time.unscaledTime >= saveAt && !Input.GetMouseButton(0) && Keys.Capturing == null)
+            { saveAt = 0f; Settings.Save(); Util.Log("Einstellungen von selbst gespeichert (Änderung im Menü)"); }
             // Menu key: works even with Ctrl/Shift/Alt still held and while a key capture hangs (F10 must always close).
             var mk = Keys.Code("KeyMenu", KeyCode.F10);
             if (mk != KeyCode.None && Input.GetKeyDown(mk)) MenuKey("Update");
@@ -262,13 +264,16 @@ namespace UboatToolkit
         private void DrawOpt(Opt o) { DrawOpt(o, false, null); }
         private void DrawOpt(Opt o, bool fold, string suffix)
         {
-            float before = o.Value;
+            float before = o.Value; string beforeText = o.Text;
             DrawOptRow(o, fold, suffix);
+            // 0.4.11: every change in the menu is saved by itself 2 s later (DoMe's change was lost: only the button saved)
+            if (o.Value != before || o.Text != beforeText) saveAt = Time.unscaledTime + 2f;
             if (o.Value != before && !o.IsKey && clickLines < 400 && dragSliderKey != o.Key)
             { clickLines++; Util.Log("Menü-Klick: " + o.Key + " " + before.ToString("0.##", CultureInfo.InvariantCulture) + " -> " + o.Value.ToString("0.##", CultureInfo.InvariantCulture)); }
             dragSliderKey = o.Value != before ? o.Key : dragSliderKey;
         }
         private static string dragSliderKey;
+        private static float saveAt;
         // fold: this row gets the fold arrow of its fine settings; suffix: text behind the name
         private void DrawOptRow(Opt o, bool fold, string suffix)
         {

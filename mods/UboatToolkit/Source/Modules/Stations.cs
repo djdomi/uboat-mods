@@ -26,6 +26,7 @@ namespace UboatToolkit.Modules
         // Safety net: under water the tower hatch is locked whatever the game decided, and every open leak under
         // water is named in the log once per minute (proof where water comes from).
         private float nextHatchNote, nextLeakLine;
+        private double lastWater;
         private void HatchSafety(UBOAT.Game.Scene.Entities.PlayerShip ship)
         {
             if (ship == null || ship.Interior == null) return;
@@ -44,7 +45,7 @@ namespace UboatToolkit.Modules
             }
             if (ship.DeckDepth > 1.5f && Time.unscaledTime >= nextLeakLine)
             {
-                nextLeakLine = Time.unscaledTime + 60f;
+                nextLeakLine = Time.unscaledTime + (lastWater > 0.05 ? 10f : 60f);   // 0.4.11: every 10 s while water is in the boat
                 var sb = new System.Text.StringBuilder();
                 int n = 0; double water = 0;
                 foreach (var c in ship.Interior.Compartments)
@@ -55,7 +56,9 @@ namespace UboatToolkit.Modules
                         if (hole != null && hole.Openess > 0f)
                         { n++; if (n <= 12) sb.Append(" ").Append(c.name).Append("/").Append(hole.name).Append(" offen ").Append(hole.Openess.ToString("0.##")).Append(" Größe ").Append(hole.HoleSize.ToString("0.#####")).Append(hole.IsUnderWater ? " unter Wasser" : " trocken").Append(";"); }
                 }
-                Util.Log("Lecks getaucht (Tiefe " + ship.DeckDepth.ToString("0") + " m): " + n + " offene Stellen, Wasser in den Räumen " + (water * 1000.0).ToString("0") + " l." + sb);
+                lastWater = water;
+                var eh = ship.GetEquipment<UBOAT.Game.Scene.Items.Hatch>("Exterior");
+                Util.Log("Lecks getaucht (Tiefe " + ship.DeckDepth.ToString("0") + " m, Soll " + ship.TargetDepth.ToString("0") + " m): " + n + " offene Stellen, Wasser in den Räumen " + (water * 1000.0).ToString("0") + " l, Turmluke " + (eh == null ? "?" : eh.Locked ? "zu" : "OFFEN") + ", Vertikal-Strahlruder " + Warthog.WarthogVThrusters.LastCmd.ToString("0.##") + "." + sb);
             }
         }
 

@@ -20,6 +20,7 @@ namespace UboatToolkit.Modules.Warthog
 
         public override void Tick()
         {
+            if (!Util.ShipReady) return;   // 0.4.11: NullReference right after loading (boat not complete yet)
             var ship = Util.PlayerShip;
             bool passive = On && Settings.B("WhPassive") && (Settings.B("WhSonarBow") || Settings.B("WhSonarMid") || Settings.B("WhSonarStern"));
             foreach (var h in Util.Find<Hydrophone>())

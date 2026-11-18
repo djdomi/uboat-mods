@@ -17,6 +17,33 @@ namespace UboatToolkit.Modules
         private static readonly string[] depthKeys = { "KeyDeeper5", "KeyShallower5", "KeyDeeper20", "KeyShallower20" };
         private static readonly float[] steps = { 5, -5, 20, -20 };
 
+        // 0.4.11 (DoMe: rudder dial stuck at 35 right, boat turns on the spot). The game's rudder dial sets the rudder
+        // by hand ("Locked") and deletes the route; the helmsman then no longer steers until a new course is ordered.
+        private int lastLock = int.MinValue; private float lockSince, nextNote, nextLine;
+        public override void Tick()
+        {
+            var ship = Util.PlayerShip;
+            if (!Util.ShipReady || ship.Rudders == null || ship.Rudders.Length == 0 || ship.Rudders[0] == null) return;
+            var r = ship.Rudders[0];
+            int deg = r.Locked ? UnityEngine.Mathf.RoundToInt(r.TargetTurn * -35f) : int.MinValue;
+            float now = UnityEngine.Time.unscaledTime;
+            if (deg != lastLock)
+            {
+                lastLock = deg; lockSince = now; nextLine = now + 60f;
+                string pads = ""; try { pads = string.Join(", ", System.Array.FindAll(UnityEngine.Input.GetJoystickNames(), n => !string.IsNullOrEmpty(n))); } catch { }
+                Util.Log(deg == int.MinValue ? "Ruder: wieder frei, Steuermann steuert"
+                    : "Ruder: von Hand festgestellt auf " + Side(deg) + " (Ruder-Rad des Spiels, Route gelöscht). Toolkit setzt das Ruder nie fest. Gamepad/Joystick: " + (pads.Length == 0 ? "keiner" : pads));
+            }
+            if (deg == int.MinValue) return;
+            if (now >= nextLine) { nextLine = now + 60f; Util.Log("Ruder: steht seit " + (now - lockSince).ToString("0") + " s fest auf " + Side(deg) + ", Ruder funktioniert: " + (r.IsFunctional ? "ja" : "nein")); }
+            if (Settings.B("RudderLockNote") && UnityEngine.Mathf.Abs(deg) >= 20 && now - lockSince > 20f && now >= nextNote)
+            {
+                nextNote = now + 120f;
+                ToolkitRunner.ShowNotice("Ruder steht fest auf " + Side(deg) + ". Neuer Kurs oder Taste Ruder mittschiffs löst es.", 8f);
+            }
+        }
+        private static string Side(int deg) { return deg == 0 ? "0° (mittschiffs)" : System.Math.Abs(deg) + "° " + (deg > 0 ? "rechts" : "links"); }
+
         public override void Frame()
         {
             var ship = Util.PlayerShip;

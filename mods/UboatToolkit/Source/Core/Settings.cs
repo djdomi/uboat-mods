@@ -88,6 +88,7 @@ namespace UboatToolkit
             Num(QoL, "EchoSailorSeconds", "  Alle x Sekunden (Spielzeit läuft im Zeitraffer schneller)", 60, 10, 600, 10);
             Bool(QoL, "AutoManGuns", "Deckgeschütz + Flak automatisch besetzen (aufgetaucht + Alarm)", false);
             Bool(QoL, "AutoManEngines", "Maschinenraum automatisch besetzen, wenn ein Motor läuft", false);
+            Bool(QoL, "RudderLockNote", "Hinweis, wenn das Ruder von Hand festgestellt ist und das Boot im Kreis fährt", true);
             Bool(QoL, "HatchSafety", "Luken-Sicherung: Turmluke unter Wasser immer schließen (auch wenn noch jemand an Deck ist)", true);
             Bool(QoL, "AutoManHydrophone", "Horcher automatisch besetzen (getaucht oder bei Alarm)", true);
             Bool(QoL, "AutoManRadio", "Funkraum automatisch besetzen (wenn das Funkgerät empfangen kann)", true);

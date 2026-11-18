@@ -9,10 +9,11 @@ namespace UboatToolkit.Modules.Warthog
     public class WarthogVThrusters : ModuleBase
     {
         private float arm = -1f; private object armShip;
+        internal static float LastCmd;   // + = pushes up, - = pushes down, 0 = off (for the water log)
 
         public override void Frame()
         {
-            var ship = Util.PlayerShip;
+            var ship = Util.PlayerShip; LastCmd = 0f;
             if (!Settings.B("WhVThrusters") || !WarthogSettings.ThrustersActive(ship) || ship.Docked) return;
             var rb = ship.RigidBody;
             if (rb == null || rb.isKinematic || Time.deltaTime <= 0f || Time.timeScale <= 0f) return;
@@ -56,6 +57,7 @@ namespace UboatToolkit.Modules.Warthog
                 pitchCmd = Mathf.Clamp(pitch / 5f, -1f, 1f);   // bow up (negative) -> push bow down
             }
             if (Mathf.Abs(cmd) < 0.02f && Mathf.Abs(pitchCmd) < 0.02f) return;
+            LastCmd = cmd;
             // strength in % of the boat's weight (100 = can lift the whole boat)
             float f = rb.mass * 9.81f * Settings.F("WhVThrustPower") / 100f * cmd * 0.5f;
             float p = rb.mass * 9.81f * Settings.F("WhVThrustPower") / 100f * pitchCmd * 0.5f;
