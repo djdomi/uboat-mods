@@ -160,6 +160,13 @@ namespace UboatToolkit.Modules
         public static float AdjustRanging(float next, Gun gun)
         {
             if (!Applies(gun) || CurrentAccuracyField == null) return next;
+            // 0.4.32 (DoMe 2026-11-18: cheat "können sich nicht einschießen"): the accuracy of a non-player gun never rises
+            if (Settings.B("CheatEnemyNoRanging"))
+            {
+                float before = (float)CurrentAccuracyField.GetValue(gun);
+                EnemyPacifist.Count("Einschießen verhindert");
+                return next > before ? before : next;
+            }
             float k = Settings.B("DgsNpcRangingOn") ? SeaGunCfg.NpcRanging / 100f : 1f;
             if (SeaGunCfg.NpcEvenOut && LacksMerchantCut(gun.ParentEntity)) k *= 0.35f;
             if (k >= 0.999f) return next;
@@ -1959,3 +1966,102 @@ namespace UboatToolkit.Modules
     }
 }
 
+
+// ====================================================================================================
+// Abschnitt: Gegner ist Pazifist (0.4.32)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+
+    // DoMe 2026-11-18: "cheat: Gegner ist Pazifist". Weakening the enemy is allowed, each effect with its own switch.
+    // Scope: only weapons that do NOT belong to the player's boat and are not allied (same test as the enemy gun
+    // spread, EnemyGunnery.InScope). The player's own weapons are never touched. Every blocked attack is counted and
+    // written to the log once per minute, so the effect can be proven.
+    internal static class EnemyPacifist
+    {
+        private static readonly Dictionary<string, int> counts = new Dictionary<string, int>();
+        private static float nextLog;
+
+        internal static bool Enemy(Component c)
+        {
+            if (c == null) return false;
+            var e = c.GetComponentInParent<Entity>();
+            return e != null && EnemyGunnery.InScope(e);
+        }
+
+        internal static void Count(string what)
+        {
+            int n; counts.TryGetValue(what, out n); counts[what] = n + 1;
+            if (Time.unscaledTime < nextLog) return;
+            nextLog = Time.unscaledTime + 60f;
+            var sb = new System.Text.StringBuilder("Gegner-Cheats (nur fremde Waffen, nie eigene): ");
+            foreach (var kv in counts) sb.Append(kv.Key).Append(" ").Append(kv.Value).Append("x, ");
+            Util.Log(sb.ToString().TrimEnd(',', ' '));
+            counts.Clear();
+        }
+    }
+
+    [HarmonyPatch(typeof(Gun), "Fire")]
+    internal static class EnemyPacifist_Gun
+    {
+        [HarmonyPriority(Priority.First)]
+        private static bool Prefix(Gun __instance, ref Shell __result)
+        {
+            if (!Settings.B("CheatPacifistGuns") || __instance == null || Util.IsPlayers(__instance) || !EnemyGunnery.InScope(__instance.ParentEntity)) return true;
+            __result = null;
+            EnemyPacifist.Count("Kanonenschuss verhindert");
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(BombLauncher), nameof(BombLauncher.LaunchSeries))]
+    internal static class EnemyPacifist_Bombs
+    {
+        private static bool Prefix(BombLauncher __instance)
+        {
+            if (__instance == null) return true;
+            bool bombs = __instance.UseBombs;
+            if (!Settings.B(bombs ? "CheatPacifistBombs" : "CheatPacifistDepthCharges") || !EnemyPacifist.Enemy(__instance)) return true;
+            EnemyPacifist.Count(bombs ? "Bombenwurf verhindert" : "Wasserbomben-Serie verhindert");
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(HedgehogLauncher), nameof(HedgehogLauncher.LaunchSalvo))]
+    internal static class EnemyPacifist_Hedgehog
+    {
+        private static bool Prefix(HedgehogLauncher __instance)
+        {
+            if (!Settings.B("CheatPacifistHedgehog") || !EnemyPacifist.Enemy(__instance)) return true;
+            EnemyPacifist.Count("Hedgehog-Salve verhindert");
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(RocketLauncher), nameof(RocketLauncher.TryLaunchSeries))]
+    internal static class EnemyPacifist_Rockets
+    {
+        private static bool Prefix(RocketLauncher __instance)
+        {
+            if (!Settings.B("CheatPacifistRockets") || !EnemyPacifist.Enemy(__instance)) return true;
+            EnemyPacifist.Count("Raketen verhindert");
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(NPCTorpedoLauncherGroup), "FindBestTarget")]
+    internal static class EnemyPacifist_Torpedoes
+    {
+        private static void Postfix(NPCTorpedoLauncherGroup __instance, ref Entity __result)
+        {
+            if (__result == null || !Settings.B("CheatPacifistTorpedoes") || !EnemyPacifist.Enemy(__instance)) return;
+            __result = null;
+            EnemyPacifist.Count("Torpedo-Ziel verweigert");
+        }
+    }
+}

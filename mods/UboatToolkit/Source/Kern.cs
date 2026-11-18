@@ -2011,6 +2011,7 @@ namespace UboatToolkit
             new[] { "karte", "map", "navigation", "kurs", "wegpunkt" },
             new[] { "zeit", "time", "zeitraffer", "beschleunig", "compression" },
             new[] { "kamera", "camera", "ansicht", "sicht", "view", "zoom" },
+            new[] { "pazifist", "friedlich", "gegner", "feind", "enemy" },
             new[] { "luft", "sauerstoff", "air", "oxygen", "co2", "lueftung", "lüftung", "ventilation", "absorber", "kalipatrone", "atmen" },
             new[] { "druck", "pressure", "druckkoerper", "rumpf", "hull", "huelle" },
             new[] { "hafen", "port", "dock", "bunker", "basis", "stuetzpunkt" },
@@ -2846,6 +2847,14 @@ namespace UboatToolkit
             // ---------- Cheats (single player) ----------
             Num(Cheat, "CheatPeriscopeHeight", "Sehrohr bis zu x m ausfahren (0 = aus) (Cheat #34)", 0, 0, 100, 1);
             Bool(Cheat, "CheatUndetectable", "Boot unentdeckbar (Sicht, Sonar, Horchgerät, Radar)", false);
+            // 0.4.32 (DoMe 2026-11-18): enemy-weakening cheats, one switch per weapon kind, all off by default. Own weapons are never touched.
+            Bool(Cheat, "CheatEnemyNoRanging", "Gegner schwächen: Gegner-Kanonen können sich nicht einschießen (werden nie genauer)", false);
+            Bool(Cheat, "CheatPacifistGuns", "Gegner ist Pazifist: Gegner-Kanonen und Gegner-Flak feuern nicht (Schiffe, Häfen, Flugzeuge)", false);
+            Bool(Cheat, "CheatPacifistDepthCharges", "Gegner ist Pazifist: keine Wasserbomben", false);
+            Bool(Cheat, "CheatPacifistHedgehog", "Gegner ist Pazifist: keine Hedgehog-Salven", false);
+            Bool(Cheat, "CheatPacifistBombs", "Gegner ist Pazifist: Flugzeuge werfen keine Bomben", false);
+            Bool(Cheat, "CheatPacifistRockets", "Gegner ist Pazifist: Flugzeuge schießen keine Raketen", false);
+            Bool(Cheat, "CheatPacifistTorpedoes", "Gegner ist Pazifist: Gegner schießen keine Torpedos", false);
             Bool(Cheat, "CheatPerfectAim", "Aimbot: 100 % Einschuss, keine Streuung, eigene Schüsse treffen mit Vorhalt (bis 30 Grad)", false);
             Bool(Cheat, "CheatInfiniteGunAmmo", "Deckgeschütz: Munition unendlich", false);
             Bool(Cheat, "CheatInfiniteFlakAmmo", "Flak: Munition unendlich", false);
@@ -2941,6 +2950,7 @@ namespace UboatToolkit
             Bool(Cheat, "CheatSinkConvoy", "  >> Sink the convoy: alle Gegner-Schiffe in Reichweite bekommen Torpedos", false);
             Num(Cheat, "SinkConvoyRange", "  Reichweite in km", 20, 1, 100, 1);
             Num(Cheat, "SinkConvoyTorpedoes", "  Torpedos pro Schiff", 3, 1, 10, 1);
+            Bool(Cheat, "DepthChargeCounter", "Wasserbomben-Zähler für den Erfolg „Survivor“ anzeigen (100 in einer Begegnung, näher als 1,5 km)", true);
             Bool(Cheat, "CheatSpawnConvoy", "  >> Konvoi spawnen (Gegner-Konvoi taucht vor dir auf)", false);
             Num(Cheat, "SpawnConvoyKm", "  Abstand voraus in km", 15, 2, 100, 1);
             Bool(Cheat, "CheatRemoteTorpedo", "Fernschuss per Taste (auch aus der Koje): Torpedo auf nächsten Gegner", false);

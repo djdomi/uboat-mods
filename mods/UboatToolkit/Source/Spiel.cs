@@ -7514,3 +7514,38 @@ namespace UboatToolkit.Modules
     }
 }
 
+
+// ====================================================================================================
+// Abschnitt: Wasserbomben-Zähler (0.4.32)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+
+    // DoMe 2026-11-18: wants the depth charge achievement ("Survivor"). Game rule (SurvivorAchievement, DepthCharge.Explode):
+    // 100 depth charges must explode closer than 1500 m to the boat during ONE encounter; the achievement is given
+    // when the boat then leaves the group area and is in no enemy area any more. Leaving earlier resets the count.
+    // This only shows the game's own counter (display, nothing is changed).
+    [HarmonyPatch(typeof(UBOAT.Game.Sandbox.PlayerCareer), "DepthChargesDetonatedDuringCurrentEncounter", MethodType.Setter)]
+    internal static class DepthChargeCounter_Patch
+    {
+        private static int last;
+        private static void Postfix(UBOAT.Game.Sandbox.PlayerCareer __instance)
+        {
+            try
+            {
+                int n = __instance.DepthChargesDetonatedDuringCurrentEncounter;
+                if (n == last) return;
+                int before = last; last = n;
+                if (!Settings.B("DepthChargeCounter")) return;
+                if (n == 0) { if (before > 0) Util.Log("Wasserbomben-Zähler: zurück auf 0 (Begegnung verlassen), vorher " + before); return; }
+                if (n == 1 || n % 10 == 0 || n == 100)
+                {
+                    Util.Log("Wasserbomben-Zähler: " + n + " von 100 in dieser Begegnung");
+                    UboatToolkit.ToolkitRunner.ShowNotice(n >= 100 ? "Wasserbomben: " + n + "/100 erreicht. Jetzt ablaufen, bis kein Gegner-Gebiet mehr da ist!" : "Wasserbomben: " + n + "/100", n >= 100 ? 10f : 3f);
+                }
+            }
+            catch { }
+        }
+    }
+}
