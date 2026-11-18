@@ -42,7 +42,7 @@ namespace UboatToolkit.Modules.CrewAi
 
     internal static class OptCounters
     {
-        public static long GoToTotal, GoToThrottled;
+        public static long GoToTotal, GoToThrottled, GoToNeeded;
         public static long StopActionTotal, StopActionSkipped;
         public static long SlotsBlacklisted, SlotChecksBlocked, BlacklistExpired;
         public static long SlotPerCharacterBlocks;
@@ -84,7 +84,7 @@ namespace UboatToolkit.Modules.CrewAi
                 if (now - _lastDump < DumpInterval) return;
                 _lastDump = now;
                 DiagLog.Write(
-                    "[Counters] GoTo " + GoToThrottled + "/" + GoToTotal + " throttled (" + Pct(GoToThrottled, GoToTotal) + ") | " +
+                    "[Counters] GoTo " + GoToThrottled + "/" + GoToTotal + " throttled (" + Pct(GoToThrottled, GoToTotal) + "), " + GoToNeeded + " repeats let through because no usable path | " +
                     "StopCurrentAction " + StopActionSkipped + "/" + StopActionTotal + " skipped (" + Pct(StopActionSkipped, StopActionTotal) + ") | " +
                     "cancels=" + CancelsSeen + " | " +
                     "slots blacklisted=" + SlotsBlacklisted + " globalBlocks=" + SlotChecksBlocked +
@@ -200,7 +200,21 @@ namespace UboatToolkit.Modules.CrewAi
 
                 if (sameTarget && sameParams && tooSoon)
                 {
-                    return true;
+                    // 0.4.17 (measured 2026-11-18: 341 x "Path to target is invalid" in 10 minutes, stations stay empty).
+                    // The game's GoToBehaviour repeats GoTo only when the agent has NO usable path (none, stopped or
+                    // stale) and counts every repeat; after 4 repeats without a path it gives the target up as
+                    // unreachable. Swallowing those repeats here made it give up without ever trying again.
+                    // Now a repeat is only swallowed when it is really redundant: a path is being calculated or a
+                    // good path is already there.
+                    bool redundant = false;
+                    try
+                    {
+                        var ag = nav.Agent;
+                        redundant = ag != null && ag.isOnNavMesh && (ag.pathPending || (ag.hasPath && !ag.isStopped && !ag.isPathStale));
+                    }
+                    catch { redundant = false; }
+                    if (redundant) return true;
+                    OptCounters.GoToNeeded++;
                 }
 
                 e.Target = target;

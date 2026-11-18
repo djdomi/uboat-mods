@@ -19,7 +19,8 @@ namespace UboatToolkit.Modules
         internal static int Every = 1;
         internal static bool Settle = true;
         internal static float LoadingUntil;
-        internal static int Held;
+        internal static int Held, PathInvalid;
+        private long lastThrottled, lastNeeded;
         private float nextLog, nextLoadCheck;
 
         public override void Frame()
@@ -41,6 +42,11 @@ namespace UboatToolkit.Modules
             if (Time.unscaledTime < nextLog) return;
             if (nextLog > 0f && Calls + Skipped > 0)
                 Util.Log("Crew-KI: " + (Seconds * 1000.0).ToString("0") + " ms pro Minute in " + Calls + " Aufrufen, " + Skipped + " übersprungen (schlafend, nicht sichtbar)");
+            {
+                long t = CrewAi.OptCounters.GoToThrottled, n = CrewAi.OptCounters.GoToNeeded;
+                if (nextLog > 0f) Util.Log("Crew-Wege: " + PathInvalid + " mal \"Weg ungültig\" in der Minute; Weg-Wiederholungen: " + (t - lastThrottled) + " überflüssige geschluckt, " + (n - lastNeeded) + " nötige durchgelassen");
+                lastThrottled = t; lastNeeded = n; PathInvalid = 0;
+            }
             if (Held > 0) { Util.Log("Crew-KI: " + Held + " Aufrufe angehalten, weil das Boot noch lädt"); Held = 0; }
             nextLog = Time.unscaledTime + 60f;
             Seconds = 0; Calls = 0; Skipped = 0;
@@ -84,6 +90,19 @@ namespace UboatToolkit.Modules
             if (__state == 0) return;
             CrewAiThrottle.Seconds += Time.realtimeSinceStartupAsDouble - __state;
             CrewAiThrottle.Calls++;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    // 0.4.17: counts how often the game gives a walking target up as unreachable (proof line "Crew-Wege").
+    [HarmonyPatch(typeof(CharacterAI), "LogAction", new System.Type[] { typeof(string) })]
+    internal static class CrewPathInvalid_Patch
+    {
+        private static void Prefix(string text)
+        {
+            if (text != null && text.StartsWith("Path to target is invalid", System.StringComparison.Ordinal)) CrewAiThrottle.PathInvalid++;
         }
     }
 }
