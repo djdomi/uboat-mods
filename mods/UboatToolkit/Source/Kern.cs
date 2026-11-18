@@ -1920,6 +1920,7 @@ namespace UboatToolkit
             "UboatToolkit.Modules.Weapons_PreferPatch",
             "UboatToolkit.Modules.GunSpread_Patch",
             "UboatToolkit.Modules.Weapons_KeepGunModePatch",
+            "UboatToolkit.Modules.Weapons_BothModeMenuPatch",
             "UboatToolkit.Modules.WolfpackStep_Near",
             "UboatToolkit.Modules.WolfpackStep_Far",
             "UboatToolkit.Modules.Wolfpack_ParseReportPatch",

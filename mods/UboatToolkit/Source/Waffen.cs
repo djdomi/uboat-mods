@@ -1965,28 +1965,78 @@ namespace UboatToolkit.Modules
 
     // The game sets every gun of the group to "Custom" (= hold fire) whenever a gunner starts at a gun whose mode
     // is not "Aircrafts" (alarm, attack dialog, crew change). The mode the player chose is put back here.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Actions.UseGun), "StartMainCharacter")]
+    // 0.4.62 (DoMe 2026-11-18: "wenn du vorher feuer frei erteilt hattest und dann auf eine kanone klickst, geht der
+    // schütze immer auf feuer einstellen"): the game does the same when a gunner LEAVES a gun (StopMainCharacter), and
+    // a click on the gun makes the gunner leave and start again, so at the start the mode was already lost. Both
+    // moments are covered now, and a target the player picked himself is kept too.
+    [HarmonyLib.HarmonyPatch]
     internal static class Weapons_KeepGunModePatch
     {
-        private static void Prefix(out System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Gun, ArtilleryTargetingMode>> __state)
+        internal struct Kept { public Gun G; public ArtilleryTargetingMode Mode; public UBOAT.Game.Scene.Entities.Entity Target; }
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            foreach (var n in new[] { "StartMainCharacter", "StopMainCharacter" })
+            {
+                var m = AccessTools.DeclaredMethod(typeof(UBOAT.Game.Scene.Characters.Actions.UseGun), n);
+                if (m != null) yield return m;
+            }
+        }
+        private static void Prefix(out System.Collections.Generic.List<Kept> __state)
         {
             __state = null;
             if (!Settings.B("KeepGunMode")) return;
-            __state = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Gun, ArtilleryTargetingMode>>();
+            __state = new System.Collections.Generic.List<Kept>();
             foreach (var g in Util.Find<Gun>())
-                if (g != null && Util.IsPlayers(g) && g.TargetingMode != ArtilleryTargetingMode.Custom)
-                    __state.Add(new System.Collections.Generic.KeyValuePair<Gun, ArtilleryTargetingMode>(g, g.TargetingMode));
+                if (g != null && Util.IsPlayers(g) && (g.TargetingMode != ArtilleryTargetingMode.Custom || g.TargetOverride != null))
+                    __state.Add(new Kept { G = g, Mode = g.TargetingMode, Target = g.TargetOverride });
         }
-        private static void Postfix(System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Gun, ArtilleryTargetingMode>> __state)
+        private static void Postfix(System.Collections.Generic.List<Kept> __state, System.Reflection.MethodBase __originalMethod)
         {
             if (__state == null) return;
             Util.Safe("Weapons.KeepMode", () =>
             {
-                int n = 0;
-                foreach (var kv in __state)
-                    if (kv.Key != null && kv.Key.TargetingMode == ArtilleryTargetingMode.Custom) { kv.Key.TargetingMode = kv.Value; n++; }
-                if (n > 0) Util.Log("Geschütze: Feuermodus von " + n + " Geschütz(en) behalten (Spiel wollte 'Feuer einstellen')");
+                int n = 0, t = 0;
+                foreach (var k in __state)
+                {
+                    if (k.G == null) continue;
+                    if (k.Mode != ArtilleryTargetingMode.Custom && k.G.TargetingMode == ArtilleryTargetingMode.Custom) { k.G.TargetingMode = k.Mode; n++; }
+                    if (k.Target != null && k.Target.Health > 0f && k.G.TargetOverride == null) { k.G.TargetOverride = k.Target; t++; }
+                }
+                if (n + t > 0) Util.Log("Geschütze: Feuermodus von " + n + " Geschütz(en) und gewähltes Ziel von " + t + " behalten (Spiel wollte 'Feuer einstellen', Moment: " + (__originalMethod != null && __originalMethod.Name.StartsWith("Stop") ? "Kanonier geht" : "Kanonier kommt") + ")");
             });
+        }
+    }
+
+    // 0.4.62: the game's gun menu knows "hold fire", "ships", "aircraft". Our combined mode (ships + aircraft) fell
+    // into "everything else" and was shown as "hold fire". While the game builds the menu, the gun reports the kind
+    // it prefers (deck gun: ships, flak: aircraft); the real mode is back right after.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Actions.UseGun), "RefreshTargetingMode")]
+    internal static class Weapons_BothModeMenuPatch
+    {
+        private static readonly AccessTools.FieldRef<Gun, ArtilleryTargetingMode> ModeF = AccessTools.FieldRefAccess<Gun, ArtilleryTargetingMode>("targetingMode");
+        private const ArtilleryTargetingMode Both = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
+        private static bool logged;
+        private static void Prefix(UBOAT.Game.Scene.Characters.Actions.UseGun __instance, out Gun __state)
+        {
+            __state = null;
+            try
+            {
+                var g = __instance != null ? __instance.Gun : null;
+                if (g == null || ModeF(g) != Both || !Util.IsPlayers(g)) return;
+                ModeF(g) = g.IsAntiAircraftWeapon ? ArtilleryTargetingMode.Aircrafts : ArtilleryTargetingMode.Ships;
+                __state = g;
+            }
+            catch { }
+        }
+        private static void Finalizer(Gun __state)
+        {
+            if (__state == null) return;
+            try
+            {
+                ModeF(__state) = Both;
+                if (!logged) { logged = true; Util.Log("Geschütze: Menü zeigt im Doppel-Modus 'Schiffe' bzw. 'Flugzeuge' statt 'Feuer einstellen' (" + __state.name + ")"); }
+            }
+            catch { }
         }
     }
 }
