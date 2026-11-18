@@ -2378,6 +2378,7 @@ namespace UboatToolkit
             Bool(QoL, "SaveWedgesCalm", "Sparen: Kontakt-Keile nur neu bauen, wenn sie sich bewegen", false);
             Bool(QoL, "SaveNoForcedGc", "Sparen: das Spiel räumt den Speicher nicht mehr zwangsweise alle 100 MB auf (nur noch beim Laden; das laufende Aufräumen in kleinen Schritten bleibt)", false);
             Bool(QoL, "SaveSprayOnChange", "Sparen: Gischt-Stärke der Schiffe nur neu setzen, wenn sich ihre Fahrt ändert", false);
+            Bool(QoL, "SaveBuoyancyEarly", "Mehr Kerne: Auftrieb der Schiffe startet sofort auf den Helfer-Kernen (gleiches Ergebnis)", false);
             Bool(QoL, "SaveMeshParticlesGpu", "Grafikkarte: Trümmer-Partikel aus 3D-Modellen gesammelt zeichnen", false);
             Bool(QoL, "AwashGuns", "Vorgeflutet: Turmluke bleibt offen, Crew darf an Deck (#24)", true);
             Num(QoL, "RadioSpeed", "Funk: so viel schneller senden (1 = normal) (#11)", 10, 1, 100, 1);

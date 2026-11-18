@@ -5206,3 +5206,41 @@ namespace UboatToolkit.Patches
         }
     }
 }
+
+// ====================================================================================================
+// Abschnitt: Patches/BuoyancyEarly.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // 0.4.56: the game hands the buoyancy sum of every ship to the helper cores, but the helpers only start when the
+    // main core begins to wait for the first result. With the switch on the helpers are woken after every 4th ship,
+    // so they calculate while the main core still prepares the other ships. Same numbers, same order of results.
+    [HarmonyPatch]
+    internal static class BuoyancyEarly_Patch
+    {
+        private static int since, kicks, jobs; private static float nextLog;
+        private static System.Reflection.MethodBase target;
+        private static bool Prepare()
+        {
+            var t = AccessTools.TypeByName("PlayWay.Water.Extensions.NeuralNetworkJobsRunner");
+            target = t != null ? AccessTools.Method(t, "Start") : null;
+            if (target == null) Util.Log("Auftrieb früher starten: Stelle im Wasser-Modul nicht gefunden, Schalter ohne Wirkung");
+            return target != null;
+        }
+        private static System.Reflection.MethodBase TargetMethod() => target;
+
+        private static void Postfix()
+        {
+            if (!Settings.B("SaveBuoyancyEarly")) return;
+            jobs++;
+            if (++since >= 4) { since = 0; kicks++; Unity.Jobs.JobHandle.ScheduleBatchedJobs(); }
+            if (Time.unscaledTime < nextLog) return;
+            nextLog = Time.unscaledTime + 60f;
+            Util.Log("Sparen: Auftrieb früher gestartet, " + jobs + " Schiffs-Rechnungen in der letzten Minute, Helfer-Kerne " + kicks + " mal vorzeitig geweckt");
+            jobs = 0; kicks = 0;
+        }
+    }
+}
