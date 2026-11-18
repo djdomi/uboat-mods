@@ -3377,8 +3377,20 @@ namespace UboatToolkit
             }
         }
 
+        // 0.4.33 (DoMe 2026-11-18: "warum muss ich alles manuell auf speichern klicken"): shown next to the menu so it is
+        // visible that every change is written by itself.
+        public static string LastSaved = "";
+        // Sum over all values and key bindings; the menu watches it, so a change made anywhere (every tab, sliders,
+        // keys, Warthog tab) is noticed and saved without the button. One-time actions (">>") are left out.
+        public static int Checksum()
+        {
+            int h = 17;
+            unchecked { foreach (var o in All) { if (o.IsAction) continue; h = h * 31 + o.Value.GetHashCode(); if (o.Text != null) h = h * 31 + o.Text.GetHashCode(); } }
+            return h;
+        }
         public static void Save()
         {
+            LastSaved = DateTime.Now.ToString("HH:mm:ss");
             DebugLog.DumpSettings("gespeichert");
             try
             {
@@ -3584,6 +3596,12 @@ namespace UboatToolkit
             // EVERY hotkey (Keys.Down returns false while capturing) and the menu key (DoMe: Ctrl+Alt+M no effect, F10 several times).
             if (!menuOpen && Keys.Capturing != null) { Util.Log("Tasten-Aufnahme hing bei geschlossenem Menü, beendet"); Keys.Capturing = null; }
             Keys.CaptureFrame();
+            if (menuOpen && Time.unscaledTime >= nextSum)
+            {
+                nextSum = Time.unscaledTime + 0.5f;
+                int sum = Settings.Checksum();
+                if (sum != lastSum) { if (sumKnown && saveAt <= 0f) saveAt = Time.unscaledTime + 2f; lastSum = sum; sumKnown = true; }
+            }
             if (saveAt > 0f && (Time.unscaledTime >= saveAt || !menuOpen) && !Input.GetMouseButton(0) && Keys.Capturing == null)
             { saveAt = 0f; Settings.Save(); Util.Log("Einstellungen von selbst gespeichert (Änderung im Menü)"); }
             // Menu key: works even with Ctrl/Shift/Alt still held and while a key capture hangs (F10 must always close).
@@ -3775,7 +3793,7 @@ namespace UboatToolkit
             dragSliderKey = o.Value != before ? o.Key : dragSliderKey;
         }
         private static string dragSliderKey;
-        private static float saveAt;
+        private static float saveAt, nextSum; private static int lastSum; private static bool sumKnown;
         // 0.4.28 (audit: a change made less than 2 s before quitting was lost)
         private void OnApplicationQuit()
         {
@@ -4115,8 +4133,9 @@ namespace UboatToolkit
                 foreach (var o in Settings.All) if (o.Tab == tab && o.Parent == null) DrawBlock(o);
             Imgui.EndScroll();
             Imgui.BeginH();
-            if (Imgui.Button("Speichern", 150)) Settings.Save();
+            if (Imgui.Button("Jetzt speichern", 150)) Settings.Save();
             if (Imgui.Button("INI neu laden", 150)) Settings.Load();
+            Imgui.Label(saveAt > 0f ? "  Änderung wird gleich von selbst gespeichert ..." : "  Speichert von selbst. Zuletzt gespeichert: " + (Settings.LastSaved == "" ? "noch keine Änderung" : Settings.LastSaved), 420);
             Imgui.EndH();
             Imgui.EndArea();
         }
