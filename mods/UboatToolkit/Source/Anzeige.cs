@@ -4835,6 +4835,7 @@ namespace UboatToolkit.Modules
                 }
                 Util.Log("Wasser-Modul (nur lesen):" + wsb);
                 double ms = (Time.realtimeSinceStartupAsDouble - t0) * 1000.0;
+                Util.Log("Rechenkerne (nur lesen): PC meldet " + SystemInfo.processorCount + " Kerne, Unity nutzt " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount + " Arbeiter + Hauptfaden (Höchstwert " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerMaximumCount + ")");
                 Util.Log("Zeichnen (Zählung, nur lesen): Schiffe " + ships + "; Teile " + rend + " (im Bild " + visible + "), davon ohne Gruppen-Zeichnen " + rendNoInst
                     + "; gleiche Teile mehrfach " + repeat + ", davon ohne Gruppen-Zeichnen " + repeatNoInst + "; Materialien " + mats.Count + ", ohne Gruppen-Zeichnen " + noInst
                     + "; Figuren-Modelle " + skin + " (im Bild " + skinVisible + ", Knochen " + bones + "); Partikel-Systeme " + ps + " (laufen " + playing + ", Partikel " + alive
