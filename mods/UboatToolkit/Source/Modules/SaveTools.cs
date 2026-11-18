@@ -51,7 +51,7 @@ namespace UboatToolkit.Modules
         private const int VanillaBudget = 160000, VanillaActions = 500;
         private static bool patched;
         private static object active;
-        private static long lastStep, loadStart;
+        private static long lastStep, loadStart, outside, lastEnd;
         private static int frames;
 
         private static bool On => Settings.B("FastLoad");
@@ -64,10 +64,16 @@ namespace UboatToolkit.Modules
         {
             if (!On) return VanillaBudget;
             if (SaveTools_IdlePatch.ShouldYield()) return 0;
-            return (long)(Mathf.Clamp(Settings.F("FastLoadBudgetMs"), 16f, 1000f) * LoadClock.Frequency / 1000.0);
+            return (long)(BudgetMs() * LoadClock.Frequency / 1000.0);
         }
 
-        public static int MaxActions() => On ? Mathf.Clamp(Mathf.RoundToInt(Settings.F("FastLoadMaxActions")), 500, 1000000) : VanillaActions;
+        // 0.4.15 (measured 2026-11-18: 83.9 s load, 549 frames x 96 ms inside the load loop = 52.7 s, so 31 s = 57 ms
+        // per frame were spent OUTSIDE the loop (drawing the loading screen, waiting for the graphics card) while the
+        // reader thread stood still). Fewer, longer frames: at least 500 ms of loading per frame.
+        internal static bool Long => Settings.B("FastLoadLongFrames");
+        internal static float BudgetMs() => Mathf.Max(Mathf.Clamp(Settings.F("FastLoadBudgetMs"), 16f, 1000f), Long ? 500f : 0f);
+
+        public static int MaxActions() => !On ? VanillaActions : Long ? 1000000 : Mathf.Clamp(Mathf.RoundToInt(Settings.F("FastLoadMaxActions")), 500, 1000000);
 
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
         {
@@ -92,7 +98,8 @@ namespace UboatToolkit.Modules
 
         private static void Prefix(object __instance)
         {
-            if (!ReferenceEquals(active, __instance)) { active = __instance; loadStart = LoadClock.Now(); frames = 0; SaveTools_IdlePatch.ResetLoad(); }
+            if (!ReferenceEquals(active, __instance)) { active = __instance; loadStart = LoadClock.Now(); frames = 0; outside = 0; lastEnd = 0; SaveTools_IdlePatch.ResetLoad(); }
+            else if (lastEnd != 0) outside += LoadClock.Now() - lastEnd;
             frames++;
             LoadSpin_WorkerPatch.SpinUs = Settings.B("FastLoad") ? Mathf.Clamp(Settings.F("FastLoadSpinUs"), 0f, 5000f) : 0f;
             lastStep = LoadClock.Now();
@@ -111,10 +118,12 @@ namespace UboatToolkit.Modules
 
         private static void Postfix(object __instance, bool __result)
         {
+            if (ReferenceEquals(active, __instance)) lastEnd = LoadClock.Now();
             if (__result || !ReferenceEquals(active, __instance)) return;
             double s = LoadClock.Seconds(LoadClock.Now() - loadStart);
             Util.Log("Laden: fertig in " + s.ToString("0.0", CultureInfo.InvariantCulture) + " s über " + frames + " Bilder ("
-                + (patched && On ? Settings.F("FastLoadBudgetMs").ToString("0", CultureInfo.InvariantCulture) + " ms / " + MaxActions() + " Schritte pro Bild" : "Spielwert 16 ms / 500 Schritte") + ")."
+                + (patched && On ? BudgetMs().ToString("0", CultureInfo.InvariantCulture) + " ms / " + MaxActions() + " Schritte pro Bild" : "Spielwert 16 ms / 500 Schritte") + ")."
+                + " Außerhalb der Lade-Schleife (Ladebild zeichnen, Grafikkarte): " + LoadClock.Seconds(outside).ToString("0.0", CultureInfo.InvariantCulture) + " s = " + (frames > 1 ? LoadClock.Seconds(outside) * 1000.0 / (frames - 1) : 0).ToString("0", CultureInfo.InvariantCulture) + " ms pro Bild."
                 + SaveTools_IdlePatch.Summarise(frames) + SaveTools_MemoryPatch.SummariseAndReset() + LoadSpin.SummariseAndReset());
             active = null;
         }
@@ -165,7 +174,7 @@ namespace UboatToolkit.Modules
             // 0.3.71: measured 2026-11-16: the loader thread ran at only 25-53 % of a core. It needs the main thread for
             // many small jobs and stands still while the main thread is away drawing the frame. With the old 16 ms the
             // main thread left after 16 ms of waiting in 2551 of 2800 frames. Now it stays ("FastLoadIdleMs", default 100).
-            double idleMs = Mathf.Clamp(Settings.F("FastLoadIdleMs"), 2f, 1000f);
+            double idleMs = Mathf.Max(Mathf.Clamp(Settings.F("FastLoadIdleMs"), 2f, 1000f), SaveTools_LoadSpeedPatch.Long ? 500f : 0f);
             if (!installed || idleFrame < (long)(idleMs * LoadClock.Frequency / 1000.0)) return false;
             if (!yielded) { yielded = true; framesYielded++; }
             return true;

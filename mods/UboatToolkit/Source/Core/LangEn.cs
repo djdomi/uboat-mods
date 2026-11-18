@@ -548,6 +548,7 @@ namespace UboatToolkit
             m["Hinweis, wenn das Ruder von Hand festgestellt ist und das Boot im Kreis fährt"] = "Notice when the rudder is set by hand and the boat runs in circles";
             m["Steuerstand immer besetzt: freier Matrose geht hin (ohne Steuermann reagiert das Ruder nicht)"] = "Helm always manned: a free sailor goes there (without a helmsman the rudder does not respond)";
             m["Ruder geht auch ohne Steuermann"] = "Rudder works without a helmsman";
+            m["  Lange Lade-Bilder: mindestens 0,5 s laden pro Bild (Ladebild ruckelt, Laden deutlich kürzer)"] = "  Long loading frames: at least 0.5 s of loading per frame (loading screen stutters, loading much shorter)";
             m["Ruder mittschiffs"] = "Rudder amidships";
             m["Kurs-Sperre (mit fein)"] = "Course lock (with fine)";
             m["Tiefer (mit fein/grob, beim Loslassen)"] = "Deeper (with fine/coarse, on release)";
