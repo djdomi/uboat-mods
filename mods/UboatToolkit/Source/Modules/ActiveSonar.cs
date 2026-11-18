@@ -99,9 +99,23 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(Hydrophone), nameof(Hydrophone.AllowOnlyCrudeEstimations), MethodType.Getter)]
     internal static class ActiveSonar_ExactPatch
     {
-        private static void Postfix(ref bool __result)
+        internal static DirectObservation Now;
+        private static void Postfix(Hydrophone __instance, ref bool __result)
         {
-            if (ActiveSonar.Active && Settings.B("ActiveSonar")) __result = false;
+            if (!ActiveSonar.Active || !Settings.B("ActiveSonar")) return;
+            // 0.4.22 (option audit): only OUR hydrophone, and only for the contact the ping really reaches (range + arc).
+            var ship = Util.PlayerShip;
+            if (ship == null || __instance.ParentEntity != ship) return;
+            var o = Now;
+            if (o == null || o.Entity == null) return;
+            float d = (o.Entity.transform.position - ship.transform.position).magnitude;
+            if (d <= Settings.F("SonarRange") && ActiveSonar.InArc(ship, o.Entity)) __result = false;
         }
+    }
+    [HarmonyPatch(typeof(DirectObservation), "AddTrackingProgress")]
+    internal static class ActiveSonar_ObsPatch
+    {
+        private static void Prefix(DirectObservation __instance) { ActiveSonar_ExactPatch.Now = __instance; }
+        private static System.Exception Finalizer(System.Exception __exception) { ActiveSonar_ExactPatch.Now = null; return __exception; }
     }
 }

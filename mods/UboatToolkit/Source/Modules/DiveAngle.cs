@@ -9,13 +9,13 @@ namespace UboatToolkit.Modules
     public class DiveAngle : ModuleBase
     {
         private static readonly AccessTools.FieldRef<PlayableSubmarine, float> Incl = AccessTools.FieldRefAccess<PlayableSubmarine, float>("verticalSteersInclination");
-        private float sinkLogAt; private PlayableSubmarine boat; private float original = float.NaN, applied = float.NaN, lastTarget = float.NaN, lastComp = 1f;
+        private float sinkLogAt; private PlayableSubmarine boat; private float original = float.NaN, applied = float.NaN, lastTarget = float.NaN, lastComp = float.NaN;
 
         public override void Tick()
         {
             var sub = Util.PlayerShip as PlayableSubmarine;
             if (sub == null || Incl == null) return;
-            if (sub != boat) { boat = sub; original = Incl(sub); applied = float.NaN; lastComp = 1f; }
+            if (sub != boat) { boat = sub; original = Incl(sub); applied = float.NaN; lastComp = float.NaN; }   // 0.4.22: NaN = factor is written once per boat, also the plain 1 (a factor kept in the savegame is reset)
             if (Util.WarthogModOwns(Util.PlayerShip)) return;
             // Speed cheat x f: plane force grows with speed^2 -> f^2 too strong (DoMe: nose-down dives at speed, stop = boat rises).
             // Compensate so the planes act like at normal speed.
@@ -26,7 +26,7 @@ namespace UboatToolkit.Modules
             if (comp != lastComp)
             {
                 var par = HarmonyLib.Traverse.Create(sub).Field("verticalSteersForceScale").GetValue() as UBOAT.Game.Core.Data.Parameter;
-                if (par != null) { Util.ScaleParameter(par, comp); lastComp = comp; Util.Log("Tiefenruder-Ausgleich für Speed-Cheat: x" + comp.ToString("0.00")); }
+                if (par != null) { Util.ScaleParameter(par, comp); bool first = float.IsNaN(lastComp); lastComp = comp; if (!first || comp != 1f) Util.Log("Tiefenruder-Ausgleich für Speed-Cheat: x" + comp.ToString("0.00")); }
             }
             // log every change of the ordered depth (to trace "forced dives")
             float td = sub.TargetDepth;
@@ -37,7 +37,7 @@ namespace UboatToolkit.Modules
                 sinkLogAt = Time.unscaledTime + 30f;
                 var rb = sub.RigidBody;
                 Util.Log("Absinken: Tiefe " + sub.Depth.ToString("F1") + " m bei Zieltiefe " + td.ToString("F0") + ", Zeitraffer " + Time.timeScale.ToString("0.#") +
-                    ", Speed-Cheat " + sf.ToString("0.#") + ", Fahrt " + (rb != null ? (rb.velocity.magnitude * 1.944f).ToString("0.0") : "?") + " kn, Ruder-Ausgleich x" + lastComp.ToString("0.00") +
+                    ", Speed-Cheat " + sf.ToString("0.#") + ", Fahrt " + (rb != null ? (rb.velocity.magnitude * 1.944f).ToString("0.0") : "?") + " kn, Ruder-Ausgleich x" + (float.IsNaN(lastComp) ? 1f : lastComp).ToString("0.00") +
                     ", Neigung " + (rb != null ? Vector3.SignedAngle(Vector3.ProjectOnPlane(sub.transform.forward, Vector3.up), sub.transform.forward, sub.transform.right).ToString("0.0") : "?") + "°");
             }
             float want = Settings.F("DiveAngleMax");

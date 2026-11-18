@@ -52,7 +52,7 @@ namespace UboatToolkit.Modules
                 if (!Util.IsPlayers(p)) continue;
                 var tanks = Traverse.Create(p).Field("tanks").GetValue<TrimPump.ConnectedTank[]>();
                 if (tanks == null) continue;
-                foreach (var ct in tanks) if (ct?.Tank != null && ct.Tank.Capacity > 0) tr.Add((ct.Tank.Water / ct.Tank.Capacity * 100.0).ToString("0") + "%");
+                foreach (var ct in tanks) if (ct?.Tank != null && ct.Tank.Capacity > 0 && !(ct.Tank is UBOAT.Game.Scene.Items.Compartment)) tr.Add((ct.Tank.Water / ct.Tank.Capacity * 100.0).ToString("0") + "%");
             }
             Line = Events.Join(b.Count > 0 ? "Tauchzellen " + string.Join(" ", b) : null, tr.Count > 0 ? "Trimm " + string.Join(" ", tr) : null);
         }

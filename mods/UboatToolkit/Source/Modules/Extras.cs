@@ -61,9 +61,12 @@ namespace UboatToolkit.Modules
             });
 
             // Echo sounder pings by itself while submerged.
-            if (Settings.B("CheatSonarPing"))
+            bool autoPing = Settings.B("CheatSonarPing");
+            if (autoPing || autoPingWas)
                 foreach (var d in Util.Find<SoundRangingDevice>())
-                    if (Util.IsPlayers(d)) d.IsSendButtonPressed = ship.SubmergedOrGoingToSubmerge;
+                    if (Util.IsPlayers(d)) d.IsSendButtonPressed = autoPing && ship.SubmergedOrGoingToSubmerge;
+            if (autoPingWas && !autoPing) Util.Log("Echolot: Dauer-Ping aus, Sendetaste losgelassen");
+            autoPingWas = autoPing;
 
             // Faster torpedoes: the speed values of all own torpedoes are raised, so the
             // torpedo computer also aims with the new speed.
@@ -82,6 +85,7 @@ namespace UboatToolkit.Modules
 
         // A switch that does something once and turns itself off. Waits until the boat is fully
         // loaded; if it still fails, it tries again next second (up to 10 times) instead of giving up.
+        private static bool autoPingWas;
         private static void OneShot(string key, System.Action a)
         {
             var o = Settings.Get(key);
@@ -110,7 +114,9 @@ namespace UboatToolkit.Modules
             int n = 0;
             foreach (var l in Util.Find<TorpedoLauncher>())
             {
-                if (l.Torpedo != null) continue;
+                // 0.4.22 (option audit): only OUR tubes, and never a tube the crew is loading right now (see Torpedoes.TubeBusy)
+                if (l == null || !(Util.IsPlayers(l) || (l.Group != null && l.Group.ParentEntity is PlayerShip))) continue;
+                if (l.Torpedo != null || Torpedoes.TubeBusy(l)) continue;
                 Storage best = null; int bestSlot = -1; float bestDist = float.MaxValue;
                 foreach (var s in storages)
                     for (int i = 0; i < Util.Slots(s); i++)
@@ -343,10 +349,16 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(RepairAction), "StartMainCharacter")]
     internal static class Extras_RepairPatch
     {
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<RepairAction, object> done = new System.Runtime.CompilerServices.ConditionalWeakTable<RepairAction, object>();
         private static void Postfix(RepairAction __instance)
         {
             float f = Settings.F("CheatRepairSpeed");
             if (f <= 1f || !Util.IsPlayers(__instance.Activator)) return;
+            // 0.4.22 (option audit): once per repair action. The game never resets the field, so a second start of the
+            // same action multiplied the factor again.
+            object seen;
+            if (done.TryGetValue(__instance, out seen)) return;
+            done.Add(__instance, null);
             var t = Traverse.Create(__instance).Field("performanceMultiplier");
             t.SetValue(t.GetValue<float>() * f);
         }

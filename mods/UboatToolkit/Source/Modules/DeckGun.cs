@@ -31,7 +31,6 @@ namespace UboatToolkit.Modules
         public static float NpcFloor => Mathf.Clamp(Settings.F("DgsNpcFloor"), 0f, 20f);
         public static float NpcRanging => Mathf.Clamp(Settings.F("DgsNpcRanging"), 10f, 100f);
         public static bool NpcEvenOut => Settings.B("DgsNpcEvenOut");
-        public static bool NpcWarships => Settings.B("DgsNpcWarships");
         public static bool Knockout => Settings.B("DgsKnockout");
         public static float KnockoutPct => Mathf.Clamp(Settings.F("DgsKnockoutPct"), 50f, 500f);
         public static float KnockoutRadius => Mathf.Clamp(Settings.F("DgsKnockoutRadius"), 1f, 20f);
@@ -146,7 +145,9 @@ namespace UboatToolkit.Modules
         {
             if (!Applies(gun)) return spread;
             spread *= SeaGunCfg.NpcSpread / 100f;
-            float floor = SeaGunCfg.NpcFloor / 1000f;
+            // 0.4.22 (option audit): a gun that has ranged in has spread 0 in the game, and x % of 0 stays 0. So the
+            // percentage also raises the smallest miss; else the option did nothing against a ranged-in port gun.
+            float floor = SeaGunCfg.NpcFloor / 1000f * (SeaGunCfg.NpcSpread / 100f);
             return spread < floor ? floor : spread;
         }
 

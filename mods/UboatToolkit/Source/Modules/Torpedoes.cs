@@ -26,6 +26,7 @@ namespace UboatToolkit.Modules
         }
 
         private static UserSettings userSettings;
+        private static bool tdcKept, tdcAuto, tdcPrev;
 
         // 0.3.43 (DoMe: "es werden keine Torpedos nachgeladen"): the reload right after the shot (OnLaunchingComplete)
         // did not fire in every case. Backup: an own tube that stays empty for 3 s is filled again here.
@@ -94,6 +95,12 @@ namespace UboatToolkit.Modules
         // Once a minute the tube states and the stock are logged while a tube is empty.
         private static readonly System.Collections.Generic.Dictionary<TorpedoLauncher, float> autoEmpty = new System.Collections.Generic.Dictionary<TorpedoLauncher, float>();
         private static float nextTubeLog;
+        // The crew has an open carrying order for this tube.
+        internal static bool TubeBusy(TorpedoLauncher l)
+        {
+            try { var s = l != null ? l.Slot : null; return s != null && s.TransportOrders != null && s.TransportOrders.Count > 0; }
+            catch { return false; }
+        }
         private static void AutoReload()
         {
             if (!Settings.B("AutoReloadTubes") || Settings.B("CheatInfiniteTorpedoes")) { autoEmpty.Clear(); return; }
@@ -101,13 +108,17 @@ namespace UboatToolkit.Modules
             var ship = Util.PlayerShip;
             if (ship == null || ship.Docked) { autoEmpty.Clear(); return; }   // in port the port's own stock is not touched
             Storage[] storages = null;
-            int empty = 0, loaded = 0;
+            int empty = 0, loaded = 0, busy = 0;
             string states = "";
             foreach (var l in Util.Find<TorpedoLauncher>())
             {
                 if (l == null || !(Util.IsPlayers(l) || (l.Group != null && l.Group.ParentEntity is PlayerShip))) continue;
                 states += (states.Length > 0 ? ", " : "") + l.CurrentState;
                 if (l.Torpedo != null) { autoEmpty.Remove(l); continue; }
+                // 0.4.22 (option audit): the crew is already carrying a torpedo to this tube. Filling it now made the
+                // game's own loading stop half-way and left an order behind; after that the game never loaded this tube
+                // by itself again.
+                if (TubeBusy(l)) { autoEmpty.Remove(l); busy++; continue; }
                 empty++;
                 if (!autoEmpty.TryGetValue(l, out var t0)) { autoEmpty[l] = Time.time; continue; }
                 if (Time.time - t0 < wait) continue;
@@ -139,7 +150,7 @@ namespace UboatToolkit.Modules
                 if (storages == null) storages = Util.Find<Storage>().Where(x => x != null && !(x is TorpedoLauncherGroup) && x.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() == null).ToArray();
                 foreach (var st in storages)
                     for (int i = 0; i < Util.Slots(st); i++) if (st.GetItemAt(i) is StoredTorpedo t && !(t is StoredMinePacket)) stock++;
-                Util.Log("Rohre: " + empty + " leer, Zustände [" + states + "], Torpedos im Lager: " + stock + " (Lager gefunden: " + storages.Length + ")");
+                Util.Log("Rohre: " + empty + " leer, " + busy + " lädt die Crew gerade (nicht angefasst), Zustände [" + states + "], Torpedos im Lager: " + stock + " (Lager gefunden: " + storages.Length + ")");
                 Util.Safe("tube diag", CrewLoadDiag);
             }
         }
@@ -248,9 +259,17 @@ namespace UboatToolkit.Modules
                 var gs = userSettings?.GameplaySettings;
                 if (gs != null)
                 {
+                    if (!tdcKept) { tdcKept = true; tdcAuto = gs.disableAutomaticTorpedoSolutions; tdcPrev = gs.disableTorpedoSolutionPreviews; }
                     gs.disableAutomaticTorpedoSolutions = false;
                     gs.disableTorpedoSolutionPreviews = false;
                 }
+            }
+            else if (tdcKept)
+            {
+                // 0.4.22 (option audit): switched off = the game's own two settings are back as they were before.
+                tdcKept = false;
+                var gs = userSettings?.GameplaySettings;
+                if (gs != null) { gs.disableAutomaticTorpedoSolutions = tdcAuto; gs.disableTorpedoSolutionPreviews = tdcPrev; Util.Log("Einfacher Torpedorechner aus: Spiel-Einstellungen wieder wie vorher"); }
             }
 
             Refill();

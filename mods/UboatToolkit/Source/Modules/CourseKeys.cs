@@ -110,7 +110,7 @@ namespace UboatToolkit.Modules
             if (fine && dHeld && CourseCfg.Down(shallower))
             {
                 chordUsed = true;
-                float held = ship.Depth + ship.VerticalOriginOffset;
+                float held = Mathf.Max(0f, ship.DeckDepthUnclamped);   // 0.4.22: deck line like the game's target depth (was the tower top: boat rose)
                 Preset(ship, DepthPreset.None, true); SetDepth(ship, held, true);
                 CourseCfg.Log("Tiefe gehalten bei " + held.ToString("F1") + " m");
                 return;

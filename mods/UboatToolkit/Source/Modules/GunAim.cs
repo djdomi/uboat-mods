@@ -17,6 +17,28 @@ namespace UboatToolkit.Modules
     //    uses: target speed and shell flight time). 0 = off.
     //  * Cheat perfect aim: crew always at 100 % ranging, no spread at all (also not at night), and your own
     //    shots use the lead calculation for any enemy within 30 degrees.
+    // Collects every shell a gun creates during one Gun.Fire call.
+    [HarmonyPatch(typeof(Gun), "Fire")]
+    internal static class GunShells
+    {
+        internal static readonly List<Shell> Fired = new List<Shell>();
+        internal static bool Firing;
+        [HarmonyPriority(Priority.First)]
+        private static void Prefix() { Fired.Clear(); Firing = true; }
+        private static System.Exception Finalizer(System.Exception __exception) { Firing = false; Fired.Clear(); return __exception; }
+    }
+    // The pool hands out the shell objects (the tiny LaunchedBy setter could be inlined, so it is not patched).
+    [HarmonyPatch(typeof(DWS.Common.Pooling.GlobalPool), nameof(DWS.Common.Pooling.GlobalPool.GetPrefabInstance), new[] { typeof(string), typeof(DWS.Common.Resources.InstantiationFlags) })]
+    internal static class GunShells_Collect
+    {
+        private static void Postfix(GameObject __result)
+        {
+            if (!GunShells.Firing || __result == null) return;
+            var s = __result.GetComponent<Shell>();
+            if (s != null && !GunShells.Fired.Contains(s)) GunShells.Fired.Add(s);
+        }
+    }
+
     [HarmonyPatch(typeof(Gun), "Fire")]
     internal static class GunAim_FirePatch
     {
@@ -52,7 +74,18 @@ namespace UboatToolkit.Modules
             if (Settings.B("CrewSkillLog")) Util.Log("Zielhilfe: Schuss auf " + best.name + " (" + bestAngle.ToString("0.0") + " Grad daneben gezielt)");
         }
 
+        // 0.4.22 (option audit): a gun with several barrels fires one shell per barrel, but the game only hands back the
+        // last one. All shells of this shot are collected (GunShells) and treated, so no pooled shell keeps our values.
         private static void Postfix(Gun __instance, Shell __result)
+        {
+            var all = GunShells.Fired;
+            if (__result != null && !all.Contains(__result)) all.Add(__result);
+            for (int i = 0; i < all.Count; i++) Apply(__instance, all[i]);
+            if (all.Count > 1 && !multiLogged) { multiLogged = true; Util.Log("Granaten: Geschütz mit mehreren Rohren, alle " + all.Count + " Granaten des Schusses behandelt (" + __instance.name + ", " + (Util.IsPlayers(__instance) ? "eigenes" : "fremdes, Spielwerte") + ")"); }
+            all.Clear();
+        }
+        private static bool multiLogged;
+        private static void Apply(Gun __instance, Shell __result)
         {
             if (__result == null) return;
             if (!Util.IsPlayers(__instance))

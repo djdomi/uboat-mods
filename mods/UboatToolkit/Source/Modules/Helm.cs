@@ -93,7 +93,7 @@ namespace UboatToolkit.Modules
                 }
             if (Keys.Down("KeyPeriscopeDepth")) { Util.Safe("Helm.Scope", () => ship.SetDepthPreset(DepthPreset.Periscope, false)); return; }
             if (Keys.Down("KeyMaxDepth")) { Util.Safe("Helm.Max", () => ship.SetDepthPreset(DepthPreset.MaxSafeDepth, false)); return; }
-            if (Keys.Down("KeyHoldDepth")) Util.Safe("Helm.Hold", () => { float t = ship.Depth + ship.VerticalOriginOffset; ship.SetDepthPreset(DepthPreset.None, true); ship.SetTargetDepth(UnityEngine.Mathf.Max(0f, t), false, true); });
+            if (Keys.Down("KeyHoldDepth")) Util.Safe("Helm.Hold", () => { float t = ship.DeckDepthUnclamped; ship.SetDepthPreset(DepthPreset.None, true); ship.SetTargetDepth(UnityEngine.Mathf.Max(0f, t), false, true); });
         }
     }
 

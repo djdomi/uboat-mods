@@ -153,7 +153,12 @@ namespace UboatToolkit.Modules
             if (!Settings.B("TubeDisplay")) { TubeLine = null; return; }
             var parts = new List<string>();
             int i = 1;
-            foreach (var l in Util.Find<TorpedoLauncher>())
+            // 0.4.22 (option audit): only OUR tubes (enemy submarines were listed too), in a fixed order (by name)
+            var own = new List<TorpedoLauncher>();
+            foreach (var x in Util.Find<TorpedoLauncher>())
+                if (x != null && (Util.IsPlayers(x) || (x.Group != null && x.Group.ParentEntity is UBOAT.Game.Scene.Entities.PlayerShip))) own.Add(x);
+            own.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+            foreach (var l in own)
             {
                 string t = "leer";
                 if (l.Torpedo != null)

@@ -33,6 +33,7 @@ namespace UboatToolkit.Modules
         public static string Prefix(Gun gun) => gun.IsAntiAircraftWeapon ? "AAGun" : "DeckGun";
 
         private static bool bothLogged, enemyLogged;
+        private static readonly HashSet<int> bothSwitched = new HashSet<int>();
         public override void Tick()
         {
             var ship = Util.PlayerShip;
@@ -47,8 +48,13 @@ namespace UboatToolkit.Modules
                     && (gun.TargetingMode == ArtilleryTargetingMode.Ships || gun.TargetingMode == ArtilleryTargetingMode.Aircrafts))
                 {
                     gun.TargetingMode = ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts;
+                    bothSwitched.Add(gun.GetInstanceID());
                     if (!bothLogged) { bothLogged = true; Util.Log("Geschütze: Schiffe und Flugzeuge zugleich (Deckgeschütz bevorzugt Schiffe, Flak Flugzeuge), z. B. " + gun.name); }
                 }
+                // 0.4.22 (option audit): switched off = guns we changed go back to their own kind of target.
+                if (!Settings.B("AAGunBothTargets") && bothSwitched.Remove(gun.GetInstanceID()) && !Settings.B("AAvsShips")
+                    && gun.TargetingMode == (ArtilleryTargetingMode.Ships | ArtilleryTargetingMode.Aircrafts))
+                    gun.TargetingMode = gun.IsAntiAircraftWeapon ? ArtilleryTargetingMode.Aircrafts : ArtilleryTargetingMode.Ships;
                 // 0.3.38: enemy guns (port defence, escorts) always keep the game's own values. Up to 0.3.38 turn speed,
                 // fire rate, magazine, shell speed and "flak like 88" were applied to EVERY gun in the scene.
                 if (!Util.IsPlayers(gun))
@@ -78,13 +84,13 @@ namespace UboatToolkit.Modules
 
                 // Lowest elevation (negative = barrel points down). 0 = game value.
                 float minA = Util.Original<float>(gun, "minAngle");
-                if (like88) minA = Mathf.Min(minA, Util.Original<float>(deck88, "minAngle"));
-                Util.SetField(gun, "minAngle", minA);
+                Util.SetField(gun, "minAngle", minA);   // UP limit: always the gun's own (0.4.22: "wie 88" changed this one by mistake)
                 // Lowest aim (game/Unity: x angle positive = barrel DOWN, so the DOWN limit is maxAngle; minAngle is the UP
                 // limit). Up to 0.2.63 this wrongly changed minAngle, so "Flak tiefer neigen" had no effect.
                 float depress = Util.IsPlayers(gun) ? Settings.F(p + "Depress") : 0f;
                 if (gun.IsAntiAircraftWeapon && UboatToolkit.Modules.Warthog.WarthogWeapons.On) depress = Mathf.Max(depress, Settings.F("WhFlakDepression"));
                 float maxA = Util.Original<float>(gun, "maxAngle");
+                if (like88) depress = Mathf.Max(depress, Util.Original<float>(deck88, "maxAngle"));   // 0.4.22: "neigt so tief wie die 88" = DOWN limit
                 if (!Util.WarthogModOwns(ship)) Util.SetField(gun, "maxAngle", depress > 0f ? Mathf.Max(maxA, depress) : maxA);
 
                 // Recoil (barrel jumps up after each shot, annoying when aiming yourself). 0 = none, 1 = game.
@@ -123,7 +129,11 @@ namespace UboatToolkit.Modules
                 var series = Traverse.Create(gun).Field("seriesTimeOffset").GetValue<Parameter>();
                 Util.SetParameter(gun.MagazineSize, mag >= 1f ? Mathf.Round(mag) : 0f);
                 Util.SetParameter(series, Gap(series, rpm, rateMul));
-                Util.SetParameter(gun.ReloadTime, Gap(gun.ReloadTime, rpm, rateMul));
+                // 0.4.22 (option audit): "Schuss pro Minute" sets the pause between two shots. For a gun that loads every
+                // shot singly (88: magazine 1) that pause IS the reload time. For a magazine gun (flak) the reload time is
+                // the magazine change: it only follows the rate multiplier, not the rounds per minute (was near instant).
+                bool single = gun.MagazineSize.GetValueExcludingModifier(Util.ModifierName) <= 1.5f;
+                Util.SetParameter(gun.ReloadTime, Gap(gun.ReloadTime, single ? rpm : 0f, rateMul));
 
                 // AA guns of the player normally only pick aircraft as automatic targets.
                 if (gun.IsAntiAircraftWeapon)
@@ -187,11 +197,33 @@ namespace UboatToolkit.Modules
         {
             if (!Util.IsPlayers(__instance)) return;
             Current = __instance;
+            // 0.4.22 (option audit): the value is a lower limit now (0.3 = never worse than 30 %). Before it was added on
+            // every shot on top of the game's own ranging, so even 0.1 was near perfect after a few shots.
             float acc = Mathf.Clamp01(Settings.F("GunnerAccuracy"));
-            if (acc > 0f) __instance.CurrentAccuracy = Mathf.Lerp(__instance.CurrentAccuracy, 1f, acc);
+            if (acc > 0f && __instance.CurrentAccuracy < acc) __instance.CurrentAccuracy = acc;
         }
 
-        private static void Postfix() { Current = null; }
+        private static void Postfix(Gun __instance, bool ___manualAim)
+        {
+            // 0.4.22 (option audit): the game divides the crew's ranging step by the magazine size. Our bigger magazine
+            // made the own crew range in that much slower (magazine 200 = practically never). The missing part of the
+            // step is added here, so ranging is as fast as with the game's own magazine.
+            if (___manualAim || !Util.IsPlayers(__instance)) return;
+            try
+            {
+                float mag = (float)__instance.MagazineSize, orig = __instance.MagazineSize.GetValueExcludingModifier(Util.ModifierName);
+                if (orig < 1f || mag <= orig + 0.5f) return;
+                var obs = Traverse.Create(__instance).Field("parentObservator").GetValue<UBOAT.Game.Scene.Entities.Observator>();
+                if (obs == null) return;
+                float a = __instance.CurrentAccuracy;
+                __instance.CurrentAccuracy = Mathf.Clamp01(a + (1f - a) * (float)obs.CrewAccuracy * (1f / orig - 1f / mag));
+            }
+            catch { }
+        }
+
+        // Finalizer, not Postfix: also when the game's Fire throws ("no ammunition left"), so no enemy shot is ever
+        // taken for the player's (night penalty / aimbot values).
+        private static System.Exception Finalizer(System.Exception __exception) { Current = null; return __exception; }
     }
 
     // Skips the firing sound when the same gun already played one a moment ago.

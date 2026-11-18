@@ -15,6 +15,9 @@ namespace UboatToolkit
         public string Text = "";
         public float Value, Default, Min, Max, Step;
         public bool On => Value > 0.5f;
+        // 0.4.22 (option audit): ">>" switches are one-time actions. They are never written as "on" into the file and
+        // never read as "on" (a stored click flooded a room / spawned a convoy again at the next load).
+        public bool IsAction => IsBool && Label != null && Label.TrimStart().StartsWith(">>");
         // 0.3.75 menu: sub-topic inside the topic, the main switch a fine setting belongs to, its fine settings,
         // and (for settings with only a few values) the names of the values, e.g. 0 = aus, 1 = fragen.
         public string Sub = "";
@@ -158,7 +161,7 @@ namespace UboatToolkit
             Bool(QoL, "AutoDepth", "Bodenabstand-Autopilot: hält Abstand zum Meeresgrund", false);
             Num(QoL, "AutoDepthClearance", "  Wasser unter dem Kiel (m, mindestens 5 gegen Physik-Hänger)", 10, 5, 50, 0.5f);
             Num(QoL, "AutoDepthLookAhead", "  Voraus schauen (m)", 400, 0, 2000, 50);
-            Num(QoL, "AutoDepthMin", "  Nie flacher als (m)", 12, 0, 50, 1);
+            Num(QoL, "AutoDepthMin", "  Nie flacher als (m); ist das Wasser zu flach, geht das Boot so tief wie möglich und warnt", 12, 0, 50, 1);
             Num(QoL, "AutoDepthMax", "  Nie tiefer als (m)", 300, 20, 5000, 10);
             Bool(QoL, "AutoDepthBottom", "  Aufsetzen: sanft auf den Grund legen + Schleichfahrt", false);
             Bool(QoL, "AutoReloadTubes", "Leere Rohre automatisch aus dem Lager laden", true);
@@ -240,12 +243,11 @@ namespace UboatToolkit
             Bool(QoL, "DgsAllShips", "  gilt für alle Schiffe (auch Feinde)", true);
             Bool(QoL, "DgsAA", "  gilt auch für Flak", false);
             Bool(QoL, "DgsManualAim", "  Handzielen bekommt dieselbe Streuung und schießt sich ein", true);
-            Num(QoL, "DgsNpcSpread", "  Feind-Kanonen: Streuung in % (100 = Spiel)", 200, 100, 500, 25);
+            Num(QoL, "DgsNpcSpread", "  Feind-Kanonen: Streuung in % (100 = Spiel; vergrößert auch den kleinsten Fehlschuss)", 200, 100, 500, 25);
             Num(QoL, "DgsNpcFloor", "  Feind-Kanonen: kleinster Fehlschuss (m pro km)", 4, 0, 20, 1);
             Num(QoL, "DgsNpcRanging", "  Feind-Kanonen: Einschießen in % (100 = Spiel)", 50, 10, 100, 5);
             Num(QoL, "EnemyShellSpeedPct", "  Feind-Kanonen: Mündungsgeschwindigkeit in % vom Spielwert (100 = Spiel)", 100, 20, 100, 5);
             Bool(QoL, "DgsNpcEvenOut", "  C3 und Tanker schießen sich ein wie andere Frachter", true);
-            Bool(QoL, "DgsNpcWarships", "  Feind-Einstellungen auch für Kriegsschiffe", false);
             Bool(QoL, "DgsKnockout", "  eigene Granaten können Feind-Kanonen ausschalten", true);
             Num(QoL, "DgsKnockoutPct", "    Schaden an der Kanone in %", 200, 50, 500, 25);
             Num(QoL, "DgsKnockoutRadius", "    Radius in Metern", 6, 1, 20, 1);
@@ -272,7 +274,7 @@ namespace UboatToolkit
             Num(QoL, "HatchMaxSpeed", "  höchstes Animations-Tempo", 3, 1, 5, 0.25f);
             Num(QoL, "HatchRunTail", "  nach der Luke weiterlaufen (Sekunden)", 0.35f, 0, 2, 0.05f);
             Bool(QoL, "MuteLightCallouts", "Ansagen zum Lichtwechsel stumm", false);
-            Num(QoL, "DiveAngleMax", "Tauchwinkel: größter Neigungswinkel beim Tauchen/Auftauchen in Grad (0 = Spiel)", 30, 0, 45, 1);
+            Num(QoL, "DiveAngleMax", "Tauchwinkel: größter Neigungswinkel bei Zieltiefe über 5 m in Grad (0 = Spiel; an der Oberfläche gilt der Spielwert)", 30, 0, 45, 1);
             Bool(QoL, "AutoVirtualShips", "Auto-Detail: bei wenig FPS ferne Schiffe nur virtuell führen (bleiben auf Karte/Sensoren, werden nicht voll berechnet)", true);
             Num(QoL, "AutoVirtualMin", "  kleinster Simulations-Abstand bei sehr wenig FPS (1 = Spiel, 0.5 = halb)", 0.5f, 0.2f, 1f, 0.1f);
             Bool(QoL, "ExplosionLimit", "Explosions-Effekte begrenzen: kleiner + höchstens x pro Sekunde (Schaden bleibt gleich)", true);
@@ -378,7 +380,7 @@ namespace UboatToolkit
             Bool(QoL, "SaveGroupCareer", "Spielstand-Liste: Reiter je Karriere (Spielstände einer Karriere zusammen)", true);
             Bool(QoL, "Lookout", "Ausguck: weite Sicht + bessere Meldungen (Hauptschalter, wirkt sofort)", true);
             Num(QoL, "LookoutGroupRange", "  Ausguck: Suchweite für Schiffsgruppen (1 = Spiel, 1.69 = Standard)", 1.6923f, 1, 3, 0.05f);
-            Bool(QoL, "LookoutSmoke", "  Ausguck: Schornstein-Rauch am Horizont (Konvoi früher sichtbar, auch dein Boot auf Diesel)", true);
+            Bool(QoL, "LookoutSmoke", "  Ausguck: Schornstein-Rauch am Horizont (Konvoi früher sichtbar; dein eigenes Boot zählt nicht)", true);
             Bool(QoL, "LookoutWeatherOnce", "  Ausguck: schlechte Sicht nur einmal zählen (Spiel zählt sie doppelt)", true);
             Bool(QoL, "LookoutWeatherFloor", "  Ausguck: Untergrenze für Nacht/Wetter (Konvoi auch in dunkler Nacht auffindbar)", true);
             Bool(QoL, "LookoutFog", "  Ausguck: Nebel versteckt Schiffe (aus, wenn ein Wetter-Mod eigenen Nebel hat)", true);
@@ -487,13 +489,13 @@ namespace UboatToolkit
             Bool(QoL, "TorpedoStayMaintained", "Torpedos bleiben gewartet (Wartung läuft nicht ab, Crew muss nicht nachwarten)", true);
             Num(QoL, "DeckGunTurnSpeed", "88mm: Dreh-/Neige-Tempo (1 = normal) (#27)", 1, 0.5f, 10, 0.5f);
             Num(QoL, "DeckGunRPM", "88mm: Schuss pro Minute (0 = Spielwert) (#27)", 0, 0, 120, 5);
-            Num(QoL, "DeckGunMagazine", "88mm: Magazin (0 = Spielwert; groß = Dauerfeuer) (#28)", 0, 0, 200, 1);
+            Num(QoL, "DeckGunMagazine", "88mm: Magazin (0 = Spielwert; groß = Dauerfeuer; Einschießen bleibt so schnell wie im Spiel) (#28)", 0, 0, 200, 1);
             Num(QoL, "AAGunTurnSpeed", "Flak: Dreh-/Neige-Tempo (1 = normal) (#27)", 1, 0.5f, 10, 0.5f);
-            Num(QoL, "AAGunRPM", "Flak: Schuss pro Minute (0 = Spielwert) (#27)", 0, 0, 600, 10);
+            Num(QoL, "AAGunRPM", "Flak: Schuss pro Minute (0 = Spielwert; der Magazinwechsel bleibt wie im Spiel) (#27)", 0, 0, 600, 10);
             Num(QoL, "AAGunMagazine", "Flak: Magazin (0 = Spielwert) (#28)", 0, 0, 500, 5);
             Num(QoL, "DeckGunShellSpeed", "88mm: Geschossgeschwindigkeit (1 = normal)", 1, 0.5f, 5, 0.25f);
             Num(QoL, "AAGunShellSpeed", "Flak: Geschossgeschwindigkeit (1 = normal)", 1, 0.5f, 5, 0.25f);
-            Num(QoL, "GunnerAccuracy", "KI-Schützen: Treffsicherheit (0 = Spiel, 1 = keine Streuung)", 0, 0, 1, 0.1f);
+            Num(QoL, "GunnerAccuracy", "KI-Schützen: Treffsicherheit mindestens (0 = Spiel, 0.5 = nie schlechter als halb eingeschossen, 1 = keine Streuung)", 0, 0, 1, 0.1f);
             Bool(QoL, "GunGyroCrew", "Geschütz-Kreisel: KI-Schützen gleichen Wellen sofort aus (kein Nachzittern)", true);
             Bool(QoL, "GunGyroManual", "Geschütz-Kreisel: wenn du selbst zielst, bleibt der Zielpunkt trotz Wellen stehen", true);
             Num(QoL, "GunnerRangingSpeed", "KI-Schützen: schneller einschießen (1 = Spiel)", 2, 1, 5, 0.25f);
@@ -507,12 +509,11 @@ namespace UboatToolkit
             Num(QoL, "DeckGunRange", "88mm: KI-Schützen greifen bis x km an (0 = Spielwert ~12 km; Granaten werden dafür schnell genug)", 30, 0, 100, 1);
             Num(QoL, "AAGunRange", "Flak: KI-Schützen greifen bis x km an (0 = Spielwert)", 0, 0, 50, 0.5f);
             Num(QoL, "DeckGunDepress", "88mm: so viele Grad nach unten neigen (0 = Spielwert)", 0, 0, 60, 1);
-            Num(QoL, "DeckGunShellMps", "88mm: Mündungsgeschwindigkeit in m/s (0 = Spielwert, dann x Geschossgeschwindigkeit)", 0, 0, 5000, 50);
+            Num(QoL, "DeckGunShellMps", "88mm: Mündungsgeschwindigkeit in m/s (0 = Spielwert, dann x Geschossgeschwindigkeit; bei eigener Reichweite mindestens so schnell, dass die Granate so weit fliegt)", 0, 0, 5000, 50);
             Num(QoL, "DeckGunRateMul", "88mm: Feuerrate x (1 = normal, wirkt auch auf Schuss pro Minute)", 1, 0.25f, 10, 0.25f);
             Num(QoL, "DeckGunShellMass", "88mm: Geschossgewicht in kg (0 = Spielwert)", 0, 0, 5000, 5);
             Num(QoL, "DeckGunShellMassMul", "88mm: Geschossgewicht x (1 = normal)", 1, 0.1f, 100, 0.5f);
             Num(QoL, "DeckGunShellDamageMul", "88mm: Schaden am Schiff x (1 = normal)", 1, 0.1f, 100, 0.5f);
-            Num(QoL, "DeckGunShellCrewDamageMul", "88mm: Schaden an der Besatzung x (1 = normal)", 1, 0.1f, 100, 0.5f);
             Bool(QoL, "DeckGunKineticDamage", "88mm: Schaden wächst mit Gewicht x Geschwindigkeit (wie früher)", false);
             Num(QoL, "AAGunDepress", "Flak: so viele Grad nach unten neigen (0 = Spielwert)", 30, 0, 60, 1);
             Bool(QoL, "AAGunBothTargets", "Geschütze: Schiffe und Flugzeuge zugleich angreifen (88/105 zuerst Schiffe, Flak zuerst Flugzeuge)", true);
@@ -522,12 +523,11 @@ namespace UboatToolkit
             Bool(QoL, "AASaveAmmo", "Flugzeuge nur beschießen, wenn sie nah genug sind (spart Munition)", true);
             Num(QoL, "AAEngageKm", "  Flugzeuge: höchstens so weit beschießen (km)", 2.5f, 0.5f, 10f, 0.5f);
             Bool(QoL, "KeepGunMode", "Geschütze: Feuermodus bleibt, wenn ein Kanonier (neu) ans Geschütz geht (sonst stellt das Spiel auf Feuer einstellen)", true);
-            Num(QoL, "AAGunShellMps", "Flak: Mündungsgeschwindigkeit in m/s (0 = Spielwert, dann x Geschossgeschwindigkeit)", 0, 0, 5000, 50);
+            Num(QoL, "AAGunShellMps", "Flak: Mündungsgeschwindigkeit in m/s (0 = Spielwert, dann x Geschossgeschwindigkeit; bei eigener Reichweite mindestens so schnell, dass die Granate so weit fliegt)", 0, 0, 5000, 50);
             Num(QoL, "AAGunRateMul", "Flak: Feuerrate x (1 = normal, wirkt auch auf Schuss pro Minute)", 1, 0.25f, 10, 0.25f);
             Num(QoL, "AAGunShellMass", "Flak: Geschossgewicht in kg (0 = Spielwert)", 0, 0, 5000, 5);
             Num(QoL, "AAGunShellMassMul", "Flak: Geschossgewicht x (1 = normal)", 1, 0.1f, 100, 0.5f);
             Num(QoL, "AAGunShellDamageMul", "Flak: Schaden am Schiff x (1 = normal)", 1, 0.1f, 100, 0.5f);
-            Num(QoL, "AAGunShellCrewDamageMul", "Flak: Schaden an der Besatzung x (1 = normal)", 1, 0.1f, 100, 0.5f);
             Bool(QoL, "AAGunKineticDamage", "Flak: Schaden wächst mit Gewicht x Geschwindigkeit (wie früher)", false);
             Bool(QoL, "AAGunLike88", "Flak so stark wie die 88: dreht so schnell und neigt so tief", false);
             Num(QoL, "GunAimAssist", "Zielhilfe beim Selbstzielen: Schiff bis x Grad neben dem Rohr wird mit Vorhalt getroffen (0 = aus)", 0, 0, 15, 1);
@@ -571,7 +571,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatRangeRadar", "Reichweite Radar x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Num(Cheat, "CheatRangeRadarWarn", "Reichweite Radarwarner x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Num(Cheat, "CheatRangeMaxKm", "Obergrenze Horchgerät, Sonar, Radar in km (mehr geht nie)", 1000, 50, 20000, 50);
-            Num(Cheat, "CheatRangeMaxKmLookout", "Obergrenze Sichtweite (Ausguck, Sehrohr) in km (mehr geht nie)", 500, 10, 5000, 10);
+            Num(Cheat, "CheatRangeMaxKmLookout", "Obergrenze Sichtweite (Ausguck, Sehrohr) in km (mehr geht nie)", 1000, 10, 5000, 10);
             Num(Cheat, "CheatRangeLookout", "Reichweite Ausguck und Sehrohr x (1 = Spiel)", 1, 0.25f, 50, 0.25f);
             Bool(Cheat, "CheatDeepDive", "Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)", false);
             Bool(Cheat, "CheatRudderNoHelmsman", "Ruder geht auch ohne Steuermann", false);
@@ -1009,6 +1009,7 @@ namespace UboatToolkit
                     if (o == null) continue;
                     if (o.IsKey) { o.Text = line.Substring(eq + 1).Trim(); continue; }
                     var v = line.Substring(eq + 1).Trim().ToLowerInvariant();
+                    if (o.IsAction) { o.Value = 0; continue; }
                     if (o.IsBool) o.Value = (v == "1" || v == "true" || v == "on" || v == "ja") ? 1 : 0;
                     else if (float.TryParse(v.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var f)) o.Value = o.Min < 0f ? Mathf.Max(o.Min, f) : Mathf.Max(0f, f); // no upper cap: INI may go beyond the menu range
                 }
@@ -1040,7 +1041,7 @@ namespace UboatToolkit
                 {
                     if (o.Tab != tab) { tab = o.Tab; sb.AppendLine(); sb.AppendLine("[" + tab + "]"); }
                     sb.AppendLine("; " + o.Label.Trim());
-                    sb.AppendLine(o.Key + "=" + (o.IsKey ? o.Text : o.IsBool ? (o.On ? "1" : "0") : o.Value.ToString("0.###", CultureInfo.InvariantCulture)));
+                    sb.AppendLine(o.Key + "=" + (o.IsKey ? o.Text : o.IsAction ? "0" : o.IsBool ? (o.On ? "1" : "0") : o.Value.ToString("0.###", CultureInfo.InvariantCulture)));
                 }
                 File.WriteAllText(FilePath, sb.ToString());
             }

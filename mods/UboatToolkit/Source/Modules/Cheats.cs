@@ -110,8 +110,11 @@ namespace UboatToolkit.Modules
             // Undetectable: seen, heard (sonar + hydrophones) and radar-detected at almost zero range.
             float f = Settings.B("CheatUndetectable") ? 0.001f : 1f;
             var t = Traverse.Create(ship);
-            foreach (var field in new[] { "visualDetectability", "sonarDetectability", "radarDetectorDetectability", "hydroacousticDetectorsRangeScale" })
+            foreach (var field in new[] { "visualDetectability", "sonarDetectability", "radarDetectorDetectability" })
                 Util.ScaleParameter(t.Field(field).GetValue<Parameter>(), f);
+            // 0.4.22 (option audit): "hydroacousticDetectorsRangeScale" is the range of OUR OWN listening gear. It was scaled
+            // down with the cheat, so the own hydrophone and sonar went deaf. Always back to the game value now.
+            Util.ScaleParameter(t.Field("hydroacousticDetectorsRangeScale").GetValue<Parameter>(), 1f);
             // Also the boat's own noise (dB, heard by hydrophones) and its radar size (cm): the game's own
             // dev-console "undetectable" sets exactly these to 0. Shown in the detection tooltip too.
             bool und = Settings.B("CheatUndetectable");

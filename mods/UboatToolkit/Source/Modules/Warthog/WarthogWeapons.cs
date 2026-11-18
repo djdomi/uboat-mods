@@ -37,14 +37,16 @@ namespace UboatToolkit.Modules.Warthog
             foreach (var g in guns)
             {
                 if (g == null) continue;
-                if (!IsFlak(g)) continue;
+                if (!IsFlak(g) || !Util.IsPlayers(g)) continue;   // 0.4.22 (option audit, player-only rule): only OUR flak
                 float orig = Util.Original<float>(g, "maxAngle");
                 Util.SetField(g, "maxAngle", Mathf.Max(orig, Mathf.Max(on ? Settings.F("WhFlakDepression") : 0f, Util.IsPlayers(g) ? Settings.F("AAGunDepress") : 0f)));
                 var range = Traverse.Create(g).Field("range").GetValue<UBOAT.Game.Core.Data.Parameter>();
-                Util.SetParameter(range, on ? Settings.F("WhAirEngage") * 1000f : 0f);
+                // 0.4.22 (option audit): with Warthog off the range belongs to "Flak: Reichweite" (Weapons); this line reset it every second.
+                if (on) Util.SetParameter(range, Settings.F("WhAirEngage") * 1000f);
+                else if (Util.WarthogModOwns(ship)) Util.SetParameter(range, 0f);
             }
-            foreach (var g in guns) if (g != null) Barrels(g, on);
-            if (on) { Settings.Set("GunGyroCrew", 1); Settings.Set("GunGyroManual", 1); }
+            foreach (var g in guns) if (g != null) Barrels(g, on && Util.IsPlayers(g));
+            // 0.4.22 (option audit): the two gyro switches are no longer forced on every second; they can be switched off.
             if (on) ReportPlanes(ship); else reported.Clear();
         }
 

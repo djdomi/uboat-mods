@@ -44,7 +44,9 @@ namespace UboatToolkit.Modules
     {
         private static void Postfix(Gun __instance)
         {
-            if (Settings.B("CheatDeckCrewStays") && !(Util.IsPlayers(__instance) && Util.WarthogModOwns(Util.PlayerShip))) __instance.SetDisableFlag(DeviceDisableFlag.Depth, false);
+            // 0.4.22 (option audit, player-only rule): only OUR guns. Before, every gun in the scene kept working under
+            // water, enemy submarines included.
+            if (Settings.B("CheatDeckCrewStays") && Util.IsPlayers(__instance) && !Util.WarthogModOwns(Util.PlayerShip)) __instance.SetDisableFlag(DeviceDisableFlag.Depth, false);
         }
     }
 

@@ -38,6 +38,7 @@ namespace UboatToolkit.Modules
         }
         private static bool dragging; private static Vector2 dragOff; private static float lastClick = -1f;
 
+        private static bool silentByUs;
         private static float Step()
         {
             float s = Mathf.Max(0.1f, Settings.F("DepthStep"));
@@ -48,12 +49,14 @@ namespace UboatToolkit.Modules
         private static float KeelOffset(PlayerShip ship)
         {
             // 0.3.56 (DoMe: autopilot measures the top, boat scrapes the sea floor): lowest hull point, not the centre.
-            float k = ship.BottomDepth - (ship.Depth + ship.VerticalOriginOffset);
+            // 0.4.22 (option audit): ship.Depth is the TOP of the boat (tower), the game's target depth counts from the deck
+            // line (DeckDepth). The old sum was too large by the height of the tower, so the boat stayed too high.
+            float k = ship.BottomDepth - ship.DeckDepthUnclamped;
             if (k < 4f) k = 4f;                                          // keel at least 4 m below the origin (IXC draught ~4.7 m)
             float pitch = Mathf.Abs(Mathf.DeltaAngle(0f, ship.transform.eulerAngles.x));
             return k + 40f * Mathf.Sin(pitch * Mathf.Deg2Rad);           // bow/stern hang lower when the boat is tilted (half length ~40 m)
         }
-        private static float Current(PlayerShip ship) => Mathf.Max(0f, ship.Depth + ship.VerticalOriginOffset);
+        private static float Current(PlayerShip ship) => Mathf.Max(0f, ship.DeckDepthUnclamped);   // same value as the game's own depth meter and target depth
 
         private static void SetTarget(PlayerShip ship, float depth)
         {
@@ -155,6 +158,16 @@ namespace UboatToolkit.Modules
                 ToolkitRunner.ShowNotice("Bodenabstand-Autopilot " + (pilotOn ? "AN (Strg+B schaltet aus)" : "AUS"), 4f);
                 Util.Log("Bodenabstand-Autopilot " + (pilotOn ? "an" : "aus"));
             }
+            // 0.4.22 (option audit): "Aufsetzen" switched silent running on and never off again.
+            if (silentByUs && !(pilotOn && Settings.B("AutoDepthBottom")))
+            {
+                silentByUs = false;
+                Util.Safe("Depth.SilentOff", () =>
+                {
+                    var src = InjectionFramework.Instance.GetInstance<UBOAT.Game.Scene.Tasks.ISilentRunningController>();
+                    if (src != null && src.IsSilentRunningEnabled) { src.SetSilentRunningEnabled(false, true); Util.Log("Aufsetzen aus: Schleichfahrt wieder aus"); }
+                });
+            }
             if (!pilotOn) { pilotText = ""; return; }
             // Player wants to surface or is in port: the autopilot never pushes the boat down then.
             if (ship.Docked || ship.DepthPreset == DepthPreset.Surface) { pilotText = "Autopilot pausiert (Auftauchen/Hafen)"; return; }
@@ -168,7 +181,7 @@ namespace UboatToolkit.Modules
                 Util.Safe("Depth.Silent", () =>
                 {
                     var src = InjectionFramework.Instance.GetInstance<UBOAT.Game.Scene.Tasks.ISilentRunningController>();
-                    if (src != null && !src.IsSilentRunningEnabled && ship.BottomDepth > lastBed - 5f) src.SetSilentRunningEnabled(true, true);
+                    if (src != null && !src.IsSilentRunningEnabled && ship.BottomDepth > lastBed - 5f) { src.SetSilentRunningEnabled(true, true); silentByUs = true; Util.Log("Aufsetzen: Schleichfahrt an"); }
                 });
                 pilotText = "Aufsetzen auf " + lastBed.ToString("F0") + " m";
                 return;

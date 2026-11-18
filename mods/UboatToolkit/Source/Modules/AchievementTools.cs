@@ -97,7 +97,11 @@ namespace UboatToolkit.Modules
             var step = Settings.Get("CheatMissionStep");
             if (step != null && step.On) { step.Value = 0; Util.Safe("MissionStep", () => Run(false)); }
             if (Settings.B("CheatEscortEasy")) Util.Safe("EscortEasy", EscortEasy);
-            else if (escProtected.Count > 0) { foreach (var x in escProtected) if (x != null) x.IsProtected = false; escProtected.Clear(); }
+            else
+            {
+                if (escProtected.Count > 0) { foreach (var x in escProtected) if (x != null) x.IsProtected = false; escProtected.Clear(); }
+                Util.Safe("EscortEasyOff", EscortEasyOff);
+            }
         }
 
         // Escort duty (DoMe 2026-11-16, Weserübung: "dauert ewig ... beim dritten Mal gescheitert"). The game fails the
@@ -108,6 +112,21 @@ namespace UboatToolkit.Modules
         private static bool escLogged;
         private static readonly FieldInfo escGroup = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "escortedGroup");
         private static readonly System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity> escProtected = new System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity>();
+        // 0.4.22 (option audit): switching the cheat off gives the assignment its attackers back. The far-away spawn time
+        // is itself the mark that the cheat was active (it is stored in the savegame), so this also works after loading.
+        private static void EscortEasyOff()
+        {
+            var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
+            if (e == null || escNext == null || (long)escNext.GetValue(e) < long.MaxValue / 4) return;
+            var gt = Traverse.Create(e).Field("gameTime").GetValue();
+            if (gt == null) return;
+            long now = Traverse.Create(gt).Property("StoryTicks").GetValue<long>();
+            escNext.SetValue(e, now + (long)(UnityEngine.Random.Range(0.4f, 1.4f) * 8.64E+11f));
+            var grp = escGroup == null ? null : escGroup.GetValue(e) as UBOAT.Game.Sandbox.SandboxGroup;
+            if (grp) foreach (var x in grp.Entities) if (x != null && x.IsProtected) x.IsProtected = false;
+            escLogged = false;
+            Util.Log("[Auftrag] Geleitschutz-Cheat aus: Angreifer kommen wieder (nächster in 0,4 bis 1,4 Tagen), Geleit nimmt wieder Schaden");
+        }
         private static void EscortEasy()
         {
             var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;

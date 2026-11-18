@@ -65,6 +65,19 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(DamageUtility), nameof(DamageUtility.ApplyDamage))]
     internal static class Sensor_ArmourPatch
     {
+        private static float nextNote;
+        private static readonly Collider[] buf = new Collider[256];
+        private static bool OthersInBlast(PlayerShip ship, Vector3 position, float radius)
+        {
+            int n = Physics.OverlapSphereNonAlloc(position, radius * 1.35f, buf, 1090049, QueryTriggerInteraction.Collide);
+            if (n >= buf.Length) return true;                       // too many to check: be safe, no armour
+            for (int i = 0; i < n; i++)
+            {
+                var e = buf[i] != null ? buf[i].GetComponentInParent<Entity>() : null;
+                if (e != null && e != ship) return true;
+            }
+            return false;
+        }
         private static void Prefix(Entity appliedBy, Vector3 position, float damageRadius, ref float damage, ref float crewDamage, ref float fireChance, Ship target)
         {
             float hull = Settings.F("CheatHullArmour");
@@ -74,6 +87,14 @@ namespace UboatToolkit.Modules
             if (ship == null || appliedBy == ship) return;
             if (target != null && target != ship) return;
             if ((position - ship.transform.position).magnitude > 80f + damageRadius) return;
+            // 0.4.22 (option audit, player-only rule): a blast without a fixed target (bomb, depth charge, shell burst) has ONE
+            // damage value for everything in its radius. If anything else than our boat is inside, the value stays as the
+            // game made it, so no enemy next to us is ever protected by our armour.
+            if (hull < 1f && target == null && OthersInBlast(ship, position, damageRadius))
+            {
+                if (Time.unscaledTime > nextNote) { nextNote = Time.unscaledTime + 30f; Util.Log("Rumpfpanzerung: Explosion trifft auch andere Schiffe, Schaden bleibt Spielwert (Panzerung gilt nur allein für dein Boot)"); }
+                hull = 1f;
+            }
             if (hull < 1f) { damage *= hull; fireChance *= hull; }
             if (crew) crewDamage = 0f;
         }

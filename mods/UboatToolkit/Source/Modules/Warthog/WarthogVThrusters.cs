@@ -29,7 +29,7 @@ namespace UboatToolkit.Modules.Warthog
             bool tc = Time.timeScale > 1.5f;
             if (cmd == 0f && keyPitch == 0f && !tc && Settings.B("WhVThrustAuto") && ship.SubmergedOrGoingToSubmerge)
             {
-                float err = ship.TargetDepth - (ship.Depth + ship.VerticalOriginOffset);   // + = must go deeper
+                float err = ship.TargetDepth - ship.DeckDepthUnclamped;   // + = must go deeper
                 cmd = -Mathf.Clamp(err / 10f, -1f, 1f);
                 float vy = rb.velocity.y;                      // brake near target: no overshoot
                 cmd -= Mathf.Clamp(vy * 0.3f, -0.5f, 0.5f) * (Mathf.Abs(err) < 15f ? 1f : 0f);

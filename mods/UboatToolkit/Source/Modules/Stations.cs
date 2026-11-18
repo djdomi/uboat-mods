@@ -111,7 +111,7 @@ namespace UboatToolkit.Modules
             // The interval is game time; under time compression that meant a new sailor pulled from his work every few
             // real seconds (log: "Echolot: X übernimmt" every 6 s, rotating names). Now also at least 60 real seconds apart.
             if (Settings.B("EchoSailor") && every > 0f && ship.SubmergedOrGoingToSubmerge && Time.time - lastPing > every
-                && Time.unscaledTime - lastPingReal > 60f
+                && Time.unscaledTime - lastPingReal > Mathf.Min(60f, every)   // 0.4.22: values under 60 s work again at normal speed
                 && !(Settings.B("EchoSailorQuiet") && ship.Alarmed))
                 foreach (var act in Util.Find<Activator>())
                     if (act != null && act.AssociatedEquipment is SoundRangingDevice && act.Users.Count == 0)

@@ -36,6 +36,7 @@ namespace UboatToolkit.Modules
                 nextPortCheck = Time.unscaledTime + 5.7f;
                 Util.Safe("Fixes.PortWarn", () => PortWarning(ship));
             }
+            Util.Safe("Fixes.SpeedOff", Fix_SpeedCompression.Restore);
             Util.Safe("Fixes.Officers", ExtraOfficers);
             Util.Safe("Fixes.Sailors", ExtraSailors);
             if (ship == null || ship == lastShip) return;
@@ -211,11 +212,35 @@ namespace UboatToolkit.Modules
     [HarmonyPatch(typeof(TimeCompressionController), "TimeCompressionScale_Changed")]
     internal static class Fix_SpeedCompression
     {
+        internal static bool Applied;
+        private static TimeCompressionController last;
+        // 0.4.22 (option audit): switched off while the time compression runs = the game's own values at once
+        // (before they came back only at the next change of the compression).
+        internal static void Restore()
+        {
+            if (!Applied || Settings.B("FixSpeedRange")) return;
+            Applied = false;
+            var c = last;
+            if (c != null)
+            {
+                var t = Traverse.Create(c);
+                if (!t.Field("timeCompression").GetValue<bool>()) return;
+                var mod = t.Field("timeScaleModifier").GetValue<Modifier>();
+                var gt = t.Field("gameTime").GetValue<GameTime>();
+                var par = t.Field("timeCompressionScale").GetValue<Parameter>();
+                if (mod == null || gt == null || par == null) return;
+                float s = par;
+                mod.Value = Mathf.Min(300f, s);
+                gt.ArtificialTimeScale = Mathf.Max(1f, s / 300f);
+                Util.Log("Zeitraffer-Fix aus: Spielwerte wieder gesetzt (Physik x" + mod.Value.ToString("0") + ")");
+            }
+        }
         private static void Postfix(TimeCompressionController __instance, Parameter timeCompressionScale)
         {
-            if (!Settings.B("FixSpeedRange")) return;
+            if (!Settings.B("FixSpeedRange")) { Applied = false; return; }   // the game's own method just set its own values
             var t = Traverse.Create(__instance);
             if (!t.Field("timeCompression").GetValue<bool>()) return;
+            Applied = true; last = __instance;
             var mod = t.Field("timeScaleModifier").GetValue<Modifier>();   // field is a Modifier (was read as wrong type -> "Specified cast is not valid")
             var gt = t.Field("gameTime").GetValue<GameTime>();
             if (mod == null || gt == null) return;

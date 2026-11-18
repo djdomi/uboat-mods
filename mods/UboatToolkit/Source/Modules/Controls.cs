@@ -185,9 +185,12 @@ namespace UboatToolkit.Modules
         private static readonly Dictionary<ISandboxEntity, EntityBlueprintSlot> mineSlots = new Dictionary<ISandboxEntity, EntityBlueprintSlot>();
         private static bool Prefix(ISandboxEntity entity, EntityBlueprintSlot slot, ref SandboxEquipment __result, WorldState ___worldState)
         {
+            ours = false;
             TorpedoTab.Load();
             bool pick = TorpedoTab.PortPick.Count > 0;
-            if ((!Settings.B("TorpedoMix") && !pick && !Settings.B("TorpedoLatestPistol") && !Settings.B("PortT5Min")) || slot == null || slot.EquipmentTag != "Torpedo") return true;
+            // 0.4.22 (option audit): "nur neueste Zündpistole" alone no longer runs the whole mixing logic (even turns,
+            // first slot a mine). Then the game picks the torpedo itself and only its pistol is swapped (Postfix).
+            if ((!Settings.B("TorpedoMix") && !pick && !Settings.B("PortT5Min")) || slot == null || slot.EquipmentTag != "Torpedo") return true;
             var se = entity as SandboxEntity;
             if (se == null || se.Blueprint.Type.Category != EntityTypeCategory.Port || se.Country == null) return true;
             var pool = se.Country.GetReservesByTagID(slot.EquipmentTagID);
@@ -236,7 +239,33 @@ namespace UboatToolkit.Modules
             eq.Initialize();
             if (t5Slot) Util.Log("Hafen-Laden: " + eq.Count.ToString("0") + "x " + data.Name);
             __result = eq;
+            ours = true;
             return false;
+        }
+
+        private static bool ours;   // this call's item was made by the mixing logic above
+        private static int swapLines;
+        private static void Postfix(ISandboxEntity entity, EntityBlueprintSlot slot, ref SandboxEquipment __result)
+        {
+            if (ours || __result == null || !Settings.B("TorpedoLatestPistol") || slot == null || slot.EquipmentTag != "Torpedo") return;
+            try
+            {
+                var se = entity as SandboxEntity;
+                if (se == null || se.Blueprint.Type.Category != EntityTypeCategory.Port || se.Country == null || __result.Data == null) return;
+                string name = __result.Data.Name;
+                if (IsMine(name)) return;
+                var pool = se.Country.GetReservesByTagID(slot.EquipmentTagID);
+                if (pool == null) return;
+                string bn = BaseName(name); float have = Pistol(name);
+                var best = pool.Where(x => x?.ItemData != null && BaseName(x.ItemData.Name) == bn && Pistol(x.ItemData.Name) > have).OrderByDescending(x => Pistol(x.ItemData.Name)).FirstOrDefault();
+                if (best == null) return;
+                var eq = (SandboxEquipment)Activator.CreateInstance(best.ItemData.Type, se, slot, best.ItemData);
+                eq.Count = __result.Count;
+                eq.Initialize();
+                __result = eq;
+                if (swapLines < 20) { swapLines++; Util.Log("Hafen-Laden: neueste Zündpistole, " + name + " -> " + best.ItemData.Name); }
+            }
+            catch (Exception e) { if (swapLines < 20) { swapLines++; Util.Log("Hafen-Laden: Zündpistole tauschen Fehler " + e.GetType().Name); } }
         }
     }
 
