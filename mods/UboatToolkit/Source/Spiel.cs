@@ -5321,7 +5321,8 @@ namespace UboatToolkit.Modules
             "Director.Update", "Animators.Update", "UpdateRendererBoundingVolumes", "Shadows.RenderShadowMap", "Drawing", "RenderLoop.Prepare", "SceneCulling",
             "ScriptableRenderContext.Submit", "Camera.FireOnPreCull", "OnPreCull", "OnPreRender", "OnPostRender", "OnRenderImage", "Physics.Processing", "Physics.ProcessReports",
             "Physics.UpdateBodies", "Physics.SyncColliderTransform", "Physics.Raycast", "Terrain.Heightmap.RenderStep1", "Water", "UIEvents.WillRenderCanvases",
-            "MeshSkinning.GPUSkinning", "MeshSkinning.Skin", "MeshSkinning.Render", "RenderForward.RenderLoopJob", "RenderDeferred.GBuffer", "Batch.DrawInstanced", "Mesh.DrawVBO", "ParticleSystem.Draw" };
+            "MeshSkinning.GPUSkinning", "MeshSkinning.Skin", "MeshSkinning.Render", "RenderForward.RenderLoopJob", "RenderDeferred.GBuffer", "Batch.DrawInstanced", "Mesh.DrawVBO", "ParticleSystem.Draw",
+            "Gfx.WaitForRenderThread", "WaitForJobGroupID", "Gfx.WaitForPresentOnGfxThread", "JobHandle.Complete" };
         private static readonly List<Unity.Profiling.ProfilerRecorder> rec2 = new List<Unity.Profiling.ProfilerRecorder>();
         private static readonly List<string> name2 = new List<string>();
         private static readonly List<double> sum2 = new List<double>();
