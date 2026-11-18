@@ -67,6 +67,11 @@ namespace UboatToolkit.Modules
             if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
             if (crew == null) return;
             var ship = Util.PlayerShip;
+            // 0.4.12: with the game's option "expanded schedules" the rudder is dead while nobody stands at the helm
+            // (HelmsmanStation.PerformanceOnChanged) -> it stays where it was (DoMe: stuck at 35 right, not clickable).
+            if (Settings.B("KeepHelm"))
+                foreach (var st in Util.Find<HelmsmanStation>())
+                    Keep(st.GetComponent<Activator>(), "Steuerstand");
             if (Settings.B("KeepDepthStation"))
                 foreach (var st in Util.Find<DivingPlanesStation>())
                     Keep(st.GetComponent<Activator>(), "Tiefenruder");

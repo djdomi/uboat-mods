@@ -19,12 +19,28 @@ namespace UboatToolkit.Modules
 
         // 0.4.11 (DoMe: rudder dial stuck at 35 right, boat turns on the spot). The game's rudder dial sets the rudder
         // by hand ("Locked") and deletes the route; the helmsman then no longer steers until a new course is ordered.
+        private int lastFn = -1; private float deadSince, nextDeadNote;
         private int lastLock = int.MinValue; private float lockSince, nextNote, nextLine;
         public override void Tick()
         {
             var ship = Util.PlayerShip;
             if (!Util.ShipReady || ship.Rudders == null || ship.Rudders.Length == 0 || ship.Rudders[0] == null) return;
             var r = ship.Rudders[0];
+            // 0.4.12: rudder out of order = nobody at the helm (game rule with expanded schedules)
+            if (!r.IsFunctional && Settings.B("CheatRudderNoHelmsman")) { foreach (var x in ship.Rudders) if (x != null) x.IsFunctional = true; }
+            int fn = r.IsFunctional ? 1 : 0;
+            if (fn != lastFn)
+            {
+                lastFn = fn; deadSince = UnityEngine.Time.unscaledTime;
+                string perf = "?"; try { foreach (var h in Util.Find<UBOAT.Game.Scene.Items.HelmsmanStation>()) if (h != null) perf = h.Performance.Value.ToString("0.##") + ", Leute am Stand " + (h.GetComponent<UBOAT.Game.Scene.Characters.Activators.Activator>()?.Users.Count ?? -1); } catch { }
+                Util.Log(fn == 1 ? "Ruder: in Betrieb (Steuerstand Leistung " + perf + ")"
+                    : "Ruder: AUSSER BETRIEB, bleibt stehen auf " + Side(UnityEngine.Mathf.RoundToInt(r.TargetTurn * -35f)) + ". Grund im Spiel: Steuerstand unbesetzt (Leistung " + perf + ")");
+            }
+            if (fn == 0 && Settings.B("RudderLockNote") && UnityEngine.Time.unscaledTime - deadSince > 10f && UnityEngine.Time.unscaledTime >= nextDeadNote)
+            {
+                nextDeadNote = UnityEngine.Time.unscaledTime + 60f;
+                ToolkitRunner.ShowNotice("Ruder reagiert nicht: niemand am Steuerstand. Einen Mann ans Steuer schicken.", 8f);
+            }
             int deg = r.Locked ? UnityEngine.Mathf.RoundToInt(r.TargetTurn * -35f) : int.MinValue;
             float now = UnityEngine.Time.unscaledTime;
             if (deg != lastLock)

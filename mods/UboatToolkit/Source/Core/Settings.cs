@@ -80,6 +80,7 @@ namespace UboatToolkit
             Num(QoL, "AntiGroundingSeconds", "  Warnzeit in Sekunden (echte Zeit) vor dem Land", 10, 3, 60, 1);
             Num(QoL, "AntiGroundingMaxX", "  Zeitraffer dann begrenzen auf x (1 = ganz aus)", 60, 1, 1000, 1);
             Num(QoL, "AntiGroundingKm", "  nur warnen, wenn Land näher als (km)", 5, 0.5f, 50, 0.5f);
+            Bool(QoL, "KeepHelm", "Steuerstand immer besetzt: freier Matrose geht hin (ohne Steuermann reagiert das Ruder nicht)", true);
             Bool(QoL, "KeepDepthStation", "Tiefenruder immer besetzt: freier Matrose geht hin (#34)", true);
             Bool(QoL, "KeepNavTable", "Kartentisch immer besetzt (spart Diesel): freier Matrose geht hin (#35)", true);
             Num(QoL, "StationDelay", "  Sekunden leer, bevor jemand geschickt wird", 15, 0, 120, 5);
@@ -567,6 +568,7 @@ namespace UboatToolkit
             Num(Cheat, "CheatRangeRadarWarn", "Reichweite Radarwarner x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Num(Cheat, "CheatRangeLookout", "Reichweite Ausguck und Sehrohr x (1 = Spiel)", 1, 0.25f, 10, 0.25f);
             Bool(Cheat, "CheatDeepDive", "Kein Wasserdruck-Schaden in der Tiefe (Rumpf hält)", false);
+            Bool(Cheat, "CheatRudderNoHelmsman", "Ruder geht auch ohne Steuermann", false);
             Bool(Cheat, "CheatNoHullDamage", "Rumpf verliert keine Gesundheit", false);
             Bool(Cheat, "CheatOwnShellsSafe", "Eigene Granaten und Flak beschädigen das eigene Boot und die Crew nicht", true);
             Bool(Cheat, "CheatFullFuel", "Diesel wird nicht verbraucht (Tank bleibt voll)", false);
@@ -815,7 +817,7 @@ namespace UboatToolkit
             new[] { "Diesel, Strom & Luft", "CheatFull", "EnergySaver", "AirByCrew", "LowWarn", "Rebreather", "Ventilation" },
             new[] { "Luken", "AutoHatches", "HatchPressure", "FastHatch" },
             new[] { "Rumpf & Schaden", "CheatDeepDive", "CheatNoHull", "CheatHullArmour", "CheatRepair", "DamageReport" },
-            new[] { "Stationen besetzen", "AutoMan", "KeepDepthStation", "KeepNavTable", "SailorsNavTable", "AwashGuns", "EchoSailor" },
+            new[] { "Stationen besetzen", "AutoMan", "KeepHelm", "KeepDepthStation", "KeepNavTable", "SailorsNavTable", "AwashGuns", "EchoSailor" },
             new[] { "Offiziere", "Follower", "MaxFollowers", "Officer", "CheatExtraSkill", "CheatUnlimitedSkill", "CheatSkills", "CheatAllSkills", "CheatLinguist", "ExtraOfficers", "CheatSpecPoints" },
             new[] { "Crew-KI", "CrewAI", "CrewAi", "CrewLod", "NoCrewCollisions" },
             new[] { "Lager", "AutoWorkshop", "TightPack", "CheatNoSupply", "CheatNoWeight", "AutoExpandStorage", "CheatStack" },
