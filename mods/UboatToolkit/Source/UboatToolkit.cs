@@ -2535,6 +2535,7 @@ namespace UboatToolkit
         {
             // ---------- QoL ----------
             Bool(QoL, "GameOnly", "NUR SPIEL-VERHALTEN: alle Automatiken des Toolkits aus (Cheats, Anzeigen und Fehler-Fixe bleiben). Zum Vergleichen, ob ein Fehler vom Toolkit kommt", false);
+            Bool(QoL, "SavePause", "ZUM VERGLEICHEN: alle Spar-, Grafikkarten- und Mehr-Kerne-Schalter dieser Gruppe ruhen (ihre Häkchen bleiben)", false);
             Bool(QoL, "SaveMapEffects", "Sparen: reine Kartenansicht hält Rauch, Feuer und Gischt aller Schiffe an (laufen weiter, wenn du die Karte verlässt)", false);
             Bool(QoL, "SaveMapShadows", "Sparen: reine Kartenansicht rechnet keine Schatten", false);
             Bool(QoL, "SaveMapDetail", "Sparen: reine Kartenansicht zeichnet alles in niedriger Detailstufe", false);
@@ -3565,7 +3566,29 @@ namespace UboatToolkit
                 return on;
             }
         }
-        public static bool B(string key) => byKey.TryGetValue(key, out var o) && o.On && !(GameOnly && Automatics.Contains(key));
+        // 0.4.87 (DoMe 2026-11-19, graphics comparison): one switch that rests all saving switches, so the same scene can be
+        // measured with and without them. The single switches keep their ticks.
+        private static readonly HashSet<string> Savers = new HashSet<string> {
+            "SaveMapEffects", "SaveMapShadows", "SaveMapDetail", "SaveNoSmokeUnderwater", "SaveUnseenEffects", "SaveFarSpray", "SaveMarkersOwnCanvas",
+            "SaveWedgesCalm", "SaveNoForcedGc", "SaveSprayOnChange", "SaveBuoyancyEarly", "SaveMeshParticlesGpu" };
+        private static Opt savePauseOpt; private static bool savePauseLast;
+        public static bool SavePause
+        {
+            get
+            {
+                if (savePauseOpt == null && !byKey.TryGetValue("SavePause", out savePauseOpt)) return false;
+                bool on = savePauseOpt.On;
+                if (on != savePauseLast)
+                {
+                    savePauseLast = on;
+                    int n = 0; var sb = new System.Text.StringBuilder();
+                    foreach (var k in Savers) { Opt a; if (byKey.TryGetValue(k, out a) && a.On) { n++; sb.Append(' ').Append(k); } }
+                    Util.Log("Spar-Schalter ruhen " + (on ? "AN: " + n + " eingeschaltete Spar-Schalter ruhen jetzt:" + sb : "AUS: " + n + " Spar-Schalter arbeiten wieder:" + sb));
+                }
+                return on;
+            }
+        }
+        public static bool B(string key) => byKey.TryGetValue(key, out var o) && o.On && !(GameOnly && Automatics.Contains(key)) && !(Savers.Contains(key) && SavePause);
         public static float F(string key) => byKey.TryGetValue(key, out var o) ? (key == "UnderFireMode" && GameOnly ? 0f : o.Value) : 0f;
         public static Opt Get(string key) => byKey.TryGetValue(key, out var o) ? o : null;
         public static void Set(string key, float v) { if (byKey.TryGetValue(key, out var o)) o.Value = Math.Max(o.Min, Math.Min(o.Max, v)); }
