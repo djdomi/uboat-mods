@@ -1106,6 +1106,11 @@ namespace UboatToolkit.Modules
                     if (src != null && src.IsSilentRunningEnabled) { src.SetSilentRunningEnabled(false, true); Util.Log("Aufsetzen aus: Schleichfahrt wieder aus"); }
                 });
             }
+            if (Time.unscaledTime > nextDepthsLine && (pilotOn || ship.TargetDepth > 0.5f || ship.DeckDepthUnclamped > 0.5f))
+            {
+                nextDepthsLine = Time.unscaledTime + 60f;
+                Util.Log(Depths.Line(ship));
+            }
             if (!pilotOn) { pilotText = ""; return; }
             // Player wants to surface or is in port: the autopilot never pushes the boat down then.
             if (ship.Docked || ship.DepthPreset == DepthPreset.Surface) { pilotText = "Autopilot pausiert (Auftauchen/Hafen)"; return; }
@@ -1128,12 +1133,30 @@ namespace UboatToolkit.Modules
             // Shallowest sea floor now and ahead along the course.
             float look = Mathf.Max(0f, Settings.F("AutoDepthLookAhead"));
             float bed = lastBed;
+            // 0.4.70: "bed" is the SHALLOWEST ground from stern to "look" metres ahead (that is what the autopilot must
+            // stay clear of). Up to 0.4.69 the notice called it "Grund bei x m", which read like the water under the
+            // keel; near a coast it was the shore ahead. Now the distance of that point is kept and shown.
+            float bedAt = 0f;
             foreach (float dist in new[] { -40f, 40f, look * 0.25f, look * 0.5f, look })   // 0.3.56: also under stern and bow
             {
                 float b = Util.SafeGet(() => Seabed(ship, dist), float.NaN);
-                if (!float.IsNaN(b)) bed = float.IsNaN(bed) ? b : Mathf.Min(bed, b);
+                if (!float.IsNaN(b) && (float.IsNaN(bed) || b < bed)) { bed = b; bedAt = dist; }
             }
+            string where = Mathf.Abs(bedAt) <= 40f ? "unter dem Boot" : Mathf.RoundToInt(bedAt) + " m voraus";
             if (float.IsNaN(bed)) { pilotText = "Autopilot: Grund unbekannt"; return; }
+            // 0.4.70: ground right under the boat that is shallower than the boat's own keel cannot be true. Such a
+            // reading counts as unknown: no warning, no order; the log shows the raw values and their source.
+            float keelNow = ship.BottomDepth;
+            if (Mathf.Abs(bedAt) <= 40f && bed < keelNow - 2f)
+            {
+                pilotText = "Autopilot: Grund-Messung unglaubwürdig";
+                if (now - lastBadBed > 60f)
+                {
+                    lastBadBed = now;
+                    Util.Log("Bodenabstand: Grund-Messung " + bed.ToString("F1") + " m unter dem Boot ist flacher als der eigene Kiel (" + keelNow.ToString("F1") + " m), also falsch. Quelle: " + bedSource + ". Keine Warnung, kein Eingriff. " + Depths.Line(ship));
+                }
+                return;
+            }
 
             float target = bed - Mathf.Max(5f, Settings.F("AutoDepthClearance")) - keel;   // min 5 m: less scrapes the full-detail sea floor -> PhysX freeze + fling
             float maxD = Settings.F("AutoDepthMax");
@@ -1148,11 +1171,11 @@ namespace UboatToolkit.Modules
                 if (now - lastWarn > 30f)
                 {
                     lastWarn = now;
-                    Game.StopTimeCompression("Zu flach für den Bodenabstand! Grund bei " + bed.ToString("F0") + " m");
-                    ToolkitRunner.ShowNotice("Zu flach: Grund bei " + bed.ToString("F0") + " m. Der Autopilot taucht NICHT auf, dein Tiefenbefehl gilt.", 6f);
-                    Util.Log("Bodenabstand: zu flach (Grund " + bed.ToString("F1") + " m, sicher wären " + target.ToString("F1") + " m, kleinste Tiefe " + minD.ToString("F0") + " m). Der Autopilot greift nicht ein und taucht nicht auf; Zieltiefe bleibt " + ship.TargetDepth.ToString("F1") + " m");
+                    Game.StopTimeCompression("Flach: " + where + " nur " + bed.ToString("F0") + " m Wasser");
+                    ToolkitRunner.ShowNotice("Flach: " + where + " nur " + bed.ToString("F0") + " m Wasser. Der Autopilot taucht NICHT auf, dein Tiefenbefehl gilt.", 6f);
+                    Util.Log("Bodenabstand: zu flach (flachste Stelle " + where + ": " + bed.ToString("F1") + " m Wasser; " + Depths.Line(ship) + "; sicher wären " + target.ToString("F1") + " m, kleinste Tiefe " + minD.ToString("F0") + " m). Der Autopilot greift nicht ein und taucht nicht auf; Zieltiefe bleibt " + ship.TargetDepth.ToString("F1") + " m");
                 }
-                pilotText = "Autopilot: zu flach (Grund " + bed.ToString("F0") + " m), dein Tiefenbefehl gilt";
+                pilotText = "Autopilot: flach " + where + " (" + bed.ToString("F0") + " m), dein Tiefenbefehl gilt";
                 return;
             }
             // 0.4.29 (contradiction audit: the autopilot overwrote every other depth order every 0.5 s - game buttons,
@@ -1181,18 +1204,38 @@ namespace UboatToolkit.Modules
 
         // Sea floor depth (m below surface) at "ahead" metres in front of the boat. Precise loaded terrain first,
         // otherwise the game's coarse world elevation map (km grid).
-        private static float Seabed(PlayerShip ship, float ahead)
+        private static readonly RaycastHit[] bedHits = new RaycastHit[32];
+        private static string bedSource = "-"; private static float lastBadBed = -999f;
+        private static float nextDepthsLine;
+        internal static string BedSource => bedSource;
+        internal static float Seabed(PlayerShip ship, float ahead)
         {
             var fwd = ship.transform.forward; fwd.y = 0f; if (fwd.sqrMagnitude < 0.01f) fwd = Vector3.forward; fwd.Normalize();
             var pos = ship.transform.position + fwd * ahead;
+            // 0.4.70: first the real ground below that point (what the boat would hit), own boat and triggers left out
+            try
+            {
+                int n = Physics.RaycastNonAlloc(new Ray(pos, Vector3.down), bedHits, 600f, ~0, QueryTriggerInteraction.Ignore);
+                float nearest = float.MaxValue; Collider col = null;
+                for (int i = 0; i < n; i++)
+                {
+                    var c = bedHits[i].collider;
+                    if (c == null || c.transform.IsChildOf(ship.transform) || c.GetComponentInParent<Entity>() != null) continue;   // ships, wrecks, torpedoes are not ground
+                    if (bedHits[i].distance < nearest) { nearest = bedHits[i].distance; col = c; }
+                }
+                if (col != null) { bedSource = "Strahl nach unten trifft '" + col.name + "' (Ebene " + LayerMask.LayerToName(col.gameObject.layer) + ")"; return ship.CurrentWaterElevation - (pos.y - nearest); }
+            }
+            catch { }
+            bedSource = "Gelände-Raster des Spiels";
             var tc = Util.Find<TerrainController>(30f).FirstOrDefault();
             if (tc != null && tc.MainGrid != null)
             {
                 float h = tc.MainGrid.GetInterpolatedHeight(pos.x, pos.z, float.NaN);
-                if (!float.IsNaN(h)) return -h;
+                if (!float.IsNaN(h)) return ship.CurrentWaterElevation - h;
             }
             var wp = Game.Wolfpack;
             if (wp == null) return float.NaN;
+            bedSource = "grobe Seekarte";
             var km = wp.Position + new Vector2(fwd.x, fwd.z) * (ahead / 1000f);
             float e = WorldMaps.ElevationMap.GetAtWorldSpace(km);
             return e < 0f ? -e : 0f;
@@ -3668,6 +3711,59 @@ namespace UboatToolkit.Patches
             var s = Util.PlayerShip;
             if (s == null || __state < 0f || UnityEngine.Mathf.Abs(s.TargetDepth - __state) < 0.25f) return;
             Owners.Claim("Tiefenmesser des Spiels (du)", Owners.Player, "Zieltiefe " + s.TargetDepth.ToString("0.0") + " m");
+        }
+    }
+}
+
+
+// ====================================================================================================
+// Abschnitt: Tiefen-Werte an einer Stelle (0.4.70)
+// ====================================================================================================
+// DoMe 2026-11-19: "schau ma wie das spiel die originalhöhe misst. ich behaupte, dass wir mehrere werte brauchen:
+// 1 wasseroberfläche, 2 oberdeck (z.b. fürs fluten), 3 kiel, 4 abstand kiel zum boden, 5 abstand wie es das spiel
+// berechnet vanilla". All five, each read the way the game itself computes it (Ship.cs / PlayableSubmarine.cs /
+// MapUI.cs), in one place. Read only. Every part of the Toolkit that needs a depth takes it from here.
+namespace UboatToolkit.Modules
+{
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Entities;
+
+    internal static class Depths
+    {
+        private static UBOAT.Game.Sandbox.Sandbox sandbox;
+        // 1: world height of the water surface at the boat (waves included), Ship.CurrentWaterElevation
+        internal static float Surface(PlayerShip s) => s.CurrentWaterElevation;
+        // 2: upper deck below the surface, the value of the game's own depth meter (Ship.DeckDepthUnclamped)
+        internal static float Deck(PlayerShip s) => s.DeckDepthUnclamped;
+        // 3: keel below the surface (Ship.BottomDepth)
+        internal static float Keel(PlayerShip s) => s.BottomDepth;
+        // ground below the surface right under the boat (real ground first, then the game's terrain grid, then sea chart)
+        internal static float Ground(PlayerShip s) => Util.SafeGet(() => DepthGauge.Seabed(s, 0f), float.NaN);
+        // 4: water between keel and ground
+        internal static float KeelToGround(PlayerShip s) { float g = Ground(s); return float.IsNaN(g) ? float.NaN : g - Keel(s); }
+        // 5: what the unmodded game takes as water depth here: the chart's depth band (PlayableSubmarine.UpdateSeabedEstimation
+        // uses its lower end for "maximum safe depth")
+        internal static bool Vanilla(PlayerShip s, out int min, out int max)
+        {
+            min = max = 0;
+            try
+            {
+                if (sandbox == null) sandbox = Object.FindObjectOfType<UBOAT.Game.Sandbox.Sandbox>();
+                if (sandbox == null) return false;
+                var r = UBOAT.Game.UI.MapUI.GetKnownDepthRangeAtPosition(sandbox.SceneToEncounterSpace(s.transform.position));
+                min = r.Min; max = r.Max; return true;
+            }
+            catch { return false; }
+        }
+
+        internal static string Line(PlayerShip s)
+        {
+            if (s == null) return "Tiefen: kein Boot";
+            float g = Ground(s); string src = DepthGauge.BedSource;
+            int a, b; bool v = Vanilla(s, out a, out b);
+            return "Tiefen (nur lesen): 1 Wasseroberfläche Höhe " + Surface(s).ToString("0.0") + "; 2 Oberdeck " + Deck(s).ToString("0.0") + " m unter Wasser; 3 Kiel " + Keel(s).ToString("0.0")
+                + " m; 4 Kiel bis Grund " + (float.IsNaN(g) ? "unbekannt" : (g - Keel(s)).ToString("0.0") + " m (Grund " + g.ToString("0.0") + " m, Quelle: " + src + ")")
+                + "; 5 Spiel-Karte hier " + (v ? a + " bis " + b + " m" : "unbekannt") + "; Zieltiefe " + s.TargetDepth.ToString("0.0") + " m";
         }
     }
 }

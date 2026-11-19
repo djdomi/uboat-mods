@@ -8812,7 +8812,7 @@ namespace UboatToolkit.Modules
                 {
                     nextDiveWait = Time.unscaledTime + 5f;
                     Util.Log("Tauchen wartet: Turmluke nicht verriegelt, " + outside + " Mann draußen" + (outside > 0 ? ": " + who : " (Spiel prüft die Luke alle 1,3 s neu)")
-                        + "; Zieltiefe " + ship.TargetDepth.ToString("0.0") + " m, Deck " + ship.DeckDepthUnclamped.ToString("0.0") + " m, Wasser unter dem Deck " + (ship.BottomDepth - ship.DeckDepthUnclamped).ToString("0.0") + " m");
+                        + "; Zieltiefe " + ship.TargetDepth.ToString("0.0") + " m, Deck " + ship.DeckDepthUnclamped.ToString("0.0") + " m");
                 }
             }
             bool guns = !diveOrder && ship.DeckDepth < 1f && !ship.SubmergedOrGoingToSubmerge && (((Settings.B("AutoManGuns") || Settings.B("AutoManFlak")) && ship.Alarmed) || Time.unscaledTime < UnderFire.ManGunsUntil);
