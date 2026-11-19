@@ -18487,8 +18487,20 @@ namespace UboatToolkit.Modules
             nextLog = Time.unscaledTime + 60f;
             var seen = new HashSet<Entity>(); int manned = 0, known = 0;
             foreach (var g in guns) { if (g == null || !Manned(g)) continue; manned++; var t = g == self ? pick : Auto(g); if (t != null) seen.Add(t); }
-            foreach (var kv in Attackers) if (kv.Key != null && Time.unscaledTime - kv.Value < 90f) known++;
-            Util.Log("Schützen: " + manned + " besetzte Geschütze auf " + seen.Count + " verschiedene Ziele, " + changes + " Zielwechsel; Angreifer bekannt: " + known
+            // 0.4.83 (DoMe: "5 geschütze... können 5 ziele angreifen?"): the line now says how many targets were possible
+            // for this gun and why a known attacker has no gun on it.
+            string free = "";
+            foreach (var kv in Attackers)
+            {
+                if (kv.Key == null || Time.unscaledTime - kv.Value >= 90f) continue;
+                known++;
+                if (seen.Contains(kv.Key)) continue;
+                free += (free == "" ? "" : ", ") + kv.Key.name.Replace("(Clone)", "").Trim() + " ("
+                    + (kv.Key.Health <= 0f ? "zerstört" : rejected.Contains(kv.Key) ? "keine freie Schussbahn von " + self.name
+                       : !cand.Contains(kv.Key) ? "für " + self.name + " kein gültiges Ziel: andere Art, nicht gesehen oder zu weit" : "frei, das nächste Geschütz nimmt ihn") + ")";
+            }
+            Util.Log("Schützen: " + manned + " besetzte Geschütze auf " + seen.Count + " verschiedene Ziele (mögliche Ziele für " + self.name + ": " + cand.Count + "), " + changes + " Zielwechsel; Angreifer bekannt: " + known
+                + (free == "" ? "" : ", davon ohne Geschütz: " + free)
                 + "; " + self.name + " -> " + pick.name.Replace("(Clone)", "").Trim() + (attacker ? " (schießt auf uns)" : "")
                 + " [Verteilen " + (Settings.B("GunSpreadTargets") ? "an" : "aus") + ", Angreifer zuerst " + (Settings.B("GunAttackersFirst") ? "an" : "aus") + "]");
             if (Attackers.Count > 40) Attackers.Clear();
