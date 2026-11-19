@@ -4137,6 +4137,39 @@ namespace UboatToolkit.Modules
                 Util.ScaleParameter(e.Mass, noWeight && !(e is Fuel) && !(e is StoredTorpedo) ? 0.0000001f : 1f);   // 0.4.2: torpedoes keep their game weight
                 if (e is Cargo c) ApplyStack(c);
             }
+            Util.Safe("StackCheck", StackCheck);
+        }
+
+        // 0.4.68 (DoMe 2026-11-19: "der stackcheat scheint auch nicht mehr korrekt zu funktionieren"; the log only
+        // showed the database write, not what lies in the storages). Read only: what the boat's storages really hold.
+        private static string lastCheck = ""; private static float nextCheck;
+        private static void StackCheck()
+        {
+            int stores = 0, items = 0, split = 0, low = 0, ignoreOff = 0; float big = 0f, bigLimit = 0f; string bigName = "-", splitEx = "-", lowEx = "-";
+            float want = Mathf.Max(Mathf.Max(1f, Settings.F("CheatStackSize")), Settings.F("CheatMinStackSize"));
+            bool cheat = want > 1f;
+            foreach (var s in Util.Find<Storage>())
+            {
+                if (s == null || s.IsShop || s is TorpedoLauncherGroup || s is TorpedoStorage || s.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() != null) continue;
+                stores++;
+                if (cheat && !Traverse.Create(s).Field("ignoreStackLimits").GetValue<bool>()) ignoreOff++;
+                var seen = new System.Collections.Generic.HashSet<string>();
+                for (int i = 0; i < Util.Slots(s); i++)
+                {
+                    var c = s.GetItemAt(i) as Cargo;
+                    if (c == null || c.Data == null || c is Fuel) continue;
+                    items++;
+                    float lim = c.StackLimit != null ? (float)c.StackLimit : 0f;
+                    if (c.Count > big) { big = c.Count; bigLimit = lim; bigName = c.Data.Name; }
+                    if (!seen.Add(c.Data.Name) && c.Data.StackLimit > 1f) { split++; if (splitEx == "-") splitEx = c.Data.Name + " in " + s.name; }
+                    if (cheat && c.Data.StackLimit > 1f && lim < want - 0.5f) { low++; if (lowEx == "-") lowEx = c.Data.Name + " Limit " + lim.ToString("0") + " (Datenbank " + c.Data.StackLimit.ToString("0") + ")"; }
+                }
+            }
+            string line = "Lager-Prüfung (nur lesen): " + stores + " Lager, " + items + " belegte Plätze; größter Stapel " + big.ToString("0") + " von " + bigLimit.ToString("0") + " (" + bigName + "); gleiche Sache in getrennten Plätzen " + split + " (z. B. " + splitEx
+                + "); Stapel-Limit unter Soll " + want.ToString("0") + ": " + low + " (z. B. " + lowEx + "); Lager ohne 'Limit ignorieren': " + ignoreOff;
+            if (line == lastCheck && Time.unscaledTime < nextCheck) return;
+            lastCheck = line; nextCheck = Time.unscaledTime + 300f;
+            Util.Log(line);
         }
     }
 
