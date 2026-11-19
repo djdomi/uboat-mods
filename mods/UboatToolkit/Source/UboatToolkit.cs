@@ -107,6 +107,29 @@ namespace UboatToolkit
             return null;
         }
         public static float Adjust(string name, float v) { foreach (var a in All) if (a.Adjust != null) v = a.Adjust(name, v); return v; }
+        // 0.4.81 for OTHER mods (own DLL, no reference to the Toolkit): found by name at runtime, like AddonTabs.
+        //   var t = System.Type.GetType("UboatToolkit.Addons, UboatToolkit");
+        //   t?.GetMethod("Register")?.Invoke(null, new object[] { "Warthog", parts });
+        // parts (all optional): "DrawHud" Action, "Flag" Func<string,bool>, "Value" Func<string,float>,
+        // "Adjust" Func<string,float,float>, "Rests" Func<bool>, "RestReason" string, "Tab" string + "DrawTab" Action.
+        // Options and keys of another mod stay in its own settings file; the start report compares both files.
+        public static bool Register(string name, Dictionary<string, object> parts)
+        {
+            if (string.IsNullOrEmpty(name) || parts == null) return false;
+            var a = new ToolkitAddon { Name = name };
+            object o;
+            if (parts.TryGetValue("DrawHud", out o)) a.DrawHud = o as Action;
+            if (parts.TryGetValue("Flag", out o)) a.Flag = o as Func<string, bool>;
+            if (parts.TryGetValue("Value", out o)) a.Value = o as Func<string, float>;
+            if (parts.TryGetValue("Adjust", out o)) a.Adjust = o as Func<string, float, float>;
+            if (parts.TryGetValue("Rests", out o)) a.Rests = o as Func<bool>;
+            if (parts.TryGetValue("RestReason", out o)) a.RestReason = o as string;
+            if (parts.TryGetValue("Tab", out o) && parts.TryGetValue("DrawTab", out var d) && o is string && d is Action) AddonTabs.Register((string)o, (Action)d);
+            All.RemoveAll(x => x.Name == name);
+            All.Add(a);
+            Util.Log("Zusatz angemeldet (anderer Mod): " + name);
+            return true;
+        }
         public static bool Flag(string name) { foreach (var a in All) if (a.Flag != null && a.Flag(name)) return true; return false; }
         public static float Value(string name) { foreach (var a in All) if (a.Value != null) { float v = a.Value(name); if (!float.IsNaN(v)) return v; } return 0f; }
     }
@@ -643,6 +666,7 @@ namespace UboatToolkit
                         bool diff = mine.IsKey ? !string.Equals(my, v, StringComparison.OrdinalIgnoreCase) : !(float.TryParse(v, global::System.Globalization.NumberStyles.Float, global::System.Globalization.CultureInfo.InvariantCulture, out var f) && Math.Abs(f - mine.Value) < 0.0005f);
                         if (diff) differ++;
                         same.Add(k + (diff ? " (Toolkit " + my + ", dort " + v + ")" : ""));
+                        if (diff && mine.IsKey) keys.Add("gleiche Funktion „" + mine.Label.Trim() + "“ auf zwei Tasten: Toolkit " + (my == "" ? "keine" : my) + ", dort " + (v == "" ? "keine" : v));
                     }
                     if (!k.StartsWith("Key", StringComparison.Ordinal) || v == "") continue;
                     KeyCode c1; bool cc = false, cs = false, ca = false;
@@ -657,7 +681,7 @@ namespace UboatToolkit
                 }
                 Util.Log("Doppelt mit " + name + " (nur lesen): " + entries + " Einträge dort; gleicher Schalter- oder Tasten-Name in beiden Dateien " + same.Count + " (davon mit anderem Wert " + differ + ")"
                     + (same.Count == 0 ? "" : ": " + string.Join(", ", same.GetRange(0, Math.Min(same.Count, 40)).ToArray()) + (same.Count > 40 ? " …" : ""))
-                    + "; gleiche Taste für verschiedene Funktionen " + keys.Count + (keys.Count == 0 ? "" : ": " + string.Join("; ", keys.ToArray())));
+                    + "; Tasten-Konflikte " + keys.Count + (keys.Count == 0 ? "" : ": " + string.Join("; ", keys.ToArray())));
             }
         }
 
@@ -8215,6 +8239,17 @@ namespace UboatToolkit.Modules
                 var c = Collected[i];
                 Imgui.Label(c.Clock + "  " + c.Text + " - Vorschlag: " + ActName[(int)c.Advice], 660);
             }
+        }
+    }
+
+    // 0.4.81: "Kurs halten, während Geschütze feuern" needs to know when one of OUR guns fired. Was only set by the
+    // Warthog add-on file, so the option did nothing without it.
+    [HarmonyPatch(typeof(Gun), "Fire")]
+    internal static class Thrusters_OwnGunFirePatch
+    {
+        private static void Postfix(Gun __instance, global::UBOAT.Game.Scene.Entities.Shell __result)
+        {
+            if (__result != null && Util.IsPlayers(__instance)) Thrusters.LastGunShot = Time.time;
         }
     }
 
@@ -18082,7 +18117,8 @@ namespace UboatToolkit.Modules
         private static readonly MethodInfo Find = AccessTools.Method(typeof(Gun), "FindBestTarget");
         private static bool Prefix(Gun __instance, bool ships, bool allowAircraft, ref UBOAT.Game.Scene.Entities.Entity __result)
         {
-            if (!ships || !allowAircraft || Find == null || !Settings.B("AAGunBothTargets") || !Util.IsPlayers(__instance)) return true;
+            // 0.4.81: on the Warthog mod's own boat its target choice decides (both prefixes returned false before)
+            if (!ships || !allowAircraft || Find == null || !Settings.B("AAGunBothTargets") || !Util.IsPlayers(__instance) || Util.WarthogModOwns(Util.PlayerShip)) return true;
             try
             {
                 bool air = __instance.IsAntiAircraftWeapon;
@@ -32344,7 +32380,9 @@ namespace UboatToolkit.Modules
             // The game also has a separate "hull crush" timer (HullCrushController): below the boat's CrushDepth
             // it counts down and then sets the hull to 0 = boom, even without any leaks. Push that depth far away.
             Util.Safe("DeepDive.Crush", () =>
-                Util.ScaleParameter(ship.SandboxEntity.Parameters.GetParameter("CrushDepth"), Settings.B("CheatDeepDive") ? 100f : 1f));
+                // 0.4.81: one owner. On the Warthog mod's own boat that mod sets the crush depth (its own slider); two
+                // writers gave 3000 or 300000 m depending on the order.
+                Util.ScaleParameter(ship.SandboxEntity.Parameters.GetParameter("CrushDepth"), Settings.B("CheatDeepDive") && !Util.WarthogModOwns(ship) ? 100f : 1f));
 
             if (Settings.B("CheatFullFuel")) Util.Safe("FullFuel", () => FillFuel(ship));
             if (Settings.B("CheatFullBattery")) Fill(ship.Energy);

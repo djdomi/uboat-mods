@@ -1717,11 +1717,6 @@ namespace UboatToolkit.Modules.Warthog
             }
             return true;
         }
-
-        private static void Postfix(Gun __instance, Shell __result)
-        {
-            if (__result != null && Util.IsPlayers(__instance)) Thrusters.LastGunShot = Time.time;
-        }
     }
 }
 
