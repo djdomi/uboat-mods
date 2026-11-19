@@ -4578,15 +4578,23 @@ namespace UboatToolkit
                         {
                             if (t == null || t.Assembly == own) continue;
                             var ns = t.Namespace;
-                            if (ns == "Warthog" || ns == "UboatToolkit.Modules.Warthog" || (ns != null && ns.StartsWith("Warthog."))) { warthogMod = 1; break; }
+                            if (ns == "Warthog" || ns == "UboatToolkit.Modules.Warthog" || (ns != null && ns.StartsWith("Warthog.")))
+                            {
+                                warthogMod = 1;
+                                // 0.4.79 handshake: a Warthog mod that rests its own thrusters when the Toolkit is there
+                                // says so with a type of this name. Older Warthog mods have none: then the Toolkit rests.
+                                if (t.Name == "ToolkitThrustersRest") WarthogDefersThrusters = true;
+                            }
                         }
                     }
                     catch { }
                     Log("Warthog-Mod mit eigenem Code: " + (warthogMod == 1 ? "ja (Toolkit-Warthog-Teile bleiben aus)" : "nein (Toolkit-Warthog-Teile aktiv)"));
+                    if (warthogMod == 1) Log("Strahlruder auf dem Warthog-Boot: " + (WarthogDefersThrusters ? "Toolkit wirkt, der Warthog-Mod lässt seine ruhen" : "Warthog-Mod wirkt (ältere Version ohne Absprache), Toolkit ruht dort"));
                 }
                 return warthogMod == 1;
             }
         }
+        public static bool WarthogDefersThrusters;
         public static bool WarthogModOwns(PlayerShip ship) => WarthogModPresent && IsTypeXXX(ship);
 
         // true for parts of the player's boat, also for devices in the separate interior scene
@@ -30827,7 +30835,7 @@ namespace UboatToolkit.Modules
         private float heldHeading = float.NaN;
         internal static float LastGunShot = -99f;   // set when one of our guns fires
         // not on a boat that another mod steers with its own thrusters (Warthog mod on its own boat)
-        public static bool Active(PlayerShip ship) => ship != null && !Util.WarthogModOwns(ship);
+        public static bool Active(PlayerShip ship) => ship != null && (!Util.WarthogModOwns(ship) || Util.WarthogDefersThrusters);
 
         static void BoatBool(string key, string label) => Settings.AddOpt(new Opt { Tab = Settings.QoL, Key = key, Label = label, IsBool = true, Default = 0, Value = 0, Min = 0, Max = 1, Step = 1 });
         static void BoatNum(string key, string label, float def, float min, float max, float step) => Settings.AddOpt(new Opt { Tab = Settings.QoL, Key = key, Label = label, Default = def, Value = def, Min = min, Max = max, Step = step });
