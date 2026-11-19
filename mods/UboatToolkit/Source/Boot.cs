@@ -2898,12 +2898,12 @@ namespace UboatToolkit.Modules
 
         internal static float SeabedDepthUnderShip()
         {
+            // 0.4.72: no own measuring any more (it took the water surface as height 0). The value comes from Depths;
+            // the coarse sea chart does not count here, callers have their own chart fallback.
             var ship = Util.PlayerShip;
-            var tc = Util.Find<TerrainController>(30f).FirstOrDefault();
-            if (ship == null || tc == null || tc.MainGrid == null) return float.NaN;
-            var p = ship.transform.position;
-            float h = tc.MainGrid.GetInterpolatedHeight(p.x, p.z, float.NaN);
-            return float.IsNaN(h) ? float.NaN : -h;
+            if (ship == null) return float.NaN;
+            float g = UboatToolkit.Modules.Depths.Ground(ship);
+            return DepthGauge.BedSource == "grobe Seekarte" ? float.NaN : g;
         }
     }
 
