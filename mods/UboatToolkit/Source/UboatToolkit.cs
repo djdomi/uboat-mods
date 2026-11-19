@@ -17,7 +17,7 @@
 //       LrlProviders, LrlReportAudit, LrlRuntime, LrlSandboxGroups, LrlSettings, LrlSightRangePatch, LrlSmokeModel, LrlStepAudit, LrlTimeCompressionGuard,
 //       LrlWeatherDiagnostics, LrlWeatherResponse, NightView, Optics, PeriscopeUI, Radio, RadioDecrypt, Reticle, ScopeStall, SonarScope, CameraTools,
 //       CamZoom, Events, Lighting, LightModes, MapColors, OrbitWater, QuietUI, StationControls, Tauchknöpfe neben dem Fahrtregler (0.4.35), CarrierConvoy,
-//       CPExtras, GameTuning, MilkCows, MoreShips, SaveCategories, SaveTools, StorageExpander, Traffic, WolfpackTuning, Wasserbomben-Zähler (0.4.32)
+//       Thrusters, ThrusterGauge, VThrusters, CPExtras, GameTuning, MilkCows, MoreShips, SaveCategories, SaveTools, StorageExpander, Traffic, WolfpackTuning, Wasserbomben-Zähler (0.4.32)
 //   3 CHEATS (13 Abschnitte)
 //       Pump, CrewCheats, DeckCrew, Strike, Gegner ist Pazifist (0.4.32), DetectCheat, SensorCheats, AchievementTools, Cheats, ExtraFeatures, Extras,
 //       Inventory, Auftragsziel genau (0.4.35)
@@ -62,7 +62,8 @@ namespace UboatToolkit
         public string Tab; public Func<bool> TabVisible; public Action DrawTab;   // own F10 tab
         public Action DrawHud;                   // drawn in the game view
         public Func<string, bool> Flag;          // named yes/no answers for Toolkit parts ("WarthogSonar")
-        public Func<string, float> Value;        // named numbers for Toolkit logs ("VThrusterCmd")
+        public Func<string, float> Value;        // named numbers for Toolkit parts ("FlakDepression")
+        public Func<string, float, float> Adjust; // changes a Toolkit number on the way ("Power:<device>" = battery use)
         public Action<Dictionary<string, string>> Texts;   // its English texts (key = German text)
         public string[] PatchNames; public string PatchAfter;   // its Harmony patch classes, in order, placed after this core patch
         public string[][] Hints;                 // menu place of its options: { key prefix ("=" in front = exact key), topic, headline }
@@ -105,6 +106,7 @@ namespace UboatToolkit
                         if (h[0].StartsWith("=") ? key == h[0].Substring(1) : key.StartsWith(h[0], StringComparison.Ordinal)) return h;
             return null;
         }
+        public static float Adjust(string name, float v) { foreach (var a in All) if (a.Adjust != null) v = a.Adjust(name, v); return v; }
         public static bool Flag(string name) { foreach (var a in All) if (a.Flag != null && a.Flag(name)) return true; return false; }
         public static float Value(string name) { foreach (var a in All) if (a.Value != null) { float v = a.Value(name); if (!float.IsNaN(v)) return v; } return 0f; }
     }
@@ -1645,6 +1647,19 @@ namespace UboatToolkit
             m["  Männer ohne Arbeit (stehen, ruhen, rauchen, schlafen) überlegen nur jedes x. Bild, auch sichtbar (1 = aus)"] = "  men without work (standing, resting, smoking, sleeping) think only every x-th frame, even when visible (1 = off)";
             m["Start-Videos (Logos) beim Spielstart überspringen"] = "Skip the start videos (logos) when the game starts";
             m["Start-Intros übersprungen"] = "Start videos skipped";
+            m["Warthog: Strahlruder links"] = "Warthog: thruster left";
+            m["Warthog: Strahlruder rechts"] = "Warthog: thruster right";
+            m["  Strahlruder helfen automatisch beim Ruderlegen"] = "  Thrusters help automatically when the rudder is put over";
+            m["  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)"] = "  Strength (6 = about 0.6 deg/s² turning acceleration)";
+            m["  Kurs halten, während Geschütze feuern (gegen Rückstoß)"] = "  Hold course while the guns fire (against recoil)";
+            m["  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)"] = "  Bow thruster alone (-100 = port, +100 = starboard, 0 = off)";
+            m["  Heck-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)"] = "  Stern thruster alone (-100 = port, +100 = starboard, 0 = off)";
+            m["  Strahlruder-Anzeige (wie die Tiefen-Anzeige)"] = "  Thruster display (like the depth display)";
+            m["    Anzeige: Position von links in %"] = "    Display: position from the left in %";
+            m["    Anzeige: Position von oben in %"] = "    Display: position from the top in %";
+            m["Strahlruder: im Hafen festgemacht, erst ablegen"] = "Thrusters: moored in port, cast off first";
+            m["Strahlruder: Boot wird gerade vom Spiel gehalten (Schnellreise/Andocken)"] = "Thrusters: the game is holding the boat right now (fast travel/docking)";
+            m["Strahlruder sind ausgeschaltet (F10 > Boot & Technik)"] = "Thrusters are switched off (F10 > Boat & machinery)";
             foreach (var ad in Addons.All) ad.Texts?.Invoke(m);
             return m;
         }
@@ -3254,6 +3269,7 @@ namespace UboatToolkit
             Num("LichtStil", "LightEmergR", "Farbe LightEmerg R (0-255)", 255, 0, 255, 1);
             Num("LichtStil", "LightEmergG", "Farbe LightEmerg G (0-255)", 0, 0, 255, 1);
             Num("LichtStil", "LightEmergB", "Farbe LightEmerg B (0-255)", 0, 0, 255, 1);
+            UboatToolkit.Modules.Thrusters.RegisterSettings();
             foreach (var ad in Addons.All) Util.Safe("Addon.Settings " + ad.Name, () => ad.RegisterSettings?.Invoke());
         }
 
@@ -3278,6 +3294,7 @@ namespace UboatToolkit
         private static readonly string[][] subRules =
         {
             new[] { "Gesundheit & Moral", "AutoFirstAid", "NoAutoCarry", "CheatImmortal", "CheatCrewProtection", "NoStress", "CheatFullDiscipline", "CheatCrewNeverTired", "HotBunk", "FoodByCrew", "AutoDamageControl", "LeakTwoSailors" },
+            new[] { "Strahlruder", "WhThrust", "WhVThrust" },
             new[] { "88mm", "DeckGun" },
             new[] { "Flak", "AAGun", "AASaveAmmo", "AAvsShips", "GunSpreadTargets", "GunAttackersFirst" },
             new[] { "KI-Schützen", "Gunner", "GunGyro", "KeepGunMode", "CheatPerfectAim" },
@@ -3388,6 +3405,7 @@ namespace UboatToolkit
         private static readonly Dictionary<string, string> groupFix = new Dictionary<string, string>
         {
             { "AutoReloadTubes", GWeap },
+            { "WhThrusters", GBoat }, { "WhVThrusters", GBoat },
             { "AutoDepth", GBoat }, { "AutoCrashDive", GBoat }, { "AirByCrew", GBoat }, { "LowWarnPercent", GBoat },
             { "MerchantTraffic", GCamp }, { "ExplosionLimit", GPerf }, { "SaveGroupCareer", GPerf },
             { "NoShellPush", GWeap }, { "AwashGuns", GWeap }, { "CheatRemoteTorpedo", GWeap }, { "CheatOwnShellsSafe", GWeap }, { "CheatExactTargets", GWeap }, { "CheatInstantSolution", GWeap },
@@ -3400,7 +3418,7 @@ namespace UboatToolkit
         // Keys: topic by key-name prefix (longest match first in this order).
         private static readonly string[][] keyGroups =
         {
-            new[] { GBoat, "KeyCourseDeeper", "KeyCourseShallower", "KeyCoursePeriscope", "KeyCourseMaxDepth", "KeyDepth", "KeyAutoDepth", "KeyDeeper", "KeyShallower", "KeyPeriscopeDepth", "KeyMaxDepth", "KeyHoldDepth", "KeyTanksEmpty", "KeyGear", "KeySpeed" },
+            new[] { GBoat, "KeyCourseDeeper", "KeyCourseShallower", "KeyCoursePeriscope", "KeyCourseMaxDepth", "KeyDepth", "KeyAutoDepth", "KeyDeeper", "KeyShallower", "KeyPeriscopeDepth", "KeyMaxDepth", "KeyHoldDepth", "KeyTanksEmpty", "KeyGear", "KeySpeed", "KeyWhThrust", "KeyWhVThrust" },
             new[] { GNav, "KeyCourse", "KeyTurn", "KeyAmidships", "KeyQuickTravel", "KeyBackToWater" },
             new[] { GWeap, "KeyUnderFire", "KeyReloadAll", "KeyRemoteTorpedo", "KeySinkConvoy" },
             new[] { GPort, "KeySortStorage", "KeyPortMines" },
@@ -3761,6 +3779,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.DevConsoleHide());
             Modules.Add(new Modules.SceneTiming());
             Modules.Add(new Modules.QuitGuard());
+            Modules.Add(new Modules.Thrusters()); Modules.Add(new Modules.VThrusters());
             foreach (var ad in Addons.All) if (ad.Modules != null) { ad.Instances = ad.Modules(); foreach (var m in ad.Instances) Modules.Add(m); }
             Modules.Add(new Modules.CrewCheats());
             Modules.Add(new Modules.Inventory());
@@ -4227,6 +4246,7 @@ namespace UboatToolkit
             if (Util.InGameView())   // not over the port menu / ship selection / HQ etc.
             {
                 UboatToolkit.Modules.DepthGauge.Draw();
+                UboatToolkit.Modules.ThrusterGauge.Draw();
                 foreach (var ad in Addons.All) ad.DrawHud?.Invoke();
                 UboatToolkit.Modules.SonarScope.Draw();
             }
@@ -15669,7 +15689,7 @@ namespace UboatToolkit.Modules
                 }
                 lastWater = water;
                 var eh = ship.GetEquipment<UBOAT.Game.Scene.Items.Hatch>("Exterior");
-                Util.Log("Lecks getaucht (Tiefe " + ship.DeckDepth.ToString("0") + " m, Soll " + ship.TargetDepth.ToString("0") + " m): " + n + " offene Stellen, Wasser in den Räumen " + (water * 1000.0).ToString("0") + " l, Turmluke " + (eh == null ? "?" : eh.Locked ? "zu" : "OFFEN") + ", Vertikal-Strahlruder " + Addons.Value("VThrusterCmd").ToString("0.##") + "." + sb);
+                Util.Log("Lecks getaucht (Tiefe " + ship.DeckDepth.ToString("0") + " m, Soll " + ship.TargetDepth.ToString("0") + " m): " + n + " offene Stellen, Wasser in den Räumen " + (water * 1000.0).ToString("0") + " l, Turmluke " + (eh == null ? "?" : eh.Locked ? "zu" : "OFFEN") + ", Vertikal-Strahlruder " + VThrusters.LastCmd.ToString("0.##") + "." + sb);
             }
         }
 
@@ -30784,6 +30804,290 @@ namespace UboatToolkit.Modules
                 }
             }
             catch { }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/Thrusters.cs (0.4.78, vorher in der Warthog-Datei)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UnityEngine;
+
+    // Bow + stern thrusters on EVERY boat (DoMe 2026-11-19: "Strahlruder weiter auf allen Booten", Toolkit delivers them):
+    // turn on the spot (keys) or help the rudder; use battery; keep the heading while the deck guns fire.
+    // The option keys keep their old names (Wh...), so the values in the settings file stay.
+    public class Thrusters : ModuleBase
+    {
+        private Modifier thrusterEnergy;
+        private PlayerShip thrusterOwner;
+        private float heldHeading = float.NaN;
+        internal static float LastGunShot = -99f;   // set when one of our guns fires
+        // not on a boat that another mod steers with its own thrusters (Warthog mod on its own boat)
+        public static bool Active(PlayerShip ship) => ship != null && !Util.WarthogModOwns(ship);
+
+        static void BoatBool(string key, string label) => Settings.AddOpt(new Opt { Tab = Settings.QoL, Key = key, Label = label, IsBool = true, Default = 0, Value = 0, Min = 0, Max = 1, Step = 1 });
+        static void BoatNum(string key, string label, float def, float min, float max, float step) => Settings.AddOpt(new Opt { Tab = Settings.QoL, Key = key, Label = label, Default = def, Value = def, Min = min, Max = max, Step = step });
+        static void Key(string key, string label, string def) => Settings.AddOpt(new Opt { Tab = Settings.KeysTab, Key = key, Label = label, IsKey = true, Text = def });
+        public static void RegisterSettings()
+        {
+            BoatBool("WhThrusters", "Strahlruder vorn + achtern (alle Boote)");
+            BoatBool("WhThrusterWithRudder", "  Strahlruder helfen automatisch beim Ruderlegen");
+            BoatNum("WhThrusterPower", "  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)", 6f, 0.5f, 30f, 0.5f);
+            BoatNum("WhThrusterEnergy", "  Stromverbrauch bei voller Leistung (20 = etwa 1 pro Minute)", 2f, 0f, 20f, 0.5f);
+            BoatBool("WhThrustGauge", "  Strahlruder-Anzeige (wie die Tiefen-Anzeige)");
+            BoatNum("WhThrustGaugeX", "    Anzeige: Position von links in %", 2, 0, 95, 1);
+            BoatNum("WhThrustGaugeY", "    Anzeige: Position von oben in %", 62, 0, 95, 1);
+            BoatBool("WhThrusterHoldFiring", "  Kurs halten, während Geschütze feuern (gegen Rückstoß)");
+            BoatBool("WhThrustShiftSide", "  Shift + Strahlruder-Tasten: ganzes Boot seitwärts (Anlegen); ohne Shift: auf der Stelle drehen");
+            BoatNum("WhThrustBowManual", "  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);
+            BoatNum("WhThrustSternManual", "  Heck-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)", 0, -100, 100, 5);
+            BoatBool("WhVThrusters", "Vertikal-Strahlruder vorn + achtern (alle Boote): Boot heben/senken");
+            BoatBool("WhVThrustAuto", "  helfen automatisch, die befohlene Tiefe zu erreichen");
+            BoatBool("WhVThrustLevel", "  Nase waagerecht halten (gegen Bug-hoch bei hoher Fahrt), an der Oberfläche");
+            BoatNum("WhVThrustPower", "  Stärke (% vom Bootsgewicht)", 10f, 1f, 100f, 1f);
+            Key("KeyWhThrustLeft", "Strahlruder links", "Z");
+            Key("KeyWhThrustRight", "Strahlruder rechts", "X");
+            Key("KeyWhVThrustUp", "Vertikal-Strahlruder: Bug hoch (mit Shift: ganzes Boot hoch)", "Ctrl+Alt+Home");
+            Key("KeyWhVThrustDown", "Vertikal-Strahlruder: Bug runter (mit Shift: ganzes Boot runter)", "Ctrl+Alt+End");
+        }
+
+        public override void Frame()
+        {
+            var ship = Util.PlayerShip;
+            bool keys = Keys.Held("KeyWhThrustLeft") || Keys.Held("KeyWhThrustRight");
+            if (ship == null) return;
+            if (!Active(ship) || (!Settings.B("WhThrusters") && !Settings.B("WhVThrusters")))
+            {
+                if (keys && !Settings.B("WhThrusters")) Why("Strahlruder sind ausgeschaltet (F10 > Boot & Technik)");
+                SetEnergy(ship, 0f); return;   // 0.3.61: switched off = no battery use
+            }
+            var rb = ship.RigidBody;
+            if (keys && !Settings.B("WhThrusters")) Why("Strahlruder sind ausgeschaltet (F10 > Boot & Technik)");
+            else if (keys && ship.Docked) Why("Strahlruder: im Hafen festgemacht, erst ablegen");
+            else if (keys && rb != null && rb.isKinematic) Why("Strahlruder: Boot wird gerade vom Spiel gehalten (Schnellreise/Andocken)");
+            if (rb == null || Time.deltaTime <= 0f || Time.timeScale <= 0f) return;
+            // Frame() runs in Update: forces added here are summed until the next physics step, so scale them per frame.
+            float k = Mathf.Clamp(Time.deltaTime / Time.fixedDeltaTime, 0f, 4f);
+
+            // ---- thrusters
+            if (!Settings.B("WhThrusters")) { SetEnergy(ship, 0f); heldHeading = float.NaN; ThrusterGauge.Cmd = 0f; ThrusterGauge.Bow = ThrusterGauge.Stern = 0f; return; }
+            float cmd = 0f;
+            if (Keys.Held("KeyWhThrustLeft")) cmd -= 1f;
+            if (Keys.Held("KeyWhThrustRight")) cmd += 1f;
+            // 0.3.2: Shift + Z/X = whole boat sideways (both thrusters the same way), for docking
+            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            if (cmd != 0f && shift && Settings.B("WhThrustShiftSide"))
+            {
+                heldHeading = float.NaN;
+                Push(ship, rb, cmd, cmd, k, "Seitwärts", "Taste");
+                return;
+            }
+            // F10: each thruster on its own (only while no key is held)
+            float mb = Settings.F("WhThrustBowManual") / 100f, ms = Settings.F("WhThrustSternManual") / 100f;
+            if (cmd == 0f && (Mathf.Abs(mb) > 0.01f || Mathf.Abs(ms) > 0.01f))
+            {
+                heldHeading = float.NaN;
+                Push(ship, rb, mb, ms, k, "Einzeln", "F10");
+                return;
+            }
+            // same sign fix as the fins; astern the game mirrors Turn (rudder works reversed), thrusters do not -> undo it
+            bool tc = Time.timeScale > 1.5f;   // 0.3.38: no automatic thruster use in time compression (it swung around)
+            if (cmd == 0f && !tc && Settings.B("WhThrusterWithRudder"))
+            {
+                float fwd = Vector3.Dot(rb.velocity, ship.transform.forward);
+                cmd = Mathf.Clamp(-EffTurn(ship) * (fwd < -0.2f ? -1f : 1f), -1f, 1f);
+            }
+
+            // hold the heading while our guns fire (recoil)
+            if (!tc && Settings.B("WhThrusterHoldFiring") && Time.time - LastGunShot < 3f && Mathf.Abs(EffTurn(ship)) < 0.05f && Mathf.Abs(cmd) < 0.05f)
+            {
+                if (float.IsNaN(heldHeading)) heldHeading = ship.transform.eulerAngles.y;
+                float err = Mathf.DeltaAngle(ship.transform.eulerAngles.y, heldHeading);
+                float yawRate = ship.transform.InverseTransformDirection(rb.angularVelocity).y * Mathf.Rad2Deg;
+                cmd = Mathf.Clamp(err * 0.15f - yawRate * 0.6f, -1f, 1f);
+            }
+            else heldHeading = float.NaN;
+
+            string src = Mathf.Abs(cmd) < 0.01f ? "" : (Keys.Held("KeyWhThrustLeft") || Keys.Held("KeyWhThrustRight")) ? "Taste" : !float.IsNaN(heldHeading) ? "Kurs halten" : "Ruder";
+            // turning on the spot: bow pushes one way, stern the other
+            Push(ship, rb, cmd, -cmd, k, "Drehen", src);
+        }
+
+        // bow / stern thruster command -1..1 each (+ = push to starboard). Equal = sideways, opposite = turning.
+        // Force per thruster F = Iy * power * 0.00175 / L (L = 2 x 40 m arm): with bow = -stern that gives the same turning
+        // torque as before (power 6 = about 0.6 deg/s^2); with bow = stern the boat moves sideways.
+        const float Arm = 40f;
+
+        // 0.4.11: ship.Turn is what the game's helmsman WANTS. When the player set the rudder by hand (rudder dial,
+        // "Locked"), the helmsman's wish is ignored by the game, but our thrusters and fins still followed it and
+        // pushed against the real rudder. Now they follow the rudder that is really set.
+        internal static float EffTurn(PlayerShip ship)
+        {
+            var r = ship.Rudders;
+            if (r != null && r.Length > 0 && r[0] != null && r[0].Locked) return r[0].TargetTurn;
+            return ship.Turn;
+        }
+        private void Push(PlayerShip ship, Rigidbody rb, float bow, float stern, float k, string mode, string src)
+        {
+            bow = Mathf.Clamp(bow, -1f, 1f); stern = Mathf.Clamp(stern, -1f, 1f);
+            ThrusterGauge.Bow = bow; ThrusterGauge.Stern = stern; ThrusterGauge.Mode = mode;
+            ThrusterGauge.Cmd = (bow - stern) * 0.5f;
+            ThrusterGauge.Source = src;
+            if (Mathf.Abs(bow) < 0.01f && Mathf.Abs(stern) < 0.01f) { SetEnergy(ship, 0f); return; }
+            float f = rb.inertiaTensor.y * Settings.F("WhThrusterPower") * 0.00175f / (2f * Arm);
+            var t = ship.transform;
+            Vector3 com = rb.worldCenterOfMass;
+            // forces at the thruster tunnels (same height as the centre of mass: no extra roll)
+            rb.AddForceAtPosition(t.right * (f * bow * k), com + t.forward * Arm, ForceMode.Force);
+            rb.AddForceAtPosition(t.right * (f * stern * k), com - t.forward * Arm, ForceMode.Force);
+            SetEnergy(ship, (Mathf.Abs(bow) + Mathf.Abs(stern)) * 0.5f * Settings.F("WhThrusterEnergy") * 0.0000033f);   // 0.3.62 (DoMe: expected about 1/min, not 30): 30x less
+        }
+
+        private float nextWhy;
+        // When Z/X do nothing, say why (once every 5 s) instead of silently ignoring the key.
+        private void Why(string text)
+        {
+            if (Time.unscaledTime < nextWhy) return;
+            nextWhy = Time.unscaledTime + 5f;
+            ToolkitRunner.ShowNotice(text, 3f);
+        }
+
+        private void SetEnergy(PlayerShip ship, float use)
+        {
+            var energy = ship.Energy;
+            if (energy == null) return;
+            // 0.3.61 (DoMe: 3 "Warthog Thrusters" lines drain the battery, cannot be switched off): drop leftover
+            // entries (save/load, boat change) once, then keep exactly one.
+            if (thrusterEnergy == null || !ReferenceEquals(thrusterOwner, ship))
+            {
+                thrusterEnergy = Util.OneDelta(energy.Gain, "Warthog Thrusters");
+                thrusterOwner = ship;
+            }
+            use = Addons.Adjust("Power:WarthogThrusters", use);
+            if (thrusterEnergy.Value != -use) thrusterEnergy.Value = -use;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/ThrusterGauge.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::UnityEngine;
+
+    // Thruster display like the Toolkit's depth gauge: two bars (bow, stern), middle = off, left = push to port, right = to
+    // starboard. Header: mode (Drehen = turn on the spot, Seitwärts = whole boat sideways, Einzeln = F10 per thruster) and source.
+    public static class ThrusterGauge
+    {
+        const float W = 230f, H = 98f;
+        internal static float Cmd;            // turning part -1..1 (kept for other modules)
+        internal static float Bow, Stern;     // -1..1 each, + = starboard; set by Thrusters every frame
+        internal static string Mode = "";     // "Drehen", "Seitwärts", "Einzeln"
+        internal static string Source = "";   // "Taste", "Ruder", "Kurs halten", "F10"
+
+        public static void Draw()
+        {
+            var ship = Util.PlayerShip;
+            if (ship == null || !Thrusters.Active(ship) || !Settings.B("WhThrustGauge") || !Settings.B("WhThrusters")) return;
+            var r = new Rect(Mathf.Clamp(Screen.width * Settings.F("WhThrustGaugeX") / 100f, 0f, Screen.width - W),
+                             Mathf.Clamp(Screen.height * Settings.F("WhThrustGaugeY") / 100f, 0f, Screen.height - H), W, H);
+            Imgui.Backdrop(r, 0.75f);
+            float yaw = ship.RigidBody != null ? ship.transform.InverseTransformDirection(ship.RigidBody.angularVelocity).y * Mathf.Rad2Deg : 0f;
+            bool off = Mathf.Abs(Bow) < 0.01f && Mathf.Abs(Stern) < 0.01f;
+            Imgui.TextAt(new Rect(r.x + 6, r.y + 4, r.width - 12, 20), "Strahlruder  " + (off ? "aus" : Mode + (Source != "" ? " (" + Source + ")" : "")));
+            DrawBar(new Rect(r.x + 50, r.y + 28, r.width - 80, 12), "Bug", Bow, r.x);
+            DrawBar(new Rect(r.x + 50, r.y + 50, r.width - 80, 12), "Heck", Stern, r.x);
+            Imgui.TextAt(new Rect(r.x + 6, r.yMax - 24, r.width - 12, 20), "Drehung " + yaw.ToString("+0.0;-0.0;0.0") + " °/s");
+        }
+
+        private static void DrawBar(Rect bar, string label, float v, float x0)
+        {
+            Imgui.TextAt(new Rect(x0 + 6, bar.y - 3, 44, 18), label);
+            Imgui.Fill(bar, new Color(0.10f, 0.22f, 0.35f, 0.9f));
+            float mid = bar.x + bar.width / 2f;
+            float len = Mathf.Clamp(v, -1f, 1f) * bar.width / 2f;
+            var col = Mathf.Abs(v) > 0.6f ? new Color(1f, 0.75f, 0.2f, 0.95f) : new Color(0.6f, 0.9f, 1f, 0.95f);
+            if (len < 0) Imgui.Fill(new Rect(mid + len, bar.y, -len, bar.height), col); else if (len > 0) Imgui.Fill(new Rect(mid, bar.y, len, bar.height), col);
+            Imgui.Fill(new Rect(mid - 1, bar.y - 2, 2, bar.height + 4), Color.white);
+            Imgui.TextAt(new Rect(bar.xMax + 4, bar.y - 3, 26, 18), v > 0.01f ? "Stb" : v < -0.01f ? "Bb" : "");
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/VThrusters.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UnityEngine;
+
+    // Vertical thrusters fore + aft, on EVERY boat (DoMe 2026-11-14), not tied to "only U-1337".
+    //  - keys: whole boat up / down (both thrusters same direction)
+    //  - auto: help the dive planes reach the ordered depth (push toward target depth, never against the planes)
+    public class VThrusters : ModuleBase
+    {
+        private float arm = -1f; private object armShip;
+        internal static float LastCmd;   // + = pushes up, - = pushes down, 0 = off (for the water log)
+
+        public override void Frame()
+        {
+            var ship = Util.PlayerShip; LastCmd = 0f;
+            if (!Settings.B("WhVThrusters") || !Thrusters.Active(ship) || ship.Docked) return;
+            var rb = ship.RigidBody;
+            if (rb == null || rb.isKinematic || Time.deltaTime <= 0f || Time.timeScale <= 0f) return;
+            float k = Mathf.Clamp(Time.deltaTime / Time.fixedDeltaTime, 0f, 4f);
+
+            // 0.3.39 (DoMe): like the side thrusters. Key alone = bow and stern opposite (nose up/down),
+            // with Shift = both the same way (whole boat up/down).
+            float cmd = 0f, keyPitch = 0f;                     // + = up / + = bow up
+            bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            float k0 = (Keys.Held("KeyWhVThrustUp") ? 1f : 0f) - (Keys.Held("KeyWhVThrustDown") ? 1f : 0f);
+            if (shift) cmd = k0; else keyPitch = k0;
+            // 0.3.38: time compression = many physics steps per frame, the auto controllers overshoot -> keys only
+            bool tc = Time.timeScale > 1.5f;
+            if (cmd == 0f && keyPitch == 0f && !tc && Settings.B("WhVThrustAuto") && ship.SubmergedOrGoingToSubmerge)
+            {
+                float err = ship.TargetDepth - ship.DeckDepthUnclamped;   // + = must go deeper
+                cmd = -Mathf.Clamp(err / 10f, -1f, 1f);
+                float vy = rb.velocity.y;                      // brake near target: no overshoot
+                cmd -= Mathf.Clamp(vy * 0.3f, -0.5f, 0.5f) * (Mathf.Abs(err) < 15f ? 1f : 0f);
+                cmd = Mathf.Clamp(cmd, -1f, 1f);
+            }
+            // DoMe: one thruster at the very bow, one at the very stern -> arm = half the hull length
+            if (!ReferenceEquals(armShip, ship))
+            {
+                armShip = ship; arm = 35f;
+                try
+                {
+                    Bounds b = new Bounds(ship.transform.position, Vector3.zero); bool any = false;
+                    foreach (var c in ship.GetComponentsInChildren<Collider>(true))
+                        if (c != null && !c.isTrigger) { if (!any) { b = c.bounds; any = true; } else b.Encapsulate(c.bounds); }
+                    if (any) arm = Mathf.Clamp(Vector3.Scale(b.size, new Vector3(Mathf.Abs(ship.transform.forward.x), Mathf.Abs(ship.transform.forward.y), Mathf.Abs(ship.transform.forward.z))).magnitude * 0.5f, 20f, 70f);
+                }
+                catch { }
+                Util.Log("Vertikal-Strahlruder: Abstand Bug/Heck je " + arm.ToString("F0") + " m");
+            }
+            // level the bow (keeps the nose down at high speed / holds the boat flat): bow and stern push opposite
+            float pitchCmd = keyPitch;
+            if (keyPitch == 0f && !tc && Settings.B("WhVThrustLevel") && cmd == 0f && ship.TargetDepth <= 5f)
+            {
+                float pitch = Vector3.SignedAngle(Vector3.ProjectOnPlane(ship.transform.forward, Vector3.up), ship.transform.forward, ship.transform.right); // + = bow down
+                pitchCmd = Mathf.Clamp(pitch / 5f, -1f, 1f);   // bow up (negative) -> push bow down
+            }
+            if (Mathf.Abs(cmd) < 0.02f && Mathf.Abs(pitchCmd) < 0.02f) return;
+            LastCmd = cmd;
+            // strength in % of the boat's weight (100 = can lift the whole boat)
+            float f = rb.mass * 9.81f * Settings.F("WhVThrustPower") / 100f * cmd * 0.5f;
+            float p = rb.mass * 9.81f * Settings.F("WhVThrustPower") / 100f * pitchCmd * 0.5f;
+            var t = ship.transform; var com = rb.worldCenterOfMass;
+            rb.AddForceAtPosition(Vector3.up * (f + p) * k, com + t.forward * arm, ForceMode.Force);   // bow
+            rb.AddForceAtPosition(Vector3.up * (f - p) * k, com - t.forward * arm, ForceMode.Force);   // stern
         }
     }
 }
