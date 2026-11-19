@@ -4913,7 +4913,7 @@ namespace UboatToolkit.Modules
                 nextLog = now + 60f;
                 if (Settings.B("SaveMarkersOwnCanvas") || Settings.B("SaveWedgesCalm"))
                 {
-                    Util.Log("Sparen: Kontakt-Markierungen mit eigener Zeichenfläche " + markerCanvas.Count + "; Kontakt-Keile neu gebaut " + UboatToolkit.Patches.WedgeCalm_Patch.Ran + " mal, übersprungen " + UboatToolkit.Patches.WedgeCalm_Patch.Skipped + " mal in der letzten Minute");
+                    Util.Log("Sparen: Kontakt-Markierungen mit eigener Zeichenfläche und eigenem Klick-Empfänger " + markerClick + " (ausgelassen " + markerSkipped + "), Teile " + markerCanvas.Count + "; Kontakt-Keile neu gebaut " + UboatToolkit.Patches.WedgeCalm_Patch.Ran + " mal, übersprungen " + UboatToolkit.Patches.WedgeCalm_Patch.Skipped + " mal in der letzten Minute");
                     UboatToolkit.Patches.WedgeCalm_Patch.Ran = 0; UboatToolkit.Patches.WedgeCalm_Patch.Skipped = 0;
                 }
                 if (Settings.B("SaveMapEffects") || Settings.B("SaveMapShadows") || Settings.B("SaveMapDetail") || Settings.B("SaveUnseenEffects") || Settings.B("SaveMeshParticlesGpu") || Settings.B("SaveFarSpray"))
@@ -5017,25 +5017,34 @@ namespace UboatToolkit.Modules
                 if (markerCanvas.Count == 0) return;
                 for (int i = markerCanvas.Count - 1; i >= 0; i--) if (markerCanvas[i] != null) Object.Destroy(markerCanvas[i]);   // raycasters were added last, so they go first
                 Util.Log("Sparen: eigene Zeichenflächen der Kontakt-Markierungen entfernt (" + markerCanvas.Count + " Teile)");
-                markerCanvas.Clear(); markerDone.Clear();
+                markerCanvas.Clear(); markerDone.Clear(); markerClick = 0; markerSkipped = 0;
                 return;
             }
             foreach (var m in Object.FindObjectsOfType<UBOAT.Game.UI.Map.EntityMarkerUI>())
             {
                 if (m == null) continue;
                 Own(m.gameObject);
-                var r = Rep3d != null ? Rep3d.GetValue(m) as RectTransform : null;
-                if (r != null) Own(r.gameObject);
+                // 0.4.66: the 3D twin of the marker is left alone (own event camera, click area must stay the game's)
             }
             markerCanvas.RemoveAll(x => x == null); markerDone.RemoveWhere(x => x == null);
         }
+        private int markerClick, markerSkipped;
         private void Own(GameObject go)
         {
             if (go == null || !markerDone.Add(go) || go.GetComponent<Canvas>() != null) return;
             var parent = go.transform.parent != null ? go.transform.parent.GetComponentInParent<Canvas>() : null;
             if (parent == null) return;
+            // 0.4.66 (DoMe 2026-11-19: "das anklicken von gegner ist glückssache und gefühlt nur noch 1pixel breit"): a
+            // canvas of its own needs a click receiver of its own. Up to 0.4.65 it only got one when the NEAREST canvas
+            // above had one; the game's receiver sits further up, so most markers lost their click area. Now the
+            // receiver is looked up along the whole chain and its settings are copied; without one above, the marker
+            // is not touched at all.
+            var up = parent.GetComponentInParent<UnityEngine.UI.GraphicRaycaster>();
+            if (up == null) { markerSkipped++; return; }
             markerCanvas.Add(go.AddComponent<Canvas>());
-            if (parent.GetComponent<UnityEngine.UI.GraphicRaycaster>() != null) markerCanvas.Add(go.AddComponent<UnityEngine.UI.GraphicRaycaster>());   // keeps hover and click
+            var gr = go.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            gr.ignoreReversedGraphics = up.ignoreReversedGraphics; gr.blockingObjects = up.blockingObjects;
+            markerCanvas.Add(gr); markerClick++;
         }
 
         // spray control and bow wave of ships farther than 2 km (or everything while only the map is shown) rest
