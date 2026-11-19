@@ -18128,6 +18128,14 @@ namespace UboatToolkit.Modules
                 bool air = __instance.IsAntiAircraftWeapon;
                 var first = Find.Invoke(__instance, new object[] { !air, air }) as UBOAT.Game.Scene.Entities.Entity;
                 __result = first != null ? first : Find.Invoke(__instance, new object[] { air, !air }) as UBOAT.Game.Scene.Entities.Entity;
+                // 0.4.84 (DoMe: 5 guns should take 5 targets): with "Schützen verteilen" on, a gun whose own kind of
+                // target already has another of our guns on it takes a target of the OTHER kind that has none
+                // (flak -> ship, deck gun -> aircraft). Before, spreading only happened inside one kind.
+                if (first != null && Settings.B("GunSpreadTargets") && first != __instance.TargetOverride && GunSpread_Patch.LoadOf(__instance, first) > 0)
+                {
+                    var other = Find.Invoke(__instance, new object[] { air, !air }) as UBOAT.Game.Scene.Entities.Entity;
+                    if (other != null && GunSpread_Patch.LoadOf(__instance, other) == 0) { __result = other; GunSpread_Patch.CrossKind++; }
+                }
                 Postfix(__instance, ref __result);
                 return false;
             }
@@ -18394,13 +18402,33 @@ namespace UboatToolkit.Modules
             catch { return false; }
         }
 
+        internal static int CrossKind;   // times a gun took a free target of the other kind (ship <-> aircraft)
+        internal static int LoadOf(Gun self, Entity e)
+        {
+            var obs = Obs(self); var guns = obs != null ? obs.Guns : null;
+            return guns == null ? 0 : Load(self, guns, e);
+        }
+        // 0.4.84: guns of one mount (twin, quad: one TargetingDevicesGroup) count as ONE gun; they do not push each
+        // other off a target.
+        private static readonly Dictionary<Gun, TargetingDevicesGroup> groupOf = new Dictionary<Gun, TargetingDevicesGroup>();
+        private static TargetingDevicesGroup GroupOf(Gun g)
+        {
+            TargetingDevicesGroup grp;
+            if (groupOf.TryGetValue(g, out grp)) return grp;
+            if (groupOf.Count > 200) groupOf.Clear();
+            grp = g.GetComponentInParent<TargetingDevicesGroup>();
+            if (grp != null && System.Array.IndexOf(grp.TargetingDevices, g) < 0) grp = null;
+            groupOf[g] = grp;
+            return grp;
+        }
         private static int Load(Gun self, Gun[] guns, Entity e)
         {
-            int n = 0;
+            int n = 0; var mine = GroupOf(self);
             for (int i = 0; i < guns.Length; i++)
             {
                 var g = guns[i];
                 if (g == null || g == self || !g.isActiveAndEnabled) continue;
+                if (mine != null && GroupOf(g) == mine) continue;
                 var t = g.TargetingMode == ArtilleryTargetingMode.Custom ? g.TargetOverride : Auto(g);
                 if (t == e && Manned(g)) n++;
             }
@@ -18457,7 +18485,7 @@ namespace UboatToolkit.Modules
                 var cur = Auto(__instance);
                 rejected.Clear();
                 Entity pick = null; bool pickAtt = false;
-                for (int round = 0; round < 4 && pick == null; round++)
+                for (int round = 0; round < 8 && pick == null; round++)   // 0.4.84: up to 8 targets tried for a free line of fire (was 4)
                 {
                     Entity best = null; int bA = 0, bL = 0, bC = 0, bG = 0; float bD = 0f;
                     for (int i = 0; i < cand.Count; i++)
@@ -18466,7 +18494,14 @@ namespace UboatToolkit.Modules
                         if (rejected.Contains(e)) continue;
                         int kA = att && IsAttacker(e) ? 0 : 1, kL = spread ? Load(__instance, guns, e) : 0, kC = e == cur ? 0 : 1, kG = e == __result ? 0 : 1;
                         float kD = (e.transform.position - pos).sqrMagnitude;
-                        bool better = best == null || kA < bA || (kA == bA && (kL < bL || (kL == bL && (kC < bC || (kC == bC && (kG < bG || (kG == bG && kD < bD)))))));
+                        // 0.4.84 (DoMe: 5 guns should take 5 targets; with "Angreifer zuerst" all guns sat on the attackers and
+                        // one attacker even stayed without a gun). With spreading on, the target with the FEWEST guns comes
+                        // first; among equally loaded targets the one that fires at us. So every target gets a gun before
+                        // any gets a second, and spare guns double up on the attackers.
+                        bool rest = kC < bC || (kC == bC && (kG < bG || (kG == bG && kD < bD)));
+                        bool better = best == null || (spread
+                            ? kL < bL || (kL == bL && (kA < bA || (kA == bA && rest)))
+                            : kA < bA || (kA == bA && rest));
                         if (better) { best = e; bA = kA; bL = kL; bC = kC; bG = kG; bD = kD; }
                     }
                     if (best == null) break;
@@ -18499,7 +18534,7 @@ namespace UboatToolkit.Modules
                     + (kv.Key.Health <= 0f ? "zerstört" : rejected.Contains(kv.Key) ? "keine freie Schussbahn von " + self.name
                        : !cand.Contains(kv.Key) ? "für " + self.name + " kein gültiges Ziel: andere Art, nicht gesehen oder zu weit" : "frei, das nächste Geschütz nimmt ihn") + ")";
             }
-            Util.Log("Schützen: " + manned + " besetzte Geschütze auf " + seen.Count + " verschiedene Ziele (mögliche Ziele für " + self.name + ": " + cand.Count + "), " + changes + " Zielwechsel; Angreifer bekannt: " + known
+            Util.Log("Schützen: " + manned + " besetzte Geschütze auf " + seen.Count + " verschiedene Ziele (mögliche Ziele für " + self.name + ": " + cand.Count + "), " + changes + " Zielwechsel, " + CrossKind + " mal zur anderen Zielart gewechselt (Schiff/Flugzeug); Angreifer bekannt: " + known
                 + (free == "" ? "" : ", davon ohne Geschütz: " + free)
                 + "; " + self.name + " -> " + pick.name.Replace("(Clone)", "").Trim() + (attacker ? " (schießt auf uns)" : "")
                 + " [Verteilen " + (Settings.B("GunSpreadTargets") ? "an" : "aus") + ", Angreifer zuerst " + (Settings.B("GunAttackersFirst") ? "an" : "aus") + "]");
