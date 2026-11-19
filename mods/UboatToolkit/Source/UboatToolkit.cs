@@ -5762,7 +5762,7 @@ namespace UboatToolkit.Modules
             }
             if (now < nextPilot) return;
             nextPilot = now + 0.5f;
-            lastBed = Util.SafeGet(() => Seabed(ship, 0f), float.NaN);
+            lastBed = Depths.GroundAt(ship, 0f);
             bool pilotOn = Settings.B("AutoDepth");
             if (pilotOn != lastPilotOn)
             {
@@ -5814,7 +5814,7 @@ namespace UboatToolkit.Modules
             float bedAt = 0f;
             foreach (float dist in new[] { -40f, 40f, look * 0.25f, look * 0.5f, look })   // 0.3.56: also under stern and bow
             {
-                float b = Util.SafeGet(() => Seabed(ship, dist), float.NaN);
+                float b = Depths.GroundAt(ship, dist);
                 if (!float.IsNaN(b) && (float.IsNaN(bed) || b < bed)) { bed = b; bedAt = dist; }
             }
             string where = Mathf.Abs(bedAt) <= 40f ? "unter dem Boot" : Mathf.RoundToInt(bedAt) + " m voraus";
@@ -7562,11 +7562,8 @@ namespace UboatToolkit.Modules
         {
             try
             {
-                var ship = Util.PlayerShip;
-                var sb = Util.Find<UBOAT.Game.Sandbox.Sandbox>(30f).FirstOrDefault();
-                if (ship == null || sb == null) return float.NaN;
-                float h = WorldMaps.ElevationMap.GetAtWorldSpace(sb.SceneToEncounterSpace(ship.transform.position));
-                return float.IsNaN(h) || h >= 0f ? float.NaN : -h;
+                var ship = Util.PlayerShip;   // 0.4.74: value comes from Depths (one owner)
+                return ship == null ? float.NaN : UboatToolkit.Modules.Depths.Chart(ship);
             }
             catch { return float.NaN; }
         }
@@ -7731,8 +7728,9 @@ namespace UboatToolkit.Modules
             if (!Settings.B("SeaLayerNote")) return;
             var ship = Util.PlayerShip;
             if (ship == null) return;
-            bool below = ship.Depth > Depth + 3f;
-            if (below == wasBelow || (!below && ship.Depth > Depth - 3f)) return;
+            float deck = UboatToolkit.Modules.Depths.Deck(ship);   // 0.4.74: deck depth like the depth meter (was tower top)
+            bool below = deck > Depth + 3f;
+            if (below == wasBelow || (!below && deck > Depth - 3f)) return;
             wasBelow = below;
             string t = below ? "Unter der Sprungschicht (~" + Mathf.RoundToInt(Depth) + " m): schwerer zu orten, Hydrophon hört schlechter"
                              : "Über der Sprungschicht (~" + Mathf.RoundToInt(Depth) + " m)";
@@ -7773,7 +7771,7 @@ namespace UboatToolkit.Modules
         {
             if (!SeaLayer.On || !Settings.B("SeaLayerHearing") || __result <= 0f) return;
             var ship = Util.PlayerShip;
-            if (ship != null) __result *= Mathf.Max(0.4f, SeaLayer.Factor(ship.Depth, 0.015f));
+            if (ship != null) __result *= Mathf.Max(0.4f, SeaLayer.Factor(UboatToolkit.Modules.Depths.Deck(ship), 0.015f));
         }
     }
 }
@@ -7862,7 +7860,7 @@ namespace UboatToolkit.Modules
             var tip = Traverse.Create(sn).Field("tip").GetValue<Transform>();
             if (tip == null) return;
             // water level from the game's own deck depth (same basis as its depth meter)
-            float water = sub.transform.position.y - sub.VerticalOriginOffset + sub.DeckDepthUnclamped;
+            float water = sub.CurrentWaterElevation;   // 0.4.74: value 1 of Depths (same number as before)
             float head = water - tip.position.y;                      // + = head under water
             // 0.4.38: log 2026-11-18 14:35 showed the boat resting 1.4 m BELOW its ordered depth (deck 5.9, order 4.5) with
             // the head 6 m under water, and the guard never acted because it waited for "within 1 m of the order".
@@ -8413,7 +8411,29 @@ namespace UboatToolkit.Modules
         // 3: keel below the surface (Ship.BottomDepth)
         internal static float Keel(PlayerShip s) => s.BottomDepth;
         // ground below the surface right under the boat (real ground first, then the game's terrain grid, then sea chart)
-        internal static float Ground(PlayerShip s) => Util.SafeGet(() => DepthGauge.Seabed(s, 0f), float.NaN);
+        internal static float Ground(PlayerShip s) => GroundAt(s, 0f);
+        // ground below the surface "ahead" metres in front of the boat; the ONLY entry for ground readings (0.4.74)
+        internal static float GroundAt(PlayerShip s, float ahead) => Util.SafeGet(() => DepthGauge.Seabed(s, ahead), float.NaN);
+        // world height of the ground at a place, from the game's terrain grid (anchor); NaN when that tile is not built
+        internal static float GroundWorldY(float x, float z)
+        {
+            var tc = global::System.Linq.Enumerable.FirstOrDefault(Util.Find<UBOAT.Game.Scene.Environment.Terrain.TerrainController>(30f));
+            if (tc == null || tc.MainGrid == null) return float.NaN;
+            float y = tc.MainGrid.GetInterpolatedHeight(x, z, float.NaN);
+            return y < -1900f ? float.NaN : y;
+        }
+        // water depth here from the game's world elevation map (good to a few metres); NaN on land or unknown
+        internal static float Chart(PlayerShip s)
+        {
+            try
+            {
+                if (sandbox == null) sandbox = Object.FindObjectOfType<UBOAT.Game.Sandbox.Sandbox>();
+                if (sandbox == null) return float.NaN;
+                float h = UBOAT.Game.Scene.Environment.Terrain.WorldMaps.ElevationMap.GetAtWorldSpace(sandbox.SceneToEncounterSpace(s.transform.position));
+                return float.IsNaN(h) || h >= 0f ? float.NaN : -h;
+            }
+            catch { return float.NaN; }
+        }
         // 4: water between keel and ground
         internal static float KeelToGround(PlayerShip s) { float g = Ground(s); return float.IsNaN(g) ? float.NaN : g - Keel(s); }
         // 5: what the unmodded game takes as water depth here: the chart's depth band (PlayableSubmarine.UpdateSeabedEstimation
@@ -39773,7 +39793,7 @@ namespace UboatToolkit.Modules.Warthog
             {
                 if (!Wanted(a) || a.State != State.Up) continue;
                 Vector3 h = a.Hawse;
-                float ground = WarthogTerrain.SeabedY(h.x, h.z);
+                float ground = UboatToolkit.Modules.Depths.GroundWorldY(h.x, h.z);   // 0.4.74: one owner for ground values
                 if (float.IsNaN(ground)) { ToolkitRunner.ShowNotice("Anker: Meeresgrund unbekannt", 5f); Util.Log("[Warthog] anchor: no seabed data"); return; }
                 float drop = h.y - ground;
                 if (drop > chain) { ToolkitRunner.ShowNotice("Anker: Grund in " + drop.ToString("0") + " m, Kette nur " + chain.ToString("0") + " m", 6f); Util.Log("[Warthog] anchor: too deep (" + drop.ToString("0") + " m > chain " + chain.ToString("0") + " m)"); return; }
@@ -39847,31 +39867,6 @@ namespace UboatToolkit.Modules.Warthog
         }
     }
 
-    // seabed height from the game's terrain grid (TerrainController.MainGrid.GetInterpolatedHeight)
-    internal static class WarthogTerrain
-    {
-        private static Object controller;
-        private static System.Reflection.MethodInfo height;
-        private static object grid;
-        public static float SeabedY(float x, float z)
-        {
-            try
-            {
-                if (controller == null)
-                {
-                    var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Environment.Terrain.TerrainController");
-                    controller = t != null ? Object.FindObjectOfType(t) : null;
-                    if (controller == null) return float.NaN;
-                    grid = HarmonyLib.Traverse.Create(controller).Property("MainGrid").GetValue();
-                    height = grid?.GetType().GetMethod("GetInterpolatedHeight", new[] { typeof(float), typeof(float), typeof(float) });
-                }
-                if (grid == null || height == null) return float.NaN;
-                float y = (float)height.Invoke(grid, new object[] { x, z, float.NaN });
-                return y < -1900f ? float.NaN : y;
-            }
-            catch (System.Exception e) { Util.Log("[Warthog] anchor: seabed query failed: " + e.Message); controller = null; return float.NaN; }
-        }
-    }
 }
 
 // ====================================================================================================
