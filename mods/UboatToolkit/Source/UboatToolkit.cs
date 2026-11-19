@@ -9142,6 +9142,10 @@ namespace UboatToolkit.Modules.CrewAi
             catch (Exception e) { DiagLog.WriteError("BedChoice.NoteBedPathFailed", e); }
         }
 
+        // 0.4.82 (asked by the Warthog mod): its double bunks have a second place named "(Doppelkoje)". We never move
+        // a man TO such a second place; it is only used when the game itself picks it (no first place free).
+        private static bool SecondPlace(Bed b) { try { return b.name.IndexOf("(Doppelkoje)", System.StringComparison.Ordinal) >= 0; } catch { return false; } }
+
         public static Bed Improve(Bed chosen, Bed[] candidates, NavMeshNavigator nav,
                                   bool includeUpperBeds, string label, out bool refuse)
         {
@@ -9206,7 +9210,7 @@ namespace UboatToolkit.Modules.CrewAi
                         for (int i = 0; i < candidates.Length; i++)
                         {
                             var b = candidates[i];
-                            if (b == null || b == chosen) continue;
+                            if (b == null || b == chosen || SecondPlace(b)) continue;
                             if (IsBadFor(charId, b, now) || ClaimedByOther(b, charId, now)) continue;
                             if (!AvailableCheap(b, includeUpperBeds)) continue;
                             int h = CompartmentGraph.Hops(from, SafeComp(b));
@@ -9249,7 +9253,7 @@ namespace UboatToolkit.Modules.CrewAi
                     for (int i = 0; i < candidates.Length; i++)
                     {
                         var b = candidates[i];
-                        if (b == null || b == chosen) continue;
+                        if (b == null || b == chosen || SecondPlace(b)) continue;
                         var bc = SafeComp(b);
                         if (bc == null) continue;
 
