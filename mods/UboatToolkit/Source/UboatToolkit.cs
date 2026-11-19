@@ -3188,6 +3188,7 @@ namespace UboatToolkit
             Key("KeyUnderFire2", "Unter Beschuss: Ausweichen", "Ctrl+Shift+Alpha2");
             Key("KeyUnderFire3", "Unter Beschuss: Zurückschießen", "Ctrl+Shift+Alpha3");
             Key("KeyUnderFire4", "Unter Beschuss: Nichts tun", "Ctrl+Shift+Alpha4");
+            Key("KeyUnderFireTorpedo", "Unter Beschuss: Torpedieren", "");
             Key("KeyUnderFireIgnore", "Unter Beschuss: Meldungen ignorieren", "Ctrl+Shift+Alpha5");
             Key("KeySpeedFaster", "Tempo-Cheat: schneller (+0,5)", "Ctrl+PageUp");
             Key("KeySpeedSlower", "Tempo-Cheat: langsamer (-0,5)", "Ctrl+PageDown");
@@ -8080,7 +8081,7 @@ namespace UboatToolkit.Modules
     // Ask without pause: only an icon on the right edge. "Ignore x minutes": messages are only collected.
     public static class UnderFire
     {
-        internal enum Act { Dive, Evade, FireBack, Nothing }
+        internal enum Act { Dive, Evade, FireBack, Nothing, Torpedo }
         internal class Alert { public Entity Attacker; public string Text; public Act Advice; public string Why; public string Clock; public int Count = 1; }
 
         internal static readonly List<Alert> Collected = new List<Alert>();
@@ -8093,7 +8094,8 @@ namespace UboatToolkit.Modules
         private static GameTime gameTime;
         internal static float ManGunsUntil;
 
-        private static readonly string[] ActName = { "Alarmtauchen", "Ausweichen (Heck zum Gegner)", "Zurückschießen", "Nichts tun" };
+        private static readonly string[] ActName = { "Alarmtauchen", "Ausweichen (Heck zum Gegner)", "Zurückschießen", "Nichts tun", "Torpedieren" };
+        private static readonly int[] ActOrder = { 0, 1, 2, 4, 3 };   // order of the buttons in the box
 
         // Called by the gun patch and by the damage report.
         internal static void Report(Entity attacker, string what)
@@ -8191,6 +8193,9 @@ namespace UboatToolkit.Modules
                         ship.StartAlarm("Alarm", true);
                         ship.OrderEngineGear(5, false);
                         break;
+                    case Act.Torpedo:
+                        TorpedoAt(ship, a != null ? a.Attacker : null);
+                        return;
                     case Act.FireBack:
                         ship.StartAlarm("Alarm", true);
                         ManGunsUntil = Time.unscaledTime + 120f;
@@ -8202,6 +8207,57 @@ namespace UboatToolkit.Modules
                 Util.Log("Beschuss-Befehl ausgeführt: " + ActName[(int)act]);
             }
             catch (Exception ex) { Util.Log("Beschuss-Befehl: " + ex.Message); }
+        }
+
+        // 0.4.89 (DoMe 2026-11-19: "die option zu torpedieren fehlt"). One torpedo from a loaded tube at the ship that fires
+        // at us, with the game's own launch: the tube is flooded the normal way (takes its time), then the torpedo runs to
+        // the point where the ship will be. Bow tubes for a ship ahead, stern tubes for one astern; if that side has no
+        // loaded tube, the other side. Nothing is created: no loaded tube = no shot.
+        private static TorpedoLauncher shotTube; private static Entity shotTarget; private static float shotUntil;
+        private static void TorpedoAt(Ship ship, Entity target)
+        {
+            var ps = ship as PlayerShip;
+            if (ps == null || target == null || target.Health <= 0f || !(target is Ship)) { UboatToolkit.ToolkitRunner.ShowNotice("Torpedieren: kein Schiff als Ziel", 4f); Util.Log("Beschuss-Befehl Torpedieren: kein Schiff als Ziel"); return; }
+            if (shotTube != null) { UboatToolkit.ToolkitRunner.ShowNotice("Torpedieren: ein Rohr wird schon geflutet", 4f); return; }
+            bool ahead = ship.transform.InverseTransformPoint(target.transform.position).z >= 0f;
+            TorpedoLauncher best = null; int bestScore = -1;
+            foreach (var l in ps.TorpedoLaunchers)
+            {
+                if (l == null || l.Torpedo == null || l.Torpedo is StoredMinePacket || !l.IsLoaded) continue;
+                bool bow = l.Group != null && l.Group.name.Contains("Bow");
+                int score = (bow == ahead ? 2 : 0) + (l.IsFlooded ? 1 : 0);
+                if (score > bestScore) { bestScore = score; best = l; }
+            }
+            if (best == null) { UboatToolkit.ToolkitRunner.ShowNotice("Torpedieren: kein geladenes Rohr", 5f); Util.Log("Beschuss-Befehl Torpedieren: kein geladenes Rohr"); return; }
+            shotTube = best; shotTarget = target; shotUntil = Time.unscaledTime + 120f;
+            if (!best.IsFlooded) best.Flood(false);
+            string tn = target.name.Replace("(Clone)", "").Trim();
+            UboatToolkit.ToolkitRunner.ShowNotice("Torpedieren: " + best.name + (best.IsFlooded ? " schießt auf " : " wird geflutet, Schuss auf ") + tn, 5f);
+            Util.Log("Beschuss-Befehl Torpedieren: Rohr " + best.name + " (" + (bestScore >= 2 ? "passende Seite" : "andere Seite, die passende hat kein geladenes Rohr") + "), Ziel " + tn + ", geflutet " + (best.IsFlooded ? "ja" : "nein, wird geflutet"));
+        }
+
+        private static void TorpedoStep()
+        {
+            var l = shotTube; var target = shotTarget; var ps = Util.PlayerShip as PlayerShip;
+            if (l == null || ps == null || target == null || target.Health <= 0f || l.Torpedo == null || Time.unscaledTime > shotUntil)
+            {
+                Util.Log("Beschuss-Befehl Torpedieren: abgebrochen (" + (target == null || target.Health <= 0f ? "Ziel weg" : l == null || l.Torpedo == null ? "Rohr leer" : "Rohr nach 120 s nicht geflutet") + ")");
+                shotTube = null; shotTarget = null; return;
+            }
+            if (!l.IsFlooded) return;
+            float speed = (float)l.Torpedo.Speed1;
+            Vector3 from = l.transform.position, tp = target.transform.position;
+            Vector3 vel = Vector3.zero;
+            var ts = target as Ship;
+            if (ts != null) { var fw = target.transform.forward; fw.y = 0f; vel = fw.normalized * ts.AverageVelocity; }
+            Vector3 aim = tp; float time = 0f;
+            for (int i = 0; i < 4 && speed > 0.1f; i++) { var d = aim - from; d.y = 0f; time = d.magnitude / speed; aim = tp + vel * time; }
+            var flat = new Vector2(aim.x, aim.z);
+            l.Launch(target, flat, flat, ps.TorpedoAttackSettings.TorpedoDepth, speed, 0, true);
+            string tn = target.name.Replace("(Clone)", "").Trim();
+            UboatToolkit.ToolkitRunner.ShowNotice("Torpedo los auf " + tn, 4f);
+            Util.Log("Beschuss-Befehl Torpedieren: Torpedo los aus " + l.name + " auf " + tn + ", Entfernung " + ((tp - from).magnitude).ToString("0") + " m, Laufzeit " + time.ToString("0") + " s, Vorhalt " + (vel.magnitude * time).ToString("0") + " m, Torpedo " + speed.ToString("0.0") + " m/s");
+            shotTube = null; shotTarget = null;
         }
 
         private static readonly System.Collections.Generic.List<float> recent = new System.Collections.Generic.List<float>();
@@ -8225,7 +8281,7 @@ namespace UboatToolkit.Modules
 
         // Drawn every frame from the toolkit GUI (also when F10 is closed).
         // Same choices as before, but as a box at the right edge (not in the middle); click or key Alt+1..4, Alt+5 = ignore.
-        private static readonly string[] ActKeys = { "KeyUnderFire1", "KeyUnderFire2", "KeyUnderFire3", "KeyUnderFire4" };
+        private static readonly string[] ActKeys = { "KeyUnderFire1", "KeyUnderFire2", "KeyUnderFire3", "KeyUnderFire4", "KeyUnderFireTorpedo" };
         private static bool migrated;
         // 0.4.7: true while the under-fire box or its "ignored" button is on screen (they need all GUI passes for clicks)
         public static bool NeedsEvents => windowOpen || current != null || Time.unscaledTime < ignoreUntil;
@@ -8241,6 +8297,7 @@ namespace UboatToolkit.Modules
                     if (o != null && (o.Text == "Alt+Alpha" + (i + 1) || o.Text == "Ctrl+Alt+Alpha" + (i + 1))) { o.Text = "Ctrl+Shift+Alpha" + (i + 1); Util.Log("Beschuss-Taste " + ks[i] + " von Alt+" + (i + 1) + " auf Strg+Shift+" + (i + 1) + " geändert (Alt+Zahl / Strg+Alt+Zahl sind der Maschinentelegraf)"); Settings.Save(); }
                 }
             }
+            if (shotTube != null) Util.Safe("Beschuss.Torpedo", TorpedoStep);
             if (Mathf.RoundToInt(Settings.F("UnderFireMode")) != 1) { if (windowOpen) Close(); return; }
             float now = Time.unscaledTime;
             if (current != null && now >= ignoreUntil)
@@ -8276,13 +8333,17 @@ namespace UboatToolkit.Modules
                 if (!cursorKept) { cursorKept = true; cursorWasLock = Cursor.lockState; if (cursorWasLock != CursorLockMode.None) Util.Log("Beschuss-Fenster: Mauszeiger ist vom Spiel gesperrt (Zielen), bleibt so; Antwort per Taste"); }
                 if (cursorWasLock == CursorLockMode.None) { Cursor.visible = true; Cursor.lockState = CursorLockMode.None; }
             }
-            var box = new Rect(Screen.width - 340, Screen.height / 2f - 125, 330, 250);
+            var box = new Rect(Screen.width - 340, Screen.height / 2f - 140, 330, 280);
             Imgui.Box(box, "Herr Kaleun, was tun wir?");
             Imgui.BeginArea(new Rect(box.x + 6, box.y + 24, box.width - 12, box.height - 28));
             Imgui.Label(current.Clock + " " + current.Text + (current.Count > 1 ? " (x" + current.Count + ")" : ""), 315);
-            for (int i = 0; i < ActName.Length; i++)
-                if (Imgui.Button(ActName[i] + (i == (int)current.Advice ? " ★" : "") + "  [" + KeyText(ActKeys[i]) + "]", 315))
+            // 0.4.89 (DoMe 2026-11-19: "die tasten müssen da raus"): the buttons no longer show their keys (the keys still work).
+            for (int k = 0; k < ActOrder.Length; k++)
+            {
+                int i = ActOrder[k];
+                if (Imgui.Button(ActName[i] + (i == (int)current.Advice ? " ★" : ""), 315))
                 { var a = current; Close(); current = null; if (i != (int)Act.Nothing) Do((Act)i, a); Imgui.EndArea(); return; }
+            }
             if (Imgui.Button(Mathf.Max(1, Mathf.RoundToInt(Settings.F("UnderFireIgnoreMin"))) + " min ignorieren", 315))
             { ignoreUntil = now + Mathf.Max(1, Mathf.RoundToInt(Settings.F("UnderFireIgnoreMin"))) * 60f; ignoredCount = 0; Close(); current = null; }
             Imgui.EndArea();
@@ -8309,7 +8370,11 @@ namespace UboatToolkit.Modules
     {
         private static void Postfix(Gun __instance, global::UBOAT.Game.Scene.Entities.Shell __result)
         {
-            if (__result != null && Util.IsPlayers(__instance)) Thrusters.LastGunShot = Time.time;
+            if (__result != null && Util.IsPlayers(__instance))
+            {
+                Thrusters.LastGunShot = Time.time;
+                int n; GunSpread_Patch.Shots.TryGetValue(__instance, out n); GunSpread_Patch.Shots[__instance] = n + 1;
+            }
         }
     }
 
@@ -18462,6 +18527,7 @@ namespace UboatToolkit.Modules
             catch { return false; }
         }
 
+        internal static readonly Dictionary<Gun, int> Shots = new Dictionary<Gun, int>();   // shots per own gun since the last log line
         internal static int CrossKind;   // times a gun took a free target of the other kind (ship <-> aircraft)
         internal static int LoadOf(Gun self, Entity e)
         {
@@ -18598,6 +18664,26 @@ namespace UboatToolkit.Modules
                 + (free == "" ? "" : ", davon ohne Geschütz: " + free)
                 + "; " + self.name + " -> " + pick.name.Replace("(Clone)", "").Trim() + (attacker ? " (schießt auf uns)" : "")
                 + " [Verteilen " + (Settings.B("GunSpreadTargets") ? "an" : "aus") + ", Angreifer zuerst " + (Settings.B("GunAttackersFirst") ? "an" : "aus") + "]");
+            // 0.4.89 (DoMe 2026-11-19: flak stands still, ships close by and the guns do nothing; the line named only one gun):
+            // every gun of the boat with crew, target kind, target, distance and shots since the last line.
+            try
+            {
+                var per = new System.Text.StringBuilder();
+                foreach (var g in guns)
+                {
+                    if (g == null) continue;
+                    var t = g == self ? pick : Auto(g);
+                    int sh; Shots.TryGetValue(g, out sh);
+                    per.Append(per.Length > 0 ? " | " : "").Append(g.name).Append(Manned(g) ? "" : " (unbesetzt)").Append(g.isActiveAndEnabled ? "" : " (aus)")
+                       .Append(" [").Append(g.TargetingMode.ToString()).Append(g.TargetOverride != null ? ", Ziel von Hand" : "").Append("] -> ");
+                    if (t != null) per.Append(t.name.Replace("(Clone)", "").Trim()).Append(" ").Append(((t.transform.position - g.transform.position).magnitude / 1000f).ToString("0.0")).Append(" km");
+                    else per.Append("kein Ziel");
+                    per.Append(", Schüsse ").Append(sh).Append(", geladen ").Append(g.AmmoCount);
+                }
+                Shots.Clear();
+                Util.Log("Schützen je Geschütz: " + per);
+            }
+            catch (System.Exception ex) { Util.Log("Schützen je Geschütz: Fehler " + ex.GetType().Name); }
             if (Attackers.Count > 40) Attackers.Clear();
         }
     }
