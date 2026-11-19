@@ -1515,12 +1515,12 @@ namespace UboatToolkit
             m["Cheats: "] = "Cheats: ";
             m["UBOAT Toolkit  (F10 schließt, Titel ziehen = verschieben, Ecke unten rechts = Größe)"] = "UBOAT Toolkit  (F10 closes, drag title = move, bottom right corner = resize)";
             m["Suche:"] = "Search:";
-            m[" nur geänderte zeigen"] = " show changed only";
+            m[" nur anders als Standard zeigen"] = " show changed only";
             m["alle auf"] = "open all";
             m["alle zu"] = "close all";
             m["Nichts gefunden."] = "Nothing found.";
             m[" Einstellungen"] = " settings";
-            m[" geändert"] = " changed";
+            m[" anders als Standard"] = " changed";
             m["INI neu laden"] = "Reload INI";
             m["Steam nicht gefunden"] = "Steam not found";
             m[" Erfolge freigeschaltet"] = " achievements unlocked";
@@ -4142,7 +4142,7 @@ namespace UboatToolkit
             // the fold state is read before the row is drawn, so a click on the arrow shows at the next GUI event
             bool open = openOpts.Contains(o.Key);
             int ch = 0; foreach (var c in o.Children) if (Settings.Changed(c)) ch++;
-            DrawOpt(o, true, ch > 0 ? "   (" + ch + " Feinwerte geändert)" : null);
+            DrawOpt(o, true, ch > 0 ? "   (" + ch + " Feinwerte anders als Standard)" : null);
             if (open) { foreach (var c in o.Children) DrawOpt(c); Imgui.Space(4); }
         }
 
@@ -4233,7 +4233,7 @@ namespace UboatToolkit
                 string key = kind + "/" + g + "/" + sname;
                 bool open = subs.Count == 1 || onlyChanged || openGroups.Contains(key);
                 if (subs.Count > 1 && !onlyChanged
-                    && Imgui.Button((open ? "▼  " : "▶  ") + sname + "   (" + count + (changed > 0 ? ", " + changed + " geändert" : "") + ")", W))
+                    && Imgui.Button((open ? "▼  " : "▶  ") + sname + "   (" + count + (changed > 0 ? ", " + changed + " anders als Standard" : "") + ")", W))
                 { if (open) openGroups.Remove(key); else openGroups.Add(key); }
                 if (!open) continue;
                 foreach (var x in Settings.All)
@@ -4311,7 +4311,7 @@ namespace UboatToolkit
             if (Keys.Capturing != null) { Imgui.ClearFocus(); Imgui.Label(string.IsNullOrEmpty(search) ? "-" : search, 300); }
             else search = Imgui.TextField(search, 300);
             if (Imgui.Button("x", 30)) search = "";
-            onlyChanged = Imgui.Toggle(onlyChanged, " nur geänderte zeigen");
+            onlyChanged = Imgui.Toggle(onlyChanged, " nur anders als Standard zeigen");
             searchThisTab = Imgui.Toggle(searchThisTab, " Suche nur in diesem Reiter");
             if (Imgui.Button("alle auf", 90)) foreach (var x in Settings.All) if (x.Group == tab && !x.IsKey) { openGroups.Add(x.Tab + "/" + x.Group + "/" + x.Sub); }
             if (Imgui.Button("alle zu", 90)) { openGroups.Clear(); openOpts.Clear(); }
