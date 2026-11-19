@@ -4903,7 +4903,7 @@ namespace UboatToolkit.Modules
             if (now >= nextScan)
             {
                 nextScan = now + 3f; scanStep = (scanStep + 1) % 4;
-                if (scanStep == 0) Util.Safe("Save.Unseen", () => Unseen(Settings.B("SaveUnseenEffects")));
+                if (scanStep == 0) { Util.Safe("Save.Unseen", () => Unseen(Settings.B("SaveUnseenEffects"))); Util.Safe("Save.Underwater", () => Underwater(Settings.B("SaveNoSmokeUnderwater"))); }
                 else if (scanStep == 1) Util.Safe("Save.MeshGpu", () => MeshGpu(Settings.B("SaveMeshParticlesGpu")));
                 else if (scanStep == 2) Util.Safe("Save.FarSpray", () => Spray(Settings.B("SaveFarSpray")));
                 else Util.Safe("Save.Markers", () => Markers(Settings.B("SaveMarkersOwnCanvas")));
@@ -4921,6 +4921,7 @@ namespace UboatToolkit.Modules
                         + ", Schatten auf der Karte " + (mapShadow ? "aus" : "normal") + ", Detail auf der Karte " + (mapLod ? "niedrig" : "normal")
                         + "; Effekte mit Anhalten außerhalb des Bildes " + nCull + "; Trümmer-Partikel gesammelt gezeichnet " + nInst + "; Gischt/Bugwelle ferner Schiffe aus " + nSpray);
                 mapSeconds = 0f;
+                if (Settings.B("SaveNoSmokeUnderwater")) Util.Log("Sparen: Rauch/Feuer tiefer als 5 m unter Wasser gestoppt " + nUnder + " (seit Spielstart), gerade gestoppt " + under.Count + ", nach Auftauchen wieder gestartet " + nUnderBack);
             }
         }
 
@@ -4987,6 +4988,46 @@ namespace UboatToolkit.Modules
                 Util.Log("Sparen: Anhalten außerhalb des Bildes aus, " + cull.Count + " Effekte wieder wie im Spiel");
                 cull.Clear(); nCull = 0;
             }
+        }
+
+        // 0.4.67 (DoMe 2026-11-19, picture of a shot-down aircraft on the seabed with a smoke column: "ein flugzeug das
+        // noch unter wasser rauchen kann ... zweckfrei"): smoke and fire effects deeper than 5 m under the surface stop
+        // emitting (what is already in the water fades out). If the thing comes up again (a submarine's exhaust), the
+        // effect runs again. Looks only, every ship and aircraft; the own boat is left out.
+        private readonly HashSet<ParticleSystem> under = new HashSet<ParticleSystem>();
+        private int nUnder, nUnderBack;
+        private static bool SmokeName(string n)
+        {
+            return n != null && (n.IndexOf("smoke", System.StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("fire", System.StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("flame", System.StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+        private void Underwater(bool on)
+        {
+            if (!on)
+            {
+                if (under.Count == 0) return;
+                int back = 0;
+                foreach (var p in under) if (p != null && p.gameObject.activeInHierarchy) { p.Play(false); back++; }
+                Util.Log("Sparen: Rauch unter Wasser aus, " + back + " Effekte laufen wieder wie im Spiel");
+                under.Clear(); nUnder = 0;
+                return;
+            }
+            var own = Util.PlayerShip != null ? Util.PlayerShip.transform : null;
+            foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
+            {
+                if (p == null) continue;
+                float y = p.transform.position.y;
+                if (under.Contains(p))
+                {
+                    if (y > -2f) { under.Remove(p); p.Play(false); nUnderBack++; }
+                    continue;
+                }
+                if (y > -5f || !p.isEmitting) continue;
+                if (!SmokeName(p.name) && !(p.transform.parent != null && SmokeName(p.transform.parent.name))) continue;
+                if (own != null && p.transform.IsChildOf(own)) continue;
+                p.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+                under.Add(p); nUnder++;
+            }
+            under.RemoveWhere(x => x == null);
         }
 
         // debris made of 3D models: the graphics card draws all pieces of one effect in one go

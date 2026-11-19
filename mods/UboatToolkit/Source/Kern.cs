@@ -2377,6 +2377,7 @@ namespace UboatToolkit
             Bool(QoL, "SaveMapEffects", "Sparen: reine Kartenansicht hält Rauch, Feuer und Gischt aller Schiffe an (laufen weiter, wenn du die Karte verlässt)", false);
             Bool(QoL, "SaveMapShadows", "Sparen: reine Kartenansicht rechnet keine Schatten", false);
             Bool(QoL, "SaveMapDetail", "Sparen: reine Kartenansicht zeichnet alles in niedriger Detailstufe", false);
+            Bool(QoL, "SaveNoSmokeUnderwater", "Sparen: Rauch und Feuer unter Wasser abschalten (gesunkene Wracks qualmen nicht weiter)", false);
             Bool(QoL, "SaveUnseenEffects", "Sparen: Rauch, Feuer und Gischt außerhalb des Bildes anhalten (qualmt erst wieder, wenn du hinsiehst)", false);
             Bool(QoL, "SaveFarSpray", "Sparen: Gischt und Bugwelle nur bei Schiffen näher als 2 km (Schornstein-Rauch bleibt)", false);
             Bool(QoL, "SaveMarkersOwnCanvas", "Grafikkarte: jede Kontakt-Markierung bekommt eine eigene Zeichenfläche (Prozessor baut nicht mehr alle neu, wenn sich eine bewegt)", false);
