@@ -2217,10 +2217,18 @@ namespace UboatToolkit
             return sb.ToString() + " " + key;
         }
 
+        private static readonly Dictionary<string, string> stems = new Dictionary<string, string>();
         private static string Stem(string w)
         {
-            if (w.Length > 5 && (w.EndsWith("en") || w.EndsWith("er") || w.EndsWith("es") || w.EndsWith("em"))) return w.Substring(0, w.Length - 2);
-            if (w.Length > 4 && (w.EndsWith("e") || w.EndsWith("n") || w.EndsWith("s"))) return w.Substring(0, w.Length - 1);
+            string r;
+            if (stems.TryGetValue(w, out r)) return r;
+            if (stems.Count > 4000) stems.Clear();
+            r = StemRaw(w); stems[w] = r; return r;
+        }
+        private static string StemRaw(string w)
+        {
+            if (w.Length > 5 && (w.EndsWith("en", StringComparison.Ordinal) || w.EndsWith("er", StringComparison.Ordinal) || w.EndsWith("es", StringComparison.Ordinal) || w.EndsWith("em", StringComparison.Ordinal))) return w.Substring(0, w.Length - 2);
+            if (w.Length > 4 && (w.EndsWith("e", StringComparison.Ordinal) || w.EndsWith("n", StringComparison.Ordinal) || w.EndsWith("s", StringComparison.Ordinal))) return w.Substring(0, w.Length - 1);
             return w;
         }
 
@@ -2246,11 +2254,13 @@ namespace UboatToolkit
         }
 
         // Edit distance with swapped neighbours counted as one mistake; stops early above "max".
+        private static int[,] dist;
         private static int Distance(string a, string b, int max)
         {
             int n = a.Length, m = b.Length;
             if (Math.Abs(n - m) > max) return max + 1;
-            var d = new int[n + 1, m + 1];
+            if (dist == null || dist.GetLength(0) <= n || dist.GetLength(1) <= m) dist = new int[Math.Max(n + 1, 40), Math.Max(m + 1, 40)];
+            var d = dist;
             for (int i = 0; i <= n; i++) d[i, 0] = i;
             for (int j = 0; j <= m; j++) d[0, j] = j;
             for (int i = 1; i <= n; i++)
@@ -2309,7 +2319,7 @@ namespace UboatToolkit
             {
                 bool fits = false;
                 foreach (var x in row)
-                    if ((w.Length >= 4 && x.StartsWith(w)) || (x.Length >= 4 && w.StartsWith(x))) { fits = true; break; }
+                    if ((w.Length >= 4 && x.StartsWith(w, StringComparison.Ordinal)) || (x.Length >= 4 && w.StartsWith(x, StringComparison.Ordinal))) { fits = true; break; }
                 if (fits) foreach (var y in row) if (!res.Contains(y)) res.Add(y);
             }
             return res;
@@ -2321,7 +2331,7 @@ namespace UboatToolkit
             foreach (var t in e.LabelTokens) if (t == w) return 120;
             // very short words ("aa", "t5", "88") only count as whole words, else they sit inside half the menu
             if (w.Length < 3) return e.Other.Contains(" " + w + " ") ? 50 : 0;
-            foreach (var t in e.LabelTokens) if (t.StartsWith(w)) return 100;
+            foreach (var t in e.LabelTokens) if (t.StartsWith(w, StringComparison.Ordinal)) return 100;
             if (e.Label.Contains(w)) return 80;
             string stem = Stem(w);
             if (stem.Length >= 4 && stem != w && e.Label.Contains(stem)) return 70;
@@ -2342,37 +2352,59 @@ namespace UboatToolkit
         }
 
         // Proof in the log, once per start: every word of a row must give the same hits in the same order.
+        // 0.4.86 (DoMe 2026-11-19: game stood still for about 90 s after typing into the search): the test no longer
+        // runs in one go. It takes at most 2 ms per picture while the menu search is used, and says how long it took.
         private static bool tested;
+        private static int slowLines;
+        private static int stRow, stWord, stRows, stSame, stFrames, stHits; private static bool stOk;
+        private static string stFirst, stFirstWord; private static float stTotal, stLongest; private static string stLongestWord = "";
+        private static Dictionary<string, int> stCount; private static StringBuilder stBad;
         private static void SelfTest()
         {
             if (tested) return;
-            tested = true;
             try
             {
-                var count = new Dictionary<string, int>();
-                foreach (var row in synonyms) foreach (var x in row) { int n; count.TryGetValue(x, out n); count[x] = n + 1; }
-                int rows = 0, same = 0; var bad = new StringBuilder();
-                foreach (var row in synonyms)
+                if (stCount == null)
                 {
-                    string first = null, firstWord = null; bool ok = true; int hits = 0;
-                    foreach (var x in row)
+                    stCount = new Dictionary<string, int>(); stBad = new StringBuilder(); stOk = true;
+                    foreach (var row in synonyms) foreach (var x in row) { int n; stCount.TryGetValue(x, out n); stCount[x] = n + 1; }
+                }
+                float begin = global::UnityEngine.Time.realtimeSinceStartup;
+                stFrames++;
+                while (stRow < synonyms.Length)
+                {
+                    var row = synonyms[stRow];
+                    if (stWord < row.Length && stOk)
                     {
-                        if (count[x] != 1) continue;                       // a word that stands in two rows belongs to both topics
+                        string x = row[stWord++];
+                        if (stCount[x] != 1) continue;                     // a word that stands in two rows belongs to both topics
+                        float t0 = global::UnityEngine.Time.realtimeSinceStartup;
                         var res = Compute(x);
                         var keys = new List<string>();
                         foreach (var kv in res) keys.Add(kv.Value.ToString("000") + kv.Key.Key);
                         keys.Sort(StringComparer.Ordinal);
                         string sig = string.Join("|", keys.ToArray());
-                        if (first == null) { first = sig; firstWord = x; hits = res.Count; }
-                        else if (sig != first) { ok = false; bad.Append(" [").Append(firstWord).Append(" / ").Append(x).Append("]"); break; }
+                        if (stFirst == null) { stFirst = sig; stFirstWord = x; stHits = res.Count; }
+                        else if (sig != stFirst) { stOk = false; stBad.Append(" [").Append(stFirstWord).Append(" / ").Append(x).Append("]"); }
+                        float took = global::UnityEngine.Time.realtimeSinceStartup - t0;
+                        stTotal += took; if (took > stLongest) { stLongest = took; stLongestWord = x; }
                     }
-                    if (first == null) continue;
-                    rows++; if (ok) same++;
-                    if (row[0] == "lenz") Util.Log("Suche: \"lenz\", \"pumpe\", \"bilge\", \"pump\" liefern " + (ok ? "dieselben " + hits + " Treffer in derselben Reihenfolge" : "NICHT dieselben Treffer"));
+                    else
+                    {
+                        if (stFirst != null)
+                        {
+                            stRows++; if (stOk) stSame++;
+                            if (row[0] == "lenz") Util.Log("Suche: \"lenz\", \"pumpe\", \"bilge\", \"pump\" liefern " + (stOk ? "dieselben " + stHits + " Treffer in derselben Reihenfolge" : "NICHT dieselben Treffer"));
+                        }
+                        stRow++; stWord = 0; stFirst = null; stFirstWord = null; stOk = true;
+                    }
+                    if (global::UnityEngine.Time.realtimeSinceStartup - begin > 0.002f) return;
                 }
-                Util.Log("Suche: Selbsttest, " + same + " von " + rows + " Wortgruppen liefern für jedes ihrer Wörter dieselben Treffer" + (bad.Length > 0 ? ". Abweichend:" + bad : ""));
+                tested = true;
+                Util.Log("Suche: Selbsttest, " + stSame + " von " + stRows + " Wortgruppen liefern für jedes ihrer Wörter dieselben Treffer" + (stBad.Length > 0 ? ". Abweichend:" + stBad : "")
+                    + ". Dauer " + (stTotal * 1000f).ToString("F0") + " ms, verteilt auf " + stFrames + " Bilder, längstes Wort \"" + stLongestWord + "\" " + (stLongest * 1000f).ToString("F1") + " ms");
             }
-            catch (Exception ex) { Util.Log("Suche: Selbsttest Fehler " + ex.GetType().Name); }
+            catch (Exception ex) { tested = true; Util.Log("Suche: Selbsttest Fehler " + ex.GetType().Name); }
         }
 
         private static Dictionary<Opt, int> Compute(string q) { return Compute(q, null); }
@@ -2418,7 +2450,10 @@ namespace UboatToolkit
             var words = q.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (words.Length == 0) return cached;
             var any = new bool[words.Length];
+            float st0 = global::UnityEngine.Time.realtimeSinceStartup;
             foreach (var kv in Compute(q, any)) cached[kv.Key] = kv.Value;
+            float stMs = (global::UnityEngine.Time.realtimeSinceStartup - st0) * 1000f;
+            if (stMs > 20f && slowLines < 10) { slowLines++; Util.Log("Suche: \"" + q + "\" brauchte " + stMs.ToString("F0") + " ms (" + cached.Count + " Treffer)"); }
             if (cached.Count == 0)
             {
                 // which word found nothing at all? offer the closest known word for it
