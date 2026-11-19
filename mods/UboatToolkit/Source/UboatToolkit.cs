@@ -30834,6 +30834,9 @@ namespace UboatToolkit.Modules
         private PlayerShip thrusterOwner;
         private float heldHeading = float.NaN;
         internal static float LastGunShot = -99f;   // set when one of our guns fires
+        // 0.4.80: sign for the Warthog mod (read by name): this Toolkit acts on the Warthog boat when the mod has the
+        // type "ToolkitThrustersRest". Toolkit versions without this field rest there, so the mod must act itself.
+        public static readonly bool HonorsWarthogHandshake = true;
         // not on a boat that another mod steers with its own thrusters (Warthog mod on its own boat)
         public static bool Active(PlayerShip ship) => ship != null && (!Util.WarthogModOwns(ship) || Util.WarthogDefersThrusters);
 
