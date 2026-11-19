@@ -513,7 +513,7 @@ namespace UboatToolkit.Modules.Warthog
             Scale(ship.HydrophoneDetectability, on ? Settings.F("WhHydroNoise") : 1f, "Warthog Coating");
             Scale(ship.VerticalSteersPerformance, on && Settings.B("WhFins") ? Settings.F("WhFinDepth") : 1f, "Warthog Fins");
             if (on && WarthogSettings.IsWarthog(ship)) MirrorBadge(ship);
-            Owners.WarthogSpeed = on && WarthogSettings.IsWarthog(ship) && !Util.WarthogModOwns(ship) ? Settings.F("WhSpeedFactor") : 1f;   // 0.4.29: one writer (Navigation)
+            Owners.AddonSpeed = on && WarthogSettings.IsWarthog(ship) && !Util.WarthogModOwns(ship) ? Settings.F("WhSpeedFactor") : 1f;   // 0.4.29: one writer (Navigation)
             if (WarthogSettings.IsWarthog(ship)) DiveSpeed(ship, on ? Settings.F("WhDiveSpeed") : 0f);
             if (on && WarthogSettings.IsWarthog(ship)) CrushLimit(ship, Settings.F("WhCrushDepth"));
             // berth position (used by the game at the next docking): forward shift + side shift away from the pier
@@ -1991,6 +1991,105 @@ namespace UboatToolkit.Modules.Warthog
             Modules = WarthogModules.All,
             Tab = WarthogSettings.Tab, TabVisible = () => !Util.WarthogModPresent, DrawTab = WarthogTab.Draw,
             DrawHud = WarthogThrusterGauge.Draw,
+            Rests = () => Util.WarthogModOwns(Util.PlayerShip), RestReason = "Warthog-Mod ist installiert und sein Boot ist in Benutzung, die Wirkung kommt allein von ihm",
+            PatchAfter = "UboatToolkit.Modules.Wolfpack_MissionPatch",
+            PatchNames = new[]
+            {
+                "UboatToolkit.Modules.Warthog.WarthogAir_SilentPatch",
+                "UboatToolkit.Modules.Warthog.WarthogAir_OxygenPatch",
+                "UboatToolkit.Modules.Warthog.WarthogHatches_AirPatch",
+                "UboatToolkit.Modules.Warthog.WarthogHatches_LadderLog",
+                "UboatToolkit.Modules.Warthog.WarthogNetCutter_CollisionPatch",
+                "UboatToolkit.Modules.Warthog.WarthogSnorkel_UpdatePatch",
+                "UboatToolkit.Modules.Warthog.WarthogSonar_UnmannedPatch",
+                "UboatToolkit.Modules.Warthog.WarthogSonar_ExactPatch",
+                "UboatToolkit.Modules.Warthog.WarthogSonar_ArcPatch",
+                "UboatToolkit.Modules.Warthog.WarthogSonar_QuietPingPatch",
+                "UboatToolkit.Modules.Warthog.WarthogWeapons_RemotePatch",
+                "UboatToolkit.Modules.Warthog.WarthogWeapons_FirePatch"
+            },
+            Hints = new[]
+            {
+                new[] { "=WhThrusters", Settings.GroupBoat, "Strahlruder" }, new[] { "=WhVThrusters", Settings.GroupBoat, "Strahlruder" },
+                new[] { "WhThrust", "", "Strahlruder" }, new[] { "WhVThrust", "", "Strahlruder" },
+                new[] { "KeyWhThrust", Settings.GroupBoat, "" }, new[] { "KeyWhVThrust", Settings.GroupBoat, "" },
+            },
+            Split = new[] { "WhSilentVent", "WhVentAlwaysOn" },
+            Texts = m =>
+            {
+                m["Warthog: Strahlruder links"] = "Warthog: thruster left";
+                m["Warthog: Strahlruder rechts"] = "Warthog: thruster right";
+                m["Strahlruder gibt es nur auf dem Warthog (U-1337)"] = "Thrusters exist only on the Warthog (U-1337)";
+                m[" (0 = verbraucht, 1 = kostenlos, 2 = erzeugt)"] = " (0 = consumes, 1 = free, 2 = generates)";
+                m["Alle Warthog-Funktionen nur auf U-1337 (Type XXX), nicht auf anderen Booten"] = "All Warthog features only on U-1337 (Type XXX), not on other boats";
+                m["Gummibeschichtung: Sonar-Ortbarkeit x (1 = ohne, 0 = unsichtbar)"] = "Rubber coating: sonar detectability x (1 = none, 0 = invisible)";
+                m["Gummibeschichtung: Hydrophon-Ortbarkeit x (1 = normal)"] = "Rubber coating: hydrophone detectability x (1 = normal)";
+                m["Finnen: engere Kurven, weniger Rollen, schneller Tiefe wechseln"] = "Fins: tighter turns, less rolling, faster depth changes";
+                m["  Kurven: Drehkraft x"] = "  Turns: turning force x";
+                m["  Rollen: Dämpfung x"] = "  Rolling: damping x";
+                m["  Tiefenruder-Wirkung x"] = "  Dive plane effect x";
+                m["  Strahlruder helfen automatisch beim Ruderlegen"] = "  Thrusters help automatically when the rudder is put over";
+                m["  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)"] = "  Strength (6 = about 0.6 deg/s² turning acceleration)";
+                m["  Kurs halten, während Geschütze feuern (gegen Rückstoß)"] = "  Hold course while the guns fire (against recoil)";
+                m["Geschwindigkeit: Faktor auf die Schraubenleistung (1,0 = wie gebaut)"] = "Speed: factor on propeller power (1.0 = as built)";
+                m["Tauch-/Steiggeschwindigkeit: Faktor auf die Tiefenruder-Kraft (1,0 = wie ein IXC, auch in großer Tiefe)"] = "Dive/rise speed: factor on diving-plane force (1.0 = like an IXC, also at great depth)";
+                m["Zerstörungstiefe in m (befohlene Tiefe wird auf 100 m darüber begrenzt)"] = "Crush depth in m (ordered depth is limited to 100 m above it)";
+                m["  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)"] = "  Bow thruster alone (-100 = port, +100 = starboard, 0 = off)";
+                m["  Heck-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)"] = "  Stern thruster alone (-100 = port, +100 = starboard, 0 = off)";
+                m["Teleskop-Schnorchel: tiefer als Sehrohrtiefe"] = "Telescopic snorkel: deeper than periscope depth";
+                m["  zusätzliche Länge in m"] = "  extra length in m";
+                m["  fährt bei Wellen automatisch weiter aus"] = "  extends further automatically in waves";
+                m["  Abgas unter Wasser: Sichtbarkeit x (0 = unsichtbar)"] = "  Exhaust underwater: visibility x (0 = invisible)";
+                m["Eine Lenzpumpe pro Abteil, mit Schwimmer (springt selbst an)"] = "One bilge pump per compartment, with float switch (starts by itself)";
+                m["  Schwimmer: an ab x m³ Wasser im Abteil"] = "  Float: on from x m³ of water in the compartment";
+                m["  Leistung je Pumpe in m³/s (offenes Turmluk getaucht ≈ 0,2)"] = "  Output per pump in m³/s (open tower hatch submerged ≈ 0.2)";
+                m["  Leistung steigt mit der Tiefe (gegen den Wasserdruck)"] = "  Output rises with depth (against water pressure)";
+                m["  Strom je Pumpe bei voller Leistung (Anteil x 0,0001/s)"] = "  Power per pump at full output (share x 0.0001/s)";
+                m["Sauerstoff per Elektrolyse: keine Kalipatronen mehr"] = "Oxygen by electrolysis: no more potash cartridges";
+                m["Alle Verbraucher generieren Strom"] = "All consumers generate power";
+                m["Passives Sonar 360°: immer an, auch ohne Hydrophon"] = "Passive sonar 360°: always on, even without a hydrophone operator";
+                m["  aufgetaucht und bei hoher Fahrt genauso gut"] = "  just as good surfaced and at high speed";
+                m["  Reichweite x"] = "  Range x";
+                m["  Kontakte auf der Karte zeigen"] = "  Show contacts on the map";
+                m["  Alarm bei neuem Kontakt"] = "  Alarm on new contact";
+                m["Aktives Sonar Bug (nach vorn + unten)"] = "Active sonar bow (forward + down)";
+                m["Sonar Mitte (nur passiv)"] = "Sonar centre (passive only)";
+                m["Aktives Sonar Heck (nach hinten + unten)"] = "Active sonar stern (backward + down)";
+                m["  Ping verrät uns (Gegner hören den Ping)"] = "  Ping gives us away (enemies hear the ping)";
+                m["Automatischer Torpedolader: Rohre laden ohne Crew, Außenbehälter füllen innen nach"] = "Automatic torpedo loader: tubes load without crew, outer containers refill inside";
+                m["  Nachladezeit pro Rohr in Sekunden (0 = sofort, Typ XXI hydraulisch ≈ 120)"] = "  Reload time per tube in seconds (0 = instant, Type XXI hydraulic ≈ 120)";
+                m["Overkill: Vierlingsrohre statt Zwillinge"] = "Overkill: quad barrels instead of twins";
+                m["Flak: Absenkung bis x Grad (unter Horizont)"] = "AA: depress down to x degrees (below horizon)";
+                m["  Feuerschutz: nie ins eigene Boot schießen"] = "  Fire guard: never shoot into your own boat";
+                m["Geschütze aus dem Feuerleitstand fernbedienen (aus = klassisch an Deck)"] = "Remote-control the guns from the fire control station (off = classic on deck)";
+                m["Flugzeuge orten bis x km"] = "Detect aircraft up to x km";
+                m["Flugzeuge beschießen ab x km"] = "Fire at aircraft from x km";
+                m["  Strahlruder-Anzeige (wie die Tiefen-Anzeige)"] = "  Thruster display (like the depth display)";
+                m["    Anzeige: Position von links in %"] = "    Display: position from the left in %";
+                m["    Anzeige: Position von oben in %"] = "    Display: position from the top in %";
+                m["Warthog: Anker werfen / lichten"] = "Warthog: drop / raise anchor";
+                m["Luken: alle Luken benutzbar (2. Turmluk, Seitentüren, Torpedoluken, Kombüse; aus = Spiel mit einem Luk)"] = "Hatches: all hatches usable (2nd tower hatch, side doors, torpedo hatches, galley; off = game's single hatch)";
+                m["  Luken einzeln steuern (Liste oben im Reiter; aus = alle folgen Turmluk 1)"] = "  Control hatches one by one (list at the top of the tab; off = all follow tower hatch 1)";
+                m["Liegeplatz: Boot x m nach vorn schieben (IXC = 5; 14 = Heck wie beim IXC)"] = "Berth: move boat x m forward (IXC = 5; 14 = stern like the IXC)";
+                m["Liegeplatz: Boot x m seitlich schieben (+ = Steuerbord)"] = "Berth: move boat x m sideways (+ = starboard)";
+                m["Netzsäge: U-Boot-Netze durchschneiden (Bug + Heck)"] = "Net saw: cut anti-submarine nets (bow + stern)";
+                m["Anker benutzen (Knopf oben im Reiter oder Taste)"] = "Use anchor (button at the top of the tab or key)";
+                m["  welcher Anker: 0 = Bug, 1 = Heck, 2 = beide"] = "  which anchor: 0 = bow, 1 = stern, 2 = both";
+                m["  Kettenlänge in m"] = "  chain length in m";
+                m["  Anker lichten dauert x Sekunden (0 = sofort)"] = "  raising the anchor takes x seconds (0 = instant)";
+                m["Feuerleitstand: Geschützgruppe nur bereit, wenn ihr Platz besetzt ist"] = "Fire control: gun group only ready when its station is manned";
+                m["Deckgeschütze: Kaliber 8,8 cm statt 10,5 cm"] = "Deck guns: 8.8 cm calibre instead of 10.5 cm";
+                m["Sonar: neuer Kontakt, Peilung "] = "Sonar: new contact, bearing ";
+                m["Warthog übernehmen"] = "Take over Warthog";
+                m["Im Spiel selbst: im Hafen den Depot-Arbeiter ansprechen → \"Kommando über anderes U-Boot übernehmen\"."] = "In the game itself: in port talk to the depot worker → \"Take command of another U-boat\".";
+                m["Nur im Hafen möglich"] = "Only possible in port";
+                m["Bootsauswahl nicht gefunden"] = "Boat selection not found";
+                m["Bootsauswahl geöffnet"] = "Boat selection opened";
+                m["Radar: Flugzeug, Peilung "] = "Radar: aircraft, bearing ";
+                m["Strahlruder sind ausgeschaltet (F10 > Warthog)"] = "Thrusters are switched off (F10 > Warthog)";
+                m["Strahlruder: im Hafen festgemacht, erst ablegen"] = "Thrusters: moored in port, cast off first";
+                m["Strahlruder: Boot wird gerade vom Spiel gehalten (Schnellreise/Andocken)"] = "Thrusters: the game is holding the boat right now (fast travel/docking)";
+            },
             Flag = n => n == "WarthogWeapons" ? WarthogWeapons.On : n == "PassiveSonarSame" && WarthogSonar.On && Settings.B("WhPassive") && Settings.B("WhPassiveSame"),
             Value = n => n == "VThrusterCmd" ? WarthogVThrusters.LastCmd : n == "FlakDepression" ? (WarthogWeapons.On ? Settings.F("WhFlakDepression") : 0f) : float.NaN,
         };

@@ -63,6 +63,12 @@ namespace UboatToolkit
         public Action DrawHud;                   // drawn in the game view
         public Func<string, bool> Flag;          // named yes/no answers for Toolkit parts ("WarthogSonar")
         public Func<string, float> Value;        // named numbers for Toolkit logs ("VThrusterCmd")
+        public Action<Dictionary<string, string>> Texts;   // its English texts (key = German text)
+        public string[] PatchNames; public string PatchAfter;   // its Harmony patch classes, in order, placed after this core patch
+        public string[][] Hints;                 // menu place of its options: { key prefix ("=" in front = exact key), topic, headline }
+        public string[] Split;                   // pairs: old joint switch, new separate switch
+        public Func<bool> Rests; public string RestReason;   // true = all its parts stand still (another mod does the work)
+        internal bool Resting; internal IModule[] Instances;
     }
 
     public static class Addons
@@ -89,6 +95,15 @@ namespace UboatToolkit
                 catch (Exception e) { Report += " [" + t.Name + " konnte sich nicht anmelden: " + (e.InnerException ?? e).GetType().Name + "]"; }
             }
             Report = "Zusatz-Dateien im Toolkit: " + (all.Count == 0 ? "keine" : string.Join(", ", all.ConvertAll(a => a.Name).ToArray())) + Report;
+        }
+        // menu place stated by an add-on for this option key: [1] topic, [2] headline ("" = not stated); null = no hint
+        public static string[] Hint(string key)
+        {
+            foreach (var a in All)
+                if (a.Hints != null)
+                    foreach (var h in a.Hints)
+                        if (h[0].StartsWith("=") ? key == h[0].Substring(1) : key.StartsWith(h[0], StringComparison.Ordinal)) return h;
+            return null;
         }
         public static bool Flag(string name) { foreach (var a in All) if (a.Flag != null && a.Flag(name)) return true; return false; }
         public static float Value(string name) { foreach (var a in All) if (a.Value != null) { float v = a.Value(name); if (!float.IsNaN(v)) return v; } return 0f; }
@@ -599,6 +614,49 @@ namespace UboatToolkit
                     parts.Add(kv.Key + ": " + string.Join(" | ", global::System.Linq.Enumerable.Select(kv.Value, o => o.Text + " = " + o.Label.Trim())));
             Util.Log(Addons.Report);
             Util.Log("Tasten (aus der ini gelesen): " + n + " belegt. Grundtasten mit mehreren Funktionen: " + (parts.Count == 0 ? "keine" : string.Join("; ", parts)));
+            Util.Safe("Keys.OtherMods", OtherMods);
+        }
+
+        // 0.4.77 (DoMe 2026-11-19: "dann würden auch die doppelten sachen auffallen wie die thruster"): compares the
+        // Toolkit's switches and keys with the settings files of other mods in the same folder (Warthog.ini). Read only.
+        private static void OtherMods()
+        {
+            string dir = global::System.IO.Path.GetDirectoryName(Settings.FilePath);
+            foreach (var file in global::System.IO.Directory.GetFiles(dir, "*.ini"))
+            {
+                if (string.Equals(file, Settings.FilePath, StringComparison.OrdinalIgnoreCase)) continue;
+                string name = global::System.IO.Path.GetFileName(file);
+                var same = new System.Collections.Generic.List<string>(); var keys = new System.Collections.Generic.List<string>();
+                int entries = 0, differ = 0;
+                foreach (var raw in global::System.IO.File.ReadAllLines(file))
+                {
+                    int eq = raw.IndexOf('=');
+                    if (eq <= 0 || raw.TrimStart().StartsWith("#") || raw.TrimStart().StartsWith(";") || raw.TrimStart().StartsWith("[")) continue;
+                    string k = raw.Substring(0, eq).Trim(), v = raw.Substring(eq + 1).Trim();
+                    entries++;
+                    var mine = Settings.Get(k);
+                    if (mine != null)
+                    {
+                        string my = mine.IsKey ? mine.Text : mine.Value.ToString("0.###", global::System.Globalization.CultureInfo.InvariantCulture);
+                        bool diff = mine.IsKey ? !string.Equals(my, v, StringComparison.OrdinalIgnoreCase) : !(float.TryParse(v, global::System.Globalization.NumberStyles.Float, global::System.Globalization.CultureInfo.InvariantCulture, out var f) && Math.Abs(f - mine.Value) < 0.0005f);
+                        if (diff) differ++;
+                        same.Add(k + (diff ? " (Toolkit " + my + ", dort " + v + ")" : ""));
+                    }
+                    if (!k.StartsWith("Key", StringComparison.Ordinal) || v == "") continue;
+                    KeyCode c1; bool cc = false, cs = false, ca = false;
+                    if (!Enum.TryParse(v, true, out c1) && !Parse(v, out c1, out cc, out cs, out ca)) continue;
+                    foreach (var o in Settings.All)
+                    {
+                        if (!o.IsKey || string.IsNullOrEmpty(o.Text) || o.Key == k) continue;
+                        KeyCode c2; bool dc = false, ds = false, da = false;
+                        if (!Enum.TryParse(o.Text.Trim(), true, out c2) && !Parse(o.Text, out c2, out dc, out ds, out da)) continue;
+                        if (c1 == c2 && cc == dc && cs == ds && ca == da) keys.Add(v + ": dort " + k + ", im Toolkit „" + o.Label.Trim() + "“");
+                    }
+                }
+                Util.Log("Doppelt mit " + name + " (nur lesen): " + entries + " Einträge dort; gleicher Schalter- oder Tasten-Name in beiden Dateien " + same.Count + " (davon mit anderem Wert " + differ + ")"
+                    + (same.Count == 0 ? "" : ": " + string.Join(", ", same.GetRange(0, Math.Min(same.Count, 40)).ToArray()) + (same.Count > 40 ? " …" : ""))
+                    + "; gleiche Taste für verschiedene Funktionen " + keys.Count + (keys.Count == 0 ? "" : ": " + string.Join("; ", keys.ToArray())));
+            }
         }
 
         // The bound key as a KeyCode (single key names like "LeftAlt" or "Mouse3" allowed).
@@ -1558,85 +1616,17 @@ namespace UboatToolkit
             m[" - Vorschlag: "] = " - suggestion: ";
             m[" Männer umbenannt, jetzt hat jeder einen eigenen Nachnamen"] = " men renamed, now everyone has his own last name";
             m["Keine doppelten Namen gefunden"] = "No duplicate names found";
-            m[" (0 = verbraucht, 1 = kostenlos, 2 = erzeugt)"] = " (0 = consumes, 1 = free, 2 = generates)";
-            m["Alle Warthog-Funktionen nur auf U-1337 (Type XXX), nicht auf anderen Booten"] = "All Warthog features only on U-1337 (Type XXX), not on other boats";
-            m["Gummibeschichtung: Sonar-Ortbarkeit x (1 = ohne, 0 = unsichtbar)"] = "Rubber coating: sonar detectability x (1 = none, 0 = invisible)";
-            m["Gummibeschichtung: Hydrophon-Ortbarkeit x (1 = normal)"] = "Rubber coating: hydrophone detectability x (1 = normal)";
-            m["Finnen: engere Kurven, weniger Rollen, schneller Tiefe wechseln"] = "Fins: tighter turns, less rolling, faster depth changes";
-            m["  Kurven: Drehkraft x"] = "  Turns: turning force x";
-            m["  Rollen: Dämpfung x"] = "  Rolling: damping x";
-            m["  Tiefenruder-Wirkung x"] = "  Dive plane effect x";
             m["Strahlruder vorn + achtern"] = "Bow + stern thrusters";
-            m["  Strahlruder helfen automatisch beim Ruderlegen"] = "  Thrusters help automatically when the rudder is put over";
-            m["  Stärke (6 = ca. 0,6 Grad/s² Drehbeschleunigung)"] = "  Strength (6 = about 0.6 deg/s² turning acceleration)";
             m["  Strom pro Sekunde volle Leistung (Anteil Batterie x 0,0001)"] = "  Power per second at full output (share of battery x 0.0001)";
-            m["  Kurs halten, während Geschütze feuern (gegen Rückstoß)"] = "  Hold course while the guns fire (against recoil)";
-            m["Geschwindigkeit: Faktor auf die Schraubenleistung (1,0 = wie gebaut)"] = "Speed: factor on propeller power (1.0 = as built)";
-            m["Tauch-/Steiggeschwindigkeit: Faktor auf die Tiefenruder-Kraft (1,0 = wie ein IXC, auch in großer Tiefe)"] = "Dive/rise speed: factor on diving-plane force (1.0 = like an IXC, also at great depth)";
-            m["Zerstörungstiefe in m (befohlene Tiefe wird auf 100 m darüber begrenzt)"] = "Crush depth in m (ordered depth is limited to 100 m above it)";
             m["  Shift + Z/X: ganzes Boot seitwärts (Anlegen); Z/X ohne Shift: auf der Stelle drehen"] = "  Shift + Z/X: whole boat sideways (docking); Z/X without Shift: turn on the spot";
-            m["  Bug-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)"] = "  Bow thruster alone (-100 = port, +100 = starboard, 0 = off)";
-            m["  Heck-Strahlruder einzeln (-100 = Bb, +100 = Stb, 0 = aus)"] = "  Stern thruster alone (-100 = port, +100 = starboard, 0 = off)";
-            m["Teleskop-Schnorchel: tiefer als Sehrohrtiefe"] = "Telescopic snorkel: deeper than periscope depth";
-            m["  zusätzliche Länge in m"] = "  extra length in m";
-            m["  fährt bei Wellen automatisch weiter aus"] = "  extends further automatically in waves";
-            m["  Abgas unter Wasser: Sichtbarkeit x (0 = unsichtbar)"] = "  Exhaust underwater: visibility x (0 = invisible)";
-            m["Eine Lenzpumpe pro Abteil, mit Schwimmer (springt selbst an)"] = "One bilge pump per compartment, with float switch (starts by itself)";
-            m["  Schwimmer: an ab x m³ Wasser im Abteil"] = "  Float: on from x m³ of water in the compartment";
-            m["  Leistung je Pumpe in m³/s (offenes Turmluk getaucht ≈ 0,2)"] = "  Output per pump in m³/s (open tower hatch submerged ≈ 0.2)";
-            m["  Leistung steigt mit der Tiefe (gegen den Wasserdruck)"] = "  Output rises with depth (against water pressure)";
-            m["  Strom je Pumpe bei voller Leistung (Anteil x 0,0001/s)"] = "  Power per pump at full output (share x 0.0001/s)";
             m["Lüftung immer an und lautlos, auch bei Schleichfahrt"] = "Ventilation always on and silent, even in silent running";
-            m["Sauerstoff per Elektrolyse: keine Kalipatronen mehr"] = "Oxygen by electrolysis: no more potash cartridges";
-            m["Alle Verbraucher generieren Strom"] = "All consumers generate power";
-            m["Passives Sonar 360°: immer an, auch ohne Hydrophon"] = "Passive sonar 360°: always on, even without a hydrophone operator";
-            m["  aufgetaucht und bei hoher Fahrt genauso gut"] = "  just as good surfaced and at high speed";
-            m["  Reichweite x"] = "  Range x";
-            m["  Kontakte auf der Karte zeigen"] = "  Show contacts on the map";
-            m["  Alarm bei neuem Kontakt"] = "  Alarm on new contact";
-            m["Aktives Sonar Bug (nach vorn + unten)"] = "Active sonar bow (forward + down)";
-            m["Sonar Mitte (nur passiv)"] = "Sonar centre (passive only)";
-            m["Aktives Sonar Heck (nach hinten + unten)"] = "Active sonar stern (backward + down)";
-            m["  Ping verrät uns (Gegner hören den Ping)"] = "  Ping gives us away (enemies hear the ping)";
-            m["Automatischer Torpedolader: Rohre laden ohne Crew, Außenbehälter füllen innen nach"] = "Automatic torpedo loader: tubes load without crew, outer containers refill inside";
-            m["  Nachladezeit pro Rohr in Sekunden (0 = sofort, Typ XXI hydraulisch ≈ 120)"] = "  Reload time per tube in seconds (0 = instant, Type XXI hydraulic ≈ 120)";
             m["Deckgeschütze: Kaliber (88 oder 105 mm)"] = "Deck guns: calibre (88 or 105 mm)";
-            m["Overkill: Vierlingsrohre statt Zwillinge"] = "Overkill: quad barrels instead of twins";
-            m["Flak: Absenkung bis x Grad (unter Horizont)"] = "AA: depress down to x degrees (below horizon)";
-            m["  Feuerschutz: nie ins eigene Boot schießen"] = "  Fire guard: never shoot into your own boat";
-            m["Geschütze aus dem Feuerleitstand fernbedienen (aus = klassisch an Deck)"] = "Remote-control the guns from the fire control station (off = classic on deck)";
-            m["Flugzeuge orten bis x km"] = "Detect aircraft up to x km";
-            m["Flugzeuge beschießen ab x km"] = "Fire at aircraft from x km";
-            m["Warthog: Strahlruder links"] = "Warthog: thruster left";
-            m["Warthog: Strahlruder rechts"] = "Warthog: thruster right";
             m["Mehr Frachter: Konvois + einzelne Handelsschiffe x so oft (1 = Spiel)"] = "More freighters: convoys + single merchants x as often (1 = game)";
             m["Crew-Spezialisierungen (Tauchgang, Schleichfahrt, Disziplin): immer genug Punkte"] = "Crew specializations (diving, silent running, discipline): always enough points";
             m["  >> Konvoi spawnen (Gegner-Konvoi taucht vor dir auf)"] = "  >> Spawn convoy (enemy convoy appears ahead of you)";
             m["  Abstand voraus in km"] = "  Distance ahead in km";
             m["Konvoi spawnen"] = "Spawn convoy";
             m["  nur bis Zeitraffer x (darüber kein Nachladen = keine Ruckler/Flicken)"] = "  only up to time compression x (above: no loading = no stutter/patches)";
-            m["  Strahlruder-Anzeige (wie die Tiefen-Anzeige)"] = "  Thruster display (like the depth display)";
-            m["    Anzeige: Position von links in %"] = "    Display: position from the left in %";
-            m["    Anzeige: Position von oben in %"] = "    Display: position from the top in %";
-            m["Warthog: Anker werfen / lichten"] = "Warthog: drop / raise anchor";
-            m["Luken: alle Luken benutzbar (2. Turmluk, Seitentüren, Torpedoluken, Kombüse; aus = Spiel mit einem Luk)"] = "Hatches: all hatches usable (2nd tower hatch, side doors, torpedo hatches, galley; off = game's single hatch)";
-            m["  Luken einzeln steuern (Liste oben im Reiter; aus = alle folgen Turmluk 1)"] = "  Control hatches one by one (list at the top of the tab; off = all follow tower hatch 1)";
-            m["Liegeplatz: Boot x m nach vorn schieben (IXC = 5; 14 = Heck wie beim IXC)"] = "Berth: move boat x m forward (IXC = 5; 14 = stern like the IXC)";
-            m["Liegeplatz: Boot x m seitlich schieben (+ = Steuerbord)"] = "Berth: move boat x m sideways (+ = starboard)";
-            m["Netzsäge: U-Boot-Netze durchschneiden (Bug + Heck)"] = "Net saw: cut anti-submarine nets (bow + stern)";
-            m["Anker benutzen (Knopf oben im Reiter oder Taste)"] = "Use anchor (button at the top of the tab or key)";
-            m["  welcher Anker: 0 = Bug, 1 = Heck, 2 = beide"] = "  which anchor: 0 = bow, 1 = stern, 2 = both";
-            m["  Kettenlänge in m"] = "  chain length in m";
-            m["  Anker lichten dauert x Sekunden (0 = sofort)"] = "  raising the anchor takes x seconds (0 = instant)";
-            m["Feuerleitstand: Geschützgruppe nur bereit, wenn ihr Platz besetzt ist"] = "Fire control: gun group only ready when its station is manned";
-            m["Deckgeschütze: Kaliber 8,8 cm statt 10,5 cm"] = "Deck guns: 8.8 cm calibre instead of 10.5 cm";
-            m["Sonar: neuer Kontakt, Peilung "] = "Sonar: new contact, bearing ";
-            m["Warthog übernehmen"] = "Take over Warthog";
-            m["Im Spiel selbst: im Hafen den Depot-Arbeiter ansprechen → \"Kommando über anderes U-Boot übernehmen\"."] = "In the game itself: in port talk to the depot worker → \"Take command of another U-boat\".";
-            m["Nur im Hafen möglich"] = "Only possible in port";
-            m["Bootsauswahl nicht gefunden"] = "Boat selection not found";
-            m["Bootsauswahl geöffnet"] = "Boat selection opened";
-            m["Radar: Flugzeug, Peilung "] = "Radar: aircraft, bearing ";
             m["Backup gespeichert (UboatToolkit_Backup), Cheat ist an."] = "Backup saved (UboatToolkit_Backup), cheat is on.";
             m["Warnung: "] = "Warning: ";
             m[" nur noch "] = " only";
@@ -1655,10 +1645,7 @@ namespace UboatToolkit
             m["  Männer ohne Arbeit (stehen, ruhen, rauchen, schlafen) überlegen nur jedes x. Bild, auch sichtbar (1 = aus)"] = "  men without work (standing, resting, smoking, sleeping) think only every x-th frame, even when visible (1 = off)";
             m["Start-Videos (Logos) beim Spielstart überspringen"] = "Skip the start videos (logos) when the game starts";
             m["Start-Intros übersprungen"] = "Start videos skipped";
-            m["Strahlruder gibt es nur auf dem Warthog (U-1337)"] = "Thrusters exist only on the Warthog (U-1337)";
-            m["Strahlruder sind ausgeschaltet (F10 > Warthog)"] = "Thrusters are switched off (F10 > Warthog)";
-            m["Strahlruder: im Hafen festgemacht, erst ablegen"] = "Thrusters: moored in port, cast off first";
-            m["Strahlruder: Boot wird gerade vom Spiel gehalten (Schnellreise/Andocken)"] = "Thrusters: the game is holding the boat right now (fast travel/docking)";
+            foreach (var ad in Addons.All) ad.Texts?.Invoke(m);
             return m;
         }
     }
@@ -1686,15 +1673,15 @@ namespace UboatToolkit
 
         // Second value: propeller power of OUR boat. Two parts wanted to write it (speed cheat and Warthog speed factor) and
         // overwrote each other every second. Now both only state their factor here; Navigation writes game value x both.
-        public static float WarthogSpeed = 1f;
+        public static float AddonSpeed = 1f;   // speed factor stated by an add-on file (1 = none)
         private static float lastSpeedLog = -1f;
         public static float PropellerFactor(float cheat)
         {
-            float w = Mathf.Clamp(WarthogSpeed, 0.5f, 2f), f = Mathf.Max(1f, cheat) * w;
+            float w = Mathf.Clamp(AddonSpeed, 0.5f, 2f), f = Mathf.Max(1f, cheat) * w;
             if (Mathf.Abs(f - lastSpeedLog) > 0.001f)
             {
                 lastSpeedLog = f;
-                Util.Log("Schraubenkraft (nur eigenes Boot): Spielwert x " + (f * f).ToString("0.##") + " (Tempo-Cheat x" + Mathf.Max(1f, cheat).ToString("0.##") + ", Warthog-Tempo x" + w.ToString("0.##") + ")");
+                Util.Log("Schraubenkraft (nur eigenes Boot): Spielwert x " + (f * f).ToString("0.##") + " (Tempo-Cheat x" + Mathf.Max(1f, cheat).ToString("0.##") + ", Zusatz-Tempo x" + w.ToString("0.##") + ")");
             }
             return f * f;
         }
@@ -2034,18 +2021,6 @@ namespace UboatToolkit
             "UboatToolkit.Modules.Wolfpack_ParseReportPatch",
             "UboatToolkit.Modules.Wolfpack_StartPatch",
             "UboatToolkit.Modules.Wolfpack_MissionPatch",
-            "UboatToolkit.Modules.Warthog.WarthogAir_SilentPatch",
-            "UboatToolkit.Modules.Warthog.WarthogAir_OxygenPatch",
-            "UboatToolkit.Modules.Warthog.WarthogHatches_AirPatch",
-            "UboatToolkit.Modules.Warthog.WarthogHatches_LadderLog",
-            "UboatToolkit.Modules.Warthog.WarthogNetCutter_CollisionPatch",
-            "UboatToolkit.Modules.Warthog.WarthogSnorkel_UpdatePatch",
-            "UboatToolkit.Modules.Warthog.WarthogSonar_UnmannedPatch",
-            "UboatToolkit.Modules.Warthog.WarthogSonar_ExactPatch",
-            "UboatToolkit.Modules.Warthog.WarthogSonar_ArcPatch",
-            "UboatToolkit.Modules.Warthog.WarthogSonar_QuietPingPatch",
-            "UboatToolkit.Modules.Warthog.WarthogWeapons_RemotePatch",
-            "UboatToolkit.Modules.Warthog.WarthogWeapons_FirePatch",
             "UboatToolkit.Modules.StationCtl.StationCursorZoomPatch",
             "UboatToolkit.Modules.StationCtl.DeviceStationZoomPatch",
             "UboatToolkit.Modules.StationCtl.HydrophoneZoomPatch",
@@ -2070,8 +2045,12 @@ namespace UboatToolkit
 
         internal static System.Collections.Generic.List<System.Type> Sort(System.Collections.Generic.IEnumerable<System.Type> types)
         {
+            // add-on files bring their own patch names; they are slotted in right after the core name they state
+            var names = new System.Collections.Generic.List<string>(Names);
+            foreach (var ad in Addons.All)
+                if (ad.PatchNames != null) { int at = ad.PatchAfter == null ? -1 : names.IndexOf(ad.PatchAfter); names.InsertRange(at < 0 ? names.Count : at + 1, ad.PatchNames); }
             var pos = new System.Collections.Generic.Dictionary<string, int>();
-            for (int i = 0; i < Names.Length; i++) pos[Names[i]] = i;
+            for (int i = 0; i < names.Count; i++) pos[names[i]] = i;
             var list = new System.Collections.Generic.List<System.Type>(types);
             list.Sort(delegate (System.Type a, System.Type b)
             {
@@ -3299,7 +3278,6 @@ namespace UboatToolkit
         private static readonly string[][] subRules =
         {
             new[] { "Gesundheit & Moral", "AutoFirstAid", "NoAutoCarry", "CheatImmortal", "CheatCrewProtection", "NoStress", "CheatFullDiscipline", "CheatCrewNeverTired", "HotBunk", "FoodByCrew", "AutoDamageControl", "LeakTwoSailors" },
-            new[] { "Strahlruder", "WhThrust", "WhVThrust" },
             new[] { "88mm", "DeckGun" },
             new[] { "Flak", "AAGun", "AASaveAmmo", "AAvsShips", "GunSpreadTargets", "GunAttackersFirst" },
             new[] { "KI-Schützen", "Gunner", "GunGyro", "KeepGunMode", "CheatPerfectAim" },
@@ -3330,6 +3308,8 @@ namespace UboatToolkit
         private static string SubOf(Opt o)
         {
             if (o.Tab != QoL && o.Tab != Cheat) return "";
+            var hint = Addons.Hint(o.Key);
+            if (hint != null && hint[2] != "") return hint[2];
             foreach (var r in subRules)
                 for (int j = 1; j < r.Length; j++)
                     if (o.Key.StartsWith(r[j], StringComparison.Ordinal)) return r[0];
@@ -3401,13 +3381,13 @@ namespace UboatToolkit
         };
         // 0.3.65 (DoMe: options are scattered, same function must be in the same place): the index. Fixed topic per
         // option key (checked first), so the keyword rules above cannot put an option into the wrong topic.
+        public const string GroupBoat = GBoat;
         private const string GCrew = "Crew & Gesundheit", GPort = "Hafen, Lager & Geld", GWeap = "Waffen & Torpedos", GBoat = "Boot & Technik",
             GSens = "Sicht, Sensoren & Funk", GNav = "Navigation, Karte & Zeit", GCamp = "Kampagne & Missionen", GPerf = "Spielstand & Leistung",
             GView = "Anzeige, Kamera & Menü";
         private static readonly Dictionary<string, string> groupFix = new Dictionary<string, string>
         {
             { "AutoReloadTubes", GWeap },
-            { "WhThrusters", GBoat }, { "WhVThrusters", GBoat },
             { "AutoDepth", GBoat }, { "AutoCrashDive", GBoat }, { "AirByCrew", GBoat }, { "LowWarnPercent", GBoat },
             { "MerchantTraffic", GCamp }, { "ExplosionLimit", GPerf }, { "SaveGroupCareer", GPerf },
             { "NoShellPush", GWeap }, { "AwashGuns", GWeap }, { "CheatRemoteTorpedo", GWeap }, { "CheatOwnShellsSafe", GWeap }, { "CheatExactTargets", GWeap }, { "CheatInstantSolution", GWeap },
@@ -3420,7 +3400,7 @@ namespace UboatToolkit
         // Keys: topic by key-name prefix (longest match first in this order).
         private static readonly string[][] keyGroups =
         {
-            new[] { GBoat, "KeyCourseDeeper", "KeyCourseShallower", "KeyCoursePeriscope", "KeyCourseMaxDepth", "KeyDepth", "KeyAutoDepth", "KeyDeeper", "KeyShallower", "KeyPeriscopeDepth", "KeyMaxDepth", "KeyHoldDepth", "KeyTanksEmpty", "KeyGear", "KeySpeed", "KeyWhThrust", "KeyWhVThrust" },
+            new[] { GBoat, "KeyCourseDeeper", "KeyCourseShallower", "KeyCoursePeriscope", "KeyCourseMaxDepth", "KeyDepth", "KeyAutoDepth", "KeyDeeper", "KeyShallower", "KeyPeriscopeDepth", "KeyMaxDepth", "KeyHoldDepth", "KeyTanksEmpty", "KeyGear", "KeySpeed" },
             new[] { GNav, "KeyCourse", "KeyTurn", "KeyAmidships", "KeyQuickTravel", "KeyBackToWater" },
             new[] { GWeap, "KeyUnderFire", "KeyReloadAll", "KeyRemoteTorpedo", "KeySinkConvoy" },
             new[] { GPort, "KeySortStorage", "KeyPortMines" },
@@ -3436,6 +3416,8 @@ namespace UboatToolkit
             string g = "";
             if (o.IsKey)
             {
+                var kh = Addons.Hint(o.Key);
+                if (kh != null && kh[1] != "") return kh[1];
                 foreach (var r in keyGroups)
                     for (int j = 1; j < r.Length && g == ""; j++)
                         if (o.Key.StartsWith(r[j])) g = r[0];
@@ -3443,7 +3425,9 @@ namespace UboatToolkit
             }
             if (o.Tab == QoL || o.Tab == Cheat)
             {
-                if (groupFix.TryGetValue(o.Key, out var fixedGroup)) g = fixedGroup;
+                var gh = Addons.Hint(o.Key);
+                if (gh != null && gh[1] != "") g = gh[1];
+                else if (groupFix.TryGetValue(o.Key, out var fixedGroup)) g = fixedGroup;
                 else if (o.Label.StartsWith(" ") && lastAdded != null && lastAdded.Tab == o.Tab) g = lastAdded.Group;
                 else
                 {
@@ -3513,7 +3497,7 @@ namespace UboatToolkit
             "HatchPressure", "HatchPressureLock", "CheatInfiniteGunAmmo", "CheatInfiniteFlakAmmo", "CheatImmortalCrew", "CheatNoWounds",
             "CheatImmortalCrew", "CheatNoRagdoll", "CheatDeckCrewStays", "CheatGunsUnderWater", "CheatDeckCrewStays", "CheatNoDrown",
             "CheatEscortEasy", "CheatEscortFullSpeed", "CheatEscortEasy", "CheatEscortNoDamage", "CheatHydrophoneAlways", "CheatHydrophoneFast",
-            "CheatNoWeight", "CheatNoMassLimit", "WhSilentVent", "WhVentAlwaysOn" };
+            "CheatNoWeight", "CheatNoMassLimit" };
         // 0.4.40 (DoMe: "schon wieder ein eigener name fürs hydrophon ... wir brauchen bald ne alias tabelle"):
         // one name per thing, the word the game itself shows. First entry = the name used in every label, log line and
         // notice; the rest are old words that must not appear in a label any more (the menu search still finds them
@@ -3578,9 +3562,11 @@ namespace UboatToolkit
                 if (!seen.Contains("DgsNpcSpreadOn") && seen.Contains("DeckGunSeaState") && !B("DeckGunSeaState"))
                 { foreach (var k in new[] { "DgsAllShips", "DgsNpcSpreadOn", "DgsNpcRangingOn", "DgsNpcEvenOut", "DgsKnockout" }) Set(k, 0); Util.Log("Schalter geteilt: Gegner-Kanonen-Schalter starten aus, weil „Geschütze und Seegang“ aus war"); }
                 // Rule (DoMe 2026-11-18): one switch = one effect. Split[] lists old joint switch -> new separate switch.
-                for (int i = 0; i + 1 < Split.Length; i += 2)
-                    if (seen.Contains(Split[i]) && !seen.Contains(Split[i + 1]) && Get(Split[i + 1]) != null)
-                    { Set(Split[i + 1], F(Split[i])); Util.Log("Schalter geteilt: „" + Get(Split[i + 1]).Label.Trim() + "“ übernimmt den Wert des alten Kombi-Schalters (" + (B(Split[i]) ? "an" : "aus") + ")"); }
+                var splitAll = new List<string>(Split);
+                foreach (var ad in Addons.All) if (ad.Split != null) splitAll.AddRange(ad.Split);
+                for (int i = 0; i + 1 < splitAll.Count; i += 2)
+                    if (seen.Contains(splitAll[i]) && !seen.Contains(splitAll[i + 1]) && Get(splitAll[i + 1]) != null)
+                    { Set(splitAll[i + 1], F(splitAll[i])); Util.Log("Schalter geteilt: „" + Get(splitAll[i + 1]).Label.Trim() + "“ übernimmt den Wert des alten Kombi-Schalters (" + (B(splitAll[i]) ? "an" : "aus") + ")"); }
                 if (B("DiagLogs")) { Set("CrewAILog", 1); Set("OfficerWatchLog", 1); }
                 // Write back so new settings from a mod update appear in the file.
                 Save();
@@ -3775,7 +3761,7 @@ namespace UboatToolkit
             Modules.Add(new Modules.DevConsoleHide());
             Modules.Add(new Modules.SceneTiming());
             Modules.Add(new Modules.QuitGuard());
-            foreach (var ad in Addons.All) if (ad.Modules != null) foreach (var m in ad.Modules()) Modules.Add(m);
+            foreach (var ad in Addons.All) if (ad.Modules != null) { ad.Instances = ad.Modules(); foreach (var m in ad.Instances) Modules.Add(m); }
             Modules.Add(new Modules.CrewCheats());
             Modules.Add(new Modules.Inventory());
             Modules.Add(new Modules.Loading());
@@ -3831,7 +3817,7 @@ namespace UboatToolkit
             if (mk != KeyCode.None && Input.GetKeyDown(mk) && Keys.ModsHeld("KeyMenu")) MenuKey("Update");
             if (mk == KeyCode.None || !Input.GetKey(mk)) guiKeyHeld = false;
             if (names == null) { names = new string[Modules.Count]; frameNames = new string[Modules.Count]; for (int i = 0; i < Modules.Count; i++) { names[i] = Modules[i].GetType().Name; frameNames[i] = names[i] + ".Frame"; } }
-            for (int i = 0; i < Modules.Count; i++) { if (whRest && IsWh(i)) continue; Timed(frameNames[i], Modules[i].Frame, 20.0); }
+            for (int i = 0; i < Modules.Count; i++) { var own = OwnerOf(i); if (own != null && own.Resting) continue; Timed(frameNames[i], Modules[i].Frame, 20.0); }
 
             if (Time.unscaledTime >= nextState) { nextState = Time.unscaledTime + 60f; DebugLog.DumpState(); }
             if (Util.PlayerShip == null) return;
@@ -3842,28 +3828,34 @@ namespace UboatToolkit
             // Toolkit's own Warthog parts rest completely. Before, their "off" paths still wrote values on that boat.
             if (tickIndex == 0)
             {
-                bool rest = Util.WarthogModOwns(Util.PlayerShip);
-                if (rest != whRest)
+                foreach (var ad in Addons.All)
                 {
-                    whRest = rest; int n = 0; for (int i = 0; i < Modules.Count; i++) if (IsWh(i)) n++;
-                    Util.Log(rest ? "Warthog-Mod ist installiert und sein Boot ist in Benutzung: " + n + " Warthog-Teile des Toolkits ruhen ganz (Wirkung kommt allein vom Warthog-Mod)" : "Warthog-Teile des Toolkits arbeiten wieder (anderes Boot)");
+                    if (ad.Rests == null) continue;
+                    bool rest = ad.Rests();
+                    if (rest == ad.Resting) continue;
+                    ad.Resting = rest;
+                    Util.Log("Zusatz „" + ad.Name + "“: " + (rest ? (ad.Instances == null ? 0 : ad.Instances.Length) + " Teile ruhen ganz (" + ad.RestReason + ")" : "Teile arbeiten wieder"));
                 }
             }
-            if (!(whRest && IsWh(tickIndex))) Timed(names[tickIndex] + ".Tick", Modules[tickIndex].Tick, 40.0);
+            var owner = OwnerOf(tickIndex);
+            if (!(owner != null && owner.Resting)) Timed(names[tickIndex] + ".Tick", Modules[tickIndex].Tick, 40.0);
             tickIndex++;
             if (tickIndex >= Modules.Count) { tickIndex = 0; nextTick = Time.unscaledTime + 1f; }
         }
 
         private string[] names, frameNames;
-        private bool whRest; private bool[] whFlags;
-        private bool IsWh(int i)
+        private ToolkitAddon[] owners;
+        // the add-on file a working part came from (null = Toolkit core)
+        private ToolkitAddon OwnerOf(int i)
         {
-            if (whFlags == null || whFlags.Length != Modules.Count)
+            if (owners == null || owners.Length != Modules.Count)
             {
-                whFlags = new bool[Modules.Count];
-                for (int k = 0; k < Modules.Count; k++) { var ns = Modules[k].GetType().Namespace ?? ""; whFlags[k] = ns.EndsWith(".Warthog", System.StringComparison.Ordinal); }
+                owners = new ToolkitAddon[Modules.Count];
+                for (int k = 0; k < Modules.Count; k++)
+                    foreach (var ad in Addons.All)
+                        if (ad.Instances != null && System.Array.IndexOf(ad.Instances, Modules[k]) >= 0) owners[k] = ad;
             }
-            return whFlags[i];
+            return owners[i];
         }
         // Stutter finder: any module step slower than the limit is logged with its name and the number of
         // garbage collections during it (max once per 30 s per step), so slow modules show up in the log.
