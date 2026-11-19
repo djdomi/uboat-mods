@@ -1,8 +1,42 @@
 // ####################################################################################################
-// TEIL: Kern
+// UboatToolkit: eine Quelldatei, nach Bereichen sortiert. Inhalt:
+//   1 SHARED: gemeinsame Werte, Einstellungen, Menü, Log (alle anderen lesen nur von hier) (18 Abschnitte)
+//       AddonTabs, BgFile, DebugLog, Imgui, Keys, Lang, LangEn, Owners, PatchOrder, Search, Settings, ToolkitLoader, ToolkitRunner, Util, GameDepthOrders,
+//       Tiefen-Werte an einer Stelle (0.4.70), Auto-Speichern, eine Uhr für alle (0.4.42), GameHelpers
+//   2 QOL: Komfort für das eigene Boot (130 Abschnitte)
+//       Air, AwashGuns, Ballast, Controls, CourseKeys, DamageReport, DepthGauge, DiveAngle, Hatches, HatchPassage, Helm, HullSystems, Navigation, Repairs,
+//       RouteLead, SeaFloor, SeaLayer, SnorkelGuard, TankReset, UnderFire, Tiefe nachführen (0.4.40), Vorfluten bis zur Zieltiefe (0.4.44), Crew,
+//       CrewAIAlarmBehaviour, CrewAIAttackPeriscope, CrewAIAttackPeriscopeStop, CrewAIBedChoice, CrewAIBedFeedback, CrewAIBedSharing,
+//       CrewAIBedSharingWounded, CrewAIBedYield, CrewAIBowRun, CrewAICrowdCensus, CrewAIDiagnostics, CrewAIDiscovery, CrewAIHatchDiscipline, CrewAILoitering,
+//       CrewAIMigration, CrewAIOrderQueueRoom, CrewAIOrderTracking, CrewAIPatching, CrewAIProximity, CrewAIRestInBunks, CrewAIRoleDropLog, CrewAISettings,
+//       CrewAITransit, CrewAIWatchClaims, CrewAIWatchFlip, SkipperPeriscope, CrewFill, CrewGear, CrewSkills, CrewSupplies, Medical, OfficerRest, RainGear,
+//       Stations, UniqueNames, Watch, Platz machen bei voller Crew (0.4.45), DeckGun, EnemyHitLog, GunAim, GunGyro, GunSmoke, PortDefense, PortMines,
+//       Torpedoes, TorpedoTab, Weapons, Torpedo-Treffer im Log (0.4.38), Schützen verteilen ihre Ziele (0.4.61), ActiveSonar, LrlAcceptancePatch,
+//       LrlApparentHeightPatch, LrlCalloutRetry, LrlCompressionLadder, LrlContactNoticeAudit, LrlConvoyNightBonus, LrlCrewStations, LrlDarkContactPatch,
+//       LrlDaylightTrim, LrlDetectionAudit, LrlHiddenFloor, LrlHost, LrlInstall, LrlKnownContactCalloutPatch, LrlLog, LrlPlayer, LrlPlayerStation,
+//       LrlProviders, LrlReportAudit, LrlRuntime, LrlSandboxGroups, LrlSettings, LrlSightRangePatch, LrlSmokeModel, LrlStepAudit, LrlTimeCompressionGuard,
+//       LrlWeatherDiagnostics, LrlWeatherResponse, NightView, Optics, PeriscopeUI, Radio, RadioDecrypt, Reticle, ScopeStall, SonarScope, CameraTools,
+//       CamZoom, Events, Lighting, LightModes, MapColors, OrbitWater, QuietUI, StationControls, Tauchknöpfe neben dem Fahrtregler (0.4.35), CarrierConvoy,
+//       CPExtras, GameTuning, MilkCows, MoreShips, SaveCategories, SaveTools, StorageExpander, Traffic, WolfpackTuning, Wasserbomben-Zähler (0.4.32)
+//   3 CHEATS (13 Abschnitte)
+//       Pump, CrewCheats, DeckCrew, Strike, Gegner ist Pazifist (0.4.32), DetectCheat, SensorCheats, AchievementTools, Cheats, ExtraFeatures, Extras,
+//       Inventory, Auftragsziel genau (0.4.35)
+//   4 GPU_IMPROVEMENTS: Zeichnen sparen (4 Abschnitte)
+//       ExplosionLimit, GpuAudit, ViewSavings, AutoDetail
+//   5 CPU_IMPROVEMENTS: Rechnen sparen (19 Abschnitte)
+//       SeafloorLoad, CrewAICooldown, CrewAIOptimizations, CrewAIPerf, CrewAiThrottle, CrewLod, VoiceLimit, WedgeCalm, RouteSearchCount, SaveCpu,
+//       BuoyancyEarly, DetectionCount, CacheCheck, FarAIThrottle, Loading, MemoryCleaner, PerfLogger, QueueProfiler, WolfpackStep
+//   6 FIXES: Reparaturen von Spiel-Fehlern (14 Abschnitte)
+//       NavRescue, SkillIconFix, LrlOrphanScrub, FadeReparent, IconFix, UiFixes, VoiceRepair, Karten-Markierung ohne Schiff (0.4.47), MissingTypeGuard,
+//       GameBugFixes, GameFixes, GameGuards, OtherModFixes, TextureRace
+//   7 WARTHOG (16 Abschnitte)
+//       WarthogAir, WarthogAnchor, WarthogFireControl, WarthogHatches, WarthogHull, WarthogNetCutter, WarthogPower, WarthogPumps, WarthogSettings,
+//       WarthogSnorkel, WarthogSonar, WarthogTab, WarthogThrusterGauge, WarthogTorpedoes, WarthogVThrusters, WarthogWeapons
 // ####################################################################################################
-// UBOAT Toolkit - Kern: Start, Einstellungen, Menü, Suche, Tasten, Besitzer der Spielwerte, Log
-// Diese Datei fasst 14 frühere Einzeldateien zusammen (0.4.30). Jeder Abschnitt nennt seine alte Datei.
+
+// ####################################################################################################
+// BEREICH 1 SHARED: gemeinsame Werte, Einstellungen, Menü, Log (alle anderen lesen nur von hier)
+// ####################################################################################################
 
 // ====================================================================================================
 // Abschnitt: Core/AddonTabs.cs
@@ -4670,11 +4704,190 @@ namespace UboatToolkit
     }
 }
 
+// ====================================================================================================
+// Abschnitt: Patches/GameDepthOrders.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.UI;
+
+    // 0.4.48: the game's own depth buttons and depth meter count as YOUR order (rank 3). Before, only Toolkit keys did,
+    // so the automatic parts did not know that you had just ordered a depth with the game's buttons.
+    [HarmonyPatch(typeof(ShipControlUI), "OnDepthToggle")]
+    internal static class GameDepthButton_Patch
+    {
+        private static void Postfix(bool selected)
+        {
+            var ship = Util.PlayerShip;
+            if (!selected || ship == null) return;
+            Owners.Claim("Tiefen-Knopf des Spiels (du)", Owners.Player, "Tiefe " + ship.DepthPreset);
+        }
+    }
+
+    [HarmonyPatch(typeof(ShipControlUI), "UpdateDepthMeter")]
+    internal static class GameDepthMeter_Patch
+    {
+        private static void Prefix(out float __state) { var s = Util.PlayerShip; __state = s != null ? s.TargetDepth : -1f; }
+        private static void Postfix(float __state)
+        {
+            var s = Util.PlayerShip;
+            if (s == null || __state < 0f || UnityEngine.Mathf.Abs(s.TargetDepth - __state) < 0.25f) return;
+            Owners.Claim("Tiefenmesser des Spiels (du)", Owners.Player, "Zieltiefe " + s.TargetDepth.ToString("0.0") + " m");
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Tiefen-Werte an einer Stelle (0.4.70)
+// ====================================================================================================
+// DoMe 2026-11-19: "schau ma wie das spiel die originalhöhe misst. ich behaupte, dass wir mehrere werte brauchen:
+// 1 wasseroberfläche, 2 oberdeck (z.b. fürs fluten), 3 kiel, 4 abstand kiel zum boden, 5 abstand wie es das spiel
+// berechnet vanilla". All five, each read the way the game itself computes it (Ship.cs / PlayableSubmarine.cs /
+// MapUI.cs), in one place. Read only. Every part of the Toolkit that needs a depth takes it from here.
+namespace UboatToolkit.Modules
+{
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Entities;
+
+    internal static class Depths
+    {
+        private static UBOAT.Game.Sandbox.Sandbox sandbox;
+        // 1: world height of the water surface at the boat (waves included), Ship.CurrentWaterElevation
+        internal static float Surface(PlayerShip s) => s.CurrentWaterElevation;
+        // 2: upper deck below the surface, the value of the game's own depth meter (Ship.DeckDepthUnclamped)
+        internal static float Deck(PlayerShip s) => s.DeckDepthUnclamped;
+        // 3: keel below the surface (Ship.BottomDepth)
+        internal static float Keel(PlayerShip s) => s.BottomDepth;
+        // ground below the surface right under the boat (real ground first, then the game's terrain grid, then sea chart)
+        internal static float Ground(PlayerShip s) => GroundAt(s, 0f);
+        // ground below the surface "ahead" metres in front of the boat; the ONLY entry for ground readings (0.4.74)
+        internal static float GroundAt(PlayerShip s, float ahead) => Util.SafeGet(() => DepthGauge.Seabed(s, ahead), float.NaN);
+        // world height of the ground at a place, from the game's terrain grid (anchor); NaN when that tile is not built
+        internal static float GroundWorldY(float x, float z)
+        {
+            var tc = global::System.Linq.Enumerable.FirstOrDefault(Util.Find<UBOAT.Game.Scene.Environment.Terrain.TerrainController>(30f));
+            if (tc == null || tc.MainGrid == null) return float.NaN;
+            float y = tc.MainGrid.GetInterpolatedHeight(x, z, float.NaN);
+            return y < -1900f ? float.NaN : y;
+        }
+        // water depth here from the game's world elevation map (good to a few metres); NaN on land or unknown
+        internal static float Chart(PlayerShip s)
+        {
+            try
+            {
+                if (sandbox == null) sandbox = Object.FindObjectOfType<UBOAT.Game.Sandbox.Sandbox>();
+                if (sandbox == null) return float.NaN;
+                float h = UBOAT.Game.Scene.Environment.Terrain.WorldMaps.ElevationMap.GetAtWorldSpace(sandbox.SceneToEncounterSpace(s.transform.position));
+                return float.IsNaN(h) || h >= 0f ? float.NaN : -h;
+            }
+            catch { return float.NaN; }
+        }
+        // 4: water between keel and ground
+        internal static float KeelToGround(PlayerShip s) { float g = Ground(s); return float.IsNaN(g) ? float.NaN : g - Keel(s); }
+        // 5: what the unmodded game takes as water depth here: the chart's depth band (PlayableSubmarine.UpdateSeabedEstimation
+        // uses its lower end for "maximum safe depth")
+        internal static bool Vanilla(PlayerShip s, out int min, out int max)
+        {
+            min = max = 0;
+            try
+            {
+                if (sandbox == null) sandbox = Object.FindObjectOfType<UBOAT.Game.Sandbox.Sandbox>();
+                if (sandbox == null) return false;
+                var r = UBOAT.Game.UI.MapUI.GetKnownDepthRangeAtPosition(sandbox.SceneToEncounterSpace(s.transform.position));
+                min = r.Min; max = r.Max; return true;
+            }
+            catch { return false; }
+        }
+
+        internal static string Line(PlayerShip s)
+        {
+            if (s == null) return "Tiefen: kein Boot";
+            float g = Ground(s); string src = DepthGauge.BedSource;
+            int a, b; bool v = Vanilla(s, out a, out b);
+            return "Tiefen (nur lesen): 1 Wasseroberfläche Höhe " + Surface(s).ToString("0.0") + "; 2 Oberdeck " + Deck(s).ToString("0.0") + " m unter Wasser; 3 Kiel " + Keel(s).ToString("0.0")
+                + " m; 4 Kiel bis Grund " + (float.IsNaN(g) ? "unbekannt" : (g - Keel(s)).ToString("0.0") + " m (Grund " + g.ToString("0.0") + " m, Quelle: " + src + ")")
+                + "; 5 Spiel-Karte hier " + (v ? a + " bis " + b + " m" : "unbekannt") + "; Zieltiefe " + s.TargetDepth.ToString("0.0") + " m";
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Auto-Speichern, eine Uhr für alle (0.4.42)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.Serialization;
+
+    // Remembers when the game last wrote a savegame, whoever asked for it. Read by the auto-save part. Changes nothing.
+    [HarmonyPatch(typeof(SavesManager), "Save")]
+    internal static class AutoSaveClock
+    {
+        internal static float LastSave = -1f; internal static string LastName = "";
+        private static void Postfix(string name)
+        {
+            LastSave = Time.unscaledTime; LastName = name ?? "";
+            Util.Log("Speichern: Spielstand \"" + LastName + "\" wird geschrieben");
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/GameHelpers.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Core.Serialization;
+    using global::UBOAT.Game.Core.Time;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Scene.Tasks;
+    using global::UnityEngine;
+
+    // Access to game singletons that are only injected into game classes (read via their static fields).
+    internal static class Game
+    {
+        private static TimeCompressionController tcc;
+        private static SandboxPlayerWolfpack wolfpack;
+        private static SavesManager saves;
+        private static BackgroundTasksManager tasks;
+
+        public static TimeCompressionController TimeCompression =>
+            tcc ?? (tcc = Traverse.Create(typeof(DisallowTimeCompressionDuringAircraftAttack)).Field("timeCompressionController").GetValue<TimeCompressionController>());
+
+        public static SandboxPlayerWolfpack Wolfpack =>
+            wolfpack ?? (wolfpack = Traverse.Create(typeof(UBOAT.Game.UI.Notifications.ShallowAreaNotification)).Field("wolfpack").GetValue<SandboxPlayerWolfpack>());
+
+        public static SavesManager Saves =>
+            saves ?? (saves = Traverse.Create(typeof(LeakBlockingBySailors)).Field("savesManager").GetValue<SavesManager>());
+
+        public static BackgroundTasksManager Tasks =>
+            tasks ?? (tasks = Traverse.Create(typeof(ExpandedSchedulesController)).Field("backgroundTasksManager").GetValue<BackgroundTasksManager>());
+
+        public static void StopTimeCompression(string why)
+        {
+            var t = TimeCompression;
+            if (t == null || !t.TimeCompression) return;
+            t.TimeCompression = false;
+            ToolkitRunner.ShowNotice(why);
+        }
+
+        public static bool CanSave()
+        {
+            var s = Saves;
+            return s != null && !s.IsLoading && !s.HasSaveBlockadesExcept(null, out _);
+        }
+
+        public static bool Ctrl => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+        public static bool Shift => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+    }
+}
+
 // ####################################################################################################
-// TEIL: Boot
+// BEREICH 2 QOL: Komfort für das eigene Boot
 // ####################################################################################################
-// UBOAT Toolkit - Boot: Tiefe, Tauchzellen, Luft, Luken, Ruder, Navigation, Schäden
-// Diese Datei fasst 23 frühere Einzeldateien zusammen (0.4.30). Jeder Abschnitt nennt seine alte Datei.
 
 // ====================================================================================================
 // Abschnitt: Modules/Air.cs
@@ -7138,221 +7351,6 @@ namespace UboatToolkit.Modules
 }
 
 // ====================================================================================================
-// Abschnitt: Modules/NavRescue.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Navigation;
-    using global::UnityEngine;
-
-    // QoL: crew members standing off the walkable area. Their walking agent is then "not placed on a
-    // NavMesh" and the game spams "SetDestination / ResetPath / GetRemainingDistance can only be
-    // called on an active agent ..." while the man is stuck and does nothing. Seen with many new
-    // recruits. Every 3 seconds every stuck man is put back onto the nearest walkable spot (up to 5 m).
-    public class NavRescue : ModuleBase
-    {
-        private PlayerCrew crew;
-        private float next;
-
-        private static bool Bad(Vector3 v) => float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z) || float.IsInfinity(v.x) || float.IsInfinity(v.y) || float.IsInfinity(v.z);
-
-        public override void Tick()
-        {
-            if (!Settings.B("FixOffNavmeshCrew") || !Util.ShipReady || Time.unscaledTime < next) return;
-            next = Time.unscaledTime + 3f;
-            if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
-            if (crew == null || crew.Characters == null) return;
-            int fixedCount = 0;
-            foreach (var c in crew.Characters)
-            {
-                // A sailor with an invalid (NaN/Infinity) position makes Unity print "Infinity or NaN floating point
-                // numbers ... Chest Collider" every frame. Put him back on walkable floor near the boat's middle.
-                if (c != null && Bad(c.transform.position))
-                {
-                    var ch = c; var sh = Util.PlayerShip;
-                    Util.Safe("NavRescue.NaN", () =>
-                    {
-                        var nv = ch.Navigator;
-                        if (sh != null && nv != null && UnityEngine.AI.NavMesh.SamplePosition(sh.transform.position, out var h2, 60f, nv.WalkableAreasMask))
-                        {
-                            ch.transform.position = h2.position;
-                            var rb = ch.GetComponent<Rigidbody>(); if (rb != null) { rb.velocity = Vector3.zero; rb.angularVelocity = Vector3.zero; }
-                            nv.Warp(h2.position, LayerLookupMode.Auto, true);
-                            Util.Log("Laufweg: " + ch.Name + " hatte eine ungültige Position, zurückgesetzt");
-                        }
-                    });
-                    continue;
-                }
-                var nav = c != null ? c.Navigator : null;
-                var agent = nav != null ? nav.Agent : null;
-                if (agent == null || !agent.enabled || !agent.gameObject.activeInHierarchy || agent.isOnNavMesh) continue;
-                Util.Safe("NavRescue", () =>
-                {
-                    if (UnityEngine.AI.NavMesh.SamplePosition(agent.transform.position, out var hit, 5f, nav.WalkableAreasMask))
-                    {
-                        nav.Warp(hit.position, LayerLookupMode.Auto, true);
-                        fixedCount++;
-                    }
-                });
-            }
-            if (fixedCount > 0) Util.Log("Laufweg: " + fixedCount + " Matrosen zurück auf begehbaren Boden gesetzt");
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/Pump.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UnityEngine;
-
-    // QoL #38: pump switches on by itself when there is water in the boat.
-    // Cheat #38: strong pump (x power), works at any depth, boat can never fill up with water.
-    public class Pump : ModuleBase
-    {
-        public override void Tick()
-        {
-            var tw = Settings.Get("CheatPumpTestWater");
-            if (tw != null && tw.On) { tw.Value = 0; Util.Safe("Testwasser", TestWater); }
-            if (!Settings.B("AutoPump")) return;
-            var ship = Util.PlayerShip;
-            foreach (var p in Util.Find<TrimPump>())
-                if (Util.IsPlayers(p) && !p.enabled && Pump_Patch.InteriorWater(ship) > 0.1)   // 0.4.0: only water in the rooms counts, not trim/hull tanks
-                {
-                    p.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
-                    Util.Log("Pumpe automatisch an");
-                }
-        }
-
-        // DoMe 2026-11-17: "put 1-10 m³ water into the boat, to test the pumps". Water goes into the compartment the
-        // camera is in (else the control room, else the first one), at most up to the compartment's size.
-        private static void TestWater()
-        {
-            var ship = Util.PlayerShip;
-            if (ship == null || ship.Interior == null) { ToolkitRunner.ShowNotice("Testwasser: kein Boot", 3f); return; }
-            float m3 = Mathf.Clamp(Settings.F("CheatPumpTestWaterM3"), 1f, 10f);
-            UBOAT.Game.Scene.Items.Compartment c = null;
-            var cam = Camera.main;
-            if (cam != null) { try { c = ship.Interior.FindContainingCompartment(cam.transform.position); } catch { } }
-            if (c == null)
-                foreach (var x in ship.Interior.Compartments)
-                    if (x != null && (x.name.IndexOf("Control", System.StringComparison.OrdinalIgnoreCase) >= 0 || x.name.IndexOf("Zentrale", System.StringComparison.OrdinalIgnoreCase) >= 0)) { c = x; break; }
-            if (c == null && ship.Interior.Compartments.Length > 0) c = ship.Interior.Compartments[0];
-            if (c == null) { ToolkitRunner.ShowNotice("Testwasser: kein Raum gefunden", 3f); return; }
-            double before = c.Water;
-            double after = System.Math.Min((double)c.Capacity, before + m3);
-            c.Water = after;
-            string note = Settings.B("CheatNeverFlood") ? " (Achtung: \"Boot kann nie volllaufen\" ist an, das Wasser verschwindet sofort)" : "";
-            Util.Log("Testwasser: " + (after - before).ToString("0.0") + " m³ in " + c.name + " (vorher " + before.ToString("0.0") + ", jetzt " + after.ToString("0.0") + " m³)" + note);
-            ToolkitRunner.ShowNotice("Testwasser: " + (after - before).ToString("0.0") + " m³ in " + c.name + note, 5f);
-        }
-
-        public override void Frame()
-        {
-            if (!Settings.B("CheatNeverFlood")) return;
-            var ship = Util.PlayerShip;
-            if (ship == null) return;
-            foreach (var c in ship.Interior.Compartments)
-                if (c != null && c.Water > 0.0) c.Water = 0.0;
-        }
-    }
-
-    // Extra pumping on top of the game's own (only while the pump runs).
-    [HarmonyPatch(typeof(TrimPump), "Update")]
-    internal static class Pump_Patch
-    {
-        public static double InteriorWater(PlayerShip ship)
-        {
-            double w = 0;
-            foreach (var c in ship.Interior.Compartments) if (c != null) w += c.Water;
-            return w;
-        }
-
-        private static void Postfix(TrimPump __instance)
-        {
-            float power = Settings.F("CheatPumpPower");
-            bool anyDepth = Settings.B("CheatPumpAnyDepth");
-            if (power <= 1f && !anyDepth) return;
-            if (!Util.IsPlayers(__instance)) return;
-
-            var t = Traverse.Create(__instance);
-            var sub = t.Field("submarine").GetValue<PlayableSubmarine>();
-            var lps = t.Field("litresPerSecond").GetValue<Parameter>();
-            var pressure = t.Field("litresPerSecondPressureModifier").GetValue<Modifier>();
-            var tanks = t.Field("tanks").GetValue<TrimPump.ConnectedTank[]>();
-            var gt = Traverse.Create(typeof(TrimPump)).Field("gameTime").GetValue<UBOAT.Game.Core.Time.GameTime>();
-            if (sub == null || lps == null || tanks == null || gt == null) return;
-
-            float baseLps = lps.GetValueExcludingModifier(pressure);
-            float dt = Time.deltaTime * gt.ArtificialTimeScale;
-            foreach (var ct in tanks)
-            {
-                // 0.4.0 (DoMe: "das Boot flutet übertrieben"): the pump is also connected to tanks that are not rooms
-                // (trim / compensating / hull tanks). Emptying those x50 at depth made the boat's depth keeping flood
-                // them again at once. The toolkit now only adds pumping for water standing in the ROOMS of the boat.
-                if (ct == null || ct.Tank == null) continue;
-                if (!(ct.Tank is UBOAT.Game.Scene.Items.Compartment))
-                {
-                    if (otherLogged.Count < 20 && otherLogged.Add(ct.Tank.name)) Util.Log("Pumpe: Tank \"" + ct.Tank.name + "\" ist kein Raum, Toolkit pumpt ihn nicht zusätzlich (Wasser " + ct.Tank.Water.ToString("0.00") + " von " + ct.Tank.Capacity.ToString("0.00") + ")");
-                    continue;
-                }
-                float gameDepth = 1f - Mathf.Clamp01(sub.DeckDepth / ct.MaxDepth);
-                float ourDepth = anyDepth ? 1f : gameDepth;
-                gameRate += baseLps * ct.PerformanceModifier * gameDepth;
-                ourRate += baseLps * ct.PerformanceModifier * ourDepth * Mathf.Max(1f, power);
-                double extra = baseLps * ct.PerformanceModifier * (ourDepth * Mathf.Max(1f, power) - gameDepth) * dt;
-                if (extra <= 0) continue;
-                if (extra > ct.Tank.Water) extra = ct.Tank.Water;
-                ct.Tank.Water -= extra;
-                removed += extra;
-            }
-            samples++;
-            LastDepth = sub.DeckDepth;
-            LastGameRate = (float)(gameRate / samples); LastOurRate = (float)(ourRate / samples);
-            if (Time.unscaledTime >= nextLog)
-            {
-                if (removed > 0)
-                    Util.Log("Pumpe: Tiefe " + sub.DeckDepth.ToString("0") + " m, Spiel allein " + (LastGameRate * 1000f).ToString("0.0") + " l/s, mit Toolkit " + (LastOurRate * 1000f).ToString("0.0")
-                        + " l/s (Pumpenleistung x" + Mathf.Max(1f, power).ToString("0.#") + (anyDepth ? ", volle Leistung in jeder Tiefe" : "") + "), in der letzten Minute zusätzlich " + (removed * 1000.0).ToString("0") + " l abgepumpt, Wasser in den Räumen jetzt " + (InteriorWater(Util.PlayerShip) * 1000.0).ToString("0") + " l");
-                nextLog = Time.unscaledTime + 60f; removed = 0; gameRate = ourRate = 0; samples = 0;
-            }
-        }
-
-        private static readonly System.Collections.Generic.HashSet<string> otherLogged = new System.Collections.Generic.HashSet<string>();
-        private static double removed, gameRate, ourRate; private static int samples; private static float nextLog;
-        internal static float LastDepth, LastGameRate, LastOurRate;
-    }
-
-    // 0.3.94 (DoMe: the pump tooltip still says reduced/red at depth, so he doubts the cheat works): with the pump
-    // cheats on, the game's red/orange pressure line is replaced by the real toolkit rate.
-    [HarmonyPatch(typeof(TrimPump), nameof(TrimPump.GetStateText))]
-    internal static class Pump_TooltipPatch
-    {
-        private static void Postfix(TrimPump __instance, ref string __result)
-        {
-            try
-            {
-                float power = Settings.F("CheatPumpPower");
-                bool anyDepth = Settings.B("CheatPumpAnyDepth");
-                if ((power <= 1f && !anyDepth) || __result == null || !Util.IsPlayers(__instance)) return;
-                int cut = __result.IndexOf("<line-height=50%>");
-                string head = cut >= 0 ? __result.Substring(0, cut) : __result;
-                string line = "Toolkit: Pumpenleistung x" + Mathf.Max(1f, power).ToString("0.#") + (anyDepth ? ", volle Leistung in jeder Tiefe" : ", Tiefe bremst wie im Spiel");
-                if (Pump_Patch.LastOurRate > 0f) line += " (" + (Pump_Patch.LastOurRate * 1000f).ToString("0") + " l/s statt " + (Pump_Patch.LastGameRate * 1000f).ToString("0") + " l/s)";
-                __result = head + "<line-height=50%>\n<line-height=100%>\n<color=#7CFC00>" + line + "</color>";
-            }
-            catch { }
-        }
-    }
-}
-
-// ====================================================================================================
 // Abschnitt: Modules/Repairs.cs
 // ====================================================================================================
 namespace UboatToolkit.Modules
@@ -7612,58 +7610,6 @@ namespace UboatToolkit.Modules
             if (!SeaFloor_EncounterPatch.Inside) return true;
             __result = 0f;
             return false;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/SeafloorLoad.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Environment.Terrain;
-    using global::UnityEngine;
-
-    // QoL (DoMe 2026-11-13): the sea floor around the boat is always really built. The game builds real terrain only for
-    // 1 km tiles whose highest point is above -650 m; deeper tiles get a flat "sea floor" stand-in only, and depth queries
-    // there (GetInterpolatedHeight) return -2000. After the game's own scan we build every not-yet-built tile within
-    // the chosen radius. Sonar picture / depth gauge read the same terrain, so they see the real floor too.
-    [HarmonyPatch(typeof(ProceduralTerrainGrid), "ScanNearbySegments")]
-    internal static class SeafloorLoad_ScanPatch
-    {
-        private static float nextScan;
-        private static int built;
-        private static bool logged;
-
-        private static void Postfix(ProceduralTerrainGrid __instance)
-        {
-            try
-            {
-                if (!Settings.B("SeafloorAlways") || Time.unscaledTime < nextScan) return;
-                nextScan = Time.unscaledTime + 2f;
-                var ship = Util.PlayerShip;
-                if (ship == null) return;
-                float size = Mathf.Max(100f, __instance.SegmentSize);
-                float radius = Mathf.Clamp(Settings.F("SeafloorRadius"), 0.5f, 4f) * 1000f;
-                Vector3 p = ship.transform.position;
-                __instance.GetSegmentAtSceneCoordinates(p.x, p.z, out int cx, out int cz);
-                int n = Mathf.CeilToInt(radius / size);
-                for (int dz = -n; dz <= n; dz++)
-                    for (int dx = -n; dx <= n; dx++)
-                    {
-                        // distance from the boat to the nearest point of this tile
-                        float ox = Mathf.Max(0f, Mathf.Abs(dx) - 0.5f) * size, oz = Mathf.Max(0f, Mathf.Abs(dz) - 0.5f) * size;
-                        if (ox * ox + oz * oz > radius * radius) continue;
-                        var seg = __instance.GetSegment(cx + dx, cz + dz);
-                        if (seg == null || seg.Loaded || seg.Loading) continue;
-                        seg.Generate(1);
-                        seg.Active = true;
-                        built++;
-                    }
-                if (built > 0 && !logged) { logged = true; Util.Log("Meeresboden: tiefe Kacheln werden voll gebaut (Radius " + (radius / 1000f).ToString("0.0") + " km)"); }
-            }
-            catch (System.Exception e) { if (!logged) { logged = true; Util.Log("Meeresboden: " + e.Message); } }
         }
     }
 }
@@ -8221,7 +8167,6 @@ namespace UboatToolkit.Modules
     }
 }
 
-
 // ====================================================================================================
 // Abschnitt: Tiefe nachführen (0.4.40)
 // ====================================================================================================
@@ -8353,120 +8298,6 @@ namespace UboatToolkit.Modules
         }
     }
 }
-
-// ====================================================================================================
-// Abschnitt: Patches/GameDepthOrders.cs
-// ====================================================================================================
-namespace UboatToolkit.Patches
-{
-    using global::HarmonyLib;
-    using global::UBOAT.Game.UI;
-
-    // 0.4.48: the game's own depth buttons and depth meter count as YOUR order (rank 3). Before, only Toolkit keys did,
-    // so the automatic parts did not know that you had just ordered a depth with the game's buttons.
-    [HarmonyPatch(typeof(ShipControlUI), "OnDepthToggle")]
-    internal static class GameDepthButton_Patch
-    {
-        private static void Postfix(bool selected)
-        {
-            var ship = Util.PlayerShip;
-            if (!selected || ship == null) return;
-            Owners.Claim("Tiefen-Knopf des Spiels (du)", Owners.Player, "Tiefe " + ship.DepthPreset);
-        }
-    }
-
-    [HarmonyPatch(typeof(ShipControlUI), "UpdateDepthMeter")]
-    internal static class GameDepthMeter_Patch
-    {
-        private static void Prefix(out float __state) { var s = Util.PlayerShip; __state = s != null ? s.TargetDepth : -1f; }
-        private static void Postfix(float __state)
-        {
-            var s = Util.PlayerShip;
-            if (s == null || __state < 0f || UnityEngine.Mathf.Abs(s.TargetDepth - __state) < 0.25f) return;
-            Owners.Claim("Tiefenmesser des Spiels (du)", Owners.Player, "Zieltiefe " + s.TargetDepth.ToString("0.0") + " m");
-        }
-    }
-}
-
-
-// ====================================================================================================
-// Abschnitt: Tiefen-Werte an einer Stelle (0.4.70)
-// ====================================================================================================
-// DoMe 2026-11-19: "schau ma wie das spiel die originalhöhe misst. ich behaupte, dass wir mehrere werte brauchen:
-// 1 wasseroberfläche, 2 oberdeck (z.b. fürs fluten), 3 kiel, 4 abstand kiel zum boden, 5 abstand wie es das spiel
-// berechnet vanilla". All five, each read the way the game itself computes it (Ship.cs / PlayableSubmarine.cs /
-// MapUI.cs), in one place. Read only. Every part of the Toolkit that needs a depth takes it from here.
-namespace UboatToolkit.Modules
-{
-    using global::UnityEngine;
-    using global::UBOAT.Game.Scene.Entities;
-
-    internal static class Depths
-    {
-        private static UBOAT.Game.Sandbox.Sandbox sandbox;
-        // 1: world height of the water surface at the boat (waves included), Ship.CurrentWaterElevation
-        internal static float Surface(PlayerShip s) => s.CurrentWaterElevation;
-        // 2: upper deck below the surface, the value of the game's own depth meter (Ship.DeckDepthUnclamped)
-        internal static float Deck(PlayerShip s) => s.DeckDepthUnclamped;
-        // 3: keel below the surface (Ship.BottomDepth)
-        internal static float Keel(PlayerShip s) => s.BottomDepth;
-        // ground below the surface right under the boat (real ground first, then the game's terrain grid, then sea chart)
-        internal static float Ground(PlayerShip s) => GroundAt(s, 0f);
-        // ground below the surface "ahead" metres in front of the boat; the ONLY entry for ground readings (0.4.74)
-        internal static float GroundAt(PlayerShip s, float ahead) => Util.SafeGet(() => DepthGauge.Seabed(s, ahead), float.NaN);
-        // world height of the ground at a place, from the game's terrain grid (anchor); NaN when that tile is not built
-        internal static float GroundWorldY(float x, float z)
-        {
-            var tc = global::System.Linq.Enumerable.FirstOrDefault(Util.Find<UBOAT.Game.Scene.Environment.Terrain.TerrainController>(30f));
-            if (tc == null || tc.MainGrid == null) return float.NaN;
-            float y = tc.MainGrid.GetInterpolatedHeight(x, z, float.NaN);
-            return y < -1900f ? float.NaN : y;
-        }
-        // water depth here from the game's world elevation map (good to a few metres); NaN on land or unknown
-        internal static float Chart(PlayerShip s)
-        {
-            try
-            {
-                if (sandbox == null) sandbox = Object.FindObjectOfType<UBOAT.Game.Sandbox.Sandbox>();
-                if (sandbox == null) return float.NaN;
-                float h = UBOAT.Game.Scene.Environment.Terrain.WorldMaps.ElevationMap.GetAtWorldSpace(sandbox.SceneToEncounterSpace(s.transform.position));
-                return float.IsNaN(h) || h >= 0f ? float.NaN : -h;
-            }
-            catch { return float.NaN; }
-        }
-        // 4: water between keel and ground
-        internal static float KeelToGround(PlayerShip s) { float g = Ground(s); return float.IsNaN(g) ? float.NaN : g - Keel(s); }
-        // 5: what the unmodded game takes as water depth here: the chart's depth band (PlayableSubmarine.UpdateSeabedEstimation
-        // uses its lower end for "maximum safe depth")
-        internal static bool Vanilla(PlayerShip s, out int min, out int max)
-        {
-            min = max = 0;
-            try
-            {
-                if (sandbox == null) sandbox = Object.FindObjectOfType<UBOAT.Game.Sandbox.Sandbox>();
-                if (sandbox == null) return false;
-                var r = UBOAT.Game.UI.MapUI.GetKnownDepthRangeAtPosition(sandbox.SceneToEncounterSpace(s.transform.position));
-                min = r.Min; max = r.Max; return true;
-            }
-            catch { return false; }
-        }
-
-        internal static string Line(PlayerShip s)
-        {
-            if (s == null) return "Tiefen: kein Boot";
-            float g = Ground(s); string src = DepthGauge.BedSource;
-            int a, b; bool v = Vanilla(s, out a, out b);
-            return "Tiefen (nur lesen): 1 Wasseroberfläche Höhe " + Surface(s).ToString("0.0") + "; 2 Oberdeck " + Deck(s).ToString("0.0") + " m unter Wasser; 3 Kiel " + Keel(s).ToString("0.0")
-                + " m; 4 Kiel bis Grund " + (float.IsNaN(g) ? "unbekannt" : (g - Keel(s)).ToString("0.0") + " m (Grund " + g.ToString("0.0") + " m, Quelle: " + src + ")")
-                + "; 5 Spiel-Karte hier " + (v ? a + " bis " + b + " m" : "unbekannt") + "; Zieltiefe " + s.TargetDepth.ToString("0.0") + " m";
-        }
-    }
-}
-// ####################################################################################################
-// TEIL: Crew
-// ####################################################################################################
-// UBOAT Toolkit - Crew: Mannschaft, Wachen, Stationen, Crew-KI
-// Diese Datei fasst 45 frühere Einzeldateien zusammen (0.4.30). Jeder Abschnitt nennt seine alte Datei.
 
 // ====================================================================================================
 // Abschnitt: Modules/Crew.cs
@@ -10851,221 +10682,6 @@ namespace UboatToolkit.Modules.CrewAi
 }
 
 // ====================================================================================================
-// Abschnitt: Modules/CrewAi/CrewAICooldown.cs
-// ====================================================================================================
-// Crew-KI (Teil des UBOAT Toolkit): CrewAICooldown. Schalter: F10 > QoL > "Crew-KI".
-
-namespace UboatToolkit.Modules.CrewAi
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::UnityEngine;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Core.AI;
-
-    internal static class CooldownToggles
-    {
-        public static bool Enabled => UboatToolkit.Settings.B("CrewStuckCooldown");
-
-        public const int DistinctTargetsBeforeCooldown = 3;
-
-        public const float FailureWindowSeconds = 20f;
-
-        public const float CooldownSeconds = 60f;
-
-        public static readonly string[] ExemptBehaviours =
-        {
-            "Escape", "Danger", "Damage", "Repair", "Leak", "Fire", "Alarm",
-            "Combat", "Fight", "Battle", "Evacuat", "Wounded", "Medic",
-            "Treatment", "Bleeding", "Order", "Command",
-            "Idle", "Compound", "Blank"
-        };
-
-        public static readonly bool LogCooldowns = true;
-    }
-
-    internal static class BehaviourCooldown
-    {
-        private class Record
-        {
-            public readonly HashSet<string> Targets = new HashSet<string>();
-            public float LastFailure;       // unscaled
-            public float CooldownUntil;     // unscaled; 0 = not on cooldown
-        }
-
-        private static readonly Dictionary<string, Record> _records = new Dictionary<string, Record>();
-
-        private static readonly Dictionary<string, string> _lastBehaviour = new Dictionary<string, string>();
-
-        private static readonly object _lock = new object();
-        private static float _lastPrune;
-
-        private static string Key(string who, string behaviour) { return who + "|" + behaviour; }
-
-        public static bool IsExempt(string behaviour)
-        {
-            if (string.IsNullOrEmpty(behaviour)) return true;
-            var ex = CooldownToggles.ExemptBehaviours;
-            for (int i = 0; i < ex.Length; i++)
-            {
-                if (behaviour.IndexOf(ex[i], StringComparison.OrdinalIgnoreCase) >= 0) return true;
-            }
-            return false;
-        }
-
-        public static void NoteBehaviourStarted(string who, string behaviour)
-        {
-            if (!CooldownToggles.Enabled) return;
-            if (string.IsNullOrEmpty(who) || string.IsNullOrEmpty(behaviour)) return;
-            try { lock (_lock) { _lastBehaviour[who] = behaviour; } }
-            catch { }
-        }
-
-        public static string LastBehaviourOf(string who)
-        {
-            if (string.IsNullOrEmpty(who)) return null;
-            try
-            {
-                string b;
-                lock (_lock) { return _lastBehaviour.TryGetValue(who, out b) ? b : null; }
-            }
-            catch { return null; }
-        }
-
-        public static void NoteUnreachable(string who, string targetDesc)
-        {
-            if (!CooldownToggles.Enabled) return;
-            if (string.IsNullOrEmpty(who)) return;
-            try
-            {
-                string behaviour;
-                lock (_lock)
-                {
-                    if (!_lastBehaviour.TryGetValue(who, out behaviour)) return;
-                }
-                if (IsExempt(behaviour)) return;
-
-                float now = Time.unscaledTime;
-                bool tripped = false;
-                int distinct = 0;
-
-                lock (_lock)
-                {
-                    Record r;
-                    string k = Key(who, behaviour);
-                    if (!_records.TryGetValue(k, out r))
-                    {
-                        r = new Record();
-                        _records[k] = r;
-                    }
-
-                    if (now - r.LastFailure > CooldownToggles.FailureWindowSeconds)
-                        r.Targets.Clear();
-
-                    r.LastFailure = now;
-                    r.Targets.Add(targetDesc ?? "?");
-                    distinct = r.Targets.Count;
-
-                    if (r.CooldownUntil <= now && distinct >= CooldownToggles.DistinctTargetsBeforeCooldown)
-                    {
-                        r.CooldownUntil = now + CooldownToggles.CooldownSeconds;
-                        r.Targets.Clear();
-                        tripped = true;
-                    }
-                }
-
-                OptCounters.CooldownFailuresSeen++;
-                if (tripped)
-                {
-                    OptCounters.CooldownsStarted++;
-                    if (CooldownToggles.LogCooldowns)
-                    {
-                        DiagLog.Write("[Cooldown] " + who + " cannot reach " + distinct +
-                                      " distinct targets for '" + behaviour + "' - suppressing it for " +
-                                      CooldownToggles.CooldownSeconds + "s (latest target=" + targetDesc + ")");
-                    }
-                }
-            }
-            catch (Exception e) { DiagLog.WriteError("Cooldown.NoteUnreachable", e); }
-        }
-
-        public static bool IsOnCooldown(string who, string behaviour)
-        {
-            if (!CooldownToggles.Enabled) return false;
-            if (string.IsNullOrEmpty(who) || IsExempt(behaviour)) return false;
-            try
-            {
-                float now = Time.unscaledTime;
-                lock (_lock)
-                {
-                    Record r;
-                    if (!_records.TryGetValue(Key(who, behaviour), out r)) return false;
-                    if (r.CooldownUntil <= now) return false;
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                DiagLog.WriteError("Cooldown.IsOnCooldown", e);
-                return false; // fail open - never suppress because of our own error
-            }
-        }
-
-        public static void MaybePrune()
-        {
-            try
-            {
-                float now = Time.unscaledTime;
-                if (now - _lastPrune < 60f) return;
-                _lastPrune = now;
-                lock (_lock)
-                {
-                    var dead = new List<string>();
-                    foreach (var kv in _records)
-                    {
-                        var r = kv.Value;
-                        if (r.CooldownUntil <= now &&
-                            now - r.LastFailure > CooldownToggles.FailureWindowSeconds * 2f)
-                            dead.Add(kv.Key);
-                    }
-                    for (int i = 0; i < dead.Count; i++) _records.Remove(dead[i]);
-                }
-            }
-            catch { }
-        }
-    }
-
-    [HarmonyPatch(typeof(CharacterAI), "StartBehaviour", new Type[] { typeof(AIBehaviour) })]
-    internal static class Patch_Cooldown_Enforce
-    {
-        static void Postfix(CharacterAI __instance, AIBehaviour behaviour)
-        {
-            if (!CooldownToggles.Enabled) return;
-            long t0 = Perf.Begin();
-            try
-            {
-                if (behaviour == null) return;
-                string type = behaviour.GetType().Name;
-                if (BehaviourCooldown.IsExempt(type)) return;
-
-                string who = null;
-                try { who = __instance != null ? __instance.name : null; } catch { }
-                if (who == null) return;
-
-                if (BehaviourCooldown.IsOnCooldown(who, type))
-                {
-                    behaviour.State = AIBehaviourState.Cancelled;
-                    OptCounters.CooldownBehavioursCancelled++;
-                }
-                BehaviourCooldown.MaybePrune();
-            }
-            catch (Exception e) { DiagLog.WriteError("Cooldown.Enforce", e); }
-            finally { Perf.End("Cooldown.Enforce", t0); }
-        }
-    }
-}
-
-// ====================================================================================================
 // Abschnitt: Modules/CrewAi/CrewAICrowdCensus.cs
 // ====================================================================================================
 // Crew-KI (Teil des UBOAT Toolkit): CrewAICrowdCensus. Schalter: F10 > QoL > "Crew-KI".
@@ -12639,544 +12255,6 @@ namespace UboatToolkit.Modules.CrewAi
 }
 
 // ====================================================================================================
-// Abschnitt: Modules/CrewAi/CrewAIOptimizations.cs
-// ====================================================================================================
-// Crew-KI (Teil des UBOAT Toolkit): CrewAIOptimizations. Schalter: F10 > QoL > "Crew-KI".
-
-namespace UboatToolkit.Modules.CrewAi
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::UnityEngine;
-    using global::UnityEngine.AI;
-    using global::HarmonyLib;
-    using global::UBOAT.Game;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Interactions;
-    using global::UBOAT.Game.Scene.Characters.Navigation;
-
-    internal static class OptToggles
-    {
-        public static readonly bool ThrottleGoToRetries = true;
-
-        public const int MinRetryFrames = 15;
-
-        public const float SameTargetEpsilon = 0.05f;
-
-        public static readonly bool EarlyOutStopAction = false;
-
-        public static readonly bool BlacklistUnreachableSlots = false;
-
-        public const float BlacklistSeconds = 30f;
-
-        public const int MinDistinctFailures = 2;
-
-        public static readonly bool InstrumentCancel = true;
-
-        public static readonly bool LogCounters = true;
-
-        public static readonly bool DiscoverCharacterState = true;
-        public const float CharacterStateInterval = 120f;   // unscaled seconds
-        public static readonly bool DiscoverBehaviourProfit = true;
-        public static readonly bool DiscoverActionTypes = true;
-        public static readonly bool DiscoverBehaviourTypes = true;
-
-        public static readonly bool MeasureBehaviourChurn = true;
-    }
-
-    internal static class OptCounters
-    {
-        public static long GoToTotal, GoToThrottled, GoToNeeded;
-        public static long StopActionTotal, StopActionSkipped;
-        public static long SlotsBlacklisted, SlotChecksBlocked, BlacklistExpired;
-        public static long SlotPerCharacterBlocks;
-        public static long CancelsSeen, Fix3Errors;
-        public static long BehaviourStarts, BehaviourSameFrameStops;
-        public static long CooldownFailuresSeen, CooldownsStarted, CooldownBehavioursCancelled;
-        public static long AttackPeriscopeBlocked, AttackPeriscopeRemoved;
-        public static long LoiterDestinationsRejected;
-        public static long HatchOrdersPreserved;
-        public static long ProximityScaled, ProximityPlayerOrderExempt;
-        public static long ProximitySleepExempt, ProximityDeckAsTower;   // v0.31
-        public static long PlayerOrdersSeen, PlayerOrdersDropped, PlayerOrdersStalled;
-        public static long AiActionsDropped;
-        public static long OrdersRefusedQueueFull, PlayerOrdersRefusedQueueFull, OrdersMadeRoom;
-        public static long CompartmentTransits, ControlRoomPassThroughs, ControlRoomInAndBack;
-        public static long HatchOrdersApplied, EatSuppressedOnAlarm;
-        public static long BedChoiceImproved, BedChoiceSticky, BedChoiceHerdAvoided;
-        public static long BedPathFailures, BedChoiceBadAvoided, BedChoiceRefused;
-        public static long WatchClaimsTaken, WatchRefusedClaimed;
-        public static long RestSent, RestEndedForWork, RestEndedOther, RestNeverStarted;
-        public static long RestNoBunk, RestNotAllowed, RestSkippedReserve, RestSkippedAlarm;
-        public static long RestResumed, WatchFlips;
-        public static long BedSharedAssigned, BedSlotsAdded, WaterCheckCorrected;
-        public static long RoleDropsRunning, RoleKeeps;
-        public static long YieldAsked, YieldVacated, YieldStuck, YieldTakenByTired, RestHeldForTired;
-        public static long YieldReservedRefused, YieldReservedSteered, YieldReserveLapsed;   // v1.0.0
-        public static long BowRunDives, BowRunSent, BowRunTrimmed, BowRunReleased;   // v0.32
-        public static long CloneSlotsTurnedOff, CloneSleepersStoodUp;                // v0.33
-
-        private static float _lastDump;
-        private const float DumpInterval = 60f; // unscaled seconds
-
-        public static void MaybeDump()
-        {
-            if (!OptToggles.LogCounters) return;
-            try
-            {
-                float now = Time.unscaledTime;
-                if (now - _lastDump < DumpInterval) return;
-                _lastDump = now;
-                DiagLog.Write(
-                    "[Counters] GoTo " + GoToThrottled + "/" + GoToTotal + " throttled (" + Pct(GoToThrottled, GoToTotal) + "), " + GoToNeeded + " repeats let through because no usable path | " +
-                    "StopCurrentAction " + StopActionSkipped + "/" + StopActionTotal + " skipped (" + Pct(StopActionSkipped, StopActionTotal) + ") | " +
-                    "cancels=" + CancelsSeen + " | " +
-                    "slots blacklisted=" + SlotsBlacklisted + " globalBlocks=" + SlotChecksBlocked +
-                    " perCharBlocks=" + SlotPerCharacterBlocks + " expired=" + BlacklistExpired +
-                    " fix3errors=" + Fix3Errors + " | " +
-                    "behaviourStarts=" + BehaviourStarts + " sameFrameStops=" + BehaviourSameFrameStops +
-                    " (" + Pct(BehaviourSameFrameStops, BehaviourStarts) + ") | " +
-                    "cooldowns started=" + CooldownsStarted + " cancelled=" + CooldownBehavioursCancelled +
-                    " fromFailures=" + CooldownFailuresSeen +
-                    " | loiterRejected=" + LoiterDestinationsRejected +
-                    " hatchOrdersKept=" + HatchOrdersPreserved +
-                    " hatchOrdersApplied=" + HatchOrdersApplied +
-                    " eatSuppressed=" + EatSuppressedOnAlarm +
-                    " bedChoice improved=" + BedChoiceImproved +
-                    " sticky=" + BedChoiceSticky +
-                    " herdAvoided=" + BedChoiceHerdAvoided +
-                    " pathFailed=" + BedPathFailures +
-                    " badAvoided=" + BedChoiceBadAvoided +
-                    " refused=" + BedChoiceRefused +
-                    " proximityScaled=" + ProximityScaled +
-                    " playerOrderExempt=" + ProximityPlayerOrderExempt +
-                    " sleepExempt=" + ProximitySleepExempt +
-                    " deckAsTower=" + ProximityDeckAsTower +
-                    " | playerOrders seen=" + PlayerOrdersSeen +
-                    " droppedBeforeStart=" + PlayerOrdersDropped +
-                    " stalled=" + PlayerOrdersStalled +
-                    " aiDropped=" + AiActionsDropped +
-                    " | queueFull refused=" + OrdersRefusedQueueFull +
-                    " (player " + PlayerOrdersRefusedQueueFull + ")" +
-                    " roomMade=" + OrdersMadeRoom +
-                    " | transits=" + CompartmentTransits +
-                    " ctrlPassThru=" + ControlRoomPassThroughs +
-                    " ctrlInAndBack=" + ControlRoomInAndBack +
-                    " periscopeBlocked=" + AttackPeriscopeBlocked +
-                    " periscopeRemoved=" + AttackPeriscopeRemoved +
-                    " | watch claims=" + WatchClaimsTaken +
-                    " refusedHeld=" + WatchRefusedClaimed +
-                    " watchFlips=" + WatchFlips +
-                    " roleDrops=" + RoleDropsRunning +
-                    " roleKeeps=" + RoleKeeps +
-                    " | rest sent=" + RestSent +
-                    " leftForWork=" + RestEndedForWork +
-                    " backInBunk=" + RestResumed +
-                    " | sharing assigned=" + BedSharedAssigned +
-                    " slotsAdded=" + BedSlotsAdded +
-                    " waterFixes=" + WaterCheckCorrected +
-                    " shareSlotsOff=" + CloneSlotsTurnedOff +
-                    " shareSleepersUp=" + CloneSleepersStoodUp +
-                    " leftOther=" + RestEndedOther +
-                    " neverStarted=" + RestNeverStarted +
-                    " noBunk=" + RestNoBunk +
-                    " notAllowed=" + RestNotAllowed +
-                    " reserveHeld=" + RestSkippedReserve +
-                    " alarmTicks=" + RestSkippedAlarm +
-                    " | bedYield asked=" + YieldAsked +
-                    " vacated=" + YieldVacated +
-                    " stuck=" + YieldStuck +
-                    " takenByTired=" + YieldTakenByTired +
-                    " restHeldForTired=" + RestHeldForTired +
-                    " reservedRefused=" + YieldReservedRefused +
-                    " reservedSteered=" + YieldReservedSteered +
-                    " reserveLapsed=" + YieldReserveLapsed +
-                    " | bowRun dives=" + BowRunDives +
-                    " sent=" + BowRunSent +
-                    " trimmed=" + BowRunTrimmed +
-                    " released=" + BowRunReleased +
-                    "");
-
-                Perf.MaybeReport();
-                OrderTracker.Sweep();
-                CrowdCensus.MaybeReport();
-            }
-            catch { }
-        }
-
-        private static string Pct(long a, long b)
-        {
-            return b > 0 ? ((a * 100.0 / b)).ToString("F0") + "%" : "n/a";
-        }
-    }
-
-    internal static class GoToThrottleState
-    {
-        private class Entry
-        {
-            public Vector3 Target;
-            public float StopDistance;
-            public bool ForceRun;
-            public int LastCallFrame;
-        }
-
-        private static readonly Dictionary<int, Entry> _last = new Dictionary<int, Entry>();
-        private static readonly object _lock = new object();
-
-        public static bool ShouldThrottle(NavMeshNavigator nav, Vector3 target, float stopDistance, bool forceRun)
-        {
-            if (nav == null) return false;
-            int id = nav.GetInstanceID();
-            int frame = Time.frameCount;
-            lock (_lock)
-            {
-                Entry e;
-                if (!_last.TryGetValue(id, out e))
-                {
-                    _last[id] = new Entry { Target = target, StopDistance = stopDistance, ForceRun = forceRun, LastCallFrame = frame };
-                    return false;
-                }
-
-                bool sameTarget = (e.Target - target).sqrMagnitude <=
-                                  OptToggles.SameTargetEpsilon * OptToggles.SameTargetEpsilon;
-                bool sameParams = Mathf.Approximately(e.StopDistance, stopDistance) && e.ForceRun == forceRun;
-                bool tooSoon = (frame - e.LastCallFrame) < OptToggles.MinRetryFrames;
-
-                if (sameTarget && sameParams && tooSoon)
-                {
-                    // 0.4.17 (measured 2026-11-18: 341 x "Path to target is invalid" in 10 minutes, stations stay empty).
-                    // The game's GoToBehaviour repeats GoTo only when the agent has NO usable path (none, stopped or
-                    // stale) and counts every repeat; after 4 repeats without a path it gives the target up as
-                    // unreachable. Swallowing those repeats here made it give up without ever trying again.
-                    // Now a repeat is only swallowed when it is really redundant: a path is being calculated or a
-                    // good path is already there.
-                    bool redundant = false;
-                    try
-                    {
-                        var ag = nav.Agent;
-                        redundant = ag != null && ag.isOnNavMesh && (ag.pathPending || (ag.hasPath && !ag.isStopped && !ag.isPathStale));
-                    }
-                    catch { redundant = false; }
-                    if (redundant) return true;
-                    OptCounters.GoToNeeded++;
-                }
-
-                e.Target = target;
-                e.StopDistance = stopDistance;
-                e.ForceRun = forceRun;
-                e.LastCallFrame = frame;
-                return false;
-            }
-        }
-
-        public static void Forget(NavMeshNavigator nav)
-        {
-            if (nav == null) return;
-            try { lock (_lock) { _last.Remove(nav.GetInstanceID()); } }
-            catch { }
-        }
-    }
-
-    [HarmonyPatch(typeof(NavMeshNavigator), "GoTo", new Type[] { typeof(Vector3), typeof(float), typeof(bool) })]
-    internal static class Patch_Opt_GoToThrottle
-    {
-        static bool Prefix(NavMeshNavigator __instance, Vector3 navSpacePosition, float stopDistance, bool forceRun)
-        {
-            GoToLogState.LastCallThrottled = false;
-
-            if (!OptToggles.ThrottleGoToRetries) return true;
-            try
-            {
-                OptCounters.GoToTotal++;
-                OptCounters.MaybeDump();
-
-                if (GoToThrottleState.ShouldThrottle(__instance, navSpacePosition, stopDistance, forceRun))
-                {
-                    OptCounters.GoToThrottled++;
-                    GoToLogState.LastCallThrottled = true;
-                    return false;
-                }
-                return true;
-            }
-            catch (Exception e)
-            {
-                DiagLog.WriteError("Opt.GoToThrottle", e);
-                return true; // fail open
-            }
-        }
-    }
-
-    internal static class GoToLogState
-    {
-        public static bool LastCallThrottled;
-    }
-
-    [HarmonyPatch(typeof(NavMeshNavigator), "Stop")]
-    internal static class Patch_Opt_GoToThrottleReset
-    {
-        static void Postfix(NavMeshNavigator __instance)
-        {
-            if (!OptToggles.ThrottleGoToRetries) return;
-            try { GoToThrottleState.Forget(__instance); }
-            catch (Exception e) { DiagLog.WriteError("Opt.GoToThrottleReset", e); }
-        }
-    }
-
-    [HarmonyPatch(typeof(PlayableCharacter), "StopCurrentAction", new Type[] { typeof(bool) })]
-    internal static class Patch_Opt_StopCurrentActionEarlyOut
-    {
-        static bool Prepare() { return OptToggles.EarlyOutStopAction; }   // v1.0.0: not installed while off
-        static bool Prefix(PlayableCharacter __instance, bool ignoreCanBeStoppedFlag)
-        {
-            if (!OptToggles.EarlyOutStopAction) return true;
-            try
-            {
-                OptCounters.StopActionTotal++;
-                if (__instance == null) return true;
-                if (__instance.Action != null) return true;
-                OptCounters.StopActionSkipped++;
-                return false;
-            }
-            catch (Exception e)
-            {
-                DiagLog.WriteError("Opt.StopActionEarlyOut", e);
-                return true; // fail open
-            }
-        }
-    }
-
-    internal static class SlotBlacklist
-    {
-        private class Entry
-        {
-            public float FirstSeen;                 // unscaled
-            public float LastSeen;                  // unscaled
-            public readonly HashSet<string> Failers = new HashSet<string>();
-            public bool Global;
-        }
-
-        private static readonly Dictionary<int, Entry> _blocked = new Dictionary<int, Entry>();
-        private static readonly object _lock = new object();
-
-        public static void NoteFailure(InteractableSlot slot, string who, string reason)
-        {
-            if (slot == null) return;
-            try
-            {
-                int id = slot.GetInstanceID();
-                float now = Time.unscaledTime;
-                bool becameGlobal = false;
-                int distinct;
-
-                lock (_lock)
-                {
-                    Entry e;
-                    if (!_blocked.TryGetValue(id, out e))
-                    {
-                        e = new Entry { FirstSeen = now };
-                        _blocked[id] = e;
-                    }
-                    e.LastSeen = now;
-                    e.Failers.Add(who ?? "unknown");
-                    distinct = e.Failers.Count;
-                    if (!e.Global && distinct >= OptToggles.MinDistinctFailures)
-                    {
-                        e.Global = true;
-                        becameGlobal = true;
-                    }
-                }
-
-                OptCounters.SlotsBlacklisted++;
-                if (becameGlobal)
-                {
-                    DiagLog.Write("[Fix3] GLOBAL block on slot '" + SafeName(slot) + "' for " +
-                                  OptToggles.BlacklistSeconds + "s - " + distinct +
-                                  " distinct characters failed to reach it (latest=" + who + ", " + reason + ")");
-                }
-                else
-                {
-                    DiagLog.Write("[Fix3] per-character block on slot '" + SafeName(slot) + "' for " +
-                                  who + " (" + distinct + "/" + OptToggles.MinDistinctFailures +
-                                  " distinct failures so far, " + reason + ")");
-                }
-            }
-            catch (Exception e) { OptCounters.Fix3Errors++; DiagLog.WriteError("Opt.Blacklist.Note", e); }
-        }
-
-        public static bool IsBlocked(InteractableSlot slot, string who)
-        {
-            if (slot == null) return false;
-            try
-            {
-                int id = slot.GetInstanceID();
-                float now = Time.unscaledTime;
-                lock (_lock)
-                {
-                    Entry e;
-                    if (!_blocked.TryGetValue(id, out e)) return false;
-                    if (now - e.LastSeen >= OptToggles.BlacklistSeconds)
-                    {
-                        _blocked.Remove(id);
-                        OptCounters.BlacklistExpired++;
-                        DiagLog.Write("[Fix3] expired slot '" + SafeName(slot) + "' - available again");
-                        return false;
-                    }
-                    if (e.Global)
-                    {
-                        OptCounters.SlotChecksBlocked++;
-                        return true;
-                    }
-                    if (who != null && e.Failers.Contains(who))
-                    {
-                        OptCounters.SlotPerCharacterBlocks++;
-                        return true;
-                    }
-                    return false;
-                }
-            }
-            catch (Exception e)
-            {
-                OptCounters.Fix3Errors++;
-                DiagLog.WriteError("Opt.Blacklist.IsBlocked", e);
-                return false; // fail open - never block because of our own error
-            }
-        }
-
-        public static string SafeName(UnityEngine.Object o)
-        {
-            try { return o != null ? o.name : "null"; } catch { return "?"; }
-        }
-    }
-
-    [HarmonyPatch(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "Cancel")]
-    internal static class Patch_Opt_GoToBehaviourCancel
-    {
-        static readonly System.Reflection.FieldInfo AttemptsField =
-            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "setPathAttempts");
-        static readonly System.Reflection.FieldInfo PathValidField =
-            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "wasPathValid");
-        static readonly System.Reflection.FieldInfo PathSetField =
-            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "pathSet");
-        static readonly System.Reflection.FieldInfo LoggingTargetField =
-            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "loggingTarget");
-        static readonly System.Reflection.FieldInfo UnreachableActionField =
-            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "targetUnreachableAction");
-
-        static float _lastProbeLog;
-
-        static void Prefix(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour __instance)
-        {
-            if (!OptToggles.BlacklistUnreachableSlots && !OptToggles.InstrumentCancel) return;
-            try
-            {
-                if (__instance == null) return;
-                OptCounters.CancelsSeen++;
-
-                int attempts = AttemptsField != null ? (int)AttemptsField.GetValue(__instance) : -1;
-                bool wasValid = PathValidField != null && (bool)PathValidField.GetValue(__instance);
-                bool pathSet = PathSetField != null && (bool)PathSetField.GetValue(__instance);
-                object unreachable = UnreachableActionField != null ? UnreachableActionField.GetValue(__instance) : null;
-                object rawTarget = LoggingTargetField != null ? LoggingTargetField.GetValue(__instance) : null;
-                string unreachableStr = unreachable != null ? unreachable.ToString() : "null";
-
-                string who = "unknown";
-                try { who = __instance.AI != null ? __instance.AI.name : "unknown"; } catch { }
-
-                var tr = rawTarget as Transform;
-                InteractableSlot slot = null;
-                if (tr != null)
-                {
-                    try
-                    {
-                        slot = tr.GetComponent<InteractableSlot>();
-                        if (slot == null) slot = tr.GetComponentInParent<InteractableSlot>();
-                    }
-                    catch { }
-                }
-
-                bool confirmedShape = pathSet && !wasValid && unreachableStr == "CancelBehaviour";
-
-                if (confirmedShape)
-                {
-                    string failedTarget = "?";
-                    if (tr != null)
-                        failedTarget = (tr.parent != null ? tr.parent.name : "?") + "/" + tr.name;
-                    BehaviourCooldown.NoteUnreachable(who, failedTarget);
-                }
-
-                if (OptToggles.BlacklistUnreachableSlots && confirmedShape && slot != null)
-                {
-                    SlotBlacklist.NoteFailure(slot, who, "attempts=" + attempts + ", action=" + unreachableStr);
-                    return;
-                }
-
-                if (!OptToggles.InstrumentCancel || !DiagToggles.Verbose) return;   // v1.0.0: the line is verbose-only; NoteUnreachable above always runs
-                float now = Time.unscaledTime;
-                if (now - _lastProbeLog < 1.0f) return;
-                _lastProbeLog = now;
-
-                string targetDesc = "null";
-                if (tr != null)
-                {
-                    string parentName = tr.parent != null ? tr.parent.name : "(no parent)";
-                    targetDesc = "Transform '" + tr.name + "' parent '" + parentName + "'";
-                }
-                else if (rawTarget != null) targetDesc = rawTarget.GetType().Name;
-
-                string slotName = slot != null ? slot.name : "none";
-                string why = confirmedShape ? "matched shape but no slot found" : "shape did not match";
-                // 0.4.24: what the navmesh itself said (to tell "target cut off" from "man off the mesh")
-                string navInfo = "";
-                try
-                {
-                    var nf = AccessTools.Field(__instance.GetType(), "navigator");
-                    var tf = AccessTools.Field(__instance.GetType(), "target");
-                    var nv = nf != null ? nf.GetValue(__instance) as NavMeshNavigator : null;
-                    var ag = nv != null ? nv.Agent : null;
-                    if (ag != null && tf != null)
-                    {
-                        var tgt = (Vector3)tf.GetValue(__instance);
-                        navInfo = " | nav: mode=" + nv.AgentMode + " onMesh=" + ag.isOnNavMesh + " hasPath=" + ag.hasPath + " status=" + ag.pathStatus
-                                + " pathEndToTarget=" + (ag.hasPath ? (ag.pathEndPosition - tgt).magnitude.ToString("0.00") : "?")
-                                + " manToTarget=" + (ag.nextPosition - tgt).magnitude.ToString("0.0")
-                                + " slotUsers=" + (slot != null && slot.Interactable != null ? slot.Interactable.InteractingCharacters.Count.ToString() : "?");
-                    }
-                }
-                catch (Exception ne) { navInfo = " | nav: Fehler " + ne.GetType().Name; }
-                DiagLog.Write("[CancelProbe] " + who + " | attempts=" + attempts + " wasPathValid=" + wasValid +
-                              " pathSet=" + pathSet + " unreachableAction=" + unreachableStr +
-                              " | target=" + targetDesc + " | slot=" + slotName + " | " + why + navInfo);
-            }
-            catch (Exception e)
-            {
-                OptCounters.Fix3Errors++;
-                DiagLog.WriteError("Opt.CancelProbe", e);
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(InteractableSlot), "get_IsBlockedForAI")]
-    internal static class Patch_Opt_IsBlockedForAI
-    {
-        static bool Prepare() { return OptToggles.BlacklistUnreachableSlots; }   // v1.0.0: hot getter; not installed while off
-        static void Postfix(InteractableSlot __instance, ref bool __result)
-        {
-            if (!OptToggles.BlacklistUnreachableSlots) return;
-            if (__result) return; // already blocked by the game - leave it alone
-            try
-            {
-                if (SlotBlacklist.IsBlocked(__instance, null)) __result = true;
-            }
-            catch (Exception e)
-            {
-                OptCounters.Fix3Errors++;
-                DiagLog.WriteError("Opt.IsBlockedForAI", e);
-            }
-        }
-    }
-}
-
-// ====================================================================================================
 // Abschnitt: Modules/CrewAi/CrewAIOrderQueueRoom.cs
 // ====================================================================================================
 // Crew-KI (Teil des UBOAT Toolkit): CrewAIOrderQueueRoom. Schalter: F10 > QoL > "Crew-KI".
@@ -13718,121 +12796,6 @@ namespace UboatToolkit.Modules.CrewAi
                 }
             }
             return classes;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/CrewAi/CrewAIPerf.cs
-// ====================================================================================================
-// Crew-KI (Teil des UBOAT Toolkit): CrewAIPerf. Schalter: F10 > QoL > "Crew-KI".
-
-namespace UboatToolkit.Modules.CrewAi
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Text;
-    using global::UnityEngine;
-
-    internal static class PerfToggles
-    {
-        public static readonly bool Enabled = true;
-
-        public const double SlowCallMs = 15.0;
-
-        public const int MaxSlowLines = 60;
-
-        public const float ReportIntervalSeconds = 60f;
-    }
-
-    internal static class Perf
-    {
-        private sealed class Site
-        {
-            public long Calls;
-            public double TotalMs;
-            public double MaxMs;
-            public float MaxAtUnscaled;
-            public long SlowCalls;
-        }
-
-        private static readonly Dictionary<string, Site> _sites = new Dictionary<string, Site>();
-        private static readonly object _lock = new object();
-        private const double MsPerTick = 0.001;
-        private static long Now() { return (long)(Time.realtimeSinceStartupAsDouble * 1000000.0); }
-
-        private static int _slowLines;
-        private static float _lastReport;
-        private static bool _reportedFirst;
-
-        public static long Begin()
-        {
-            if (!PerfToggles.Enabled) return 0L;
-            return Now();
-        }
-
-        public static void End(string site, long startTicks)
-        {
-            if (!PerfToggles.Enabled || startTicks == 0L) return;
-            try
-            {
-                double ms = (Now() - startTicks) * MsPerTick;
-                float now = Time.unscaledTime;
-
-                bool slow;
-                lock (_lock)
-                {
-                    Site s;
-                    if (!_sites.TryGetValue(site, out s)) { s = new Site(); _sites[site] = s; }
-                    s.Calls++;
-                    s.TotalMs += ms;
-                    if (ms > s.MaxMs) { s.MaxMs = ms; s.MaxAtUnscaled = now; }
-                    slow = ms >= PerfToggles.SlowCallMs;
-                    if (slow) s.SlowCalls++;
-                }
-
-                if (slow && _slowLines < PerfToggles.MaxSlowLines)
-                {
-                    _slowLines++;
-                    DiagLog.Write("[Perf] SLOW " + site + " took " + ms.ToString("F1") +
-                                  " ms in one call (threshold " + PerfToggles.SlowCallMs + " ms)");
-                }
-            }
-            catch { }
-        }
-
-        public static void MaybeReport()
-        {
-            if (!PerfToggles.Enabled) return;
-            try
-            {
-                float now = Time.unscaledTime;
-                if (_reportedFirst && now - _lastReport < PerfToggles.ReportIntervalSeconds) return;
-                _lastReport = now;
-                _reportedFirst = true;
-
-                var sb = new StringBuilder("[Perf] ");
-                bool any = false;
-                lock (_lock)
-                {
-                    foreach (var kv in _sites)
-                    {
-                        var s = kv.Value;
-                        if (s.Calls == 0) continue;
-                        any = true;
-                        sb.Append(kv.Key).Append(' ')
-                          .Append("n=").Append(s.Calls).Append(' ')
-                          .Append("total=").Append(s.TotalMs.ToString("F1")).Append("ms ")
-                          .Append("mean=").Append((s.TotalMs / s.Calls).ToString("F3")).Append("ms ")
-                          .Append("max=").Append(s.MaxMs.ToString("F1")).Append("ms@rt")
-                          .Append(s.MaxAtUnscaled.ToString("F1"));
-                        if (s.SlowCalls > 0) sb.Append(" slow=").Append(s.SlowCalls);
-                        sb.Append(" | ");
-                    }
-                }
-                if (any) DiagLog.Write(sb.ToString());
-            }
-            catch { }
         }
     }
 }
@@ -15602,239 +14565,6 @@ namespace UboatToolkit.Modules.CrewAi
 }
 
 // ====================================================================================================
-// Abschnitt: Modules/CrewAiThrottle.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Core.AI;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UnityEngine;
-
-    // 0.3.70 (DoMe: relieve the main core). Measured: the per-frame update of all crew members costs about 3.9 s per
-    // minute with 130+ men (PlayableCharacter.Update + InteractiveCharacter.Update). Every man runs his AI every frame.
-    // Men who sleep in a bunk and are not on screen now run it only every x-th frame ("CrewAiSleepEvery").
-    // Only the per-frame call is thinned out; direct calls of the game (alarm, stories, cutscenes) always run.
-    // Once per minute the log shows the real AI cost, so the effect is measured, not guessed.
-    public class CrewAiThrottle : ModuleBase
-    {
-        internal static double Seconds;
-        internal static int Calls, Skipped;
-        internal static int Every = 1;
-        internal static bool Settle = true;
-        internal static float LoadingUntil;
-        internal static int Held, PathInvalid;
-        private long lastThrottled, lastNeeded;
-        private float nextLog, nextLoadCheck;
-
-        public override void Frame()
-        {
-            Settle = Settings.B("CrewAiWaitLoad");
-            if (!Settle || Time.unscaledTime < nextLoadCheck) return;
-            nextLoadCheck = Time.unscaledTime + 0.25f;
-            if (SaveLoading()) LoadingUntil = Time.unscaledTime + 3f;
-        }
-
-        private static bool SaveLoading()
-        {
-            try { var sm = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Core.Serialization.SavesManager>(); return sm != null && sm.IsLoading; } catch { return false; }
-        }
-
-        public override void Tick()
-        {
-            Every = Mathf.Clamp(Mathf.RoundToInt(Settings.F("CrewAiSleepEvery")), 1, 10);
-            if (Time.unscaledTime < nextLog) return;
-            if (nextLog > 0f && Calls + Skipped > 0)
-                Util.Log("Crew-KI: " + (Seconds * 1000.0).ToString("0") + " ms pro Minute in " + Calls + " Aufrufen, " + Skipped + " übersprungen (schlafend, nicht sichtbar)");
-            {
-                long t = CrewAi.OptCounters.GoToThrottled, n = CrewAi.OptCounters.GoToNeeded;
-                if (nextLog > 0f) Util.Log("Crew-Wege: " + PathInvalid + " mal \"Weg ungültig\" in der Minute; Weg-Wiederholungen: " + (t - lastThrottled) + " überflüssige geschluckt, " + (n - lastNeeded) + " nötige durchgelassen; " + CrewWarp_Patch.Warped + " Mann an den Platz gesetzt"); CrewWarp_Patch.Warped = 0;
-                lastThrottled = t; lastNeeded = n; PathInvalid = 0;
-            }
-            if (Held > 0) { Util.Log("Crew-KI: " + Held + " Aufrufe angehalten, weil das Boot noch lädt"); Held = 0; }
-            nextLog = Time.unscaledTime + 60f;
-            Seconds = 0; Calls = 0; Skipped = 0;
-        }
-    }
-
-    [HarmonyPatch(typeof(CharacterAI), nameof(CharacterAI.UpdateAI))]
-    internal static class CrewAiThrottle_Patch
-    {
-        private static readonly Dictionary<CharacterAI, PlayableCharacter> owners = new Dictionary<CharacterAI, PlayableCharacter>();
-
-        private static bool Prefix(CharacterAI __instance, bool ignoreIsUpdatingFlag, out double __state)
-        {
-            __state = 0;
-            if (!ignoreIsUpdatingFlag) return true;   // direct call of the game: never touched
-            // 0.3.91 (DoMe: console flickers while loading, log full of crew-AI null errors on the Warthog): while a save
-            // is still loading and in the first seconds of a new boat the crew AI of the player's boat waits, so it does
-            // not look for beds, food or free space before the interior exists.
-            // 0.4.29 (player-only rule): only figures of the player's crew list are held or thinned, nobody else.
-            if (!owners.TryGetValue(__instance, out var pc))
-            {
-                if (owners.Count > 2000) owners.Clear();
-                pc = __instance.GetComponent<PlayableCharacter>();
-                owners[__instance] = pc;
-            }
-            if (pc == null) return true;
-            if (CrewAiThrottle.Settle && (Time.unscaledTime < CrewAiThrottle.LoadingUntil || (Util.PlayerShip != null && !Util.ShipReady))) { CrewAiThrottle.Held++; return false; }
-            int every = CrewAiThrottle.Every;
-            if (every > 1)
-            {
-                if (pc != null && !pc.IsVisible && pc.Action is SleepAction && (Time.frameCount + (__instance.GetInstanceID() & 0x3ff)) % every != 0)
-                {
-                    CrewAiThrottle.Skipped++;
-                    return false;
-                }
-            }
-            __state = Time.realtimeSinceStartupAsDouble;
-            return true;
-        }
-
-        private static void Postfix(double __state)
-        {
-            if (__state == 0) return;
-            CrewAiThrottle.Seconds += Time.realtimeSinceStartupAsDouble - __state;
-            CrewAiThrottle.Calls++;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Core.AI;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UnityEngine;
-
-    // 0.4.17: counts how often the game gives a walking target up as unreachable (proof line "Crew-Wege").
-    [HarmonyPatch(typeof(CharacterAI), "LogAction", new System.Type[] { typeof(string) })]
-    internal static class CrewPathInvalid_Patch
-    {
-        private static void Prefix(string text)
-        {
-            if (text != null && text.StartsWith("Path to target is invalid", System.StringComparison.Ordinal)) CrewAiThrottle.PathInvalid++;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Core.AI;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UnityEngine;
-
-    // 0.4.18 (DoMe: "können wir ihn auch teleportieren?"). When the game gives a walking target up as unreachable it
-    // cancels the walk and the man's job with it. The game has a second mode for exactly this case (used in stories):
-    // set the man onto the target. For player crew with a job or an order and a real place as target (a slot at a
-    // station, a bunk ...) that mode is used now, so the post gets manned instead of staying empty.
-    [HarmonyPatch(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "Cancel")]
-    internal static class CrewWarp_Patch
-    {
-        private static readonly AccessTools.FieldRef<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable> mode =
-            AccessTools.FieldRefAccess<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable>("targetUnreachableAction");
-        private static readonly AccessTools.FieldRef<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, Transform> place =
-            AccessTools.FieldRefAccess<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, Transform>("loggingTarget");
-        private static readonly System.Reflection.FieldInfo navField = AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "navigator");
-        internal static int Warped;
-        private static int lines;
-
-        [HarmonyPriority(Priority.Last)]
-        private static void Prefix(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour __instance)
-        {
-            try
-            {
-                if (!Settings.B("CrewWarpNoPath") || __instance == null) return;
-                if (mode(__instance) != UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable.CancelBehaviour) return;
-                var t = place(__instance);
-                if (t == null) return;                                   // no real place (free walking): leave it to the game
-                var nav = navField != null ? navField.GetValue(__instance) as UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator : null;
-                var pc = nav != null ? nav.Character as PlayableCharacter : null;
-                if (pc == null || pc.Action == null) return;             // only our crew, only with a job or an order
-                mode(__instance) = UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable.Warp;
-                Warped++;
-                if (lines < 80) { lines++; Util.Log("Crew-Wege: " + pc.Name + " findet keinen Weg zu \"" + t.name + "\"" + (t.parent != null ? " (" + t.parent.name + ")" : "") + " und wird hingesetzt (Aufgabe " + pc.Action.GetType().Name + ")"); }
-            }
-            catch (System.Exception e) { if (lines < 80) { lines++; Util.Log("Crew-Wege: Hinsetzen Fehler " + e.GetType().Name); } }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/CrewCheats.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Navigation;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UnityEngine;
-
-    // Cheats: crew walks faster (#32), crew cannot die / lose health, supplies never run out (#10).
-    public class CrewCheats : ModuleBase
-    {
-        private PlayerCrew crew;
-
-        public override void Tick()
-        {
-            if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
-            if (crew == null) return;
-            float f = Mathf.Max(1f, Settings.F("CheatCrewWalkSpeed"));
-            foreach (var c in crew.Characters)
-            {
-                if (c == null) continue;
-                var nav = c.GetComponent<NavMeshNavigator>();
-                if (nav != null) Util.ScaleParameter(nav.SpeedMultiplier, f);
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(PlayableCharacter), "SetHealth")]
-    internal static class CrewCheats_HealthPatch
-    {
-        private static void Prefix(PlayableCharacter __instance, ref float value)
-        {
-            bool noWounds = Settings.B("CheatNoWounds");
-            if (!noWounds && !Settings.B("CheatImmortalCrew")) return;
-            if (__instance.Data == null) return;
-            var t = __instance.Data.CharacterType;
-            if (t != PlayableCharacterData.Type.Sailor && t != PlayableCharacterData.Type.Officer && t != PlayableCharacterData.Type.Skipper) return;
-            if (noWounds) { if (value < __instance.Health) value = __instance.Health; }
-            else if (value <= 0f) value = 0.01f;   // immortal only: health may drop, but never to death
-        }
-    }
-
-    [HarmonyPatch(typeof(PlayableCharacter), "BleedoutHealth", MethodType.Setter)]
-    internal static class CrewCheats_BleedoutPatch
-    {
-        private static void Prefix(PlayableCharacter __instance, ref float value)
-        {
-            if (!Settings.B("CheatImmortalCrew") && !Settings.B("CheatNoWounds")) return;
-            if (value < __instance.BleedoutHealth) value = __instance.BleedoutHealth;
-        }
-    }
-
-    // Supplies on the boat are never used up (food, spare parts, medkits ...). Cooking still works.
-    [HarmonyPatch(typeof(Cargo), "Consume")]
-    internal static class CrewCheats_SupplyPatch
-    {
-        private static bool Prefix(Cargo __instance, float count)
-        {
-            if (!Settings.B("CheatNoSupplyUse") || count <= 0f) return true;
-            return !Util.IsPlayers(__instance);
-        }
-    }
-}
-
-// ====================================================================================================
 // Abschnitt: Modules/CrewFill.cs
 // ====================================================================================================
 namespace UboatToolkit.Modules
@@ -15947,166 +14677,6 @@ namespace UboatToolkit.Modules
             if (!CrewGear_NoAutoCarryPatch.Inside) return true;
             __result = false;
             return false;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/CrewLod.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Core.AI;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UnityEngine;
-
-    // Crew detail levels (against low FPS with a big crew, e.g. 100+ men in port).
-    // Every man normally re-thinks every frame: "what is my best job now?" (all his behaviours are rated).
-    // For men you cannot see, this thinking now runs only every x frames, staggered so not all think
-    // in the same frame. What they are DOING right now (walking, working, sleeping, eating) still runs
-    // every frame, so jobs, rest and food take exactly as long as before.
-    // Always full speed: men you can see, and everyone during alarm or emergency.
-    // Faces/body shape (deformers) of men you cannot see are not recalculated.
-    public class CrewLod : ModuleBase
-    {
-        internal static bool On;
-        internal static int Frames = 1, IdleFrames = 1;
-        internal static bool Busy;   // alarm / emergency
-        private float next;
-
-        public override void Tick()
-        {
-            if (Time.unscaledTime < next) return;
-            next = Time.unscaledTime + 0.5f;
-            On = Settings.B("CrewLod");
-            Frames = Mathf.Max(1, Mathf.RoundToInt(Settings.F("CrewLodFrames")));
-            IdleFrames = Mathf.Max(1, Mathf.RoundToInt(Settings.F("CrewLodIdleFrames")));
-            var ship = Util.PlayerShip;
-            Busy = ship != null && (ship.Alarmed || ship.Emergency);
-            if (Time.unscaledTime >= nextLine)
-            {
-                if (nextLine > 0f && On) Util.Log("Crew-Detailstufen: " + Skipped + " mal Überlegen ausgesetzt, " + OrderKept + " mal nicht ausgesetzt wegen wartendem Befehl, " + Direct + " direkte Aufrufe des Spiels (Befehle) nie ausgesetzt; Werte " + Frames + "/" + IdleFrames);
-                nextLine = Time.unscaledTime + 60f; if (Urgent > 0) Util.Log("Crew-Detailstufen: " + Urgent + " mal nicht ausgesetzt, weil ein Pflicht-Posten leer war"); Skipped = 0; OrderKept = 0; Direct = 0; Urgent = 0;
-            }
-        }
-
-        private static readonly Dictionary<CharacterAI, InteractiveCharacter> owner = new Dictionary<CharacterAI, InteractiveCharacter>();
-
-        // true = skip the thinking this frame
-        internal static bool Skip(CharacterAI ai)
-        {
-            if (!On || Busy || ai == null || Time.timeScale <= 0f) return false;
-            // 0.4.13 (DoMe: many idle men, but the helm stays empty): while a station that must be manned is empty,
-            // nobody's thinking is paused, so the game's own shift jobs can fill it at once.
-            if (Time.unscaledTime < UrgentUntil) { Urgent++; return false; }
-            // 0.4.5 (DoMe 2026-11-17: orders must be given twice and still are not carried out): the game calls
-            // UpdateAI directly (68 places) right after an order is given or cancelled. Those calls were skipped
-            // here too, so the man only noticed his order x frames later. Now only the routine call once per frame
-            // may be skipped, and never for a man who has an order (profit 2 and more) that is not running yet.
-            if (!FrameCall) { Direct++; return false; }
-            if (!owner.TryGetValue(ai, out var ch))
-            {
-                if (owner.Count > 3000) owner.Clear();
-                ch = ai.GetComponent<InteractiveCharacter>();
-                owner[ai] = ch;
-            }
-            if (ch == null) return false;
-            int n = Frames;
-            if (ch.IsVisible)
-            {
-                // Visible men only when they are idle (standing around, resting, smoking, chatting, sleeping):
-                // they notice a new job a fraction of a second later, nobody else is affected.
-                if (IdleFrames <= 1 || !Idle(ai)) return false;
-                n = IdleFrames;
-            }
-            else if (Idle(ai)) n = Mathf.Max(n, IdleFrames);
-            // 0.4.13: in time compression x frames are x times more game time -> pause proportionally less
-            if (Time.timeScale > 1.5f) n = Mathf.RoundToInt(n / Time.timeScale);
-            if (n <= 1) return false;
-            int id = ai.GetInstanceID();
-            if (id < 0) id = -id;
-            if ((Time.frameCount + id) % n == 0) return false;
-            if (HasWaitingOrder(ai)) { OrderKept++; return false; }
-            Skipped++;
-            return true;
-        }
-
-        internal static bool FrameCall;
-        internal static int Direct, OrderKept, Skipped, Urgent;
-        internal static float UrgentUntil;
-        private float nextLine;
-
-        private static bool HasWaitingOrder(CharacterAI ai)
-        {
-            int c = ai.BehavioursCount;
-            for (int i = 0; i < c; i++)
-            {
-                var b = ai.GetBehaviourAt(i);
-                if (b != null && b.Profit >= 2f && b.State != AIBehaviourState.Active) return true;
-            }
-            return false;
-        }
-
-        // Idle = something is active, and everything active is free time (idle, rest, smoke, chat, sleep).
-        private static bool Idle(CharacterAI ai)
-        {
-            var act = ai.GetActiveBehavioursDirect();
-            if (act == null || act.Count == 0) return false;
-            for (int i = 0; i < act.Count; i++)
-            {
-                var b = act[i];
-                if (b == null) return false;
-                if (!(b is UBOAT.Game.Core.AI.Behaviours.IdleBehaviour || b is UBOAT.Game.Core.AI.Behaviours.IRelaxBehaviour)) return false;
-                if (b.State != AIBehaviourState.Active) return false;
-            }
-            return true;
-        }
-    }
-
-    // Marks the routine call once per frame (the only caller that passes true); every other call is a direct one.
-    [HarmonyPatch(typeof(CharacterAI), nameof(CharacterAI.UpdateAI))]
-    internal static class CrewLod_FrameCall
-    {
-        [HarmonyPriority(Priority.First)]
-        private static void Prefix(bool ignoreIsUpdatingFlag, out bool __state) { __state = CrewLod.FrameCall; CrewLod.FrameCall = ignoreIsUpdatingFlag; }
-        private static void Finalizer(bool __state) { CrewLod.FrameCall = __state; }
-    }
-
-    [HarmonyPatch(typeof(CharacterAI), "UpdateInactiveBehaviours")]
-    internal static class CrewLod_Background
-    {
-        private static bool Prefix(CharacterAI __instance) => !CrewLod.Skip(__instance);
-    }
-
-    [HarmonyPatch(typeof(CharacterAI), "AnalyzeBehaviours")]
-    internal static class CrewLod_Analyze
-    {
-        private static bool Prefix(CharacterAI __instance) => !CrewLod.Skip(__instance);
-    }
-
-    [HarmonyPatch(typeof(CharacterAI), "AnalyzeBehavioursFast")]
-    internal static class CrewLod_AnalyzeFast
-    {
-        private static bool Prefix(CharacterAI __instance) => !CrewLod.Skip(__instance);
-    }
-
-    [HarmonyPatch(typeof(DWS.Common.Characters.Deformers.DeformerBase), "LateUpdate")]
-    internal static class CrewLod_Deformer
-    {
-        private static readonly AccessTools.FieldRef<DWS.Common.Characters.Deformers.DeformerBase, SkinnedMeshRenderer> smr =
-            AccessTools.FieldRefAccess<DWS.Common.Characters.Deformers.DeformerBase, SkinnedMeshRenderer>("skinnedMeshRenderer");
-
-        private static bool Prefix(DWS.Common.Characters.Deformers.DeformerBase __instance)
-        {
-            if (!CrewLod.On) return true;
-            try
-            {
-                var r = smr(__instance);
-                return r == null || r.isVisible;
-            }
-            catch { return true; }
         }
     }
 }
@@ -16396,105 +14966,6 @@ namespace UboatToolkit.Modules
     internal static class TightPack_NoSlot
     {
         private static bool Prefix() => Settings.F("TightPackPerMan") <= 0f;
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/DeckCrew.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Statuses;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-
-    // Cheat "deck crew stays": the boat dives even with men on deck, they stay at the guns and never drown.
-    // Guns stay usable while diving; they still fire only as long as the gun itself is above the water.
-
-    // The game refuses to close the tower hatch while someone is on deck (and drowns the injured).
-    [HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.CloseExteriorHatch), "ValidateHatchOpeness")]
-    internal static class DeckCrew_HatchPatch
-    {
-        private static bool Prefix(ref bool __result)
-        {
-            if (!Settings.B("CheatDeckCrewStays")) return true;
-            var ship = Util.PlayerShip;
-            var hatch = ship != null ? ship.GetEquipment<Hatch>("Exterior") : null;
-            if (hatch == null) return true;
-            hatch.Locked = true;
-            __result = true;
-            return false;
-        }
-    }
-
-    // Nobody drowns: "drowning off board" death is blocked.
-    [HarmonyPatch(typeof(PlayableCharacterData), nameof(PlayableCharacterData.AddStatus), new[] { typeof(CharacterStatus) })]
-    internal static class DeckCrew_NoDrownPatch
-    {
-        // With "immortal crew" every death is blocked (also deaths the game sets directly, not via health).
-        // Immortal also means unhurt: no bleeding wounds.
-        private static bool Prefix(CharacterStatus status)
-        {
-            if (Settings.B("CheatImmortalCrew") && status is Dead) return false;
-            if (Settings.B("CheatNoWounds") && status is Bleeding) return false;
-            return !(Settings.B("CheatNoDrown") && status is Dead d && d.Cause == DeathCause.DrowningOffBoard);
-        }
-    }
-
-    // Guns are not switched off when the boat dives.
-    [HarmonyPatch(typeof(Gun), "ParentShip_SubmergeStateChanged")]
-    internal static class DeckCrew_GunPatch
-    {
-        private static void Postfix(Gun __instance)
-        {
-            // 0.4.22 (option audit, player-only rule): only OUR guns. Before, every gun in the scene kept working under
-            // water, enemy submarines included.
-            if (Settings.B("CheatGunsUnderWater") && Util.IsPlayers(__instance) && !Util.WarthogModOwns(Util.PlayerShip)) __instance.SetDisableFlag(DeviceDisableFlag.Depth, false);
-        }
-    }
-
-    // Immortal crew does not fall over from hits.
-    [HarmonyPatch(typeof(PlayableCharacter), nameof(PlayableCharacter.EnableRagdoll))]
-    internal static class DeckCrew_NoRagdollPatch
-    {
-        private static bool Prefix() => !Settings.B("CheatNoRagdoll");
-    }
-
-    // One-shot heal: every crew member gets full health, wounds and illnesses are removed, the fallen stand up.
-    public class HealAll : ModuleBase
-    {
-        public override void Frame()
-        {
-            if (Keys.Down("KeyHealAll")) { var o = Settings.Get("CheatHealNow"); if (o != null) o.Value = 1; }
-        }
-
-        public override void Tick()
-        {
-            var o = Settings.Get("CheatHealNow");
-            if (o == null || !o.On) return;
-            o.Value = 0;
-            Util.Safe("HealAll", () =>
-            {
-                var crew = UnityEngine.Object.FindObjectOfType<PlayerCrew>();
-                if (crew == null) return;
-                int n = 0;
-                foreach (var c in crew.Characters)
-                {
-                    if (c == null || c.Data == null || c.Data.HasStatus<Dead>()) continue;
-                    c.Data.RemoveStatuses<Bleeding>();
-                    c.Data.RemoveStatuses<Illness>();
-                    c.Data.RemoveStatuses<EarlyIllness>();
-                    c.Data.RemoveStatuses<Choking>();
-                    c.Health = 1f;
-                    c.BleedoutHealth = 1f;
-                    if (c.Ragdoll) c.DisableRagdoll();
-                    n++;
-                }
-                ToolkitRunner.ShowNotice(n + " Mann geheilt", 4f);
-            });
-        }
     }
 }
 
@@ -17095,50 +15566,6 @@ namespace UboatToolkit.Modules
             int h = 17;
             foreach (char ch in key) h = unchecked(h * 31 + ch);
             return (h & 1) == 0 ? CoatBlack : CoatGray;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/SkillIconFix.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::DWS.Common.Resources;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Fix 'Requested asset at path "Icons/Skills/<Name> (Owned)" doesn't exist.': some skills (e.g. "Advanced
-    // Equipment", or skills added by other mods such as "RadiomanAuthority1") have no picture for every state.
-    // The game then logs an error with a long stack for each button, every time the skill tree opens.
-    // Now: try the picture quietly, else the same skill without the state suffix, else the game's "Unknown" icon.
-    [HarmonyPatch(typeof(UBOAT.Game.UI.SkillButton), "Start")]
-    internal static class SkillIconFix
-    {
-        private static readonly MethodInfo Ours = AccessTools.Method(typeof(SkillIconFix), nameof(Get));
-
-        public static Resource<Sprite> Get(ResourceManager rm, string path, object owner, bool logErrors)
-        {
-            if (!Settings.B("FixSkillIcons")) return rm.RetrieveAsset<Sprite>(path, owner, logErrors);
-            var s = rm.RetrieveAsset<Sprite>(path, owner, false);
-            if (s.Valid) return s;
-            int i = path.IndexOf(" (");
-            if (i > 0) { s = rm.RetrieveAsset<Sprite>(path.Substring(0, i), owner, false); if (s.Valid) return s; }
-            return rm.RetrieveAsset<Sprite>("Icons/Skills/Unknown", owner, false);
-        }
-
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
-        {
-            foreach (var c in code)
-            {
-                if ((c.opcode == OpCodes.Callvirt || c.opcode == OpCodes.Call) && c.operand is MethodInfo m && m.Name == "RetrieveAsset"
-                    && m.IsGenericMethod && m.GetGenericArguments()[0] == typeof(Sprite) && m.GetParameters().Length == 3)
-                { c.opcode = OpCodes.Call; c.operand = Ours; }
-                yield return c;
-            }
         }
     }
 }
@@ -17779,29 +16206,6 @@ namespace UboatToolkit.Modules
     }
 }
 
-
-// ====================================================================================================
-// Abschnitt: Auto-Speichern, eine Uhr für alle (0.4.42)
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Core.Serialization;
-
-    // Remembers when the game last wrote a savegame, whoever asked for it. Read by the auto-save part. Changes nothing.
-    [HarmonyPatch(typeof(SavesManager), "Save")]
-    internal static class AutoSaveClock
-    {
-        internal static float LastSave = -1f; internal static string LastName = "";
-        private static void Postfix(string name)
-        {
-            LastSave = Time.unscaledTime; LastName = name ?? "";
-            Util.Log("Speichern: Spielstand \"" + LastName + "\" wird geschrieben");
-        }
-    }
-}
-
 // ====================================================================================================
 // Abschnitt: Platz machen bei voller Crew (0.4.45)
 // ====================================================================================================
@@ -17839,11 +16243,6 @@ namespace UboatToolkit.Modules
         }
     }
 }
-// ####################################################################################################
-// TEIL: Waffen
-// ####################################################################################################
-// UBOAT Toolkit - Waffen: Deckgeschütz, Flak, Torpedos, Minen
-// Diese Datei fasst 11 frühere Einzeldateien zusammen (0.4.30). Jeder Abschnitt nennt seine alte Datei.
 
 // ====================================================================================================
 // Abschnitt: Modules/DeckGun.cs
@@ -18748,162 +17147,6 @@ namespace UboatToolkit.Modules
             var t = __instance.Torpedo;
             if (t == null || !Util.IsPlayers(__instance) || !Controls_TorpedoMixPatch.IsMine(t.name)) return;
             Util.Log("Rohr " + __instance.name + ": Mine geladen (" + t.name.Replace("(Clone)", "").Trim() + "), Hafen=" + (Util.PlayerShip != null && Util.PlayerShip.Docked));
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/Strike.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UnityEngine.UI;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-
-    // Cheats: "Sink the convoy" (every enemy ship nearby gets torpedoes) and
-    // "remote torpedo" (fire at the nearest enemy from anywhere, e.g. from your bunk).
-    // Torpedoes are spawned close to the target, the same way the game's own developer console does it,
-    // and count as fired by your boat.
-    public class Strike : ModuleBase
-    {
-        public override void Frame()
-        {
-            if (Util.PlayerShip == null) return;
-            if (Keys.Down("KeyRemoteTorpedo") && Settings.B("CheatRemoteTorpedo")) Util.Safe("RemoteTorpedo", RemoteTorpedo);
-            if (Keys.Down("KeySinkConvoy")) { var o = Settings.Get("CheatSinkConvoy"); if (o != null) o.Value = 1; }
-            // 0.4.60: the torpedoes of "Sink the convoy" start a few per frame instead of all in one frame.
-            for (int i = 0; i < 4 && pending.Count > 0; i++)
-            {
-                var e = pending[pending.Count - 1]; pending.RemoveAt(pending.Count - 1);
-                if (e != null && e.Health > 0f) { Util.Safe("SinkConvoy spawn", () => Spawn(e, "G7a Torpedo T1 - Pi1.1")); spawned++; }
-                if (pending.Count == 0) Util.Log("Konvoi versenken: fertig, " + spawned + " Torpedos erzeugt (nicht aus Rohr oder Lager). Torpedos an Bord vorher " + stockBefore + ", jetzt " + Stock());
-            }
-        }
-
-        private static readonly System.Collections.Generic.List<Entity> pending = new System.Collections.Generic.List<Entity>();
-        private static int spawned, stockBefore;
-        // torpedoes in the boat's tubes and storages (crew backpacks excluded)
-        private static int Stock()
-        {
-            int n = 0;
-            foreach (var l in Util.Find<TorpedoLauncher>()) if (l != null && l.Torpedo != null && Util.IsPlayers(l)) n++;
-            foreach (var st in Util.Find<Storage>())
-            {
-                if (st == null || st is TorpedoLauncherGroup || st.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() != null) continue;
-                for (int i = 0; i < Util.Slots(st); i++) if (st.GetItemAt(i) is StoredTorpedo) n++;
-            }
-            return n;
-        }
-
-        public override void Tick()
-        {
-            var o = Settings.Get("CheatSinkConvoy");
-            if (o != null && o.On) { o.Value = 0; Util.Safe("SinkConvoy", SinkConvoy); }
-        }
-
-        private static bool IsEnemyShip(Entity e, Country me)
-        {
-            if (!(e is Ship) || e is PlayerShip || e is Torpedo || e.Health <= 0f) return false;
-            var se = e.SandboxEntity;
-            if (se == null || se.IsPacified || se.Type == null || se.Type.IsAircraft) return false;
-            var c = se.PerceivedCountry;
-            return c != null && me != null && c.GetRelationWith(me) == Country.Relation.Enemy;
-        }
-
-        private static void SinkConvoy()
-        {
-            var ship = Util.PlayerShip;
-            var me = ship.SandboxEntity?.Country;
-            float range = Settings.F("SinkConvoyRange") * 1000f;
-            int per = Mathf.Max(1, (int)Settings.F("SinkConvoyTorpedoes"));
-            int ships = 0;
-            if (pending.Count > 0) { ToolkitRunner.ShowNotice("Sink the convoy läuft noch (" + pending.Count + " Torpedos offen)", 4f); Util.Log("Konvoi versenken: Taste ignoriert, noch " + pending.Count + " Torpedos offen"); return; }
-            spawned = 0; stockBefore = Stock();
-            foreach (var e in Entity.List.ToArray())
-            {
-                if (!IsEnemyShip(e, me)) continue;
-                if ((e.transform.position - ship.transform.position).magnitude > range) continue;
-                for (int i = 0; i < per; i++) pending.Add(e);
-                ships++;
-            }
-            Util.Log("Konvoi versenken: " + ships + " Schiffe, " + pending.Count + " Torpedos, 4 pro Bild");
-            ToolkitRunner.ShowNotice(ships > 0 ? "Sink the convoy: " + ships + " Schiffe im Visier" : "Kein Gegner in Reichweite", 6f);
-        }
-
-        private static void RemoteTorpedo()
-        {
-            var ship = Util.PlayerShip;
-            var me = ship.SandboxEntity?.Country;
-            Entity target = null; float best = float.MaxValue;
-            foreach (var e in Entity.List)
-            {
-                if (!IsEnemyShip(e, me)) continue;
-                float d = (e.transform.position - ship.transform.position).sqrMagnitude;
-                if (d < best) { best = d; target = e; }
-            }
-            if (target == null) { ToolkitRunner.ShowNotice("Kein Gegner in Reichweite", 3f); return; }
-
-            // A loaded tube gives its torpedo type (and loses it, unless unlimited torpedoes is on).
-            string type = "G7a Torpedo T1 - Pi1.1";
-            var tube = Util.Find<TorpedoLauncher>().FirstOrDefault(l => l.Torpedo != null && l.IsLoaded && !(l.Torpedo is StoredMinePacket));
-            if (tube == null && !Settings.B("CheatInfiniteTorpedoes")) { ToolkitRunner.ShowNotice("Kein Rohr geladen", 3f); return; }
-            if (tube != null)
-            {
-                type = tube.Torpedo.name.Replace("(Clone)", "").Trim();
-                if (!Settings.B("CheatInfiniteTorpedoes"))
-                {
-                    var t = tube.Torpedo;
-                    tube.SetTorpedo(null);
-                    Object.Destroy(t.gameObject);
-                }
-            }
-            Spawn(target, type);
-            ToolkitRunner.ShowNotice("Torpedo los auf " + target.name.Replace("(Clone)", "").Trim(), 3f);
-        }
-
-        private static void Spawn(Entity target, string type)
-        {
-            var sandbox = Object.FindObjectOfType<UBOAT.Game.Sandbox.Sandbox>();
-            var w = Game.Wolfpack;
-            if (sandbox == null || w == null) return;
-            var se = SandboxEntity.Create(type, sandbox.NeutralCountry);
-            se.SpawnsInstantly = true;
-            w.AddEntity(se);
-            se.UpdatePosition();
-            if (!(se.SpawnedEntity is Torpedo torp)) return;
-            Vector3 aim = target.transform.position;
-            if (target is Ship s) { var f = target.transform.forward; f.y = 0f; aim += f.normalized * (s.AverageVelocity * 15f); }
-            torp.WasSpawnedInsteadLaunched = true;
-            var st = torp.GetComponent<StoredTorpedo>();
-            st.Start();
-            st.transform.position = aim + Quaternion.AngleAxis(Random.value * 360f, Vector3.up) * new Vector3(0f, 0f, 270f);
-            var dir = aim - st.transform.position; dir.y = 0f; dir.Normalize();
-            st.transform.rotation = Quaternion.AngleAxis(Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg, Vector3.up);
-            st.DudSeed = 1f;
-            st.Launch(Util.PlayerShip, target.transform, aim, aim, 0, st.Speed1, new Collider[0]);
-        }
-    }
-
-    // Tube icons: hovering over the torpedo symbol of a tube shows its exact type.
-    [HarmonyPatch(typeof(UBOAT.Game.UI.TorpedoLauncherUI), "ValidateTorpedoIcon")]
-    internal static class Strike_TubeTooltipPatch
-    {
-        private static void Postfix(UBOAT.Game.UI.TorpedoLauncherUI __instance)
-        {
-            if (!Settings.B("TubeDisplay")) return;
-            var img = Traverse.Create(__instance).Field("torpedoImage").GetValue<Image>();
-            if (img == null) return;
-            var ui = __instance;
-            UBOAT.Game.UI.Tooltip.SetTooltip(img.rectTransform, () =>
-            {
-                var t = ui.Launcher != null ? ui.Launcher.Torpedo : null;
-                return t == null ? "leer" : t.name.Replace("(Clone)", "").Trim();
-            });
         }
     }
 }
@@ -19949,106 +18192,6 @@ namespace UboatToolkit.Modules
     }
 }
 
-
-// ====================================================================================================
-// Abschnitt: Gegner ist Pazifist (0.4.32)
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-
-    // DoMe 2026-11-18: "cheat: Gegner ist Pazifist". Weakening the enemy is allowed, each effect with its own switch.
-    // Scope: only weapons that do NOT belong to the player's boat and are not allied (same test as the enemy gun
-    // spread, EnemyGunnery.InScope). The player's own weapons are never touched. Every blocked attack is counted and
-    // written to the log once per minute, so the effect can be proven.
-    internal static class EnemyPacifist
-    {
-        private static readonly Dictionary<string, int> counts = new Dictionary<string, int>();
-        private static float nextLog;
-
-        internal static bool Enemy(Component c)
-        {
-            if (c == null) return false;
-            var e = c.GetComponentInParent<Entity>();
-            return e != null && EnemyGunnery.InScope(e);
-        }
-
-        internal static void Count(string what)
-        {
-            int n; counts.TryGetValue(what, out n); counts[what] = n + 1;
-            if (Time.unscaledTime < nextLog) return;
-            nextLog = Time.unscaledTime + 60f;
-            var sb = new System.Text.StringBuilder("Gegner-Cheats (nur fremde Waffen, nie eigene): ");
-            foreach (var kv in counts) sb.Append(kv.Key).Append(" ").Append(kv.Value).Append("x, ");
-            Util.Log(sb.ToString().TrimEnd(',', ' '));
-            counts.Clear();
-        }
-    }
-
-    [HarmonyPatch(typeof(Gun), "Fire")]
-    internal static class EnemyPacifist_Gun
-    {
-        [HarmonyPriority(Priority.First)]
-        private static bool Prefix(Gun __instance, ref Shell __result)
-        {
-            if (!Settings.B("CheatPacifistGuns") || __instance == null || Util.IsPlayers(__instance) || !EnemyGunnery.InScope(__instance.ParentEntity)) return true;
-            __result = null;
-            EnemyPacifist.Count("Kanonenschuss verhindert");
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(BombLauncher), nameof(BombLauncher.LaunchSeries))]
-    internal static class EnemyPacifist_Bombs
-    {
-        private static bool Prefix(BombLauncher __instance)
-        {
-            if (__instance == null) return true;
-            bool bombs = __instance.UseBombs;
-            if (!Settings.B(bombs ? "CheatPacifistBombs" : "CheatPacifistDepthCharges") || !EnemyPacifist.Enemy(__instance)) return true;
-            EnemyPacifist.Count(bombs ? "Bombenwurf verhindert" : "Wasserbomben-Serie verhindert");
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(HedgehogLauncher), nameof(HedgehogLauncher.LaunchSalvo))]
-    internal static class EnemyPacifist_Hedgehog
-    {
-        private static bool Prefix(HedgehogLauncher __instance)
-        {
-            if (!Settings.B("CheatPacifistHedgehog") || !EnemyPacifist.Enemy(__instance)) return true;
-            EnemyPacifist.Count("Hedgehog-Salve verhindert");
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(RocketLauncher), nameof(RocketLauncher.TryLaunchSeries))]
-    internal static class EnemyPacifist_Rockets
-    {
-        private static bool Prefix(RocketLauncher __instance)
-        {
-            if (!Settings.B("CheatPacifistRockets") || !EnemyPacifist.Enemy(__instance)) return true;
-            EnemyPacifist.Count("Raketen verhindert");
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(NPCTorpedoLauncherGroup), "FindBestTarget")]
-    internal static class EnemyPacifist_Torpedoes
-    {
-        private static void Postfix(NPCTorpedoLauncherGroup __instance, ref Entity __result)
-        {
-            if (__result == null || !Settings.B("CheatPacifistTorpedoes") || !EnemyPacifist.Enemy(__instance)) return;
-            __result = null;
-            EnemyPacifist.Count("Torpedo-Ziel verweigert");
-        }
-    }
-}
-
 // ====================================================================================================
 // Abschnitt: Torpedo-Treffer im Log (0.4.38)
 // ====================================================================================================
@@ -20248,11 +18391,6 @@ namespace UboatToolkit.Modules
         }
     }
 }
-// ####################################################################################################
-// TEIL: Sensoren
-// ####################################################################################################
-// UBOAT Toolkit - Sensoren: Sonar, Hydrophon, Sehrohr, Funk, Ausguck
-// Diese Datei fasst 40 frühere Einzeldateien zusammen (0.4.30). Jeder Abschnitt nennt seine alte Datei.
 
 // ====================================================================================================
 // Abschnitt: Modules/ActiveSonar.cs
@@ -20376,62 +18514,6 @@ namespace UboatToolkit.Modules
     {
         private static void Prefix(DirectObservation __instance) { ActiveSonar_ExactPatch.Now = __instance; }
         private static System.Exception Finalizer(System.Exception __exception) { ActiveSonar_ExactPatch.Now = null; return __exception; }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/DetectCheat.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Missions;
-
-    // Cheat (DoMe 2026-11-16: "detect cheat dauerhaft aktiv, Missionsziel direkt anfahren"): keeps contacts on the map,
-    // the same way the game's console command "Detect" does it, but every 3 s instead of 12 times a second,
-    // also after loading, and without the console. 1 = only targets of missions, 2 = every group.
-    public class DetectCheat : ModuleBase
-    {
-        private float next;
-        private int lastCount = -1;
-        public override void Tick()
-        {
-            int mode = Mathf.RoundToInt(Settings.F("CheatDetect"));
-            if (mode <= 0 || Time.unscaledTime < next) return;
-            next = Time.unscaledTime + 3f;
-            var w = Game.Wolfpack;
-            var sb = Traverse.Create(typeof(UBOAT.Game.UI.DevConsole.DevConsoleCommands)).Field("sandbox").GetValue<Sandbox>();
-            if (w == null || sb == null) return;
-            float km = Settings.F("CheatDetectKm");
-            float max2 = km > 0f ? km * km : float.MaxValue;
-            List<SandboxGroup> groups = sb.GetGroupsDirect();
-            int n = 0;
-            for (int i = 0; i < groups.Count; i++)
-            {
-                var g = groups[i];
-                if (!g || g.IsGroupPublic || g == w) continue;
-                if (g.DistanceToPlayerSquared > max2) continue;
-                if (mode == 1 && !IsTarget(g)) continue;
-                w.AddObservation(g, GroupDetectionMethod.NotSpecified).AddKnownData(GroupData.All, 0f, true);
-                n++;
-            }
-            if (n != lastCount) { lastCount = n; Util.Log("[Kontakte] " + n + " Gruppen auf der Karte gehalten (Modus " + mode + ")"); }
-        }
-
-        private static bool IsTarget(SandboxGroup g)
-        {
-            var es = g.Entities;
-            for (int i = 0; i < es.Count; i++)
-            {
-                var st = es[i]?.Statuses;
-                if (st == null) continue;
-                for (int j = 0; j < st.Count; j++) if (st[j] is IMissionTarget) return true;
-            }
-            return false;
-        }
     }
 }
 
@@ -22210,96 +20292,6 @@ namespace UboatToolkit.Modules.Lrl
 
             LastLogged[key] = now;
             return true;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/Lookout/LrlOrphanScrub.cs
-// ====================================================================================================
-// Ausguck (Teil des UBOAT Toolkit): LrlOrphanScrub. Schalter: F10 > QoL > "Ausguck".
-
-namespace UboatToolkit.Modules.Lrl
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UnityEngine;
-
-    internal static class LrlOrphanScrub
-    {
-        private const string LegacyModifierName = "LongRangeLookout.GroupSightRange";
-
-        private static readonly List<ObservationSpot> SpotBuffer = new List<ObservationSpot>();
-        private static readonly List<Modifier> Doomed = new List<Modifier>();
-
-        internal static int RemovedCount { get; private set; }
-
-        internal static void Sweep(PlayerShip ship)
-        {
-            if (ship == null)
-                return;
-
-            LrlProviders.GetAll(ship, SpotBuffer);
-
-            for (var i = 0; i < SpotBuffer.Count; i++)
-            {
-                var spot = SpotBuffer[i];
-
-                SweepParameter(spot, spot.GroupDetectionRange);
-            }
-
-            SpotBuffer.Clear();
-        }
-
-        private static void SweepParameter(ObservationSpot spot, Parameter parameter)
-        {
-            if (parameter == null)
-                return;
-
-            var scales = parameter.ScaleModifiers;
-            if (scales == null || scales.Count == 0)
-                return;
-
-            Doomed.Clear();
-
-            for (var i = 0; i < scales.Count; i++)
-            {
-                if (IsOurs(scales[i]))
-                    Doomed.Add(scales[i]);
-            }
-
-            for (var i = 0; i < Doomed.Count; i++)
-            {
-                var modifier = Doomed[i];
-
-                LrlLog.Info(string.Format(
-                    "scrub: removing legacy modifier from {0}.GroupSightRange - name=\"{1}\" value={2:0.000}",
-                    spot.Name, modifier.Name, modifier.Value));
-
-                modifier.Value = 1f;
-                scales.Remove(modifier);
-
-                RemovedCount++;
-            }
-
-            Doomed.Clear();
-        }
-
-        private static bool IsOurs(Modifier modifier)
-        {
-            if (modifier == null)
-                return false;
-
-            if (LegacyModifierName.Equals(modifier.Name))
-                return true;
-
-            if (modifier.GetType() != typeof(Modifier))
-                return false;
-
-            return Mathf.Abs(modifier.Value - LrlSettings.LegacyMultiplier) < 0.0005f;
         }
     }
 }
@@ -26125,249 +24117,6 @@ namespace UboatToolkit.Modules
 }
 
 // ====================================================================================================
-// Abschnitt: Modules/SensorCheats.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UBOAT.Game.Scene.Utilities;
-
-    // Cheats:
-    // - Radio reception at any depth.
-    // - Hydrophone hears fully when surfaced and at high speed.
-    // - Exact target data (speed, course, distance) instead of rough estimates.
-    // - Hull armour: damage to your boat and crew is reduced (explosions, shells, torpedoes, depth charges, ramming).
-    public class SensorCheats : ModuleBase
-    {
-        // "Hydrophone hears fully surfaced / fast": see HydroSame below (no per-tick overwrite any more).
-        private readonly System.Collections.Generic.Dictionary<Hydrophone, bool> state = new System.Collections.Generic.Dictionary<Hydrophone, bool>();
-        public override void Tick()
-        {
-            foreach (var h in Util.Find<Hydrophone>())
-            {
-                if (h == null) continue;
-                bool want = HydroSame.Wanted(h);
-                state.TryGetValue(h, out var was);
-                if (want == was) continue;
-                state[h] = want;
-                if (want) HydroSame.Force(h); else HydroSame.Restore(h);
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(Antenna), "LowFrequencyUpdate")]
-    internal static class Sensor_RadioDepthPatch
-    {
-        private static void Postfix(Antenna __instance)
-        {
-            if (Settings.B("CheatRadioAnyDepth") && __instance.ReceiveRangeDepthModifier != null)
-                __instance.ReceiveRangeDepthModifier.Value = 1f;
-        }
-    }
-
-    [HarmonyPatch(typeof(Hydrophone), nameof(Hydrophone.AllowOnlyCrudeEstimations), MethodType.Getter)]
-    internal static class Sensor_ExactTargetsPatch
-    {
-        // 0.4.29 (player-only rule): only the player's own hydrophone, never an enemy one.
-        private static void Postfix(Hydrophone __instance, ref bool __result)
-        {
-            if (Settings.B("CheatExactTargets") && Util.IsPlayers(__instance)) __result = false;
-        }
-    }
-
-    // Cheat (DoMe 2026-11-16: "instant Schusslösung"): the game builds the firing solution from "tracking progress" that
-    // grows while a contact is watched (accuracy = 1 - e^(-0.1 x progress)). With the cheat every sighting by the
-    // player's boat counts as fully tracked at once, so type, speed, course and distance are there immediately.
-    [HarmonyPatch(typeof(DirectObservation), nameof(DirectObservation.UpdateObservation))]
-    internal static class Sensor_InstantSolutionPatch
-    {
-        private static void Prefix(DirectObservation __instance, ref float trackingProgress)
-        {
-            if (!Settings.B("CheatInstantSolution") || !(__instance.Observator is PlayerShip)) return;
-            if (__instance.TrackingProgress < 100f) trackingProgress = Mathf.Max(trackingProgress, 100f - __instance.TrackingProgress);
-        }
-    }
-
-    [HarmonyPatch(typeof(DamageUtility), nameof(DamageUtility.ApplyDamage))]
-    internal static class Sensor_ArmourPatch
-    {
-        private static float nextNote;
-        private static readonly Collider[] buf = new Collider[256];
-        private static bool OthersInBlast(PlayerShip ship, Vector3 position, float radius)
-        {
-            int n = Physics.OverlapSphereNonAlloc(position, radius * 1.35f, buf, 1090049, QueryTriggerInteraction.Collide);
-            if (n >= buf.Length) return true;                       // too many to check: be safe, no armour
-            for (int i = 0; i < n; i++)
-            {
-                var e = buf[i] != null ? buf[i].GetComponentInParent<Entity>() : null;
-                if (e != null && e != ship) return true;
-            }
-            return false;
-        }
-        private static void Prefix(Entity appliedBy, Vector3 position, float damageRadius, ref float damage, ref float crewDamage, ref float fireChance, Ship target)
-        {
-            float hull = Settings.F("CheatHullArmour");
-            bool crew = Settings.B("CheatCrewProtection");
-            if (hull >= 1f && !crew) return;
-            var ship = Util.PlayerShip;
-            if (ship == null || appliedBy == ship) return;
-            if (target != null && target != ship) return;
-            if ((position - ship.transform.position).magnitude > 80f + damageRadius) return;
-            // 0.4.22 (option audit, player-only rule): a blast without a fixed target (bomb, depth charge, shell burst) has ONE
-            // damage value for everything in its radius. If anything else than our boat is inside, the value stays as the
-            // game made it, so no enemy next to us is ever protected by our armour.
-            if (hull < 1f && target == null && OthersInBlast(ship, position, damageRadius))
-            {
-                if (Time.unscaledTime > nextNote) { nextNote = Time.unscaledTime + 30f; Util.Log("Rumpfpanzerung: Explosion trifft auch andere Schiffe, Schaden bleibt Spielwert (Panzerung gilt nur allein für dein Boot)"); }
-                hull = 1f;
-            }
-            if (hull < 1f) { damage *= hull; fireChance *= hull; }
-            if (crew) crewDamage = 0f;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UBOAT.Game.Scene.Utilities;
-
-    // Own shells / flak must not damage our own boat. The game fires player shells with friendlyFire=true,
-    // so a shell that bursts on our own tower or deck hurts hull, devices and crew - and the armour cheat
-    // skipped those hits (appliedBy == our boat). Here our boat's parts are removed from the hit list.
-    [HarmonyPatch(typeof(DamageUtility), "DoApplyDamage")]
-    internal static class Sensor_OwnShellsPatch
-    {
-        internal static bool Active;
-        private static bool logged;
-
-        private static void Prefix(Entity appliedBy, DamageType damageType, ref float crewDamage)
-        {
-            Active = false;
-            if (!Settings.B("CheatOwnShellsSafe") || damageType != DamageType.Projectile) return;
-            var ship = Util.PlayerShip;
-            if (ship == null || appliedBy != ship) return;
-            Active = true;
-            crewDamage = 0f;
-            if (!logged) { logged = true; Util.Log("Eigene Granaten: Treffer am eigenen Boot werden ignoriert."); }
-        }
-
-        private static System.Exception Finalizer(System.Exception __exception) { Active = false; return __exception; }
-    }
-
-    [HarmonyPatch(typeof(DamageUtility), "CollectComponents")]
-    internal static class Sensor_OwnShellsCollectPatch
-    {
-        private static readonly System.Reflection.FieldInfo compsF = AccessTools.Field(typeof(DamageUtility), "components");
-        private static readonly System.Reflection.FieldInfo rendF = AccessTools.Field(typeof(DamageUtility), "damageRenderers");
-        private static readonly System.Collections.Generic.List<UBOAT.Game.Scene.Effects.HullEffectsRenderer> drop = new System.Collections.Generic.List<UBOAT.Game.Scene.Effects.HullEffectsRenderer>();
-
-        private static void Postfix()
-        {
-            if (!Sensor_OwnShellsPatch.Active) return;
-            var ship = Util.PlayerShip;
-            if (ship == null) return;
-            var comps = compsF != null ? compsF.GetValue(null) as System.Collections.Generic.SortedList<float, Equipment> : null;
-            if (comps != null)
-                for (int i = comps.Count - 1; i >= 0; i--)
-                {
-                    var eq = comps.Values[i];
-                    if (eq != null && eq.ParentEntity == ship) comps.RemoveAt(i);
-                }
-            var rend = rendF != null ? rendF.GetValue(null) as System.Collections.Generic.Dictionary<UBOAT.Game.Scene.Effects.HullEffectsRenderer, bool> : null;
-            if (rend != null)
-            {
-                drop.Clear();
-                foreach (var k in rend.Keys) if (k != null && k.ParentEntity == ship) drop.Add(k);
-                for (int i = 0; i < drop.Count; i++) rend.Remove(drop[i]);
-                drop.Clear();
-            }
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UBOAT.Game.Scene.Utilities;
-
-    // Hydrophone "as good surfaced and fast as submerged and slow" (cheat CheatHydrophoneAlways, Warthog WhPassiveSame).
-    // The game eases the speed penalty EVERY FRAME (Hydrophone.UpdateShipVelocityModifier) and fades the surface penalty
-    // over 0.5 s. Overwriting the modifiers once per tick made the range jump between two values = the two green range
-    // circles on the map flickered. The old fix patched SetShipVelocityModifiers, a 6-line method the JIT inlines, so it
-    // never ran (no log line in DoMe's log 2026-11-13). Now the game's TARGET values are set to 1 in the bigger methods
-    // that decide them, so the game itself settles on 1 and there is only one value.
-    internal static class HydroSame
-    {
-        private static readonly System.Reflection.FieldInfo targetF = AccessTools.Field(typeof(Hydrophone), "shipVelocityModifierTargetValue");
-        private static readonly System.Reflection.FieldInfo tweenF = AccessTools.Field(typeof(Hydrophone), "rangeModifierTween");
-        private static readonly string[] Mods = { "surfaceRangeModifier", "surfaceGroupRangeModifier", "shipVelocityRangeModifier", "shipVelocityGroupRangeModifier" };
-        private static bool logged;
-
-        internal static bool Wanted(Hydrophone h)
-        {
-            if (h == null || !Util.IsPlayers(h)) return false;
-            if (Settings.B("CheatHydrophoneAlways") || Settings.B("CheatHydrophoneFast")) return true;
-            return Warthog.WarthogSonar.On && Settings.B("WhPassive") && Settings.B("WhPassiveSame");
-        }
-
-        internal static void Force(Hydrophone h)
-        {
-            try
-            {
-                // 0.4.29: two separate switches (surfaced / high speed); the Warthog passive sonar switch still means both
-                bool wh = Warthog.WarthogSonar.On && Settings.B("WhPassive") && Settings.B("WhPassiveSame");
-                bool surf = wh || Settings.B("CheatHydrophoneAlways"), fast = wh || Settings.B("CheatHydrophoneFast");
-                if (fast && targetF != null) targetF.SetValue(h, 1f);
-                // The game's range tween is NOT aborted any more: the map draws the green range circles from it (gone since 0.2.54).
-                var t = Traverse.Create(h);
-                foreach (var f in Mods) { if (!(f.StartsWith("surface") ? surf : fast)) continue; var m = t.Field(f).GetValue<Modifier>(); if (m != null && m.Value != 1f) m.Value = 1f; }
-                if (!logged) { logged = true; Util.Log("Hydrophon (nur eigenes Gerät): Abzug aufgetaucht " + (surf ? "aufgehoben" : "wie im Spiel") + ", Abzug hohe Fahrt " + (fast ? "aufgehoben" : "wie im Spiel") + " (" + h.name + ")"); }
-            }
-            catch (System.Exception e) { Util.Log("Hydrophon: " + e.Message); }
-        }
-
-        // switched off again: let the game compute its own values
-        internal static void Restore(Hydrophone h)
-        {
-            try
-            {
-                var t = Traverse.Create(h);
-                t.Method("ValidateVelocityModifier").GetValue();
-                if (h.ParentEntity is UBOAT.Game.Scene.Entities.PlayableSubmarine) t.Method("SurfaceRangeModifierParameter_Changed", new[] { typeof(Parameter) }, new object[] { null }).GetValue();
-            }
-            catch (System.Exception e) { Util.Log("Hydrophon zurück: " + e.Message); }
-        }
-    }
-
-    [HarmonyPatch]
-    internal static class HydroSame_Patches
-    {
-        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
-        {
-            foreach (var n in new[] { "ValidateVelocityModifier", "UpdateShipVelocityModifier", "Submarine_SubmergeStateChanged", "SurfaceRangeModifierParameter_Changed", "OnSandboxRepresentationSet" })
-            {
-                var m = AccessTools.Method(typeof(Hydrophone), n);
-                if (m != null) yield return m; else Util.Log("Hydrophon: Spiel-Methode " + n + " fehlt");
-            }
-        }
-        private static void Postfix(Hydrophone __instance) { if (HydroSame.Wanted(__instance)) HydroSame.Force(__instance); }
-    }
-}
-
-// ====================================================================================================
 // Abschnitt: Modules/SonarScope.cs
 // ====================================================================================================
 namespace UboatToolkit.Modules
@@ -26495,12 +24244,6 @@ namespace UboatToolkit.Modules
         }
     }
 }
-
-// ####################################################################################################
-// TEIL: Anzeige
-// ####################################################################################################
-// UBOAT Toolkit - Anzeige: Kamera, Licht, Karte, Meldungen, Ton
-// Diese Datei fasst 15 frühere Einzeldateien zusammen (0.4.30). Jeder Abschnitt nennt seine alte Datei.
 
 // ====================================================================================================
 // Abschnitt: Modules/CameraTools.cs
@@ -26963,336 +24706,6 @@ namespace UboatToolkit.Modules
     internal static class Events_NoAutoAlarmPatch
     {
         private static bool Prefix(bool manualOrder) => manualOrder || !Settings.B("NoAutoAlarm");
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/ExplosionLimit.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Shell explosions: the game spawns one explosion effect per hit (Shell.Explode). Here the effect is made smaller
-    // and at most x per second are spawned. Damage is computed before and is not changed.
-    [HarmonyPatch(typeof(UBOAT.Game.Scene.Entities.Shell), "Explode")]
-    internal static class ExplosionLimit_Patch
-    {
-        private static readonly MethodInfo Inst = AccessTools.FirstMethod(typeof(Object), m => m.Name == "Instantiate" && m.IsGenericMethodDefinition && m.GetParameters().Length == 1)?.MakeGenericMethod(typeof(GameObject));
-        private static readonly MethodInfo Mine = AccessTools.Method(typeof(ExplosionLimit_Patch), nameof(Spawn));
-        // The game forbids direct calls to Object.Instantiate in mod code: the non-generic overload is called via reflection.
-        private static readonly MethodInfo InstObj = typeof(Object).GetMethod("Instantiate", new[] { typeof(Object) });
-        private static GameObject Clone(GameObject p) => (GameObject)InstObj.Invoke(null, new object[] { p });
-        private static float second; private static int count; private static int skipped; private static float nextLog;
-
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
-        {
-            int n = 0;
-            foreach (var ci in code)
-            {
-                if (Inst != null && ci.Calls(Inst)) { n++; yield return new CodeInstruction(OpCodes.Call, Mine); continue; }
-                yield return ci;
-            }
-            Util.Log("Explosionen: " + n + " Stelle(n) umgeleitet");
-        }
-
-        // Smoothed frames per second (real time).
-        private static float fps = 60f, lastT;
-        internal static float Fps()
-        {
-            float t = Time.unscaledTime, dt = Time.unscaledDeltaTime;
-            if (t != lastT && dt > 0f) { lastT = t; fps = Mathf.Lerp(fps, 1f / dt, 0.2f); }
-            return fps;
-        }
-
-        private static GameObject Spawn(GameObject prefab)
-        {
-            if (!Settings.B("ExplosionLimit")) return Clone(prefab);
-            float now = Time.unscaledTime;
-            float scale = Mathf.Clamp(Settings.F("ExplosionScale"), 0.1f, 1f);
-            int max = Mathf.Max(1, Mathf.RoundToInt(Settings.F("ExplosionMaxPerSec")));
-            if (Settings.B("ExplosionAuto"))
-            {
-                // Load-based detail: at target FPS or better full effects; below, scale and count go down with the FPS.
-                float load = Mathf.Clamp01(Fps() / Mathf.Max(1f, Settings.F("ExplosionTargetFps")));
-                scale = Mathf.Lerp(scale, 1f, load);
-                max = load >= 0.999f ? 1000 : Mathf.Max(1, Mathf.RoundToInt(Mathf.Lerp(1f, max * 3f, load)));
-            }
-            if (now - second >= 1f) { second = now; count = 0; }
-            if (++count > max)
-            {
-                skipped++;
-                if (now > nextLog) { nextLog = now + 60f; Util.Log("Explosionen begrenzt: " + skipped + " Effekte ausgelassen (gesamt)"); }
-                var dummy = new GameObject("SkippedExplosion");
-                Object.Destroy(dummy, 0.1f);
-                return dummy;
-            }
-            var go = Clone(prefab);
-            float s = scale;
-            if (s < 0.999f)
-            {
-                go.transform.localScale = prefab.transform.localScale * s;
-                foreach (var ps in go.GetComponentsInChildren<ParticleSystem>(true))
-                {
-                    var main = ps.main;
-                    main.scalingMode = ParticleSystemScalingMode.Hierarchy;
-                }
-            }
-            return go;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/FadeReparent.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Fix: when a crew/port-worker figure fades in while its parent object (e.g. "Port Workers Controller")
-    // is being switched on or off, the game moves its "Fade Effect Renderer" into that parent at the wrong
-    // moment and Unity refuses with an error. The move is now done one frame later, when it is allowed.
-    // If the parent is gone by then, the orphaned renderer is removed so nothing is left behind.
-    public class FadeReparent : ModuleBase
-    {
-        private struct Job { public Transform Child, Parent; public bool Keep; public bool HadParent; }
-        private static readonly List<Job> jobs = new List<Job>();
-        private static int fixedCount;
-
-        public static void Set(Transform child, Transform parent, bool keep)
-        {
-            if (child == null) return;
-            if (!Settings.B("FixFadeReparent")) { child.SetParent(parent, keep); return; }
-            jobs.Add(new Job { Child = child, Parent = parent, Keep = keep, HadParent = parent != null });
-        }
-
-        public override void Frame()
-        {
-            if (jobs.Count == 0) return;
-            var list = jobs.ToArray(); jobs.Clear();
-            foreach (var j in list)
-            {
-                if (j.Child == null) continue;
-                try
-                {
-                    if (j.HadParent && j.Parent == null) { Object.Destroy(j.Child.gameObject); continue; }
-                    j.Child.SetParent(j.Parent, j.Keep);
-                    fixedCount++;
-                }
-                catch (System.Exception e) { Util.Log("Fade-Fix: " + e.Message); }
-            }
-        }
-
-        public static int Fixed => fixedCount;
-    }
-
-    [HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.InteractiveCharacter), "FadeInOut")]
-    internal static class FadeReparent_Patch
-    {
-        private static readonly MethodInfo SetParent2 = AccessTools.Method(typeof(Transform), nameof(Transform.SetParent), new[] { typeof(Transform), typeof(bool) });
-        private static readonly MethodInfo Ours = AccessTools.Method(typeof(FadeReparent), nameof(FadeReparent.Set));
-
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
-        {
-            var list = new List<CodeInstruction>(code);
-            int n = 0;
-            foreach (var c in list)
-                if ((c.opcode == OpCodes.Callvirt || c.opcode == OpCodes.Call) && c.operand as MethodInfo == SetParent2)
-                { c.opcode = OpCodes.Call; c.operand = Ours; n++; }
-            if (n != 1) Util.Log("Fade-Fix: erwartet 1 Stelle, gefunden " + n + (n == 0 ? " - bleibt unverändert." : " - alle umgeleitet."));
-            return list;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/IconFix.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Linq;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::DWS.Common.Resources;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Fix 'Requested asset at path "Icons/Activators/Goods Depository" (or "Icons/Equipment/Fuel") doesn't exist.':
-    // the game has no picture for some port depots, tanks and items, and logs a red error with a long stack
-    // each time a storage window, banner or info box shows them. Now: picture quietly, else the folder's
-    // "Unknown" picture, else the activator "Unknown" picture - no red error.
-    [HarmonyPatch]
-    internal static class IconFix
-    {
-        private static readonly MethodInfo Ours = AccessTools.Method(typeof(IconFix), nameof(Get));
-        private static readonly string[] TypeNames = {
-            "UBOAT.Game.UI.ActivatorDetailsUI", "UBOAT.Game.UI.DeviceInfoUI", "UBOAT.Game.UI.Storage.StorageTabUI",
-            "UBOAT.Game.UI.Storage.StorageWindow", "UBOAT.Game.UI.Storage.StorageUICount", "UBOAT.Game.UI.Storage.StorageSlotUI",
-            "UBOAT.Game.UI.Banners.BaseActivatorBanner", "UBOAT.Game.UI.CharacterSelectionUI",
-            "UBOAT.Game.UI.StoryPlayerCharacterUI", "UBOAT.Game.UI.StoryPlayerCharacterSlotUI", "UBOAT.Game.UI.EquipmentUpgradeItemUI", "UBOAT.Game.UI.SkillTokenUI", "UBOAT.Game.UI.Map.PlayerShipMarkerController", "UBOAT.Game.UI.Map.EntityMarkerUI", "UBOAT.Game.UI.Banners.CharacterActivatorBanner" };
-
-        private static bool IsCall(object operand) => operand is MethodInfo m && m.Name == "RetrieveAsset"
-            && m.IsGenericMethod && m.GetGenericArguments()[0] == typeof(Sprite) && m.GetParameters().Length == 3;
-
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            var list = new List<MethodBase>();
-            foreach (var n in TypeNames)
-            {
-                var t = UboatToolkit.Util.FindType(n);
-                if (t == null) continue;
-                var types = new List<Type> { t };
-                types.AddRange(t.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic));
-                foreach (var ty in types)
-                    foreach (var m in AccessTools.GetDeclaredMethods(ty))
-                    {
-                        if (m.IsAbstract || m.IsGenericMethodDefinition || m.ContainsGenericParameters) continue;
-                        try { if (PatchProcessor.ReadMethodBody(m).Any(i => IsCall(i.Value))) list.Add(m); } catch { }
-                    }
-            }
-            return list;
-        }
-
-        public static Resource<Sprite> Get(ResourceManager rm, string path, object owner, bool logErrors)
-        {
-            if (!Settings.B("FixMissingIcons") || path == null) return rm.RetrieveAsset<Sprite>(path, owner, logErrors);
-            if (rm.AssetExists(path)) return rm.RetrieveAsset<Sprite>(path, owner, logErrors);
-            int i = path.LastIndexOf('/');
-            if (i > 0) { var u = path.Substring(0, i) + "/Unknown"; if (rm.AssetExists(u)) return rm.RetrieveAsset<Sprite>(u, owner, false); }
-            return rm.RetrieveAsset<Sprite>("Icons/Activators/Unknown", owner, false);
-        }
-
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
-        {
-            foreach (var c in code)
-            {
-                if ((c.opcode == OpCodes.Callvirt || c.opcode == OpCodes.Call) && IsCall(c.operand)) { c.opcode = OpCodes.Call; c.operand = Ours; }
-                yield return c;
-            }
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Linq;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::DWS.Common.Resources;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Fix 'GameObject is already being activated or deactivated.' when coming back from the character
-    // screen: the main camera is switched off, and while Unity switches it off the free camera moves it
-    // to a new parent (not allowed then). The move is now done one frame later instead.
-    [HarmonyLib.HarmonyPatch]
-    internal static class CameraParentFix
-    {
-        private static int inDisable;
-        private static UnityEngine.Transform pendingT, pendingParent;
-        private static bool pendingWorld;
-
-        [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.MainCamera), "OnDisable"), HarmonyLib.HarmonyPrefix]
-        private static void Enter() => inDisable++;
-
-        [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.MainCamera), "OnDisable"), HarmonyLib.HarmonyFinalizer]
-        private static System.Exception Leave(System.Exception __exception) { if (inDisable > 0) inDisable--; return __exception; }
-
-        [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.FreeFlyCameraController), "StopController"), HarmonyLib.HarmonyTranspiler]
-        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> T(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
-        {
-            var setParent = HarmonyLib.AccessTools.Method(typeof(UnityEngine.Transform), "SetParent", new[] { typeof(UnityEngine.Transform), typeof(bool) });
-            var ours = HarmonyLib.AccessTools.Method(typeof(CameraParentFix), nameof(SetParent));
-            foreach (var c in code)
-            {
-                if ((c.opcode == System.Reflection.Emit.OpCodes.Callvirt || c.opcode == System.Reflection.Emit.OpCodes.Call) && c.operand as System.Reflection.MethodInfo == setParent)
-                { c.opcode = System.Reflection.Emit.OpCodes.Call; c.operand = ours; }
-                yield return c;
-            }
-        }
-
-        public static void SetParent(UnityEngine.Transform t, UnityEngine.Transform parent, bool worldStays)
-        {
-            if (inDisable > 0 && Settings.B("FixCameraParent")) { pendingT = t; pendingParent = parent; pendingWorld = worldStays; return; }
-            t.SetParent(parent, worldStays);
-        }
-
-        internal static void RunPending()
-        {
-            if (pendingT == null) return;
-            var t = pendingT; pendingT = null;
-            try { if (t != null && pendingParent != null) t.SetParent(pendingParent, pendingWorld); } catch (System.Exception e) { Util.Log("Kamera-Fix: " + e.Message); }
-        }
-    }
-
-    public class CameraParentFixModule : ModuleBase
-    {
-        public override void Frame() => CameraParentFix.RunPending();
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Linq;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::DWS.Common.Resources;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // 0.3.93 (DoMe: debug console still pops up about once a minute): many other UI parts (contact list, cursor
-    // action icons, periscope overlays) ask for pictures the game does not ship. Each one wrote a red
-    // "Requested asset at path ... doesn't exist." error, which opens the console. A missing picture is harmless:
-    // for paths under Icons/ and Images/ the error is now only counted, not written.
-    [HarmonyPatch]
-    internal static class IconFix_MissingLog
-    {
-        internal static int Hidden;
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            // Mono shares one method body for all class types (Sprite, Texture2D, ...): patching the Sprite version covers them all.
-            var list = new List<MethodBase>();
-            foreach (var t in new[] { typeof(DWS.Common.Resources.ResourceBase<Sprite>) })
-            {
-                var m = AccessTools.DeclaredMethod(t, "LogAssetMissing");
-                if (m != null && !list.Contains(m)) list.Add(m);
-            }
-            var ab = UboatToolkit.Util.FindType("DWS.Common.Resources.AssetBundleContainedResource`1");
-            if (ab != null)
-                foreach (var a in new[] { typeof(Sprite) })
-                {
-                    try { var m = AccessTools.DeclaredMethod(ab.MakeGenericType(a), "LogAssetMissing"); if (m != null && !list.Contains(m)) list.Add(m); } catch { }
-                }
-            return list;
-        }
-
-        private static bool Prefix(object __instance)
-        {
-            try
-            {
-                if (!Settings.B("FixMissingIcons")) return true;
-                var p = Traverse.Create(__instance).Property("Path").GetValue<string>();
-                if (p == null || !(p.StartsWith("Icons/") || p.StartsWith("Images/"))) return true;
-                if (Hidden++ < 20) Util.Log("Fehlendes Bild ohne roten Fehler übersprungen: " + p);
-                return false;
-            }
-            catch { return true; }
-        }
     }
 }
 
@@ -30668,423 +28081,6 @@ namespace UboatToolkit.Modules.StationCtl
 }
 
 // ====================================================================================================
-// Abschnitt: Modules/UiFixes.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::DWS.Common.Pooling;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Fix "Cannot set the parent of the GameObject 'Default Tooltip(Clone)' while activating or deactivating
-    // the parent GameObject 'GUI'": the game re-parents a reused tooltip to the canvas every time it opens,
-    // even when it already sits there. Unity refuses that while the GUI is being switched on/off.
-    // Now the move is skipped when the tooltip is already under the canvas, and otherwise done one frame later.
-    [HarmonyPatch(typeof(UBOAT.Game.UI.FloatingTooltip), "OpenInternal")]
-    internal static class UiFixes_TooltipParent
-    {
-        private static readonly MethodInfo SetParent2 = AccessTools.Method(typeof(Transform), nameof(Transform.SetParent), new[] { typeof(Transform), typeof(bool) });
-        private static readonly MethodInfo Ours = AccessTools.Method(typeof(UiFixes_TooltipParent), nameof(Set));
-
-        public static void Set(Transform child, Transform parent, bool keep)
-        {
-            if (child == null) return;
-            if (!Settings.B("FixTooltipParent")) { child.SetParent(parent, keep); return; }
-            if (child.parent == parent) return;
-            // Must happen right now: the game sizes and positions the tooltip on the next lines. Moving it a frame
-            // later left an empty box (DoMe 2026-11-12, visibility panel). Only the redundant move is skipped.
-            child.SetParent(parent, keep);
-        }
-
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
-        {
-            foreach (var c in code)
-            {
-                if ((c.opcode == OpCodes.Callvirt || c.opcode == OpCodes.Call) && c.operand as MethodInfo == SetParent2) { c.opcode = OpCodes.Call; c.operand = Ours; }
-                yield return c;
-            }
-        }
-    }
-
-    // Fix 'Pooled instance of prefab "Character/Other/Newspaper Mirror" has enabled animators ...':
-    // some props (newspaper stand) go back into the pool with their animator still running. The game notices
-    // that only when it reuses them, logs the error and throws the object away. We do the same at the moment
-    // it is handed back, without the error, so no broken object ever sits in the pool.
-    [HarmonyPatch(typeof(GlobalPool), nameof(GlobalPool.FreeInstance))]
-    internal static class UiFixes_PoolAnimators
-    {
-        private static readonly List<Animator> anims = new List<Animator>();
-        private static readonly List<SkinnedMeshRenderer> skins = new List<SkinnedMeshRenderer>();
-
-        private static void Postfix(GlobalPool __instance, GameObject instance)
-        {
-            if (!Settings.B("FixPoolAnimators") || instance == null) return;
-            var po = instance.GetComponent<PooledObject>();
-            if (po == null) return;
-            bool bad = false;
-            instance.GetComponentsInChildren(true, anims);
-            foreach (var a in anims) if (a != null && a.enabled) { bad = true; break; }
-            if (!bad) { instance.GetComponentsInChildren(true, skins); foreach (var s in skins) if (s != null && s.enabled) { bad = true; break; } }
-            anims.Clear(); skins.Clear();
-            if (!bad) return;
-            var pool = Traverse.Create(__instance).Method("GetPool", new[] { typeof(object) }).GetValue(po.PrefabPath);
-            if (pool != null)
-            {
-                var tp = Traverse.Create(pool);
-                if (tp.Property("Count").GetValue<int>() > 0 && (tp.Method("Peek").GetValue() as GameObject) == instance) tp.Method("Pop").GetValue();
-            }
-            Object.Destroy(instance);
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::DWS.Common.Pooling;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Fix NullReferenceException in FlamesRegistry.OnFlamesDetached / SpawnParticles: when a burning part is shot
-    // off a ship (e.g. a gun "Detached"), the burning surface reports to a fire registry whose flame effect is
-    // already gone. The game then throws every time. Now: nothing to move -> skip quietly.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Effects.FlamesRegistry), nameof(UBOAT.Game.Scene.Effects.FlamesRegistry.OnFlamesDetached))]
-    internal static class UiFixes_FlamesDetached
-    {
-        private static bool Prefix(UBOAT.Game.Scene.Effects.FlamesRegistry __instance, UBOAT.Game.Scene.Effects.FlammableSurface flames)
-        {
-            if (!Settings.B("FixFlames")) return true;
-            return __instance != null && __instance.FlamesEffect != null && flames != null && flames.transform.parent != null;
-        }
-
-        private static System.Exception Finalizer(System.Exception __exception) =>
-            __exception is System.NullReferenceException && Settings.B("FixFlames") ? null : __exception;
-    }
-
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Effects.FlamesRegistry), "SpawnParticles", new System.Type[0])]
-    internal static class UiFixes_FlamesSpawn
-    {
-        private static bool Prefix(UBOAT.Game.Scene.Effects.FlamesRegistry __instance) =>
-            !Settings.B("FixFlames") || (__instance != null && __instance.FlamesEffect != null);
-
-        private static System.Exception Finalizer(System.Exception __exception) =>
-            __exception is System.NullReferenceException && Settings.B("FixFlames") ? null : __exception;
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::DWS.Common.Pooling;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Diagnosis "empty box next to the eye" (DoMe 2026-11-12): every game tooltip that opens is checked 0.4 s later
-    // and written to the log once per kind: who opened it, text, measured size, font, material and the alpha of box and
-    // text. Shows whether the text is empty, invisible (alpha 0), unmeasured (font/material) or the box is something else.
-    public class TooltipDiag : ModuleBase
-    {
-        private struct Pending { public UBOAT.Game.UI.FloatingTooltip T; public float At; public string From; }
-        private static readonly List<Pending> pending = new List<Pending>();
-        private static readonly HashSet<string> done = new HashSet<string>();
-        internal static string Caller = "?";
-        private static int count;
-        private static readonly FieldInfo contentsF = AccessTools.Field(typeof(UBOAT.Game.UI.FloatingTooltip), "contents");
-        private static readonly FieldInfo openF = AccessTools.Field(typeof(UBOAT.Game.UI.FloatingTooltip), "isOpen");
-
-        internal static void Opened(object t)
-        {
-            var ft = t as UBOAT.Game.UI.FloatingTooltip;
-            if (ft == null || !Settings.B("DiagTooltip") || count >= 40) return;
-            pending.Add(new Pending { T = ft, At = Time.unscaledTime + 0.4f, From = Caller });
-            Caller = "?";
-        }
-
-        public override void Frame()
-        {
-            if (pending.Count == 0) return;
-            float now = Time.unscaledTime;
-            for (int i = pending.Count - 1; i >= 0; i--)
-            {
-                var p = pending[i];
-                if (now < p.At) continue;
-                pending.RemoveAt(i);
-                try { Check(p); } catch (System.Exception e) { Util.Log("Tooltip-Diagnose: " + e.Message); }
-            }
-        }
-
-        private static void Check(Pending p)
-        {
-            if (p.T == null) return;
-            var c = contentsF != null ? contentsF.GetValue(p.T) as TMPro.TextMeshProUGUI : null;
-            var img = p.T.GetComponent<UnityEngine.UI.Image>();
-            string text = c != null ? (c.text ?? "") : "<kein Text-Feld>";
-            bool empty = c == null || text.Trim().Length == 0;
-            string key = p.From + "|" + empty + "|" + (c != null && c.font != null ? c.font.name : "-");
-            if (!done.Add(key) && p.From != "Auge" && !empty) return;
-            count++;
-            var sb = new System.Text.StringBuilder();
-            sb.Append("Tooltip-Diagnose [").Append(p.From).Append("]: offen=").Append(openF != null ? openF.GetValue(p.T) : "?")
-              .Append(", aktiv=").Append(p.T.gameObject.activeInHierarchy);
-            var rt = p.T.transform as RectTransform;
-            if (rt != null) sb.Append(", Kasten=").Append(rt.rect.width.ToString("0")).Append("x").Append(rt.rect.height.ToString("0"));
-            if (img != null) sb.Append(", Kasten-Alpha=").Append(img.canvasRenderer.GetAlpha().ToString("0.00"));
-            if (c != null)
-            {
-                string one = text.Replace("\n", " / ").Replace("\r", "");
-                if (one.Length > 160) one = one.Substring(0, 160) + "...";
-                sb.Append(", Text(").Append(text.Length).Append(" Zeichen)='").Append(one).Append("'")
-                  .Append(", Text an=").Append(c.enabled).Append("/").Append(c.gameObject.activeInHierarchy)
-                  .Append(", Text-Alpha=").Append(c.canvasRenderer.GetAlpha().ToString("0.00"))
-                  .Append(", Farbe-A=").Append(c.color.a.ToString("0.00"))
-                  .Append(", Größe=").Append(c.fontSize.ToString("0.0"))
-                  .Append(", Schrift=").Append(c.font != null ? c.font.name : "KEINE")
-                  .Append(", Material=").Append(c.fontSharedMaterial != null ? c.fontSharedMaterial.name : "KEINES")
-                  .Append(", gemessen=").Append(c.preferredHeight.ToString("0"))
-                  .Append(", Zeichen sichtbar=").Append(c.textInfo != null ? c.textInfo.characterCount : -1)
-                  .Append(", Text-Rect=").Append(c.rectTransform.rect.width.ToString("0")).Append("x").Append(c.rectTransform.rect.height.ToString("0"));
-            }
-            Util.Log(sb.ToString());
-        }
-    }
-
-    [HarmonyPatch(typeof(UBOAT.Game.UI.FloatingTooltip), "OpenInternal")]
-    internal static class TooltipDiag_Open
-    {
-        private static void Postfix(object __result) { try { TooltipDiag.Opened(__result); } catch { } }
-    }
-
-    [HarmonyPatch(typeof(UBOAT.Game.UI.Resources.DetectabilityGUI), nameof(UBOAT.Game.UI.Resources.DetectabilityGUI.OnPointerEnter))]
-    internal static class TooltipDiag_Eye
-    {
-        private static void Prefix() { TooltipDiag.Caller = "Auge"; }
-        private static System.Exception Finalizer(System.Exception __exception)
-        {
-            if (__exception != null) Util.Log("Tooltip-Diagnose [Auge]: Spiel-Fehler beim Öffnen: " + __exception.GetType().Name + ": " + __exception.Message);
-            return __exception;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::DWS.Common.Pooling;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Empty tooltip box (DoMe 2026-11-13: eye icon, also on the stock IXC): a game "Tooltip" whose text is empty
-    // (missing translation or update function returning "") still opened the box. Now: an empty text opens nothing,
-    // and the object path + key are logged once so the missing text can be found.
-    [HarmonyPatch(typeof(UBOAT.Game.UI.Tooltip), "Open")]
-    internal static class UiFixes_EmptyTooltip
-    {
-        private static readonly FieldInfo localeF = AccessTools.Field(typeof(UBOAT.Game.UI.Tooltip), "locale");
-        private static readonly HashSet<string> logged = new HashSet<string>();
-
-        internal static string PathOf(Transform t)
-        {
-            string path = t != null ? t.name : "?";
-            for (int i = 0; i < 4 && t != null && t.parent != null; i++) { t = t.parent; path = t.name + "/" + path; }
-            return path;
-        }
-
-        private static bool Prefix(UBOAT.Game.UI.Tooltip __instance, string ___localizationKey, System.Func<string> ___updateFunction)
-        {
-            try
-            {
-                string text = null, key = ___localizationKey;
-                if (___updateFunction != null) { text = ___updateFunction(); if (text == null) return true; key = "(Funktion)"; }
-                else if (key != null && localeF != null)
-                {
-                    var loc = localeF.GetValue(null);
-                    string k = key.EndsWith("/") ? key + __instance.name : key;
-                    text = loc != null ? Traverse.Create(loc).Method("get_Item", new[] { typeof(string) }, new object[] { k }).GetValue<string>() : null;
-                    key = k;
-                }
-                else return true;
-                string path = PathOf(__instance.transform);
-                TooltipDiag.Caller = "Tooltip " + path + " key=" + key;
-                if (text != null && text.Trim().Length > 0) return true;
-                if (logged.Add(path + "|" + key)) Util.Log("Tooltip ohne Text unterdrückt: " + path + ", Schlüssel '" + key + "'");
-                return !Settings.B("FixEmptyTooltip");
-            }
-            catch (System.Exception e) { Util.Log("Tooltip-Prüfung: " + e.Message); return true; }
-        }
-    }
-
-    [HarmonyPatch(typeof(UBOAT.Game.UI.PlainTooltip), nameof(UBOAT.Game.UI.PlainTooltip.Open))]
-    internal static class UiFixes_PlainTooltipDiag
-    {
-        private static readonly HashSet<string> logged = new HashSet<string>();
-        private static void Postfix(UBOAT.Game.UI.PlainTooltip __instance, RectTransform target, string contents)
-        {
-            try
-            {
-                if (!Settings.B("DiagTooltip")) return;
-                string path = UiFixes_EmptyTooltip.PathOf(target != null ? target.transform : __instance.transform);
-                bool empty = contents == null || contents.Trim().Length == 0;
-                if (logged.Add(path + "|" + empty))
-                    Util.Log("Tooltip-Diagnose [Plain " + path + "]: Text(" + (contents == null ? -1 : contents.Length) + " Zeichen)='" + (contents ?? "").Replace("\n", " / ") + "'");
-            }
-            catch { }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/VoiceLimit.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Fewer voices: the same line at most every x seconds, short waiting queue, optional gun callouts muted.
-    // Every voice line of the game goes through SpeakController.Say (the 7-parameter version); a skipped line returns null
-    // (the game handles null, it does the same when a man is injured).
-    [HarmonyPatch]
-    internal static class VoiceLimit_SayPatch
-    {
-        private static readonly Dictionary<string, float> lastSaid = new Dictionary<string, float>();
-        private static FieldInfo ticketsF;
-        private static int dropped; private static float nextLog;
-
-        private static MethodBase TargetMethod()
-        {
-            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Tasks.SpeakController");
-            foreach (var m in AccessTools.GetDeclaredMethods(t))
-                if (m.Name == "Say" && m.GetParameters().Length == 7) return m;
-            return null;
-        }
-
-        private static bool Prefix(object __instance, string statementId1)
-        {
-            if (!Settings.B("VoiceLimit") || string.IsNullOrEmpty(statementId1)) return true;
-            if (Settings.B("VoiceMuteGunCalls") && (statementId1 == "Artillery Aim" || statementId1 == "Fire!")) return Drop();
-            float now = Time.unscaledTime;
-            float gap = Settings.F("VoiceRepeatSec");
-            int maxQ = Mathf.Max(1, Mathf.RoundToInt(Settings.F("VoiceMaxQueue")));
-            if (Settings.B("ExplosionAuto"))
-            {
-                // Dynamic like the explosions: fluid = more voices allowed, low FPS = fewer.
-                float load = Mathf.Clamp01(ExplosionLimit_Patch.Fps() / Mathf.Max(1f, Settings.F("ExplosionTargetFps")));
-                gap = Mathf.Lerp(gap * 3f, gap * 0.5f, load);
-                maxQ = Mathf.Max(1, Mathf.RoundToInt(Mathf.Lerp(1f, maxQ * 2f, load)));
-            }
-            if (gap > 0f && lastSaid.TryGetValue(statementId1, out var t) && now - t < gap) return Drop();
-            if (ticketsF == null) ticketsF = AccessTools.Field(__instance.GetType(), "tickets");
-            var q = ticketsF?.GetValue(__instance) as System.Collections.ICollection;
-            if (q != null && q.Count >= maxQ) return Drop();
-            lastSaid[statementId1] = now;
-            return true;
-        }
-
-        private static bool Drop()
-        {
-            dropped++;
-            if (Time.unscaledTime > nextLog) { nextLog = Time.unscaledTime + 60f; Util.Log("Stimmen begrenzt: " + dropped + " Ansagen ausgelassen (gesamt)"); }
-            return false;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/VoiceRepair.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::DWS.Common.InjectionFramework;
-    using global::HarmonyLib;
-
-    // Voice language: at start, puts the chosen voice language back if the game reset it to the
-    // interface language, clears the game's "apply default voice" flag, and repairs a "latest version"
-    // entry that no longer exists (it would stamp new saves as unloadable). Writes settings.ubt only if needed.
-    internal static class VoiceRepair
-    {
-        private static readonly string[] Langs = { null, "German", "English" };
-
-        public static void Run()
-        {
-            if (!Settings.B("KeepVoiceLanguage")) return;
-            Type st = UboatToolkit.Util.FindType("UBOAT.Game.Core.Data.UserSettings");
-            if (st == null) { Util.Log("Sprache: UserSettings nicht gefunden"); return; }
-            object settings;
-            try { settings = ScriptableObjectSingleton.LoadSingleton(st); } catch (Exception e) { Util.Log("Sprache: Einstellungen nicht ladbar: " + e.Message); return; }
-            if (settings == null) { Util.Log("Sprache: noch keine Einstellungen - nur die Sperre ist aktiv"); return; }
-            bool changed = false;
-            var flag = AccessTools.Field(st, "applyDefaultVoiceLanguage");
-            if (flag != null && flag.FieldType == typeof(bool) && (bool)flag.GetValue(settings)) { flag.SetValue(settings, false); changed = true; Util.Log("Sprache: Spiel-Rücksetzung war vorgemerkt - gelöscht"); }
-            object gameplay = AccessTools.Property(st, "GameplaySettings")?.GetValue(settings, null) ?? AccessTools.Field(st, "gameplaySettings")?.GetValue(settings);
-            if (gameplay == null) { Util.Log("Sprache: Spiel-Einstellungen nicht erreichbar"); return; }
-            var gt = gameplay.GetType();
-            int idx = (int)Math.Round(Settings.F("VoiceLang"));
-            string want = idx > 0 && idx < Langs.Length ? Langs[idx] : null;
-            var voice = AccessTools.Field(gt, "voiceLanguage");
-            if (voice != null && want != null)
-            {
-                string cur = voice.GetValue(gameplay) as string;
-                if (!string.Equals(cur, want, StringComparison.OrdinalIgnoreCase)) { voice.SetValue(gameplay, want); changed = true; Util.Log("Sprache: Stimme war \"" + (cur ?? "leer") + "\" - zurück auf \"" + want + "\""); }
-            }
-            if (Settings.B("VoiceRepairVersion")) changed |= RepairVersion(st, gameplay, gt);
-            if (!changed) return;
-            var write = AccessTools.Method(st, "WriteToHDD");
-            if (write != null) { write.Invoke(settings, null); Util.Log("Sprache: Einstellungen gespeichert"); }
-        }
-
-        private static bool RepairVersion(Type st, object gameplay, Type gt)
-        {
-            var vf = AccessTools.Field(gt, "latestVersion");
-            if (vf == null) return false;
-            string stored = vf.GetValue(gameplay) as string;
-            var versions = Changelog(st);
-            if (versions == null || versions.Count == 0) return false;
-            if (!string.IsNullOrEmpty(stored) && versions.Contains(stored)) return false;
-            string newest = versions[versions.Count - 1];
-            vf.SetValue(gameplay, newest);
-            Util.Log("Sprache: gespeicherte Version \"" + (stored ?? "leer") + "\" fehlt in der Versionsliste - auf \"" + newest + "\" gesetzt (sonst gelten neue Spielstände als nicht ladbar)");
-            return true;
-        }
-
-        private static List<string> Changelog(Type st)
-        {
-            try
-            {
-                object gd = AccessTools.Field(st, "gameData")?.GetValue(null);
-                if (gd == null) return null;
-                var rows = AccessTools.Method(gd.GetType(), "GetDataRows", new[] { typeof(string) })?.Invoke(gd, new object[] { "General/Changelogs" }) as Array;
-                if (rows == null || rows.Length == 0) return null;
-                var result = new List<string>(rows.Length);
-                MethodInfo gs = null;
-                foreach (var row in rows)
-                {
-                    if (row == null) continue;
-                    if (gs == null) { gs = AccessTools.Method(row.GetType(), "GetString", new[] { typeof(int) }); if (gs == null) return null; }
-                    if (gs.Invoke(row, new object[] { 0 }) is string v && v.Length > 0) result.Add(v);
-                }
-                return result;
-            }
-            catch (Exception e) { Util.Log("Sprache: Versionsliste nicht lesbar: " + e.Message); return null; }
-        }
-    }
-}
-
-
-// ====================================================================================================
 // Abschnitt: Tauchknöpfe neben dem Fahrtregler (0.4.35)
 // ====================================================================================================
 namespace UboatToolkit.Modules
@@ -31235,1385 +28231,6 @@ namespace UboatToolkit.Modules
 }
 
 // ====================================================================================================
-// Abschnitt: Karten-Markierung ohne Schiff (0.4.47)
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // Game log 2026-11-18: "Error in execution queue method EntityMarkersManager.DoLateUpdate: NullReferenceException at
-    // EntityMarkerUI.UpdateMarker", 10 to 12 times a minute, and each one opened the developer console for a moment
-    // (DoMe: "ploppt dauerhaft kurz die debug console auf"). A ship marker on the map/screen pointed at a ship that no
-    // longer exists. The marker is hidden instead; when its ship is back the game shows it again. Player display only.
-    [HarmonyPatch(typeof(UBOAT.Game.UI.Map.EntityMarkerUI), "UpdateMarker")]
-    internal static class EntityMarkerGuard_Patch
-    {
-        private static int caught; private static float nextLog;
-        private static System.Exception Finalizer(System.Exception __exception, UBOAT.Game.UI.Map.EntityMarkerUI __instance)
-        {
-            if (__exception == null) return null;
-            if (!(__exception is System.NullReferenceException) && !(__exception is MissingReferenceException)) return __exception;
-            caught++;
-            string name = "?";
-            try { if (__instance != null) { name = __instance.name; __instance.gameObject.SetActive(false); } } catch { }
-            if (Time.unscaledTime > nextLog)
-            {
-                nextLog = Time.unscaledTime + 60f;
-                string where = __exception.StackTrace ?? ""; int n = where.IndexOf('\n'); if (n > 0) where = where.Substring(0, n);
-                Util.Log("Karten-Markierung: " + caught + " mal zeigte eine Markierung auf ein Schiff, das es nicht mehr gibt (zuletzt " + name + "). Markierung ausgeblendet, kein Fehler mehr im Spiel-Log. Stelle: " + where.Trim());
-            }
-            return null;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/GpuAudit.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::UnityEngine;
-
-    // 0.4.50 (DoMe 2026-11-18: "vollinvestigation was man alles auf die GPU auslagern kann"). Read-only count of what the
-    // processor prepares for drawing, every 5 minutes, so that each later step has a number before and after.
-    public class GpuAudit : ModuleBase
-    {
-        private float next = 60f;
-        public override void Tick()
-        {
-            if (Time.unscaledTime < next || Util.PlayerShip == null) return;
-            next = Time.unscaledTime + 300f;
-            Util.Safe("GpuAudit", () =>
-            {
-                double t0 = Time.realtimeSinceStartupAsDouble;
-                var mats = new HashSet<Material>(); var meshes = new Dictionary<Mesh, int>();
-                int rend = 0, visible = 0, noInst = 0, rendNoInst = 0, repeat = 0, repeatNoInst = 0;
-                foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
-                {
-                    if (r == null || !r.enabled) continue;
-                    rend++; if (r.isVisible) visible++;
-                    var m = r.sharedMaterial; bool inst = m != null && m.enableInstancing;
-                    if (m != null && mats.Add(m) && !inst) noInst++;
-                    if (!inst) rendNoInst++;
-                    var f = r.GetComponent<MeshFilter>(); var mesh = f != null ? f.sharedMesh : null;
-                    if (mesh == null) continue;
-                    int c; meshes.TryGetValue(mesh, out c); meshes[mesh] = c + 1;
-                    if (c >= 1) { repeat++; if (!inst) repeatNoInst++; }
-                }
-                int skin = 0, skinVisible = 0, bones = 0;
-                foreach (var s in Object.FindObjectsOfType<SkinnedMeshRenderer>())
-                {
-                    if (s == null || !s.enabled) continue;
-                    skin++; if (s.isVisible) { skinVisible++; bones += s.bones != null ? s.bones.Length : 0; }
-                }
-                int ps = 0, playing = 0, alive = 0, meshMode = 0, meshNoInst = 0;
-                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
-                {
-                    if (p == null) continue;
-                    ps++; if (p.isPlaying) playing++; alive += p.particleCount;
-                    var pr = p.GetComponent<ParticleSystemRenderer>();
-                    if (pr != null && pr.renderMode == ParticleSystemRenderMode.Mesh) { meshMode++; if (!pr.enableGPUInstancing) meshNoInst++; }
-                }
-                int canvases = 0, graphics = 0;
-                foreach (var c in Object.FindObjectsOfType<Canvas>()) if (c != null && c.isActiveAndEnabled) canvases++;
-                foreach (var g in Object.FindObjectsOfType<UnityEngine.UI.Graphic>()) if (g != null && g.isActiveAndEnabled) graphics++;
-                int markers = Object.FindObjectsOfType<UBOAT.Game.UI.Map.EntityMarkerUI>().Length;
-                int ships = Object.FindObjectsOfType<UBOAT.Game.Scene.Entities.Ship>().Length;
-                // water module (com.playway.water): values live in its settings objects, read by name
-                var wsb = new System.Text.StringBuilder();
-                foreach (var tn in new[] { "PlayWay.Water.WaterProjectSettings", "PlayWay.Water.WaterQualitySettings" })
-                {
-                    var tp = HarmonyLib.AccessTools.TypeByName(tn); if (tp == null) { wsb.Append(' ').Append(tn).Append(" fehlt;"); continue; }
-                    var ip = HarmonyLib.AccessTools.Property(tp, "Instance"); object inst = ip != null ? ip.GetValue(null, null) : null;
-                    if (inst == null) { wsb.Append(' ').Append(tn).Append(" ohne Instanz;"); continue; }
-                    foreach (var pn in new[] { "PhysicsThreads", "PhysicsThreadsPriority", "AllowCpuFFT", "AllowFloatingPointMipMaps", "SinglePrecision", "CurrentQualityLevel", "MaxSpectrumResolution", "AllowHighPrecisionTextures", "TileSizeScale", "WavesMode" })
-                    {
-                        var pp = HarmonyLib.AccessTools.Property(tp, pn);
-                        if (pp != null && pp.GetIndexParameters().Length == 0) wsb.Append(' ').Append(pn).Append('=').Append(System.Convert.ToString(pp.GetValue(inst, null), System.Globalization.CultureInfo.InvariantCulture)).Append(';');
-                    }
-                }
-                Util.Log("Wasser-Modul (nur lesen):" + wsb);
-                double ms = (Time.realtimeSinceStartupAsDouble - t0) * 1000.0;
-                Util.Log("Rechenkerne (nur lesen): PC meldet " + SystemInfo.processorCount + " Kerne, Unity nutzt " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount + " Arbeiter + Hauptfaden (Höchstwert " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerMaximumCount + ")");
-                Util.Log("Zeichnen (Zählung, nur lesen): Schiffe " + ships + "; Teile " + rend + " (im Bild " + visible + "), davon ohne Gruppen-Zeichnen " + rendNoInst
-                    + "; gleiche Teile mehrfach " + repeat + ", davon ohne Gruppen-Zeichnen " + repeatNoInst + "; Materialien " + mats.Count + ", ohne Gruppen-Zeichnen " + noInst
-                    + "; Figuren-Modelle " + skin + " (im Bild " + skinVisible + ", Knochen " + bones + "); Partikel-Systeme " + ps + " (laufen " + playing + ", Partikel " + alive
-                    + ", aus 3D-Modellen " + meshMode + ", davon ohne Gruppen-Zeichnen " + meshNoInst + "); Oberfläche: Flächen " + canvases + ", Elemente " + graphics
-                    + ", Kontakt-Markierungen " + markers + "; Grafikkarte: " + SystemInfo.graphicsDeviceType + ", Gruppen-Zeichnen möglich " + SystemInfo.supportsInstancing
-                    + ", Rechen-Shader " + SystemInfo.supportsComputeShaders + ", Zeichnen auf mehreren Kernen " + SystemInfo.graphicsMultiThreaded + " (" + SystemInfo.renderingThreadingMode + ")"
-                    + ", Prozessor-Kerne " + SystemInfo.processorCount + "; Zählung dauerte " + ms.ToString("0") + " ms");
-            });
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/ViewSavings.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Scene.Camera;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Scene;
-    using global::DWS.Common.InjectionFramework;
-
-    // 0.4.52 (DoMe 2026-11-18: "sachen die man aktuell nicht sieht braucht man ja nicht berechnen ... kartenmodus").
-    // Picture only: nothing here changes what a ship does, sees or hits. One switch = one effect, all off by default,
-    // everything is put back when the switch goes off or the map closes. One log line per minute with the counts.
-    public class ViewSavings : ModuleBase
-    {
-        private const float PureMapHeight = 800f;   // same height the game uses for "map only" (free camera lock)
-        private const float FarSpray = 2000f;        // the game's own border between detail steps Low and VeryLow
-
-        private float nextFast, nextScan, nextLog; private int scanStep;
-        private bool mapPaused, mapShadow, mapLod;
-        private readonly List<ParticleSystem> paused = new List<ParticleSystem>();
-        private readonly Dictionary<ParticleSystem, ParticleSystemCullingMode> cull = new Dictionary<ParticleSystem, ParticleSystemCullingMode>();
-        private readonly HashSet<ParticleSystemRenderer> inst = new HashSet<ParticleSystemRenderer>();
-        private readonly HashSet<Behaviour> sprayOff = new HashSet<Behaviour>();
-        private MapCameraController mapCam; private UserSettings user;
-        private static readonly System.Reflection.FieldInfo ShadowField = AccessTools.Field(typeof(MapCameraController), "shadowDistance");
-        private static readonly System.Type BowType = AccessTools.TypeByName("PlayWay.Water.ShipBowWavesEmitter");
-        private int nMapPaused, nCull, nInst, nSpray; private float mapSeconds;
-
-        private static bool PureMap()
-        {
-            var cam = MainCamera.Instance;
-            return cam != null && cam.CurrentMode == CameraMode.Map && cam.transform.position.y > PureMapHeight;
-        }
-
-        public override void Tick()
-        {
-            float now = Time.unscaledTime;
-            if (now < nextFast) return;
-            float step = now - (nextFast - 0.5f); nextFast = now + 0.5f;
-            if (Util.PlayerShip == null) return;
-            bool map = PureMap();
-            if (map) mapSeconds += Mathf.Clamp(step, 0f, 2f);
-            Util.Safe("Save.MapEffects", () => MapEffects(map && Settings.B("SaveMapEffects"), now));
-            Util.Safe("Save.MapShadows", () => MapShadows(map && Settings.B("SaveMapShadows")));
-            Util.Safe("Save.MapDetail", () => MapDetail(map && Settings.B("SaveMapDetail")));
-            // 0.4.55: the four searches through the whole scene never run in the same picture; one of them every 3 s,
-            // so each comes round every 12 s (a search costs more the more ships are loaded).
-            if (now >= nextScan)
-            {
-                nextScan = now + 3f; scanStep = (scanStep + 1) % 4;
-                if (scanStep == 0) { Util.Safe("Save.Unseen", () => Unseen(Settings.B("SaveUnseenEffects"))); Util.Safe("Save.Underwater", () => Underwater(Settings.B("SaveNoSmokeUnderwater"))); }
-                else if (scanStep == 1) Util.Safe("Save.MeshGpu", () => MeshGpu(Settings.B("SaveMeshParticlesGpu")));
-                else if (scanStep == 2) Util.Safe("Save.FarSpray", () => Spray(Settings.B("SaveFarSpray")));
-                else Util.Safe("Save.Markers", () => Markers(Settings.B("SaveMarkersOwnCanvas")));
-            }
-            if (now >= nextLog)
-            {
-                nextLog = now + 60f;
-                if (Settings.B("SaveMarkersOwnCanvas") || Settings.B("SaveWedgesCalm"))
-                {
-                    Util.Log("Sparen: Kontakt-Markierungen mit eigener Zeichenfläche und eigenem Klick-Empfänger " + markerClick + " (ausgelassen " + markerSkipped + "), Teile " + markerCanvas.Count + "; Kontakt-Keile neu gebaut " + UboatToolkit.Patches.WedgeCalm_Patch.Ran + " mal, übersprungen " + UboatToolkit.Patches.WedgeCalm_Patch.Skipped + " mal in der letzten Minute");
-                    UboatToolkit.Patches.WedgeCalm_Patch.Ran = 0; UboatToolkit.Patches.WedgeCalm_Patch.Skipped = 0;
-                }
-                if (Settings.B("SaveMapEffects") || Settings.B("SaveMapShadows") || Settings.B("SaveMapDetail") || Settings.B("SaveUnseenEffects") || Settings.B("SaveMeshParticlesGpu") || Settings.B("SaveFarSpray"))
-                    Util.Log("Sparen: reine Karte " + mapSeconds.ToString("0") + " s in der letzten Minute; angehaltene Effekte auf der Karte " + nMapPaused + (mapPaused ? " (jetzt)" : "")
-                        + ", Schatten auf der Karte " + (mapShadow ? "aus" : "normal") + ", Detail auf der Karte " + (mapLod ? "niedrig" : "normal")
-                        + "; Effekte mit Anhalten außerhalb des Bildes " + nCull + "; Trümmer-Partikel gesammelt gezeichnet " + nInst + "; Gischt/Bugwelle ferner Schiffe aus " + nSpray);
-                mapSeconds = 0f;
-                if (Settings.B("SaveNoSmokeUnderwater")) Util.Log("Sparen: Rauch/Feuer tiefer als 5 m unter Wasser gestoppt " + nUnder + " (seit Spielstart), gerade gestoppt " + under.Count + ", nach Auftauchen wieder gestartet " + nUnderBack);
-            }
-        }
-
-        // map only: every running smoke/fire/spray effect waits and goes on exactly where it stopped
-        private float nextMapScan;
-        private void MapEffects(bool on, float now)
-        {
-            if (on)
-            {
-                if (mapPaused && now < nextMapScan) return;
-                nextMapScan = now + 15f; mapPaused = true;
-                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
-                {
-                    if (p == null || !p.isPlaying || p.isPaused) continue;
-                    p.Pause(false); paused.Add(p);
-                }
-                nMapPaused = paused.Count;
-            }
-            else if (mapPaused)
-            {
-                mapPaused = false; int back = 0;
-                foreach (var p in paused) if (p != null && p.isPaused) { p.Play(false); back++; }
-                Util.Log("Sparen: Karte verlassen, " + back + " von " + paused.Count + " angehaltenen Effekten laufen weiter");
-                paused.Clear();
-            }
-        }
-
-        private void MapShadows(bool on)
-        {
-            if (on == mapShadow || ShadowField == null) return;
-            if (mapCam == null && MainCamera.Instance != null) mapCam = AccessTools.Field(typeof(MainCamera), "mapController").GetValue(MainCamera.Instance) as MapCameraController;
-            if (mapCam == null) return;
-            ShadowField.SetValue(mapCam, on ? 1f : 900f); mapShadow = on;
-            Util.Log("Sparen: Schatten in der reinen Kartenansicht " + (on ? "aus (Reichweite 1 m)" : "wieder wie im Spiel (900 m)"));
-        }
-
-        private void MapDetail(bool on)
-        {
-            if (on == mapLod) return;
-            if (user == null) user = ScriptableObjectSingleton.LoadSingleton<UserSettings>();
-            if (user == null) return;
-            if (on) user.OverrideLODBias(0.15f); else user.ResetLODBias();
-            mapLod = on;
-            Util.Log("Sparen: Detailstufe in der reinen Kartenansicht " + (on ? "niedrig (0,15)" : "wieder wie eingestellt (" + QualitySettings.lodBias.ToString("0.00") + ")"));
-        }
-
-        // 3D view: an effect outside the picture waits ("qualmt erst wieder, wenn du hinsiehst")
-        private void Unseen(bool on)
-        {
-            if (on)
-            {
-                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
-                {
-                    if (p == null || cull.ContainsKey(p)) continue;
-                    var m = p.main; cull[p] = m.cullingMode;
-                    if (m.cullingMode != ParticleSystemCullingMode.Pause) m.cullingMode = ParticleSystemCullingMode.Pause;
-                }
-                if (cull.Count > 4000) { var dead = new List<ParticleSystem>(); foreach (var k in cull.Keys) if (k == null) dead.Add(k); foreach (var k in dead) cull.Remove(k); }
-                nCull = cull.Count;
-            }
-            else if (cull.Count > 0)
-            {
-                foreach (var kv in cull) if (kv.Key != null) { var m = kv.Key.main; m.cullingMode = kv.Value; }
-                Util.Log("Sparen: Anhalten außerhalb des Bildes aus, " + cull.Count + " Effekte wieder wie im Spiel");
-                cull.Clear(); nCull = 0;
-            }
-        }
-
-        // 0.4.67 (DoMe 2026-11-19, picture of a shot-down aircraft on the seabed with a smoke column: "ein flugzeug das
-        // noch unter wasser rauchen kann ... zweckfrei"): smoke and fire effects deeper than 5 m under the surface stop
-        // emitting (what is already in the water fades out). If the thing comes up again (a submarine's exhaust), the
-        // effect runs again. Looks only, every ship and aircraft; the own boat is left out.
-        private readonly HashSet<ParticleSystem> under = new HashSet<ParticleSystem>();
-        private int nUnder, nUnderBack;
-        private static bool SmokeName(string n)
-        {
-            return n != null && (n.IndexOf("smoke", System.StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("fire", System.StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("flame", System.StringComparison.OrdinalIgnoreCase) >= 0);
-        }
-        private void Underwater(bool on)
-        {
-            if (!on)
-            {
-                if (under.Count == 0) return;
-                int back = 0;
-                foreach (var p in under) if (p != null && p.gameObject.activeInHierarchy) { p.Play(false); back++; }
-                Util.Log("Sparen: Rauch unter Wasser aus, " + back + " Effekte laufen wieder wie im Spiel");
-                under.Clear(); nUnder = 0;
-                return;
-            }
-            var own = Util.PlayerShip != null ? Util.PlayerShip.transform : null;
-            foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
-            {
-                if (p == null) continue;
-                float y = p.transform.position.y;
-                if (under.Contains(p))
-                {
-                    if (y > -2f) { under.Remove(p); p.Play(false); nUnderBack++; }
-                    continue;
-                }
-                if (y > -5f || !p.isEmitting) continue;
-                if (!SmokeName(p.name) && !(p.transform.parent != null && SmokeName(p.transform.parent.name))) continue;
-                if (own != null && p.transform.IsChildOf(own)) continue;
-                p.Stop(false, ParticleSystemStopBehavior.StopEmitting);
-                under.Add(p); nUnder++;
-            }
-            under.RemoveWhere(x => x == null);
-        }
-
-        // debris made of 3D models: the graphics card draws all pieces of one effect in one go
-        private void MeshGpu(bool on)
-        {
-            if (on)
-            {
-                foreach (var r in Object.FindObjectsOfType<ParticleSystemRenderer>())
-                    if (r != null && r.renderMode == ParticleSystemRenderMode.Mesh && !r.enableGPUInstancing) { r.enableGPUInstancing = true; inst.Add(r); }
-                inst.RemoveWhere(x => x == null); nInst = inst.Count;
-            }
-            else if (inst.Count > 0)
-            {
-                foreach (var r in inst) if (r != null) r.enableGPUInstancing = false;
-                inst.Clear(); nInst = 0;
-            }
-        }
-
-        // Every contact marker gets its own small drawing surface. Moving one marker then no longer makes the processor
-        // rebuild the picture of ALL markers; the graphics card just draws each small surface again.
-        private readonly List<Component> markerCanvas = new List<Component>();
-        private readonly HashSet<GameObject> markerDone = new HashSet<GameObject>();
-        private static readonly System.Reflection.FieldInfo Rep3d = AccessTools.Field(typeof(UBOAT.Game.UI.Map.EntityMarkerUI), "representation3d");
-        private void Markers(bool on)
-        {
-            if (!on)
-            {
-                if (markerCanvas.Count == 0) return;
-                for (int i = markerCanvas.Count - 1; i >= 0; i--) if (markerCanvas[i] != null) Object.Destroy(markerCanvas[i]);   // raycasters were added last, so they go first
-                Util.Log("Sparen: eigene Zeichenflächen der Kontakt-Markierungen entfernt (" + markerCanvas.Count + " Teile)");
-                markerCanvas.Clear(); markerDone.Clear(); markerClick = 0; markerSkipped = 0;
-                return;
-            }
-            foreach (var m in Object.FindObjectsOfType<UBOAT.Game.UI.Map.EntityMarkerUI>())
-            {
-                if (m == null) continue;
-                Own(m.gameObject);
-                // 0.4.66: the 3D twin of the marker is left alone (own event camera, click area must stay the game's)
-            }
-            markerCanvas.RemoveAll(x => x == null); markerDone.RemoveWhere(x => x == null);
-        }
-        private int markerClick, markerSkipped;
-        private void Own(GameObject go)
-        {
-            if (go == null || !markerDone.Add(go) || go.GetComponent<Canvas>() != null) return;
-            var parent = go.transform.parent != null ? go.transform.parent.GetComponentInParent<Canvas>() : null;
-            if (parent == null) return;
-            // 0.4.66 (DoMe 2026-11-19: "das anklicken von gegner ist glückssache und gefühlt nur noch 1pixel breit"): a
-            // canvas of its own needs a click receiver of its own. Up to 0.4.65 it only got one when the NEAREST canvas
-            // above had one; the game's receiver sits further up, so most markers lost their click area. Now the
-            // receiver is looked up along the whole chain and its settings are copied; without one above, the marker
-            // is not touched at all.
-            var up = parent.GetComponentInParent<UnityEngine.UI.GraphicRaycaster>();
-            if (up == null) { markerSkipped++; return; }
-            markerCanvas.Add(go.AddComponent<Canvas>());
-            var gr = go.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-            gr.ignoreReversedGraphics = up.ignoreReversedGraphics; gr.blockingObjects = up.blockingObjects;
-            markerCanvas.Add(gr); markerClick++;
-        }
-
-        // spray control and bow wave of ships farther than 2 km (or everything while only the map is shown) rest
-        private void Spray(bool on)
-        {
-            if (!on)
-            {
-                if (sprayOff.Count > 0) { foreach (var b in sprayOff) if (b != null) b.enabled = true; sprayOff.Clear(); nSpray = 0; }
-                return;
-            }
-            var cam = MainCamera.Instance; if (cam == null) return;
-            Vector3 c = cam.transform.position; bool map = PureMap();
-            var own = Util.PlayerShip != null ? Util.PlayerShip.transform : null;
-            var list = new List<Behaviour>();
-            foreach (var s in Object.FindObjectsOfType<ShipEffectsController>()) list.Add(s);
-            if (BowType != null) foreach (var o in Object.FindObjectsOfType(BowType)) { var b = o as Behaviour; if (b != null) list.Add(b); }
-            foreach (var b in sprayOff) if (b != null && !b.enabled) list.Add(b);
-            foreach (var b in list)
-            {
-                if (b == null || (own != null && b.transform.IsChildOf(own))) continue;
-                bool far = map || (b.transform.position - c).sqrMagnitude > FarSpray * FarSpray;
-                if (far && b.enabled) { b.enabled = false; sprayOff.Add(b); }
-                else if (!far && !b.enabled && sprayOff.Contains(b)) { b.enabled = true; sprayOff.Remove(b); }
-            }
-            sprayOff.RemoveWhere(x => x == null); nSpray = sprayOff.Count;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Patches/WedgeCalm.cs
-// ====================================================================================================
-namespace UboatToolkit.Patches
-{
-    using global::System.Runtime.CompilerServices;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.UI;
-    using global::UBOAT.Game.Scene.Camera;
-
-    // 0.4.53: the game rebuilds every contact wedge (the pink bearing fans) in every picture, also when nothing moved.
-    // With the switch on, a wedge that stands still is rebuilt 4 times per second only; as soon as it moves again or the
-    // camera height changes, it is rebuilt in every picture as before. Picture only.
-    [HarmonyPatch(typeof(DynamicContactVisualizationUI), "LateUpdate")]
-    internal static class WedgeCalm_Patch
-    {
-        private class State { public bool Still; public float At, CamY; }
-        private static readonly ConditionalWeakTable<DynamicContactVisualizationUI, State> states = new ConditionalWeakTable<DynamicContactVisualizationUI, State>();
-        public static int Ran, Skipped;
-
-        private static bool Prefix(DynamicContactVisualizationUI __instance, float ___displayedBearing, float ___displayedDistance, float ___displayedSpreadAngle, ref float ___displayTime, out Vector3 __state)
-        {
-            __state = new Vector3(___displayedBearing, ___displayedDistance, ___displayedSpreadAngle);
-            if (!Settings.B("SaveWedgesCalm")) return true;
-            var st = states.GetOrCreateValue(__instance);
-            var cam = MainCamera.Instance; float y = cam != null ? cam.transform.position.y : 0f;
-            if (st.Still && ___displayTime > 3f && Time.unscaledTime - st.At < 0.25f && Mathf.Abs(y - st.CamY) <= 0.005f * Mathf.Max(1f, Mathf.Abs(st.CamY)))
-            {
-                ___displayTime += Time.unscaledDeltaTime; Skipped++;
-                __state.x = float.NaN;
-                return false;
-            }
-            return true;
-        }
-
-        private static void Postfix(DynamicContactVisualizationUI __instance, float ___displayedBearing, float ___displayedDistance, float ___displayedSpreadAngle, Vector3 __state)
-        {
-            if (float.IsNaN(__state.x) || !Settings.B("SaveWedgesCalm")) return;
-            Ran++;
-            var st = states.GetOrCreateValue(__instance);
-            var cam = MainCamera.Instance;
-            st.Still = Mathf.Abs(Mathf.DeltaAngle(___displayedBearing, __state.x)) < 0.01f && Mathf.Abs(___displayedDistance - __state.y) < 0.002f * Mathf.Max(1f, __state.y) && Mathf.Abs(___displayedSpreadAngle - __state.z) < 0.0001f;
-            st.At = Time.unscaledTime; st.CamY = cam != null ? cam.transform.position.y : 0f;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Patches/RouteSearchCount.cs
-// ====================================================================================================
-namespace UboatToolkit.Patches
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Sandbox;
-
-    // 0.4.54 (DoMe 2026-11-18: "nutzen wir NavMeshQuery / asynchrone Wege?"). The game searches every ship and convoy
-    // route in one piece on the main core. This only counts how often and how long, once per minute, nothing is changed.
-    [HarmonyPatch]
-    internal static class RouteSearchCount_Patch
-    {
-        private static int calls; private static double sum, longest; private static float nextLog;
-
-        private static IEnumerable<System.Reflection.MethodBase> TargetMethods()
-        {
-            foreach (var m in AccessTools.GetDeclaredMethods(typeof(WorldNavMesh))) if (m.Name == "FindPath") yield return m;
-        }
-
-        // 0.4.57: also counts how many searches asked exactly the same question again within 5 s (same start, same goal,
-        // same settings). Only such repeats could be answered from a remembered result.
-        private static readonly Dictionary<long, float> seen = new Dictionary<long, float>();
-        private static int repeats; private static double repeatMs;
-        private static void Prefix(object[] __args, out double __state)
-        {
-            __state = Time.realtimeSinceStartupAsDouble;
-            long h = 17;
-            if (__args != null) foreach (var a in __args) { if (a is System.Collections.IEnumerable && !(a is string)) continue; h = h * 31 + (a != null ? a.GetHashCode() : 0); }
-            float t; bool rep = seen.TryGetValue(h, out t) && Time.unscaledTime - t < 5f;
-            seen[h] = Time.unscaledTime;
-            if (rep) { repeats++; __state = -__state; }
-            if (seen.Count > 5000) seen.Clear();
-        }
-
-        private static void Postfix(double __state)
-        {
-            bool wasRepeat = __state < 0; if (wasRepeat) __state = -__state;
-            double ms = (Time.realtimeSinceStartupAsDouble - __state) * 1000.0;
-            calls++; sum += ms; if (ms > longest) longest = ms; if (wasRepeat) repeatMs += ms;
-            if (Time.unscaledTime < nextLog) return;
-            nextLog = Time.unscaledTime + 60f;
-            Util.Log("Routen-Suche der Schiffe (Zählung, nur lesen): " + calls + " mal in der letzten Minute, zusammen " + sum.ToString("0") + " ms auf dem Hauptkern, längste einzelne " + longest.ToString("0.0") + " ms; davon dieselbe Frage erneut binnen 5 s: " + repeats + " mal, " + repeatMs.ToString("0") + " ms");
-            calls = 0; sum = 0; longest = 0; repeats = 0; repeatMs = 0;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Patches/SaveCpu.cs
-// ====================================================================================================
-namespace UboatToolkit.Patches
-{
-    using global::System.Runtime.CompilerServices;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Core;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::UBOAT.Game.Scene.Entities;
-
-    // 0.4.55: the game forces a memory clean-up whenever its memory grew by 100 MB (crew models of a ship coming
-    // close, new terrain). That stops the picture for up to 39 ms. With the switch on this happens only while a save
-    // is loading; the game's own clean-up in small steps (3 ms slices) keeps running.
-    [HarmonyPatch(typeof(GameState), nameof(GameState.CollectMemory))]
-    internal static class NoForcedGc_Patch
-    {
-        public static int Skipped; private static float nextLog;
-        private static bool Prefix()
-        {
-            if (!Settings.B("SaveNoForcedGc") || UboatToolkit.Modules.SaveTools_LoadSpeedPatch.IsLoading || UboatToolkit.Modules.OfficerWatch.Loading()) return true;
-            Skipped++;
-            if (Time.unscaledTime >= nextLog)
-            {
-                nextLog = Time.unscaledTime + 60f;
-                Util.Log("Sparen: erzwungenes Speicher-Aufräumen des Spiels " + Skipped + " mal ausgelassen (Speicher jetzt " + (System.GC.GetTotalMemory(false) / 1048576L) + " MB)");
-            }
-            return false;
-        }
-    }
-
-    // 0.4.55: the game writes the spray strength of every ship in every physics step, also when the ship keeps its
-    // speed. With the switch on it is written only when the speed step changed by more than 1 %.
-    [HarmonyPatch(typeof(ShipEffectsController), "FixedUpdate")]
-    internal static class SprayOnChange_Patch
-    {
-        private class Last { public float V = -1f; }
-        private static readonly ConditionalWeakTable<ShipEffectsController, Last> last = new ConditionalWeakTable<ShipEffectsController, Last>();
-        public static int Ran, Skipped; private static float nextLog;
-        private static bool Prefix(ShipEffectsController __instance, Ship ___ship, float ___maxVelocity)
-        {
-            if (!Settings.B("SaveSprayOnChange") || ___ship == null || ___maxVelocity <= 0f) return true;
-            float v = ___ship.AverageVelocity / ___maxVelocity;
-            if (v > 1f) v = 1f; else if (v < 0.15f) v = 0f;
-            var l = last.GetOrCreateValue(__instance);
-            bool skip = Mathf.Abs(v - l.V) < 0.01f && !(v == 0f && l.V != 0f) && !(v == 1f && l.V != 1f);
-            if (skip) Skipped++; else { Ran++; l.V = v; }
-            if (Time.unscaledTime >= nextLog)
-            {
-                nextLog = Time.unscaledTime + 60f;
-                Util.Log("Sparen: Gischt-Stärke gesetzt " + Ran + " mal, ausgelassen " + Skipped + " mal in der letzten Minute");
-                Ran = 0; Skipped = 0;
-            }
-            return !skip;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Patches/BuoyancyEarly.cs
-// ====================================================================================================
-namespace UboatToolkit.Patches
-{
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // 0.4.56: the game hands the buoyancy sum of every ship to the helper cores, but the helpers only start when the
-    // main core begins to wait for the first result. With the switch on the helpers are woken after every 4th ship,
-    // so they calculate while the main core still prepares the other ships. Same numbers, same order of results.
-    [HarmonyPatch]
-    internal static class BuoyancyEarly_Patch
-    {
-        private static int since, kicks, jobs; private static float nextLog;
-        private static System.Reflection.MethodBase target;
-        private static bool Prepare()
-        {
-            var t = AccessTools.TypeByName("PlayWay.Water.Extensions.NeuralNetworkJobsRunner");
-            target = t != null ? AccessTools.Method(t, "Start") : null;
-            if (target == null) Util.Log("Auftrieb früher starten: Stelle im Wasser-Modul nicht gefunden, Schalter ohne Wirkung");
-            return target != null;
-        }
-        private static System.Reflection.MethodBase TargetMethod() => target;
-
-        private static void Postfix()
-        {
-            if (!Settings.B("SaveBuoyancyEarly")) return;
-            jobs++;
-            if (++since >= 4) { since = 0; kicks++; Unity.Jobs.JobHandle.ScheduleBatchedJobs(); }
-            if (Time.unscaledTime < nextLog) return;
-            nextLog = Time.unscaledTime + 60f;
-            Util.Log("Sparen: Auftrieb früher gestartet, " + jobs + " Schiffs-Rechnungen in der letzten Minute, Helfer-Kerne " + kicks + " mal vorzeitig geweckt");
-            jobs = 0; kicks = 0;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Patches/DetectionCount.cs
-// ====================================================================================================
-namespace UboatToolkit.Patches
-{
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Scene.Entities;
-
-    // 0.4.57: "who sees whom" - every ship checks every other ship with each of its sensors. Count only (how often, how
-    // long on the main core, how many sight-line rays), once per minute, nothing is changed. Decides the next step.
-    [HarmonyPatch(typeof(Observator), "LowFrequencyUpdate")]
-    internal static class DetectionCount_Patch
-    {
-        internal static int Rays;
-        private static int calls; private static double sum, longest; private static float nextLog;
-        private static void Prefix(out double __state) { __state = Time.realtimeSinceStartupAsDouble; }
-        private static void Postfix(double __state)
-        {
-            double ms = (Time.realtimeSinceStartupAsDouble - __state) * 1000.0;
-            calls++; sum += ms; if (ms > longest) longest = ms;
-            if (Time.unscaledTime < nextLog) return;
-            nextLog = Time.unscaledTime + 60f;
-            Util.Log("Gegner-Erkennung (Zählung, nur lesen): " + calls + " Durchläufe in der letzten Minute, zusammen " + sum.ToString("0") + " ms auf dem Hauptkern, längster " + longest.ToString("0.0") + " ms, Sichtlinien-Strahlen " + Rays);
-            calls = 0; sum = 0; longest = 0; Rays = 0;
-        }
-    }
-    [HarmonyPatch(typeof(Observator), nameof(Observator.HasVisualLOS))]
-    internal static class DetectionRayV_Patch { private static void Prefix() { DetectionCount_Patch.Rays++; } }
-    [HarmonyPatch(typeof(Observator), nameof(Observator.HasSoundLOS))]
-    internal static class DetectionRayS_Patch { private static void Prefix() { DetectionCount_Patch.Rays++; } }
-}
-
-// ====================================================================================================
-// Abschnitt: Patches/MissingTypeGuard.cs
-// ====================================================================================================
-namespace UboatToolkit.Patches
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-
-    // 0.4.58 (DoMe 2026-11-18 19:23: "die debug konsole dreht durch"). After a quick travel to a port the game asked in
-    // every picture for an entity type named "Port 03B" (that is a port MODEL name, no such type exists) and wrote an
-    // error each time: about 430 errors per minute, each one opening the developer console. The question is answered
-    // exactly as before ("no such type"); only the repeated error line is left out. The first time the caller is logged.
-    [HarmonyPatch]
-    internal static class MissingTypeGuard_Patch
-    {
-        private static readonly Dictionary<string, int> missing = new Dictionary<string, int>();
-        private static float nextLog; private static int skipped;
-        private static System.Reflection.MethodBase target;
-        private static bool Prepare()
-        {
-            target = AccessTools.Method(typeof(UBOAT.Game.Sandbox.EntityTypesDatabase), "GetEntityType", new[] { typeof(string) });
-            return target != null;
-        }
-        private static System.Reflection.MethodBase TargetMethod() => target;
-
-        private static bool Prefix(string name, ref UBOAT.Game.Scene.Entities.EntityType __result)
-        {
-            int n;
-            if (name == null || !missing.TryGetValue(name, out n)) return true;
-            missing[name] = n + 1; skipped++;
-            __result = null;
-            if (Time.unscaledTime >= nextLog)
-            {
-                nextLog = Time.unscaledTime + 60f;
-                Util.Log("Fehlender Typ: " + skipped + " wiederholte Fehlermeldungen des Spiels in der letzten Minute ausgelassen (" + name + " bisher " + (n + 1) + " mal gefragt)");
-                skipped = 0;
-            }
-            return false;
-        }
-
-        private static void Postfix(string name, UBOAT.Game.Scene.Entities.EntityType __result)
-        {
-            if (__result != null || name == null || missing.ContainsKey(name)) return;
-            missing[name] = 1;
-            string who = "";
-            try { var lines = System.Environment.StackTrace.Split('\n'); int shown = 0; for (int i = 0; i < lines.Length && shown < 5; i++) { var l = lines[i].Trim(); if (l.Contains("MissingTypeGuard") || l.Contains("Environment") || l.Contains("GetEntityType")) continue; who += " | " + l; shown++; } } catch { }
-            Util.Log("Fehlender Typ: das Spiel fragt nach \"" + name + "\", den es in den Daten nicht gibt. Erste Meldung bleibt, Wiederholungen werden ausgelassen. Gefragt von:" + who);
-        }
-    }
-}
-// ####################################################################################################
-// TEIL: Spiel
-// ####################################################################################################
-// UBOAT Toolkit - Spiel: Fehler-Fixes, Leistung, Laden und Speichern, Cheats, Lager, Welt
-// Diese Datei fasst 29 frühere Einzeldateien zusammen (0.4.30). Jeder Abschnitt nennt seine alte Datei.
-
-// ====================================================================================================
-// Abschnitt: Modules/AchievementTools.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Linq;
-    using global::System.Reflection;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Achievements;
-
-    // - Achievements stay allowed even when the developer console was used (also in old saves:
-    //   the save's "locked out" flag is cleared, so it stays clean after the next save).
-    // - One-shot cheat: unlock every Steam achievement of the game.
-    public class AchievementTools : ModuleBase
-    {
-        private static readonly FieldInfo LockField = AccessTools.Field(typeof(PlayerCareer), "isPlaythroughLockedOutOfAchievements");
-        public override void Tick()
-        {
-            if (Settings.B("AchievementsOn"))
-            {
-                // Searching all objects every second cost 40-46 ms (part of the lag). The career is cached.
-                var pc = Util.Career;
-                if (pc != null && LockField != null && (bool)LockField.GetValue(pc))
-                {
-                    LockField.SetValue(pc, false);
-                    Util.Log("[Erfolge] Sperre im Spielstand entfernt (Konsole war benutzt)");
-                }
-            }
-
-            var o = Settings.Get("CheatAllAchievements");
-            if (o != null && o.On) { o.Value = 0; Util.Safe("AllAchievements", UnlockAll); }
-        }
-
-        private static void UnlockAll()
-        {
-            var ids = typeof(AchievementManager).GetNestedType("AchievementIDs", BindingFlags.NonPublic);
-            Type stats = UboatToolkit.Util.FindType("Steamworks.SteamUserStats");
-            if (ids == null || stats == null) { ToolkitRunner.ShowNotice("Steam nicht gefunden", 4f); return; }
-            var set = stats.GetMethod("SetAchievement", new[] { typeof(string) });
-            var store = stats.GetMethod("StoreStats", Type.EmptyTypes);
-            int n = 0;
-            foreach (var f in ids.GetFields(BindingFlags.Public | BindingFlags.Static))
-                if (f.IsLiteral && f.GetRawConstantValue() is string name) { set.Invoke(null, new object[] { name }); n++; }
-            store?.Invoke(null, null);
-            ToolkitRunner.ShowNotice(n + " Erfolge freigeschaltet", 5f);
-        }
-    }
-
-    [HarmonyPatch(typeof(PlayerCareer), nameof(PlayerCareer.IsPlaythroughLockedOutOfAchievements), MethodType.Getter)]
-    internal static class AchievementTools_LockPatch
-    {
-        private static bool Prefix(ref bool __result)
-        {
-            if (!Settings.B("AchievementsOn")) return true;
-            // While the console runs a command it must see "already locked", else it asks for the confirmation again
-            // and again and never runs the command (DoMe 2026-11-16). The save's real flag stays untouched.
-            __result = AchievementTools_ConsolePatch.InSubmit;
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(UBOAT.Game.UI.DevConsole.DevConsole), "Submit", new[] { typeof(string), typeof(bool) })]
-    internal static class AchievementTools_ConsolePatch
-    {
-        internal static bool InSubmit;
-        private static void Prefix() { InSubmit = true; }
-        private static readonly FieldInfo Lock = AccessTools.Field(typeof(PlayerCareer), "isPlaythroughLockedOutOfAchievements");
-        private static Exception Finalizer(Exception __exception, string __0)
-        {
-            InSubmit = false;
-            // 0.3.98 proof line (DoMe: console cheats without losing achievements): the save's real flag is checked
-            // right after each command and cleared at once, not only at the next tick.
-            try
-            {
-                if (Settings.B("AchievementsOn") && !string.IsNullOrEmpty(__0))
-                {
-                    var pc = Util.Career;
-                    bool locked = pc != null && Lock != null && (bool)Lock.GetValue(pc);
-                    if (locked) Lock.SetValue(pc, false);
-                    Util.Log("Konsole: " + __0 + ", Erfolge weiter erlaubt: " + (pc == null ? "kein Spielstand geladen" : "ja" + (locked ? " (Sperre sofort entfernt)" : "")));
-                }
-            }
-            catch { }
-            return __exception;
-        }
-    }
-
-    // One-shot cheats for the current assignment (DoMe 2026-11-16: "Mission per Knopfdruck erfolgreich").
-    // Same calls as the game's console command "Mission Stage", but without the console, so nothing is flagged.
-    public class MissionCheat : ModuleBase
-    {
-        private static readonly string[] homeStages = { "Report", "Return", "ReturnToPort", "DockInPort", "DockAtDestinationPort", "FinishingTask", "ReportToOfficer" };
-        public override void Tick()
-        {
-            var done = Settings.Get("CheatMissionDone");
-            if (done != null && done.On) { done.Value = 0; Util.Safe("MissionDone", () => Run(true)); }
-            var step = Settings.Get("CheatMissionStep");
-            if (step != null && step.On) { step.Value = 0; Util.Safe("MissionStep", () => Run(false)); }
-            if (Settings.B("CheatEscortEasy") || Settings.B("CheatEscortFullSpeed") || Settings.B("CheatEscortNoDamage")) Util.Safe("EscortEasy", EscortEasy);
-            else
-            {
-                if (escProtected.Count > 0) { foreach (var x in escProtected) if (x != null) x.IsProtected = false; escProtected.Clear(); }
-                Util.Safe("EscortEasyOff", EscortEasyOff);
-            }
-        }
-
-        // Escort duty (DoMe 2026-11-16, Weserübung: "dauert ewig ... beim dritten Mal gescheitert"). The game fails the
-        // assignment only when the troopship is lost; attackers are spawned every 0.4-2 days and sent at the convoy, and
-        // the convoy sails at a random part of its speed. Cheat: no new attackers, convoy at full speed.
-        private static readonly FieldInfo escNext = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "nextEnemySpawnTicks");
-        private static readonly FieldInfo escScale = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "velocityScale");
-        private static bool escLogged;
-        private static readonly FieldInfo escGroup = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "escortedGroup");
-        private static readonly System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity> escProtected = new System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity>();
-        // 0.4.22 (option audit): switching the cheat off gives the assignment its attackers back. The far-away spawn time
-        // is itself the mark that the cheat was active (it is stored in the savegame), so this also works after loading.
-        private static void EscortAttackersBack()
-        {
-            var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
-            if (e == null || escNext == null || (long)escNext.GetValue(e) < long.MaxValue / 4) return;
-            var gt = Traverse.Create(e).Field("gameTime").GetValue();
-            if (gt == null) return;
-            long now = Traverse.Create(gt).Property("StoryTicks").GetValue<long>();
-            escNext.SetValue(e, now + (long)(UnityEngine.Random.Range(0.4f, 1.4f) * 8.64E+11f));
-            Util.Log("[Auftrag] Geleitschutz: Angreifer kommen wieder (nächster in 0,4 bis 1,4 Tagen)");
-        }
-
-        private static void EscortEasyOff()
-        {
-            var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
-            if (e == null || escNext == null || (long)escNext.GetValue(e) < long.MaxValue / 4) return;
-            var gt = Traverse.Create(e).Field("gameTime").GetValue();
-            if (gt == null) return;
-            long now = Traverse.Create(gt).Property("StoryTicks").GetValue<long>();
-            escNext.SetValue(e, now + (long)(UnityEngine.Random.Range(0.4f, 1.4f) * 8.64E+11f));
-            var grp = escGroup == null ? null : escGroup.GetValue(e) as UBOAT.Game.Sandbox.SandboxGroup;
-            if (grp) foreach (var x in grp.Entities) if (x != null && x.IsProtected) x.IsProtected = false;
-            escLogged = false;
-            Util.Log("[Auftrag] Geleitschutz-Cheat aus: Angreifer kommen wieder (nächster in 0,4 bis 1,4 Tagen), Geleit nimmt wieder Schaden");
-        }
-        private static void EscortEasy()
-        {
-            var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
-            if (e == null) { escLogged = false; return; }
-            // 0.4.29: three separate switches
-            bool noAtt = Settings.B("CheatEscortEasy"), full = Settings.B("CheatEscortFullSpeed"), noDmg = Settings.B("CheatEscortNoDamage");
-            if (noAtt) { if (escNext != null) escNext.SetValue(e, long.MaxValue / 2); }
-            else Util.Safe("EscortEasyOff", EscortAttackersBack);
-            if (full && escScale != null && (float)escScale.GetValue(e) < 1f) escScale.SetValue(e, 1f);
-            if (!noDmg)
-            {
-                if (escProtected.Count > 0) { foreach (var x in escProtected) if (x != null) x.IsProtected = false; escProtected.Clear(); Util.Log("[Auftrag] Geleitschutz: Geleit nimmt wieder Schaden"); }
-                if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer " + (noAtt ? "an" : "aus") + ", volle Fahrt " + (full ? "an" : "aus") + ", kein Schaden aus"); }
-                return;
-            }
-            // the escorted ships take no damage (the game's own "protected" flag, used in its tutorials)
-            var grp = escGroup == null ? null : escGroup.GetValue(e) as UBOAT.Game.Sandbox.SandboxGroup;
-            if (grp)
-                foreach (var x in grp.Entities)
-                    if (x != null && !x.IsProtected) { x.IsProtected = true; escProtected.Add(x); }
-            if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer " + (noAtt ? "an" : "aus") + ", volle Fahrt " + (full ? "an" : "aus") + ", kein Schaden an"); }
-        }
-
-        private static void Run(bool finish)
-        {
-            var m = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.Mission;
-            if (m == null) { ToolkitRunner.ShowNotice("Kein laufender Auftrag", 4f); return; }
-            // names of the assignment's stages (enum "Stages" of the class or one of its base classes)
-            string[] names = new string[0];
-            for (var t = m.GetType(); t != null && names.Length == 0; t = t.BaseType)
-            {
-                var e = t.GetNestedType("Stages", BindingFlags.Public | BindingFlags.NonPublic);
-                if (e != null && e.IsEnum) names = Enum.GetNames(e);
-            }
-            int stage = m.Stage, target = stage;
-            if (!finish) target = stage + 1;
-            else
-                for (int i = stage; i < names.Length; i++)
-                    if (Array.IndexOf(homeStages, names[i]) >= 0) { target = i; break; }
-            if (names.Length > 0 && target > names.Length - 1) target = names.Length - 1;
-            string from = stage < names.Length ? names[stage] : stage.ToString();
-            if (target > stage) m.SetDebugStage(target);
-            if (finish)
-            {
-                var p = m.GetType().GetProperty("AssignmentObjectiveState", BindingFlags.Public | BindingFlags.Instance);
-                if (p != null && p.CanWrite) p.SetValue(m, UBOAT.Game.Sandbox.Missions.AssignmentObjectiveState.Completed, null);
-            }
-            string to = m.Stage < names.Length ? names[m.Stage] : m.Stage.ToString();
-            Util.Log("[Auftrag] " + m.GetType().Name + ": Schritt " + from + " -> " + to + (finish ? ", Ziel als erfüllt gesetzt" : ""));
-            ToolkitRunner.ShowNotice(finish ? "Auftrag als erfüllt gesetzt (Schritt: " + to + "). Im Heimathafen abgeben." : "Auftrag: Schritt " + from + " -> " + to, 6f);
-        }
-    }
-
-    // Diagnosis: the game only tracks achievements after this check passes (polled every 5 s). In DoMe's last two
-    // sessions it never passed (no "Starting N achievement objects" line), so no achievement could be earned.
-    // Log once per minute which condition is missing, and log every real unlock.
-    [HarmonyPatch(typeof(AchievementManager), "ListenForSteamDownload")]
-    internal static class AchievementTools_StartDiag
-    {
-        private static float next;
-        private static void Postfix(float __result)
-        {
-            if (!float.IsNaN(__result)) { if (Time.unscaledTime < next) return; next = Time.unscaledTime + 60f; }
-            string why = "";
-            Util.Safe("AchDiag", () =>
-            {
-                var st = UboatToolkit.Util.FindType("Steamworks.SteamUserStats"); object steam = st != null ? st.GetMethod("RequestCurrentStats", Type.EmptyTypes)?.Invoke(null, null) : "?";
-                var com = Traverse.Create(typeof(AchievementManager)).Field("campaignObjectivesManager").GetValue();
-                int objectives = com != null ? Traverse.Create(com).Property("List").Property("Count").GetValue<int>() : -1;
-                var wp = Traverse.Create(typeof(AchievementManager)).Field("wolfpack").GetValue() as UnityEngine.Object;
-                why = "Steam-Statistik=" + steam + ", Kampagnenziele=" + objectives + ", Wolfpack=" + (wp != null);
-            });
-            Util.Log(float.IsNaN(__result) ? "[Erfolge] Erfolgs-Prüfung des Spiels läuft (" + why + ")" : "[Erfolge] Spiel prüft Erfolge noch NICHT: " + why);
-        }
-    }
-
-    [HarmonyPatch(typeof(AchievementManager), "OnAchievementComplete")]
-    internal static class AchievementTools_UnlockLog
-    {
-        private static void Postfix(IAchievement achievement) =>
-            Util.Log("[Erfolge] freigeschaltet: " + achievement?.Name + " (gesperrt=" + (Util.Career != null && Util.Career.IsPlaythroughLockedOutOfAchievements) + ")");
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/AutoDetail.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::UnityEngine;
-
-    // Automatic detail (setting ExplosionAuto): at low FPS Unity runs MORE physics steps per frame to catch up
-    // (FixedUpdate of the contact handling, ships, rudders ...), which makes the next frame even slower.
-    // Below half the target FPS the catch-up per frame is limited (max. 0.1 s game time per frame); above, the game value is back.
-    public class AutoDetail : ModuleBase
-    {
-        private bool limited;
-        private float nextSwitch;
-        private static UBOAT.Game.Core.Time.GameTime gameTime;
-        internal static float gameStep = -1f;   // the game's own physics step (1/75 s)
-        internal const float GameStepMax = 1f / 75f;
-        private float nextCensus, autoHz, nextPhysLine; private int autoWait;
-
-        // 0.3.69 physics rate (DoMe: get performance out of the engine). Measured: with 48 ships the physics took
-        // 149 of 224 ms per frame. The game runs physics 75 times per second and up to 5 steps per frame.
-        // "PhysicsHz" lowers the rate through the game's own GameTime.FixedDeltaTime (50 = the step the game itself
-        // uses at 2x time compression). Only set at normal speed; time compression keeps the game's own logic.
-        public override void Tick()
-        {
-            if (gameTime == null) gameTime = Object.FindObjectOfType<UBOAT.Game.Core.Time.GameTime>();
-            if (gameTime == null) return;
-            if (gameStep < 0f) gameStep = Mathf.Min(gameTime.FixedDeltaTime, GameStepMax);   // 0.4.28: never learn an already lowered value as "the game value"
-            float hz = Settings.F("PhysicsHz");
-            float want = hz >= 20f ? Mathf.Max(gameStep, 1f / hz) : gameStep;
-            // time compression: back to the game's own step (the game multiplies it there itself); pause: leave alone
-            if (Time.timeScale < 0.99f) return;
-            if (Time.timeScale > 1.01f) want = gameStep;
-            else if (Settings.B("PhysicsFollowFps"))
-            {
-                // 0.4.8 (DoMe: optimise the game): at 16 FPS the game needed 3 physics steps of 20 ms per frame but may
-                // do only 2 ("PhysicsMaxSteps"), so the whole game ran in slow motion and still paid 18 ms per frame for
-                // physics. The game itself uses longer steps under time compression (x4 = 30 per second, x5 = 25).
-                // Now the step follows the frame rate in stages of 5 per second, never below "PhysicsAutoMinHz".
-                float fps = ExplosionLimit_Patch.Fps();
-                float top = 1f / want, low = Mathf.Clamp(Settings.F("PhysicsAutoMinHz"), 15f, top);
-                float target = Mathf.Clamp(Mathf.Floor(fps * 1.5f / 5f) * 5f, low, top);   // 1.5 steps per frame on average
-                if (autoHz <= 0f) autoHz = top;
-                if (Mathf.Abs(target - autoHz) > 0.5f) { if (++autoWait >= 3) { autoHz = target; autoWait = 0; } } else autoWait = 0;
-                want = 1f / Mathf.Clamp(autoHz, low, top);
-            }
-            if (Mathf.Abs(gameTime.FixedDeltaTime - want) > 0.00001f && !SaveTools_LoadSpeedPatch.IsLoading)
-            {
-                gameTime.FixedDeltaTime = want;
-                Util.Log("Physik-Takt: " + (1f / want).ToString("0") + " pro Sekunde (Spiel: " + (1f / gameStep).ToString("0") + ")");
-            }
-            // 0.4.9: proof line once per minute (was missing: no way to see whether the automatic step is active)
-            if (Time.unscaledTime >= nextPhysLine)
-            {
-                nextPhysLine = Time.unscaledTime + 60f;
-                // 0.4.28 (DoMe: boat bobs in time compression, log showed 12 steps/s where the game itself uses 18):
-                // compare with the game's own formula and say so.
-                float own = 1f / (gameStep * (1f + (Mathf.Max(1f, Time.timeScale) - 1f) * 0.5f));
-                if (Time.timeScale > 1.01f && 1f / Time.fixedDeltaTime < own - 0.5f)
-                    Util.Log("Physik: WARNUNG Takt im Zeitraffer gröber als das Spiel selbst (" + (1f / Time.fixedDeltaTime).ToString("0") + " statt " + own.ToString("0") + " pro Sekunde), Grundwert " + (1f / gameTime.FixedDeltaTime).ToString("0") + ", lädt gerade " + (SaveTools_LoadSpeedPatch.IsLoading ? "ja" : "nein"));
-                Util.Log("Physik: Takt " + (1f / Time.fixedDeltaTime).ToString("0") + " pro Sekunde, höchstens " + (Time.maximumDeltaTime / Time.fixedDeltaTime).ToString("0.#") + " Schritte pro Bild, Zeitraffer x" + Time.timeScale.ToString("0.#") + ", FPS " + ExplosionLimit_Patch.Fps().ToString("0") + ", Automatik " + (Settings.B("PhysicsFollowFps") ? (Time.timeScale > 1.01f ? "ruht (Zeitraffer, Spiel regelt selbst)" : "an") : "aus"));
-            }
-            // Census for the next tuning step: what is in the physics scene when it is slow (max. every 2 min).
-            float f = ExplosionLimit_Patch.Fps();
-            if (f < Settings.F("ExplosionTargetFps") * 0.5f && Time.unscaledTime >= nextCensus && Time.timeScale > 0f)
-            {
-                nextCensus = Time.unscaledTime + 120f;
-                Util.Safe("Physik-Zählung", () => Census(f));
-            }
-        }
-
-        private static void Census(float fps)
-        {
-            int rb = 0, dyn = 0, awake = 0, col = 0, mesh = 0, concave = 0, trig = 0;
-            foreach (var r in Object.FindObjectsOfType<Rigidbody>()) { rb++; if (!r.isKinematic) { dyn++; if (!r.IsSleeping()) awake++; } }
-            foreach (var c in Object.FindObjectsOfType<Collider>())
-            {
-                col++; if (c.isTrigger) trig++;
-                var m = c as MeshCollider; if (m != null) { mesh++; if (!m.convex) concave++; }
-            }
-            int ships = Object.FindObjectsOfType<UBOAT.Game.Scene.Entities.Ship>().Length;
-            Util.Log("Physik-Zählung: FPS " + fps.ToString("0") + ", Schiffe " + ships + ", Körper " + rb + " (beweglich " + dyn + ", wach " + awake + "), Kollider " + col
-                + " (Auslöser " + trig + ", Netz " + mesh + ", davon hohl " + concave + "), Takt " + (1f / Time.fixedDeltaTime).ToString("0") + "/s, max. Schritte/Bild "
-                + (Time.maximumDeltaTime / Time.fixedDeltaTime).ToString("0.#") + ", Löser " + Physics.defaultSolverIterations + "/" + Physics.defaultSolverVelocityIterations
-                + ", autoSync " + Physics.autoSyncTransforms + ", Zeitraffer " + Time.timeScale.ToString("0.#"));
-        }
-
-        public override void Frame()
-        {
-            // 0.3.69: the old limit (0.1 s) was ABOVE the game's own value (5 steps = 0.067 s), so it never did anything.
-            // Now: while limited, at most "PhysicsMaxSteps" physics steps per frame (the game re-sets its value on
-            // every speed change, so this is checked every frame).
-            if (limited)
-            {
-                float cap = Time.fixedDeltaTime * Mathf.Clamp(Settings.F("PhysicsMaxSteps"), 1f, 5f);
-                if (Time.maximumDeltaTime > cap + 0.00001f) Time.maximumDeltaTime = cap;
-            }
-            // Hysteresis: limit below 50 % of target FPS, release only above 70 %, and switch at most every 10 s.
-            float f = ExplosionLimit_Patch.Fps(), target = Settings.F("ExplosionTargetFps");
-            bool want = Settings.B("ExplosionAuto") && (limited ? f < target * 0.7f : f < target * 0.5f);
-            if (want == limited || Time.unscaledTime < nextSwitch) return;
-            nextSwitch = Time.unscaledTime + 10f;
-            limited = want;
-            // release: the game's own setter recalculates step + catch-up limit for the current speed
-            if (!want && gameTime != null) gameTime.FixedDeltaTime = gameTime.FixedDeltaTime;
-            ToolkitRunner.ShowNotice(want ? "Auto-Detail: viel los (" + Mathf.RoundToInt(f) + " FPS) - Effekte, Stimmen + Physik werden gespart" : "Auto-Detail: wieder volle Details", 4f);
-            Util.Log("Auto-Detail: Physik-Aufholen " + (want ? "begrenzt (" + Settings.F("PhysicsMaxSteps").ToString("0") + " Schritte pro Bild)" : "normal (5 Schritte)"));
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::UnityEngine;
-
-    // The game checks ALL nearby ship groups (enter/leave, group update) in every physics step (SandboxPlayerWolfpack.FixedUpdate,
-    // measured ~10 s per minute with ~100 ships). Under the target FPS this check runs only every 2nd-4th step;
-    // groups are still found, just a few hundredths of a second later.
-    [HarmonyLib.HarmonyPatch]
-    internal static class AutoDetail_NearbyGroupsPatch
-    {
-        private static int step;
-        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
-        {
-            var t = typeof(UBOAT.Game.Sandbox.SandboxPlayerWolfpack);
-            var a = HarmonyLib.AccessTools.Method(t, "UpdateNearbyGroups"); if (a != null) yield return a;
-            var b = HarmonyLib.AccessTools.Method(t, "UpdateImpostorGroups"); if (b != null) yield return b;
-        }
-        private static bool Prefix(System.Reflection.MethodBase __originalMethod)
-        {
-            if (!Settings.B("ExplosionAuto")) return true;
-            float load = ExplosionLimit_Patch.Fps() / UnityEngine.Mathf.Max(1f, Settings.F("ExplosionTargetFps"));
-            // 0.3.70: measured as the biggest single game script (SandboxPlayerWolfpack.FixedUpdate avg 4.6 s per minute),
-            // so the check now runs at most every 2nd physics step even at full FPS.
-            // the slower, the rarer: 40 FPS target at 5 FPS = every 8th step (max. 10)
-            int every = load >= 1f ? 2 : UnityEngine.Mathf.Clamp(UnityEngine.Mathf.CeilToInt(1f / UnityEngine.Mathf.Max(0.01f, load)), 2, 10);
-            if (__originalMethod.Name == "UpdateNearbyGroups") step++;
-            return step % every == 0;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::UnityEngine;
-
-    // DoMe's idea: far ships only "virtual". The game already has this: groups outside the simulation distance are not
-    // spawned as real ships (they stay on the map/sensors as sandbox groups). Under the target FPS this distance is
-    // reduced step by step (down to AutoVirtualMin), so far groups go virtual; when FPS recover it goes back to the game value.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.Data.GameplaySettings), "SimulationDistanceMultiplier", HarmonyLib.MethodType.Getter)]
-    internal static class AutoDetail_VirtualShipsPatch
-    {
-        private static float smooth = 1f, lastT = -1f;
-        private static void Postfix(ref float __result)
-        {
-            if (!Settings.B("ExplosionAuto") || !Settings.B("AutoVirtualShips")) return;
-            float t = UnityEngine.Time.unscaledTime;
-            if (t != lastT)
-            {
-                lastT = t;
-                float load = UnityEngine.Mathf.Clamp01(ExplosionLimit_Patch.Fps() / UnityEngine.Mathf.Max(1f, Settings.F("ExplosionTargetFps")));
-                float want = UnityEngine.Mathf.Lerp(UnityEngine.Mathf.Clamp(Settings.F("AutoVirtualMin"), 0.2f, 1f), 1f, load);
-                smooth = UnityEngine.Mathf.MoveTowards(smooth, want, 0.02f * UnityEngine.Time.unscaledDeltaTime);   // slow: 0.1 per 5 s, no flicker
-            }
-            __result *= smooth;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::UnityEngine;
-
-    // 0.4.28: "PhysicsHz" lowered the base step (e.g. 50 per second). The module set it back for time compression only
-    // in its next tick (up to 1 s later), so the game calculated its compression step from the lowered base
-    // (log 09:13:28: 12 steps per second at x7.2, the game alone uses 18). Now the base is the game's own value
-    // BEFORE the game calculates, so the Toolkit never makes the physics coarser in time compression.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.Time.GameTime), "TimeScale_Changed")]
-    internal static class AutoDetail_CompressionBasePatch
-    {
-        private static float lastLog;
-        private static void Prefix(UBOAT.Game.Core.Time.GameTime __instance, UBOAT.Game.Core.Data.Parameter parameter)
-        {
-            try
-            {
-                if (parameter == null || parameter.Value <= 1.01f) return;
-                float own = AutoDetail.gameStep > 0f ? AutoDetail.gameStep : AutoDetail.GameStepMax;
-                var f = HarmonyLib.Traverse.Create(__instance).Field("fixedDeltaTime");
-                float cur = f.GetValue<float>();
-                if (cur <= own + 0.00001f) return;
-                f.SetValue(own);
-                if (Time.unscaledTime - lastLog > 30f)
-                {
-                    lastLog = Time.unscaledTime;
-                    Util.Log("Physik: Zeitraffer x" + parameter.Value.ToString("0.#") + ", Grundwert vorher " + (1f / cur).ToString("0") + " pro Sekunde, jetzt Spielwert " + (1f / own).ToString("0"));
-                }
-            }
-            catch (System.Exception e) { Util.Log("Physik: Zeitraffer-Grundwert Fehler " + e.Message); }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/CacheCheck.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Linq;
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.IO;
-    using global::System.Reflection;
-    using global::DWS.Common.InjectionFramework;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Core.Mods;
-
-    // Mod-cache check: the game security-checks a mod only when it loads it from its compiled-mod cache
-    // (persistentDataPath/Temp) and then rejects it SILENTLY. This runs the game's own check on each cached
-    // mod and clears only the ones it would reject, so they are rebuilt fresh at the next start.
-    // Optional list file "toolkit-cache-clear.txt" (one DLL name per line) always clears those mods.
-    internal static class CacheCheck
-    {
-        private const string StaleMarker = ".stale-";
-        private static string ListFile => Path.Combine(Settings.Folder, "toolkit-cache-clear.txt");
-        private static string VerifiedFile => Path.Combine(Settings.Folder, "toolkit-cache-checked.txt");
-        private static List<string> list;
-        private static string listNote = "";
-        private static bool hooked;
-
-        // ---- binding to the game's own security check ----
-        private static bool bound;
-        private static string unavailable;
-        private static ConstructorInfo engineCtor;
-        private static MethodInfo checkAssembly, reportLines, setupSecurity;
-        private static PropertyInfo settingsP, restrictionsP;
-        private static FieldInfo securityOptions;
-        private static Dictionary<string, Mod> mods;
-
-        private static T Need<T>(T v, string what) where T : class
-        {
-            if (v == null) throw new MissingMemberException(what + " nicht gefunden (Spiel-Update?)");
-            return v;
-        }
-
-        private static void Bind()
-        {
-            if (bound) return;
-            bound = true;
-            try
-            {
-                Type engine = Need(UboatToolkit.Util.FindType("Trivial.CodeSecurity.CodeSecurityEngine"), "CodeSecurityEngine");
-                Type restr = Need(UboatToolkit.Util.FindType("Trivial.CodeSecurity.CodeSecurityRestrictions"), "CodeSecurityRestrictions");
-                Type report = Need(UboatToolkit.Util.FindType("Trivial.CodeSecurity.CodeSecurityReport"), "CodeSecurityReport");
-                Type roslyn = Need(UboatToolkit.Util.FindType("RoslynCSharp.RoslynCSharp"), "RoslynCSharp");
-                engineCtor = Need(engine.GetConstructor(new[] { typeof(byte[]) }), "CodeSecurityEngine(byte[])");
-                checkAssembly = Need(engine.GetMethod("SecurityCheckAssembly", new[] { restr, report.MakeByRefType() }), "SecurityCheckAssembly");
-                reportLines = Need(report.GetMethod("GetAllLines", new[] { typeof(bool) }), "GetAllLines");
-                settingsP = Need(roslyn.GetProperty("Settings", BindingFlags.Public | BindingFlags.Static), "RoslynCSharp.Settings");
-                restrictionsP = Need(roslyn.GetProperty("SecurityRestrictions", BindingFlags.Public | BindingFlags.Instance), "SecurityRestrictions");
-                setupSecurity = Need(AccessTools.Method(typeof(Mod), "SetupSecurity"), "Mod.SetupSecurity");
-                securityOptions = Need(AccessTools.Field(typeof(Mod), "securityOptions"), "Mod.securityOptions");
-                var manager = ScriptableObjectSingleton.LoadSingleton<ModManager>();
-                if (manager == null || manager.LoadedMods == null) throw new InvalidOperationException("Mod-Liste nicht verfügbar");
-                mods = new Dictionary<string, Mod>(StringComparer.OrdinalIgnoreCase);
-                foreach (Mod m in manager.LoadedMods)
-                    if (m != null && !string.IsNullOrEmpty(m.AssemblyName)) mods[m.AssemblyName] = m;
-            }
-            catch (Exception e) { unavailable = e.Message; }
-        }
-
-        private static Mod ModFor(string asm) { Bind(); return mods != null && mods.TryGetValue(asm, out var m) ? m : null; }
-        private static int PermissionsOf(Mod mod) { try { return Convert.ToInt32(securityOptions.GetValue(mod)); } catch { return -1; } }
-
-        // null = passes; otherwise the first reason the game would reject it.
-        private static string Violation(string dll, Mod mod)
-        {
-            Bind();
-            if (unavailable != null) throw new InvalidOperationException(unavailable);
-            byte[] bytes;
-            using (var fs = new FileStream(dll, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-            {
-                bytes = new byte[fs.Length];
-                int read = 0;
-                while (read < bytes.Length) { int n = fs.Read(bytes, read, bytes.Length - read); if (n <= 0) break; read += n; }
-            }
-            setupSecurity.Invoke(mod, new object[] { null });
-            object rules = restrictionsP.GetValue(settingsP.GetValue(null, null), null);
-            object engine = engineCtor.Invoke(new object[] { bytes });
-            try
-            {
-                object[] args = { rules, null };
-                if ((bool)checkAssembly.Invoke(engine, args)) return null;
-                var lines = args[1] == null ? null : reportLines.Invoke(args[1], new object[] { false }) as string[];
-                if (lines == null || lines.Length == 0) return "Prüfung nicht bestanden (keine Details)";
-                return lines.Length == 1 ? lines[0] : lines.Length + " Verstöße: " + string.Join(" | ", lines);   // all of them, so a mod author can fix every one in one go
-            }
-            finally { (engine as IDisposable)?.Dispose(); }
-        }
-
-        // ---- the clearing ----
-        public static void Install()
-        {
-            if (!Settings.B("CacheCheck")) return;
-            Run("Start", true);
-            if (!hooked) { Application.quitting += () => { if (Settings.B("CacheCheck")) Run("Beenden", false); }; hooked = true; }
-        }
-
-        private static void LoadList()
-        {
-            list = null; listNote = "";
-            try
-            {
-                if (!File.Exists(ListFile)) { listNote = " (keine Liste " + Path.GetFileName(ListFile) + ")"; return; }
-                var names = new List<string>();
-                foreach (var raw in File.ReadAllLines(ListFile))
-                {
-                    string l = raw.Trim();
-                    if (l.Length == 0 || l[0] == '#') continue;
-                    if (l.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) l = l.Substring(0, l.Length - 4);
-                    names.Add(l.ToLowerInvariant());
-                }
-                if (names.Count > 0) { list = names; listNote = " (Liste: " + string.Join(", ", names.ToArray()) + ")"; }
-            }
-            catch (Exception e) { listNote = " (Liste unlesbar: " + e.Message + ")"; list = null; }
-        }
-
-        private static bool Listed(string asm) => list != null && list.Contains(asm.ToLowerInvariant());
-
-        private static string AssemblyOf(string file)
-        {
-            string n = Path.GetFileName(file);
-            if (n.EndsWith(".dll.mdb", StringComparison.OrdinalIgnoreCase)) return n.Substring(0, n.Length - 8);
-            if (n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) return n.Substring(0, n.Length - 4);
-            return null;
-        }
-
-        private static HashSet<string> Decide(string[] files, string when, out string note)
-        {
-            var doomed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            bool check = Settings.B("CacheCheckFirst");
-            string why = null;
-            if (check) { Bind(); why = unavailable; }
-            if (!check || why != null)
-            {
-                // no check possible: clear everything (or only the listed mods if the list exists)
-                foreach (var f in files) { var a = AssemblyOf(f); if (a != null && (list == null || Listed(a))) doomed.Add(a); }
-                note = (check ? " (Prüfung nicht möglich: " + why + " - alles neu gebaut)" : " (Prüfung aus)") + listNote;
-                return doomed;
-            }
-            float start = Time.realtimeSinceStartup;
-            var verified = LoadVerified();
-            var still = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            int checkedNow = 0, known = 0, notEnabled = 0, listed = 0;
-            foreach (var f in files)
-            {
-                if (!f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) continue;
-                var asm = AssemblyOf(f);
-                if (asm == null) continue;
-                if (Listed(asm)) { doomed.Add(asm); listed++; continue; }
-                var mod = ModFor(asm);
-                if (mod == null) { notEnabled++; continue; }
-                // The game keeps a compiled mod even when its source files changed (or compiles while files
-                // are still being copied): then old code runs. A fingerprint of all Source\*.cs is stored with
-                // the check result; if the sources differ from the last check, the DLL is rebuilt.
-                string srcHash = SourceHash(mod);
-                string key;
-                try { var fi = new FileInfo(f); key = fi.Length + "|" + fi.LastWriteTimeUtc.Ticks + "|" + PermissionsOf(mod) + "|" + srcHash; } catch { key = null; }
-                if (srcHash != "-" && key != null && verified.TryGetValue(asm, out var before) && before != key && SameDll(before, key))
-                {
-                    doomed.Add(asm);
-                    Util.Log("Mod-Cache " + when + ": „" + mod.Name + "“ (" + asm + ".dll) passt nicht mehr zum Quellcode, wird neu gebaut.");
-                    continue;
-                }
-                if (key != null && verified.TryGetValue(asm, out var seen) && seen == key) { still[asm] = key; known++; continue; }
-                string v;
-                try { v = Violation(f, mod); checkedNow++; }
-                catch (Exception e)
-                {
-                    doomed.Add(asm);
-                    Util.Log("Mod-Cache " + when + ": „" + mod.Name + "“ (" + asm + ".dll) NICHT prüfbar, wird sicherheitshalber neu gebaut: " +
-                             (e is TargetInvocationException && e.InnerException != null ? e.InnerException.Message : e.Message));
-                    continue;
-                }
-                if (v == null) { if (key != null) still[asm] = key; continue; }
-                doomed.Add(asm);
-                Util.Log("Mod-Cache " + when + ": „" + mod.Name + "“ (" + asm + ".dll) würde vom Spiel abgelehnt, wird neu gebaut: " + v);
-            }
-            SaveVerified(still);
-            note = " (geprüft " + checkedNow + " in " + Mathf.RoundToInt((Time.realtimeSinceStartup - start) * 1000f) + " ms, " + known + " schon als gut bekannt" +
-                   (listed > 0 ? ", " + listed + " aus der Liste" : "") + (notEnabled > 0 ? ", " + notEnabled + " nicht aktive Mods unberührt" : "") + ")";
-            return doomed;
-        }
-
-        // Same DLL file (size + time) as at the last check, but something else (sources) changed.
-        private static bool SameDll(string a, string b)
-        {
-            var x = a.Split('|'); var y = b.Split('|');
-            return x.Length >= 2 && y.Length >= 2 && x[0] == y[0] && x[1] == y[1];
-        }
-
-        private static string SourceHash(Mod mod)
-        {
-            try
-            {
-                var src = Path.Combine(mod.Path ?? "", "Source");
-                if (!Directory.Exists(src)) return "-";
-                var files = Directory.GetFiles(src, "*.cs", SearchOption.AllDirectories);
-                Array.Sort(files, StringComparer.OrdinalIgnoreCase);
-                using (var sha = System.Security.Cryptography.SHA1.Create())
-                {
-                    foreach (var f in files)
-                    {
-                        var name = System.Text.Encoding.UTF8.GetBytes(f.Substring(src.Length).ToLowerInvariant());
-                        sha.TransformBlock(name, 0, name.Length, null, 0);
-                        var b = File.ReadAllBytes(f);
-                        sha.TransformBlock(b, 0, b.Length, null, 0);
-                    }
-                    sha.TransformFinalBlock(new byte[0], 0, 0);
-                    return BitConverter.ToString(sha.Hash).Replace("-", "").Substring(0, 16);
-                }
-            }
-            catch { return "-"; }
-        }
-
-        private static Dictionary<string, string> LoadVerified()
-        {
-            var d = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            try
-            {
-                if (!File.Exists(VerifiedFile)) return d;
-                foreach (var l in File.ReadAllLines(VerifiedFile)) { int bar = l.IndexOf('|'); if (bar > 0 && l[0] != '#') d[l.Substring(0, bar)] = l.Substring(bar + 1); }
-            }
-            catch { d.Clear(); }
-            return d;
-        }
-
-        private static void SaveVerified(Dictionary<string, string> d)
-        {
-            try
-            {
-                Directory.CreateDirectory(Settings.Folder);
-                var lines = new List<string> { "# Mods im Cache, die die Spiel-Prüfung bestanden haben. Darf gelöscht werden." };
-                foreach (var kv in d) lines.Add(kv.Key + "|" + kv.Value);
-                File.WriteAllLines(VerifiedFile, lines.ToArray());
-            }
-            catch { }
-        }
-
-        private static void Run(string when, bool purgeStale)
-        {
-            try
-            {
-                LoadList();
-                string temp = Path.Combine(Application.persistentDataPath, "Temp");
-                if (!Directory.Exists(temp)) { Util.Log("Mod-Cache " + when + ": kein Temp-Ordner, nichts zu tun."); return; }
-                int deleted = 0, renamed = 0, stale = 0, failed = 0, kept = 0;
-                string firstError = null;
-                var files = Directory.GetFiles(temp, "*", SearchOption.TopDirectoryOnly);
-                if (purgeStale)
-                    foreach (var f in files)
-                        if (Path.GetFileName(f).IndexOf(StaleMarker, StringComparison.OrdinalIgnoreCase) >= 0)
-                            try { File.Delete(f); stale++; } catch { }
-                var doomed = Decide(files, when, out string note);
-                foreach (var f in files)
-                {
-                    var asm = AssemblyOf(f);
-                    if (asm == null) continue;
-                    if (!doomed.Contains(asm)) { kept++; continue; }
-                    try { File.Delete(f); deleted++; }
-                    catch (Exception de)
-                    {
-                        // locked (compiled this launch): rename, removed at the next start
-                        try { File.SetAttributes(f, FileAttributes.Normal); File.Move(f, f + StaleMarker + DateTime.Now.Ticks); renamed++; }
-                        catch (Exception me) { failed++; if (firstError == null) firstError = Path.GetFileName(f) + ": löschen " + de.Message + " / umbenennen " + me.Message; }
-                    }
-                }
-                Util.Log("Mod-Cache " + when + ": gelöscht " + deleted + ", umbenannt " + renamed + " (gesperrt, weg beim nächsten Start), alte Reste " + stale +
-                         (kept > 0 ? ", BEHALTEN " + kept : "") + (failed > 0 ? ", " + failed + " FEHLER - erster: " + firstError : "") + note);
-            }
-            catch (Exception e) { Util.Log("Mod-Cache " + when + ": fehlgeschlagen: " + e.Message); }
-        }
-    }
-}
-
-// ====================================================================================================
 // Abschnitt: Modules/CarrierConvoy.cs
 // ====================================================================================================
 namespace UboatToolkit.Modules
@@ -32759,272 +28376,6 @@ namespace UboatToolkit.Modules
             bool on = Settings.B("FixCarrierConvoy");
             if (init && on != last) Util.Safe("CarrierConvoy.Refresh", CarrierConvoy_Patch.RefreshGroups);
             last = on; init = true;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/Cheats.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-
-    // Cheats for the player's boat (single player). Every cheat is off by default.
-    public class Cheats : ModuleBase
-    {
-        private PlayerCrew crew;
-        private PlayerCareer career;
-
-        private static readonly string[] SensorKeys = { "CheatRangeLookout", "CheatRangeHydro", "CheatRangeSonar", "CheatRangeRadar", "CheatRangeRadarWarn" };
-        private static readonly string[] sensorNow = new string[5];
-        private static readonly float[] sensorNear = new float[5];
-        private static float nextSensorInfo, nextSensorLine;
-        private static bool sensorHooked;
-        private static string hydroParts;
-        // every part that goes into a range value: base parts (+) and factors (x), by name
-        private int capped;
-        private static string Parts(Parameter p)
-        {
-            if (p == null) return "-";
-            var sb = new System.Text.StringBuilder();
-            try
-            {
-                foreach (var m in p.DeltaModifiers) if (m != null) sb.Append(" +").Append(m.Name).Append("=").Append(m.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
-                foreach (var m in p.ScaleModifiers) if (m != null) sb.Append(" x").Append(m.Name).Append("=").Append(m.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
-                sb.Append(" => ").Append(p.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
-            }
-            catch (System.Exception e) { sb.Append(" (nicht lesbar: ").Append(e.Message).Append(")"); }
-            return sb.ToString();
-        }
-        private static int SensorKind(UBOAT.Game.Scene.Items.BaseDetector d)
-        {
-            if (d is UBOAT.Game.Scene.Items.Hydrophone) return 1;
-            if (d is UBOAT.Game.Scene.Items.Sonar) return 2;
-            if (d is UBOAT.Game.Scene.Items.Radar) return 3;
-            if (d is UBOAT.Game.Scene.Items.RadarDetector) return 4;
-            return 0;
-        }
-
-        public override void Tick()
-        {
-            var ship = Util.PlayerShip;
-
-            // 0.4.4: one range factor per sensor type, player only. Enemies always get factor 1 (game range).
-            bool sensorLog = Time.unscaledTime >= nextSensorInfo;
-            if (sensorLog) { nextSensorInfo = Time.unscaledTime + 1f; for (int i = 0; i < SensorKeys.Length; i++) sensorNow[i] = null; }
-            foreach (var d in Util.Find<UBOAT.Game.Scene.Items.BaseDetector>())
-            {
-                bool mine = Util.IsPlayers(d);
-                int kind = SensorKind(d);
-                float m = mine ? Mathf.Max(0.05f, Settings.F(SensorKeys[kind])) : 1f;
-                Util.ScaleParameter(d.DetectionRange, m);
-                Util.ScaleParameter(d.GroupDetectionRange, m);
-                // 0.4.19 (DoMe: "limiter, nicht größer als 1000 km"): our factor is cut back so that the range of the
-                // player's sensor never exceeds the limit. Near range is in metres, far range in kilometres.
-                // 0.4.39 (DoMe: "ich kann immer noch halb europa abhorchen, was muss ich limitieren"): the limit now holds
-                // always, not only when our own factor is above 1, so the Warthog and listener bonuses cannot pass it. For
-                // the hydrophone the boat's own listening factor counts too, because the game multiplies it in afterwards
-                // (the map circle showed far range x boat factor, which the old check never saw).
-                if (mine)
-                {
-                    float cap = Mathf.Max(10f, Settings.F(kind == 0 ? "CheatRangeMaxKmLookout" : "CheatRangeMaxKm"));
-                    Util.Safe("Sensor-Grenze", () =>
-                    {
-                        float hsc = 1f;
-                        if (kind == 1) { try { hsc = Mathf.Max(0.01f, (float)ship.HydroacousticDetectorsRangeScale); } catch { } }
-                        if (d.DetectionRange != null && d.DetectionRange.Value * hsc > cap * 1000f) { Util.ScaleParameter(d.DetectionRange, Mathf.Max(0.01f, m * cap * 1000f / (d.DetectionRange.Value * hsc))); capped++; }
-                        if (d.GroupDetectionRange != null && d.GroupDetectionRange.Value * hsc > cap) { Util.ScaleParameter(d.GroupDetectionRange, Mathf.Max(0.01f, m * cap / (d.GroupDetectionRange.Value * hsc))); capped++; }
-                    });
-                }
-                if (mine && sensorLog && d.DetectionRange != null)
-                {
-                    float near = d.DetectionRange.Value / 1000f, far = d.GroupDetectionRange != null ? d.GroupDetectionRange.Value : 0f;
-                    // 0.4.9: the hydrophone values are multiplied by the boat's own listening factor before the game uses
-                    // them (map circle: near x factor x 0.64, far x factor); without it the log showed "fern 13500 km".
-                    if (kind == 1)
-                    {
-                        float hs = 1f;
-                        try { hs = (float)ship.HydroacousticDetectorsRangeScale; } catch { }
-                        near *= hs * 0.64f; far *= hs;
-                        if (Time.unscaledTime >= nextSensorLine) hydroParts = "Hydrophon fern: Faktor Boot " + hs.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + ", Teile " + Parts(d.GroupDetectionRange);
-                    }
-                    if (sensorNow[kind] == null || near > sensorNear[kind])
-                    {
-                        sensorNear[kind] = near;
-                        sensorNow[kind] = "(jetzt nah " + near.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " km" + (far > 0f ? ", fern " + far.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + " km" : "") + ")";
-                    }
-                }
-            }
-            if (sensorLog)
-            {
-                if (!sensorHooked)
-                {
-                    sensorHooked = true;
-                    for (int i = 0; i < SensorKeys.Length; i++) { int k = i; var o = Settings.Get(SensorKeys[k]); if (o != null) o.Extra = () => sensorNow[k] ?? "(nicht an Bord)"; }
-                }
-                if (Time.unscaledTime >= nextSensorLine)
-                {
-                    nextSensorLine = Time.unscaledTime + 60f;
-                    var sb = new System.Text.StringBuilder("Sensoren (nur eigenes Boot):");
-                    for (int i = 0; i < SensorKeys.Length; i++) sb.Append(" ").Append(SensorKeys[i].Substring(10)).Append(" x").Append(Settings.F(SensorKeys[i]).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)).Append(" ").Append(sensorNow[i] ?? "(nicht an Bord)").Append(";");
-                    sb.Append(". Grenze Sicht ").Append(Settings.F("CheatRangeMaxKmLookout").ToString("0")).Append(" km, übrige ").Append(Settings.F("CheatRangeMaxKm").ToString("0")).Append(" km, ").Append(capped).Append(" mal gekürzt, doppelte Faktoren entfernt: ").Append(Util.DuplicatesRemoved);
-                    capped = 0;
-                    Util.Log(sb.ToString());
-                    if (hydroParts != null) { Util.Log(hydroParts); hydroParts = null; }
-                }
-            }
-
-            // Undetectable: seen, heard (sonar + hydrophones) and radar-detected at almost zero range.
-            float f = Settings.B("CheatUndetectable") ? 0.001f : 1f;
-            var t = Traverse.Create(ship);
-            foreach (var field in new[] { "visualDetectability", "sonarDetectability", "radarDetectorDetectability" })
-                Util.ScaleParameter(t.Field(field).GetValue<Parameter>(), f);
-            // 0.4.22 (option audit): "hydroacousticDetectorsRangeScale" is the range of OUR OWN listening gear. It was scaled
-            // down with the cheat, so the own hydrophone and sonar went deaf. Always back to the game value now.
-            Util.ScaleParameter(t.Field("hydroacousticDetectorsRangeScale").GetValue<Parameter>(), 1f);
-            // Also the boat's own noise (dB, heard by hydrophones) and its radar size (cm): the game's own
-            // dev-console "undetectable" sets exactly these to 0. Shown in the detection tooltip too.
-            bool und = Settings.B("CheatUndetectable");
-            Util.Safe("Undetectable.Noise", () =>
-            {
-                Util.OneScale(ship.HydrophoneDetectability, Util.ModifierName).Value = und ? 0f : 1f;
-                Util.OneScale(ship.SandboxEntity.SignatureRadius, Util.ModifierName).Value = und ? 0f : 1f;
-            });
-
-            Util.ScaleParameter(t.Field("hullCrackThreshold").GetValue<Parameter>(), Settings.B("CheatDeepDive") ? 100f : 1f);
-            // The game also has a separate "hull crush" timer (HullCrushController): below the boat's CrushDepth
-            // it counts down and then sets the hull to 0 = boom, even without any leaks. Push that depth far away.
-            Util.Safe("DeepDive.Crush", () =>
-                Util.ScaleParameter(ship.SandboxEntity.Parameters.GetParameter("CrushDepth"), Settings.B("CheatDeepDive") ? 100f : 1f));
-
-            if (Settings.B("CheatFullFuel")) Util.Safe("FullFuel", () => FillFuel(ship));
-            if (Settings.B("CheatFullBattery")) Fill(ship.Energy);
-            if (Settings.B("CheatFullAir")) Fill(ship.Oxygen);
-            if (Settings.B("CheatFullDiscipline"))
-            {
-                Fill(ship.Discipline);
-            }
-            Util.Safe("Moral", () => NoMoraleLoss(ship));
-            if (Settings.B("NoStress") && ship.Stress != null) ship.Stress.Amount = 0;
-
-            if (Settings.B("CheatCrewNeverTired"))
-            {
-                if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
-                if (crew != null && crew.Characters != null)
-                    foreach (var c in crew.Characters) if (c != null) c.Energy = 1f;
-            }
-
-            float money = Settings.F("CheatMoney"), rep = Settings.F("CheatReputation");
-            if (money > 0f || rep > 0f)
-            {
-                if (career == null) career = Util.Career;
-                if (career != null)
-                {
-                    if (money > 0f && career.Budget < money) Util.SetField(career, "budget", Mathf.RoundToInt(money));
-                    if (rep > 0f && career.ReputationPoints < rep) career.ReputationPoints = Mathf.RoundToInt(rep);
-                }
-            }
-        }
-
-        // The diesel % is computed by the game from the fuel lying in the tanks, so filling only the
-        // number would be undone at once. Fill the tanks themselves.
-        // Morale (game: "Discipline") with the cheat on: refilling alone left the display at e.g. "-102" (a big crew drains it
-        // fast). Our own delta cancels exactly the negative part of the gain, so it shows 0 and never drops; gains stay.
-        private const string MoraleMod = "UboatToolkit Moral";
-        private static void NoMoraleLoss(PlayerShip ship)
-        {
-            var g = ship.Discipline != null ? ship.Discipline.Gain : null;
-            if (g == null) return;
-            var m = Util.OneDelta(g, MoraleMod);
-            float want = 0f;
-            if (Settings.B("CheatFullDiscipline"))
-            {
-                float v0 = g.GetValueWithModifierOverride(m, 0f), v1 = g.GetValueWithModifierOverride(m, 1f);
-                if (v0 < 0f && v1 - v0 > 1e-6f) want = -v0 / (v1 - v0);
-            }
-            if (Mathf.Abs(m.Value - want) > 1e-6f) m.Value = want;
-        }
-
-        private static void FillFuel(UBOAT.Game.Scene.Entities.PlayerShip ship)
-        {
-            var srcs = ship.FuelSources;
-            if (srcs == null) return;
-            foreach (var f in srcs)
-            {
-                if (f == null || f.Storage == null || f.Data == null || f.Data.Mass <= 0f) continue;
-                double full = f.Storage.ItemsMassLimit / f.Data.Mass;
-                if (full > 0 && f.DoubleCount < full) f.DoubleCount = full;
-            }
-        }
-
-        private static void Fill(Resource r)
-        {
-            if (r == null || r.Capacity == null) return;
-            double cap = r.Capacity.Value;
-            if (cap > 0 && r.Amount < cap) r.Amount = cap;
-        }
-    }
-
-    // Hull health of the player's boat never goes down.
-    [HarmonyPatch(typeof(Entity), nameof(Entity.Health), MethodType.Setter)]
-    internal static class Cheats_HullPatch
-    {
-        private static void Prefix(Entity __instance, ref float value)
-        {
-            if (Settings.B("CheatNoHullDamage") && __instance is PlayerShip && value < __instance.Health) value = __instance.Health;
-        }
-    }
-
-    // No water pressure damage at great depth.
-    [HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.ApplyWaterDamageToPlayerShip), "DoDamageTick")]
-    internal static class Cheats_DeepDivePatch
-    {
-        private static bool Prefix(ref float __result)
-        {
-            if (!Settings.B("CheatDeepDive")) return true;
-            __result = 5f; // check again in 5 seconds
-            return false;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-
-    // "Crew never tired": also the game's own tired check (Fatigue skill, updated every second per man) always says rested,
-    // and the man's energy is refilled right there (Tick alone missed men between ticks / new men).
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Skills.Fatigue), "UpdateFatigue")]
-    internal static class Cheats_NeverTiredPatch
-    {
-        private static void Prefix(UBOAT.Game.Scene.Characters.Skills.Fatigue __instance)
-        {
-            if (!Settings.B("CheatCrewNeverTired")) return;
-            var c = __instance.Character;
-            if (c != null) c.Energy = 1f;
-        }
-    }
-
-    // Energy never goes down at all (DoMe: prevent the loss, not refill it): every write to Energy becomes "full".
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.PlayableCharacter), "Energy", HarmonyLib.MethodType.Setter)]
-    internal static class Cheats_NoEnergyLossPatch
-    {
-        private static void Prefix(ref float value)
-        {
-            if (Settings.B("CheatCrewNeverTired")) value = 1f;
         }
     }
 }
@@ -33262,2519 +28613,6 @@ namespace UboatToolkit.Modules
 }
 
 // ====================================================================================================
-// Abschnitt: Modules/ExtraFeatures.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Linq;
-    using global::System.Text.RegularExpressions;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::DWS.Common.Tasks;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UBOAT.Game.UI.Loading;
-
-    // Ideas from popular workshop mods, own implementation, all in one:
-    // energy saving, tube display (torpedo types), officer roles + skill choice (tab "Crew"),
-    // faster torpedo loading, faster game loading.
-    public class ExtraFeatures : ModuleBase
-    {
-        private bool energySaved;
-        public static string TubeLine;
-
-        // Searching all loaded objects for these took 150-200 ms each second (lag every few seconds).
-        // They are found once and kept; the skill cheats only need to run every 10 seconds.
-        private static CharacterClasses classesCache;
-        private static PlayerCrew crewCache;
-        private static float nextSkills;
-        private static int lastFlags = -1;
-
-        // A failed search (main menu, loading) used to be repeated on every call: 100-400 ms each time.
-        private static float classesRetry, crewRetry;
-        private static IEnumerable<CharacterClass> Classes()
-        {
-            if (classesCache == null && Time.unscaledTime >= classesRetry) { classesRetry = Time.unscaledTime + 30f; classesCache = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault(); }
-            return classesCache?.GetClassesDirect();
-        }
-
-        private static PlayerCrew Crew()
-        {
-            if (crewCache == null && Time.unscaledTime >= crewRetry) { crewRetry = Time.unscaledTime + 30f; crewCache = Object.FindObjectOfType<PlayerCrew>(); }
-            return crewCache;
-        }
-
-        // The skill cheats walk every skill of every crew member (100-400 ms with a big crew). The result only changes
-        // when the crew changes, so they run again only then (and every 5 minutes as a safety net).
-        private static int lastCrewCount = -1;
-        private static float fullRunAt;
-        // A promotion resets the officer's skill list (PromoteToClass), the crew count stays the same:
-        // so the skill cheats are applied again right away, before the promotion screen shows the list.
-        internal static void ReapplySkills()
-        {
-            lastCrewCount = -1; nextSkills = 0f;
-            if (Settings.B("CheatAllSkills")) AllSkills();
-            if (Settings.B("CheatSkillsAnyLevel")) SkillLevels(true);
-            if (Settings.B("CheatLinguist")) Linguists();
-        }
-        private static bool CrewChanged()
-        {
-            int n = Util.SafeGet(() => Crew()?.Characters?.Count() ?? -1, -1);
-            if (n == lastCrewCount && Time.unscaledTime < fullRunAt) return false;
-            lastCrewCount = n; fullRunAt = Time.unscaledTime + 300f;
-            return true;
-        }
-
-        public override void Tick()
-        {
-            var ship = Util.PlayerShip;
-            EnergySaver(ship);
-            Tubes();
-            // Crew specializations (diving / silent running / discipline, 10 each): always enough free points.
-            if (Settings.B("CheatSpecPoints"))
-                Util.Safe("SpecPoints", () =>
-                {
-                    var c = Crew();
-                    if (c == null) return;
-                    int need = Mathf.Max(0, 30 - c.SpecializationDivingPoints - c.SpecializationSilentRunningPoints - c.SpecializationDisciplinePoints);
-                    if (c.FreeSpecializationPoints < need) c.FreeSpecializationPoints = need;
-                });
-            bool any = Settings.B("CheatSkillsAnyLevel");
-            if (!any && skillLevels.Count > 0) SkillLevels(false);
-            if (Time.unscaledTime < nextSkills) return;
-            nextSkills = Time.unscaledTime + 10f;
-            bool all = Settings.B("CheatAllSkills"), ling = Settings.B("CheatLinguist");
-            bool turnedOn = (all ? 1 : 0) + (any ? 2 : 0) + (ling ? 4 : 0) != lastFlags;
-            lastFlags = (all ? 1 : 0) + (any ? 2 : 0) + (ling ? 4 : 0);
-            if (!CrewChanged() && !turnedOn) return;
-            if (all) AllSkills();
-            if (any) SkillLevels(true);
-            if (ling) Linguists();
-        }
-
-        // Everyone who speaks one foreign language ("... Speaker") also gets "Linguist" (all languages).
-        private static void Linguists()
-        {
-            var classes = Classes();
-            var ling = classes?.SelectMany(c => c.Skills).FirstOrDefault(x => x != null && x.Name == "Linguist");
-            var crew = Crew();
-            if (ling == null || crew?.Characters == null) return;
-            foreach (var ch in crew.Characters)
-            {
-                var d = ch?.Data;
-                if (d == null) continue;
-                var sk = d.Statuses.OfType<CharacterSkill>().ToList();
-                if (sk.Any(x => x.Name.EndsWith(" Speaker")) && !sk.Any(x => x.Name == "Linguist")) d.LearnSkill(ling, false);
-            }
-        }
-
-        // All skills can be learned at any level: the level requirement is set to 0 (and restored when switched off).
-        private static readonly Dictionary<CharacterSkill, int> skillLevels = new Dictionary<CharacterSkill, int>();
-        private static void SkillLevels(bool on)
-        {
-            if (!on)
-            {
-                if (skillLevels.Count == 0) return;
-                foreach (var kv in skillLevels) if (kv.Key != null) kv.Key.RequiredLevel = kv.Value;
-                skillLevels.Clear();
-                return;
-            }
-            var list = new List<CharacterSkill>();
-            var classes = Classes();
-            if (classes != null) list.AddRange(classes.SelectMany(c => c.Skills));
-            var crew = Crew();
-            if (crew?.Characters != null)
-                foreach (var ch in crew.Characters)
-                    if (ch?.Data?.AvailableSkills != null) list.AddRange(ch.Data.AvailableSkills);
-            foreach (var sk in list)
-            {
-                if (sk == null || sk.RequiredLevel <= 0) continue;
-                if (!skillLevels.ContainsKey(sk)) skillLevels[sk] = sk.RequiredLevel;
-                sk.RequiredLevel = 0;
-            }
-        }
-
-        // Battery low under water: switch off big power users (compressor, searchlight) once.
-        private void EnergySaver(UBOAT.Game.Scene.Entities.PlayerShip ship)
-        {
-            float lim = Settings.F("EnergySaverPercent") / 100f;
-            var r = ship.GetResource("Energy");
-            if (lim <= 0f || r == null) { energySaved = false; return; }
-            float v = (float)r.Amount;
-            if (v > lim + 0.1f) energySaved = false;
-            if (energySaved || v >= lim || !ship.SubmergedOrGoingToSubmerge) return;
-            energySaved = true;
-            int n = 0;
-            foreach (var c in Util.Find<AirCompressor>()) if (Util.IsPlayers(c) && !c.HasDisableFlag(DeviceDisableFlag.TurnedOff)) { c.SetDisableFlag(DeviceDisableFlag.TurnedOff, true); n++; }
-            foreach (var s in Util.Find<Searchlight>()) if (Util.IsPlayers(s) && !s.HasDisableFlag(DeviceDisableFlag.TurnedOff)) { s.SetDisableFlag(DeviceDisableFlag.TurnedOff, true); n++; }
-            if (n > 0) ToolkitRunner.ShowNotice("Strom sparen: " + n + " Geräte aus (Batterie " + (v * 100f).ToString("0") + " %)", 6f);
-        }
-
-        // "Rohr 1: T2 | Rohr 2: leer ..." in the info area.
-        private static void Tubes()
-        {
-            if (!Settings.B("TubeDisplay")) { TubeLine = null; return; }
-            var parts = new List<string>();
-            int i = 1;
-            // 0.4.22 (option audit): only OUR tubes (enemy submarines were listed too), in a fixed order (by name)
-            var own = new List<TorpedoLauncher>();
-            foreach (var x in Util.Find<TorpedoLauncher>())
-                if (x != null && (Util.IsPlayers(x) || (x.Group != null && x.Group.ParentEntity is UBOAT.Game.Scene.Entities.PlayerShip))) own.Add(x);
-            own.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
-            foreach (var l in own)
-            {
-                string t = "leer";
-                if (l.Torpedo != null)
-                {
-                    var m = Regex.Match(l.Torpedo.name, @"\bT\d+[a-z]?\b");
-                    t = m.Success ? m.Value : (l.Torpedo is StoredMinePacket ? "Mine" : l.Torpedo.name.Replace("(Clone)", "").Trim());
-                    if (!l.IsLoaded) t += " (lädt)";
-                }
-                parts.Add(i++ + ": " + t);
-            }
-            TubeLine = parts.Count > 0 ? "Rohre  " + string.Join("  |  ", parts) : null;
-        }
-
-        // Cheat: every officer may choose skills of all classes.
-        private static void AllSkills()
-        {
-            var classes = Classes();
-            if (classes == null) return;
-            var all = classes.SelectMany(c => c.Skills).GroupBy(s => s.Name).Select(g => g.First()).ToList();
-            var crew = Crew();
-            if (crew?.Characters == null) return;
-            foreach (var ch in crew.Characters)
-            {
-                var d = ch?.Data;
-                if (d == null || d.CharacterType == PlayableCharacterData.Type.Sailor) continue;
-                var owned = new HashSet<string>(d.Statuses.OfType<CharacterSkill>().Select(s => s.Name));
-                var avail = d.AvailableSkills.ToList();
-                bool changed = false;
-                foreach (var s in all)
-                    if (!owned.Contains(s.Name) && !avail.Any(a => a.Name == s.Name)) { avail.Add(s); changed = true; }
-                if (changed) Util.SetField(d, "availableSkills", avail.ToArray());
-            }
-        }
-
-        // ---------- Tab "Crew" in the F10 menu: roles + skill points ----------
-        private static readonly List<ICharacterRole> roles = new List<ICharacterRole>();
-
-        public static void DrawCrewTab()
-        {
-            var crew = Crew();
-            if (Util.PlayerShip == null || crew?.Characters == null) { Imgui.Label("Nur im Spiel verfügbar."); return; }
-            var db = Traverse.Create(typeof(UBOAT.Game.Scene.Tasks.ExpandedSchedulesController)).Field("characterRolesDatabase").GetValue() as ICharacterRolesDatabase;
-            Imgui.Label("Offiziere: Rolle mit Klick wechseln. „Skills bearbeiten“ öffnet den Skill-Editor (alle Skills aller Klassen).");
-            // 0.3.44 (DoMe): for the whole crew (officers AND sailors), one click each
-            Imgui.BeginH();
-            if (Imgui.Button("Ganze Mannschaft: Max Stufe", 260)) Util.Safe("Crew.MaxLevel", () => MaxLevelAll(crew));
-            if (Imgui.Button("Ganze Mannschaft: alle Skills", 260)) Util.Safe("Crew.AllSkills", () => AllSkillsAll(crew));
-            Imgui.EndH();
-            foreach (var ch in crew.Characters)
-            {
-                var d = ch?.Data;
-                if (d == null || d.CharacterType == PlayableCharacterData.Type.Sailor) continue;
-                Imgui.BeginH();
-                Imgui.Label(d.Name + "  (Skillpunkte frei: " + d.GetAvailableSkillPoints() + ")", 330);
-                string roleName = ch.Role?.Name ?? "keine";
-                if (Imgui.Button("Rolle: " + roleName, 300) && db != null)
-                {
-                    db.GetAvailableRoles(ch, roles);
-                    var allowed = roles.Where(r => r.IsRoleAllowedForCharacter(ch)).ToList();
-                    if (allowed.Count > 0)
-                    {
-                        int i = allowed.IndexOf(ch.Role);
-                        ch.Role = allowed[(i + 1) % allowed.Count];
-                    }
-                }
-                bool open = editSkills == d;
-                if (Imgui.Button(open ? "Skills zu" : "Skills bearbeiten", 160)) editSkills = open ? null : d;
-                Imgui.EndH();
-                if (editSkills == d) SkillEditor(d);
-            }
-        }
-
-        private static void MaxLevelAll(PlayerCrew crew)
-        {
-            int n = 0;
-            foreach (var ch in crew.Characters)
-            {
-                var d = ch?.Data; if (d == null) continue;
-                int before = Traverse.Create(d).Field("level").GetValue<int>();
-                for (int i = 0; i < 30; i++) d.AddExperiencePoints(100000);
-                int after = Traverse.Create(d).Field("level").GetValue<int>();
-                if (after > before) n++;
-            }
-            Util.Log("Mannschaft: Max Stufe, " + n + " Leute aufgestiegen");
-            ToolkitRunner.ShowNotice("Max Stufe: " + n + " Leute aufgestiegen", 5f);
-        }
-
-        private static void AllSkillsAll(PlayerCrew crew)
-        {
-            var classes = Classes();
-            if (classes == null) { ToolkitRunner.ShowNotice("Skill-Liste nicht gefunden", 5f); return; }
-            var all = classes.SelectMany(c => c.Skills).Where(x => x != null).GroupBy(x => x.Name).Select(g => g.First()).ToList();
-            int n = 0;
-            foreach (var ch in crew.Characters)
-            {
-                var d = ch?.Data; if (d == null) continue;
-                var owned = d.Statuses.OfType<CharacterSkill>().Select(o => o.Name).ToList();
-                foreach (var sk in all) if (!owned.Contains(sk.Name)) { try { d.LearnSkill(sk, false); n++; } catch { } }
-            }
-            Util.Log("Mannschaft: alle Skills, " + n + " Skills vergeben");
-            ToolkitRunner.ShowNotice("Alle Skills: " + n + " vergeben", 5f);
-        }
-
-        // Skill editor: every skill of every class, one click adds or removes it (no points, no level needed).
-        private static PlayableCharacterData editSkills;
-        private static void SkillEditor(PlayableCharacterData d)
-        {
-            var classes = Classes();
-            if (classes == null) { Imgui.Label("  Skill-Liste nicht gefunden."); return; }
-            var all = classes.SelectMany(c => c.Skills).Where(x => x != null).GroupBy(x => x.Name).Select(g => g.First()).OrderBy(x => x.Name).ToList();
-            var owned = d.Statuses.OfType<CharacterSkill>().ToList();
-            Imgui.BeginH();
-            Imgui.Label("  Klick = Skill dazu (+) oder weg (✓).", 330);
-            if (Imgui.Button("Alle geben", 120)) foreach (var sk in all) if (!owned.Any(o => o.Name == sk.Name)) d.LearnSkill(sk, false);
-            if (Imgui.Button("Alle weg", 120)) foreach (var o in owned) d.RemoveStatus(o);
-            Imgui.EndH();
-            for (int i = 0; i < all.Count; i += 3)
-            {
-                Imgui.BeginH();
-                Imgui.Space(20);
-                for (int j = i; j < i + 3 && j < all.Count; j++)
-                {
-                    var sk = all[j];
-                    var have = owned.FirstOrDefault(o => o.Name == sk.Name);
-                    if (Imgui.Button((have != null ? "✓ " : "+ ") + sk.Name, 250))
-                    {
-                        if (have != null) d.RemoveStatus(have);
-                        else d.LearnSkill(sk, false);
-                    }
-                }
-                Imgui.EndH();
-            }
-            Imgui.Space(6);
-        }
-    }
-
-    [HarmonyPatch(typeof(PlayableCharacterData), nameof(PlayableCharacterData.PromoteToClass))]
-    internal static class ExtraFeatures_PromotePatch
-    {
-        private static void Postfix() { Util.Safe("Skills.Promote", () => { ExtraFeatures.ReapplySkills(); Util.Log("Beförderung: Skill-Cheats neu angewendet"); }); }
-    }
-
-    // Cheat: extra skill points for every officer.
-    [HarmonyPatch(typeof(PlayableCharacterData), nameof(PlayableCharacterData.GetAvailableSkillPoints))]
-    internal static class ExtraFeatures_SkillPointsPatch
-    {
-        // The game clamps at 0, so the extra points are added before that clamp (recomputed here).
-        private static void Postfix(PlayableCharacterData __instance, ref int __result)
-        {
-            if (Settings.B("CheatUnlimitedSkillPoints")) { __result = 99; return; }
-            int extra = Mathf.Max(0, (int)Settings.F("CheatExtraSkillPoints"));
-            if (extra == 0) return;
-            int level = Traverse.Create(__instance).Field("level").GetValue<int>();
-            int used = __instance.Statuses.OfType<CharacterSkill>().Count(sk => !sk.IsFree);
-            __result = Mathf.Max(0, level - 1 - used + extra);
-        }
-    }
-
-    // Torpedo loading x faster (1000 = practically instant).
-    [HarmonyPatch(typeof(LoadTorpedoesAction), "StartMainCharacter")]
-    internal static class ExtraFeatures_TorpedoLoadPatch
-    {
-        private static void Postfix(LoadTorpedoesAction __instance)
-        {
-            float f = Settings.F("TorpedoLoadSpeed");
-            if (f <= 1f) return;
-            var t = Traverse.Create(__instance).Field("performanceMultiplier");
-            t.SetValue(t.GetValue<float>() * f);
-        }
-    }
-
-    // Faster game loading: while the loading screen runs, the game's background work may use the
-    // whole frame (normally only ~2 ms per frame) and textures are uploaded in bigger pieces.
-    [HarmonyPatch(typeof(LoadingUIController), "UpdateSceneLoading")]
-    internal static class ExtraFeatures_LoadingBoostPatch
-    {
-        private static bool boosted, asyncSet;
-        private static System.Threading.ThreadPriority origAsync;
-        internal static bool Boosted => boosted;
-        private static int origSlice, origBuffer;
-        private static ThreadPriority origPriority;
-
-        private static void Postfix(LoadingUIController __instance)
-        {
-            bool loading = Traverse.Create(__instance).Field("isLoading").GetValue<bool>();
-            var ex = TaskExecutor.Instance;
-            if (loading && Settings.B("FastLoading"))
-            {
-                if (!boosted) { origSlice = QualitySettings.asyncUploadTimeSlice; origBuffer = QualitySettings.asyncUploadBufferSize; origPriority = Application.backgroundLoadingPriority; }
-                if (ex != null) ex.UnlimitedFrameBudget = true;
-                // 0.4.8: the game's helper threads (terrain, crew meshes) run at the lowest priority; normal while loading
-                if (ex != null && !boosted) Util.Safe("Laden: Hilfs-Threads", () => { origAsync = ex.AsyncThreadsPriority; ex.AsyncThreadsPriority = System.Threading.ThreadPriority.Normal; asyncSet = true; });
-                QualitySettings.asyncUploadTimeSlice = 33;
-                QualitySettings.asyncUploadBufferSize = 256;   // 0.3.68: test, was 64 (DoMe: texture loading takes forever; 40-58 s of each load is waiting)
-                Application.backgroundLoadingPriority = ThreadPriority.High;
-                boosted = true;
-            }
-            else if (boosted)
-            {
-                if (ex != null) ex.UnlimitedFrameBudget = false;
-                if (ex != null && asyncSet) Util.Safe("Laden: Hilfs-Threads", () => { ex.AsyncThreadsPriority = origAsync; asyncSet = false; });
-                QualitySettings.asyncUploadTimeSlice = origSlice;
-                QualitySettings.asyncUploadBufferSize = origBuffer;
-                Application.backgroundLoadingPriority = origPriority;
-                boosted = false;
-            }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/Extras.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Devices;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UBOAT.Game.Scene.Utilities;
-
-    // Own ideas + remaining cheats:
-    // research speed, sonar (echo sounder) auto-ping, all upgrades/boats unlocked, faster torpedoes,
-    // quick travel, depth keys, reload all tubes, swap watch shifts, tidy storage, route ETA + range.
-    public class Extras : ModuleBase
-    {
-        public override void Frame()
-        {
-            if (Util.PlayerShip == null) return;
-            // depth keys: see DepthGauge (key alone / Shift x10 / Alt x100)
-            if (Keys.Down("KeyReloadAll")) Util.Safe("ReloadAll", ReloadAll);
-            if (Keys.Down("KeyQuickTravel") && Settings.B("CheatQuickTravel")) Util.Safe("QuickTravel", QuickTravel);
-            if (Keys.Down("KeySortStorage")) Util.Safe("SortStorage", SortStorage);
-            if (Keys.Down("KeySwapShifts")) Util.Safe("SwapShifts", SwapShifts);
-            if (Keys.Down("KeyCallMilkCow")) Util.Safe("CallMilkCow", CallMilkCow);
-            if (Keys.Down("KeySpawnConvoy")) Util.Safe("SpawnConvoy", SpawnConvoy);
-            if (Keys.Down("KeyBackToWater")) { var o = Settings.Get("BackToWaterNow"); if (o != null) o.Value = 1; }
-        }
-
-        public override void Tick()
-        {
-            var ship = Util.PlayerShip;
-            OneShot("ReloadAllNow", ReloadAll);
-            OneShot("SwapShiftsNow", SwapShifts);
-            OneShot("SortStorageNow", SortStorage);
-            OneShot("CheatUnlockAll", UnlockAll);
-            OneShot("CheatUnlockBoats", UnlockBoats);
-            OneShot("CheatQuickTravelNow", QuickTravel);
-            OneShot("CallMilkCow", CallMilkCow);
-            OneShot("CheatSpawnConvoy", SpawnConvoy);
-
-            // Research at the headquarters x faster (instant = finishes within a second).
-            Util.Safe("research", () => Util.ScaleParameter(ship.SandboxEntity?.Country?.Headquarters?.TaskExecutionPerformance,
-                Settings.B("CheatInstantResearch") ? 1000000f : Settings.F("CheatResearchSpeed")));
-            OneShot("CheatResearchAll", () => ResearchAll(ship));
-            OneShot("CheatAddReputation", () =>
-            {
-                var c = Util.Career; if (c == null) return;
-                int add = Mathf.Max(1, (int)Settings.F("CheatAddReputationAmount"));
-                c.ReputationPoints += add;
-                ToolkitRunner.ShowNotice("+" + add + " Ansehen (jetzt " + c.ReputationPoints + ")", 4f);
-            });
-            OneShot("CheatAddUpgradePoints", () =>
-            {
-                var c = Util.Career; if (c == null) return;
-                int add = Mathf.Max(1, (int)Settings.F("CheatAddReputationAmount"));
-                c.ShipUpgradePoints += add;
-                ToolkitRunner.ShowNotice("+" + add + " Upgrade-Punkte (jetzt " + c.ShipUpgradePoints + ")", 4f);
-            });
-
-            // Echo sounder pings by itself while submerged.
-            bool autoPing = Settings.B("CheatSonarPing");
-            if (autoPing || autoPingWas)
-                foreach (var d in Util.Find<SoundRangingDevice>())
-                    if (Util.IsPlayers(d)) d.IsSendButtonPressed = autoPing && ship.SubmergedOrGoingToSubmerge;
-            if (autoPingWas && !autoPing) Util.Log("Echolot: Dauer-Ping aus, Sendetaste losgelassen");
-            autoPingWas = autoPing;
-
-            // Faster torpedoes: the speed values of all own torpedoes are raised, so the
-            // torpedo computer also aims with the new speed.
-            float tf = Settings.F("CheatTorpedoSpeed");
-            foreach (var t in Util.Find<StoredTorpedo>(1f))
-            {
-                Util.ScaleParameter(t.Speed1, tf);
-                Util.ScaleParameter(t.Speed2, tf);
-                Util.ScaleParameter(t.Speed3, tf);
-            }
-
-            NavInfo(ship);
-        }
-
-        private static readonly Dictionary<string, int> oneShotTries = new Dictionary<string, int>();
-
-        // A switch that does something once and turns itself off. Waits until the boat is fully
-        // loaded; if it still fails, it tries again next second (up to 10 times) instead of giving up.
-        private static bool autoPingWas;
-        private static void OneShot(string key, System.Action a)
-        {
-            var o = Settings.Get(key);
-            if (o == null || !o.On || !Util.ShipReady) return;
-            try { a(); o.Value = 0; oneShotTries.Remove(key); }
-            catch (System.Exception e)
-            {
-                oneShotTries.TryGetValue(key, out int n); oneShotTries[key] = ++n;
-                if (n >= 10) { o.Value = 0; oneShotTries.Remove(key); Util.Log("Aktion " + key + " fehlgeschlagen: " + e); }
-            }
-        }
-
-        private static void ChangeDepth(float delta)
-        {
-            var ship = Util.PlayerShip;
-            float d = Mathf.Max(0f, ship.TargetDepth + delta);
-            Owners.Depth(ship, "Tiefen-Taste (du)", Owners.Player, d, false, true);
-            ToolkitRunner.ShowNotice("Zieltiefe " + d.ToString("0") + " m", 2f);
-        }
-
-        // Every empty tube gets the nearest torpedo from the boat's own storage (nothing is created).
-        private static void ReloadAll()
-        {
-            var ship = Util.PlayerShip;
-            var storages = Util.Find<Storage>().Where(s => s != null && !(s is UBOAT.Game.Scene.Items.TorpedoLauncherGroup) && s.GetComponentInParent<PlayableCharacter>() == null).ToArray();
-            int n = 0;
-            foreach (var l in Util.Find<TorpedoLauncher>())
-            {
-                // 0.4.22 (option audit): only OUR tubes, and never a tube the crew is loading right now (see Torpedoes.TubeBusy)
-                if (l == null || !(Util.IsPlayers(l) || (l.Group != null && l.Group.ParentEntity is PlayerShip))) continue;
-                if (l.Torpedo != null || Torpedoes.TubeBusy(l)) continue;
-                Storage best = null; int bestSlot = -1; float bestDist = float.MaxValue;
-                foreach (var s in storages)
-                    for (int i = 0; i < Util.Slots(s); i++)
-                    {
-                        if (!(s.GetItemAt(i) is StoredTorpedo t) || t is StoredMinePacket || s.HasTransportOrders(i)) continue;
-                        float dist = (s.transform.position - l.transform.position).sqrMagnitude;
-                        if (dist < bestDist) { best = s; bestSlot = i; bestDist = dist; }
-                    }
-                if (best == null) break;
-                var torp = (StoredTorpedo)best.GetItemAt(bestSlot);
-                best.SetItemAt(bestSlot, null);
-                l.SetTorpedo(torp);
-                l.CompleteLoading(quiet: true);
-                n++;
-            }
-            ToolkitRunner.ShowNotice(n > 0 ? n + " Rohr(e) nachgeladen" : "Kein leeres Rohr oder kein Torpedo im Lager", 4f);
-        }
-
-        // Groups with the same job swap their watch hours (e.g. tired watch goes to bed).
-        private static void SwapShifts()
-        {
-            var crew = Object.FindObjectOfType<PlayerCrew>();
-            if (crew?.SailorGroups == null) return;
-            int swapped = 0;
-            foreach (var role in crew.SailorGroups.Where(g => g != null && g.Enabled && !g.Hidden).GroupBy(g => g.Role))
-            {
-                var list = role.ToList();
-                if (list.Count < 2) continue;
-                var first = Copy(list[0].Schedule);
-                for (int i = 0; i < list.Count; i++)
-                {
-                    var src = i + 1 < list.Count ? Copy(list[i + 1].Schedule) : first;
-                    for (int h = 0; h < 24; h++) list[i].Schedule[h] = src[h];
-                }
-                swapped++;
-            }
-            ToolkitRunner.ShowNotice(swapped > 0 ? "Wachen getauscht" : "Keine Gruppen zum Tauschen", 4f);
-        }
-
-        private static Schedule.Behaviour[] Copy(Schedule s)
-        {
-            var a = new Schedule.Behaviour[24];
-            for (int h = 0; h < 24; h++) a[h] = s[h];
-            return a;
-        }
-
-        // Tidy each storage: fill up same items into one stack, then move items to the front.
-        private static void SortStorage()
-        {
-            int moves = 0;
-            foreach (var s in Util.Find<Storage>())
-            {
-                if (s.GetComponentInParent<PlayableCharacter>() != null) continue;
-                for (int a = 0; a < Util.Slots(s); a++)
-                {
-                    if (!(s.GetItemAt(a) is Cargo ca) || s.HasTransportOrders(a)) continue;
-                    for (int b = a + 1; b < Util.Slots(s); b++)
-                    {
-                        if (!(s.GetItemAt(b) is Cargo cb) || cb.Data.Name != ca.Data.Name || s.HasTransportOrders(b)) continue;
-                        float room = (float)ca.StackLimit - ca.Count;
-                        if (room <= 0f) break;
-                        float move = Mathf.Min(room, cb.Count);
-                        if (move <= 0f) continue;
-                        StorageUtility.TransferInstantly(s, b, s, a, move);
-                        moves++;
-                    }
-                }
-                for (int a = 0; a < Util.Slots(s); a++)
-                {
-                    if (s.GetItemAt(a) != null || s.HasTransportOrders(a)) continue;
-                    for (int b = a + 1; b < Util.Slots(s); b++)
-                    {
-                        var item = s.GetItemAt(b);
-                        if (item == null || s.HasTransportOrders(b) || !s.IsItemAllowed(a, item)) continue;
-                        float count = item is Cargo c ? c.Count : 1f;
-                        StorageUtility.TransferInstantly(s, b, s, a, count);
-                        moves++;
-                        break;
-                    }
-                }
-            }
-            ToolkitRunner.ShowNotice("Lager aufgeräumt (" + moves + " Schritte)", 4f);
-        }
-
-        // Every research task of the headquarters that is not running is finished at once (the game's own Finish = item researched).
-        // Finishes every research of the headquarters: waiting ones, ones whose requirements are not met
-        // yet, and ones an officer is working on right now (those are completed through their handler,
-        // so the officer is free again and rewards are given).
-        private static void ResearchAll(PlayerShip ship)
-        {
-            var hq = ship.SandboxEntity?.Country?.Headquarters;
-            if (hq == null) return;
-            int n = 0, running = 0;
-            for (int pass = 0; pass < 5; pass++)   // finished research can unlock more research
-            {
-                int before = n + running;
-                foreach (var t in hq.Tasks.ToArray())
-                {
-                    // Research cards and production cards on the HQ table (crate = items, torpedo/shells = equipment).
-                    if (!(t is UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase r) || r.IsCompleted) continue;
-                    if (!(t is UBOAT.Game.Sandbox.HQ.Research || t is UBOAT.Game.Sandbox.HQ.EquipmentProduction
-                          || t is UBOAT.Game.Sandbox.HQ.ItemsProduction || t is UBOAT.Game.Sandbox.HQ.Production)) continue;
-                    try
-                    {
-                        var h = hq.GetHandlerOf(r);
-                        if (h != null && h.Task == r) { h.CompleteTask(); running++; }
-                        else { r.Finish(); n++; }
-                    }
-                    catch (System.Exception e) { Util.Log("Erforschen: " + r.Name + " Fehler " + e.Message); }
-                }
-                if (n + running == before) break;
-            }
-            var db = Resources.FindObjectsOfTypeAll<EquipmentDatabase>().FirstOrDefault();
-            if (db != null) foreach (var e in db.GetEquipmentDirect()) if (e != null) e.Researched = true;
-            var left = hq.Tasks.Where(t => t != null && !t.IsCompleted).GroupBy(t => t.GetType().Name).Select(g => g.Key + " " + g.Count());
-            Util.Log("Erforschen: fertig " + n + ", davon liefen " + running + "; offen bleiben (andere Aufgaben): " + string.Join(", ", left.ToArray()));
-            ToolkitRunner.ShowNotice("Erforscht: " + (n + running) + " Forschungen (" + running + " davon liefen gerade)", 6f);
-        }
-
-        private static void UnlockAll()
-        {
-            int items = 0;
-            var db = Resources.FindObjectsOfTypeAll<EquipmentDatabase>().FirstOrDefault();
-            if (db != null)
-                foreach (var e in db.GetEquipmentDirect())
-                    if (e != null && !e.Researched) { e.Researched = true; items++; }
-            ToolkitRunner.ShowNotice("Freigeschaltet: " + items + " Ausrüstungen", 6f);
-        }
-
-        private static void UnlockBoats()
-        {
-            var career = Util.Career;
-            if (career != null)
-                foreach (var b in new[] { "Type IIA", "Type IID", "Type VIIB", "Type VIIC", "Type VIIC41", "Type IXA", "Type IXC", "Type IXC40" })
-                    career.UnlockShip(b, true);
-            ToolkitRunner.ShowNotice(career != null ? "Alle Boote freigeschaltet" : "Keine Karriere geladen", 6f);
-        }
-
-        // Jumps to the end of the planned route on the map.
-        private static void QuickTravel()
-        {
-            var w = Game.Wolfpack;
-            if (w?.Route == null || w.Route.Count == 0) { ToolkitRunner.ShowNotice("Erst einen Kurs auf der Karte setzen", 4f); return; }
-            var target = w.Route[w.Route.Count - 1];
-            var ship = Util.PlayerShip;
-            if (ship.Docked) ship.Undock();
-            w.SetPosition(target, true, true);
-            w.Route.Clear();
-            ToolkitRunner.ShowNotice("Schnellreise: am Ziel", 4f);
-        }
-
-        // Cheat: an enemy convoy appears ahead of the boat, the same way the game's own developer command "Spawn Convoy"
-        // does it (nearest convoy spawner, spawned instantly, placed x km in front, marked on the map).
-        private static void SpawnConvoy()
-        {
-            var w = Game.Wolfpack;
-            var sb = Traverse.Create(typeof(UBOAT.Game.UI.DevConsole.DevConsoleCommands)).Field("sandbox").GetValue<UBOAT.Game.Sandbox.Sandbox>();
-            if (w == null || sb == null) { ToolkitRunner.ShowNotice("Konvoi: Spiel noch nicht bereit", 4f); return; }
-            var sp = sb.GetNearestSpawner(w.Position, "Convoy", Country.Relation.Enemy);
-            if (sp == null)   // early war: spawners can be time-restricted; take the nearest enemy one anyway
-            {
-                float best = float.MaxValue;
-                foreach (var g in sb.GroupSpawners)
-                {
-                    if (g == null || g.SpawnType != "Convoy" || !g.Countries.Any(c => c.GetRelationWith(w.Country) == Country.Relation.Enemy)) continue;
-                    float d = (w.Position - (Vector2)g.transform.position).sqrMagnitude;
-                    if (d < best) { best = d; sp = g; }
-                }
-            }
-            if (sp == null) { ToolkitRunner.ShowNotice("Konvoi: kein Konvoi-Startpunkt gefunden", 4f); return; }
-            var grp = sp.SpawnInstantly(true);
-            if (grp == null) { ToolkitRunner.ShowNotice("Konvoi: Spiel hat keinen erzeugt", 4f); return; }
-            float km = Settings.F("SpawnConvoyKm");
-            grp.Position = w.Position + w.Up * km;
-            grp.UpdateGroup();
-            grp.UpdateGroupLowFrequency(false);
-            if (grp.AI != null) for (int i = 0; i < 3; i++) grp.AI.UpdateAI();
-            w.AddObservation(grp, GroupDetectionMethod.IndirectObservation).AddKnownData(GroupData.TransportType, 2f, true);
-            Util.Log("Konvoi gespawnt: " + grp.name + " aus " + sp.name + ", " + km + " km voraus");
-            ToolkitRunner.ShowNotice("Konvoi " + km.ToString("0") + " km voraus (auf der Karte)", 5f);
-        }
-
-        // Nearest supply U-boat comes to you (3 km away).
-        private static void CallMilkCow()
-        {
-            var hq = Util.PlayerShip.SandboxEntity?.Country?.Headquarters;
-            var w = Game.Wolfpack;
-            if (hq == null || w == null) return;
-            UBOAT.Game.Sandbox.SandboxGroup best = null; float bestDist = float.MaxValue;
-            foreach (var t in hq.Tasks.OfType<UBOAT.Game.Sandbox.HQ.AddSupplyShip>())
-            {
-                var g = t.SupplyShip?.Group;
-                if (g == null || t.SupplyShip.IsPacified) continue;
-                float d = (g.Position - w.Position).sqrMagnitude;
-                if (d < bestDist) { best = g; bestDist = d; }
-            }
-            if (best == null) { ToolkitRunner.ShowNotice("Keine Milchkuh auf See", 4f); return; }
-            best.SetPosition(w.Position + new Vector2(3f, 0f), true);
-            ToolkitRunner.ShowNotice("Milchkuh ist da (3 km östlich)", 5f);
-        }
-
-        private static void NavInfo(PlayerShip ship)
-        {
-            string speed = Events.SpeedText;
-            if (!Settings.B("NavInfo")) { ToolkitRunner.InfoLine = speed; return; }
-            var w = Game.Wolfpack;
-            string eta = null, diesel = null;
-            if (Settings.B("InfoEta") && w?.Route != null && w.Route.Count > 0)
-            {
-                float km = w.Route.TotalLength;
-                eta = "Ziel: " + km.ToString("0") + " km";
-                if (w.Velocity > 0.0001f)
-                {
-                    float h = km / w.Velocity / 3600f;
-                    eta += ", Ankunft in " + ((int)h) + " h " + ((int)((h - (int)h) * 60f)).ToString("00") + " min (Spielzeit)";
-                }
-            }
-            if (Settings.B("InfoDiesel"))
-                try { diesel = "Diesel-Reichweite (3. Stufe): " + (ship.EstimatedRangeOnThirdGear > 100000f ? "∞" : ship.EstimatedRangeOnThirdGear.ToString("0") + " km"); } catch { }
-            ToolkitRunner.InfoLine = Events.Join(speed, eta, diesel);
-        }
-    }
-
-    [HarmonyPatch(typeof(SandboxDock), nameof(SandboxDock.GetBuyPrice))]
-    internal static class Extras_PricePatch
-    {
-        private static void Postfix(ref int __result)
-        {
-            float f = Settings.F("CheatPriceFactor");
-            if (f <= 0f || f >= 1f || __result <= 0) return;
-            __result = Mathf.Max(1, Mathf.CeilToInt(__result * f));
-        }
-    }
-
-    [HarmonyPatch(typeof(RepairAction), "StartMainCharacter")]
-    internal static class Extras_RepairPatch
-    {
-        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<RepairAction, object> done = new System.Runtime.CompilerServices.ConditionalWeakTable<RepairAction, object>();
-        private static void Postfix(RepairAction __instance)
-        {
-            float f = Settings.F("CheatRepairSpeed");
-            if (f <= 1f || !Util.IsPlayers(__instance.Activator)) return;
-            // 0.4.22 (option audit): once per repair action. The game never resets the field, so a second start of the
-            // same action multiplied the factor again.
-            object seen;
-            if (done.TryGetValue(__instance, out seen)) return;
-            done.Add(__instance, null);
-            var t = Traverse.Create(__instance).Field("performanceMultiplier");
-            t.SetValue(t.GetValue<float>() * f);
-        }
-    }
-
-    // Fast torpedoes: safer hit detection so they do not pass through a ship between two physics steps.
-    [HarmonyPatch(typeof(Torpedo), "Start")]
-    internal static class Extras_TorpedoHitPatch
-    {
-        private static void Postfix(Torpedo __instance)
-        {
-            if (Settings.F("CheatTorpedoSpeed") <= 1f || __instance.Owner != Util.PlayerShip) return;
-            var rb = __instance.GetComponent<Rigidbody>();
-            if (rb != null) rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Devices;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UBOAT.Game.Scene.Utilities;
-
-    // Cheat: research and production cards of your own headquarters need no earlier research and no date.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase), "IsAllowed", HarmonyLib.MethodType.Getter)]
-    internal static class NoResearchRequirements_Patch
-    {
-        private static object playerCountry;
-        private static void Postfix(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase __instance, ref bool __result)
-        {
-            if (__result || !Settings.B("CheatNoResearchRequirements")) return;
-            if (!(__instance is UBOAT.Game.Sandbox.HQ.Research || __instance is UBOAT.Game.Sandbox.HQ.EquipmentProduction
-                  || __instance is UBOAT.Game.Sandbox.HQ.ItemsProduction || __instance is UBOAT.Game.Sandbox.HQ.Production)) return;
-            try
-            {
-                var c = Util.PlayerShip?.SandboxEntity?.Country;
-                if (c != null) playerCountry = c;
-                if (playerCountry != null && ReferenceEquals(__instance.Country, playerCountry) && !__instance.IsCompleted) __result = true;
-            }
-            catch { }
-        }
-    }
-
-    // 0.4.10 (DoMe 2026-11-17: "Forschung ohne Voraussetzungen wirkt nicht, ich muss immer noch einen Offizier haben"):
-    // the officer slots of a task come from this list; with the cheat it is empty, so the task starts without an officer
-    // (the game then runs it at normal speed, HeadquartersTaskHandler: no agents = performance 1).
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase), "CharacterRequirements", HarmonyLib.MethodType.Getter)]
-    internal static class NoResearchOfficer_Patch
-    {
-        private static readonly UBOAT.Game.Sandbox.HQ.CharacterRequirement[] none = new UBOAT.Game.Sandbox.HQ.CharacterRequirement[0];
-        private static void Postfix(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase __instance, ref UBOAT.Game.Sandbox.HQ.CharacterRequirement[] __result)
-        {
-            if (__result == null || __result.Length == 0 || !Settings.B("CheatNoResearchRequirements")) return;
-            if (!(__instance is UBOAT.Game.Sandbox.HQ.Research || __instance is UBOAT.Game.Sandbox.HQ.EquipmentProduction
-                  || __instance is UBOAT.Game.Sandbox.HQ.ItemsProduction || __instance is UBOAT.Game.Sandbox.HQ.Production)) return;
-            try
-            {
-                var c = Util.PlayerShip?.SandboxEntity?.Country;
-                if (c != null && ReferenceEquals(__instance.Country, c)) __result = none;
-            }
-            catch { }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/FarAIThrottle.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Sandbox;
-
-    // Far-away world (ships/convoys outside player range) is simulated in Sandbox.Update():
-    // every group gets one "low frequency" AI/observation update per lowFrequencyUpdateInterval
-    // (game default 30 s game-time, private field in Sandbox). Cost per second ~ groups / interval.
-    // Raising the interval = fewer far-AI updates = less CPU, most noticeable with big mods
-    // (many groups) and time compression. Nearby + observed groups are NOT affected (updated every frame).
-    // Trade-off: far convoys react/re-route a bit later. Setting "FarAIInterval" in seconds,
-    // 30 = game default (no change), 0 = off. Suggested test: 60.
-    [HarmonyPatch(typeof(Sandbox), "Update")]
-    public static class FarAIThrottle
-    {
-        private static readonly AccessTools.FieldRef<Sandbox, float> interval =
-            AccessTools.FieldRefAccess<Sandbox, float>("lowFrequencyUpdateInterval");
-
-        private static void Prefix(Sandbox __instance)
-        {
-            float v = Settings.F("FarAIInterval");
-            if (v >= 5f && interval(__instance) != v) interval(__instance) = v;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/GameBugFixes.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // Bugs in the game itself that showed up in DoMe's log (2026-11-12).
-
-    // Actions without requirements ("*" in the data sheet) have null lists. A man with a
-    // "no helpers" skill then crashed when starting such an action (e.g. a watch station).
-    [HarmonyPatch(typeof(DisallowFollowersStatus), "ValidateHelperLimits")]
-    internal static class Fix_DisallowFollowersNull
-    {
-        private static bool Prefix(DisallowFollowersStatus __instance, SingleCharacterAction action, ref int workers, ref int followers)
-        {
-            try
-            {
-                if (action == null) return false;
-                var hard = action.HardRequirements; var soft = action.SoftRequirements;
-                string n = __instance.Name;
-                if ((hard != null && Array.IndexOf(hard, n) != -1) || (soft != null && Array.IndexOf(soft, n) != -1))
-                {
-                    workers = 0;
-                    followers = 0;
-                }
-                return false;
-            }
-            catch { return true; }
-        }
-    }
-
-    // "Advanced Equipment" skill: entering a listening room on a boat without a radar detector crashed
-    // (the game looks for the detector without checking). Without a detector there is nothing to boost.
-    [HarmonyPatch(typeof(AdvancedEquipment), "Character_InteractableSlotChanged")]
-    internal static class Fix_AdvancedEquipmentNoDetector
-    {
-        private static Exception Finalizer(Exception __exception) => __exception is NullReferenceException ? null : __exception;
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // "GetRemainingDistance can only be called on an active agent that has been placed on a NavMesh" spam:
-    // the game asks how far a man still has to walk while he is not standing on walkable ground
-    // (agent switched off, or just pushed off the walk mesh - our NavRescue puts him back a moment later).
-    // Asking then is pointless; answer "not there yet" without asking, so nothing is logged.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator), "DestinationReached", HarmonyLib.MethodType.Getter)]
-    internal static class Fix_DestinationReachedOffMesh
-    {
-        private static bool Prefix(UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator __instance, ref bool __result)
-        {
-            try
-            {
-                var a = __instance.Agent;
-                if (a != null && a.isActiveAndEnabled && a.isOnNavMesh) return true;
-                __result = false;
-                return false;
-            }
-            catch { return true; }
-        }
-    }
-
-    // Port recruits on the pier: same question for a recruit who is off the walk mesh. Wait and ask again later.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.DockRecruitsInteractable), "DoUpdate")]
-    internal static class Fix_DockRecruitsOffMesh
-    {
-        private static readonly HarmonyLib.AccessTools.FieldRef<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, System.Collections.Generic.List<UBOAT.Game.Scene.Characters.InteractiveCharacter>> chars =
-            HarmonyLib.AccessTools.FieldRefAccess<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, System.Collections.Generic.List<UBOAT.Game.Scene.Characters.InteractiveCharacter>>("characters");
-        private static readonly HarmonyLib.AccessTools.FieldRef<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, int> index =
-            HarmonyLib.AccessTools.FieldRefAccess<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, int>("characterIndex");
-
-        private static bool Prefix(UBOAT.Game.Scene.Characters.DockRecruitsInteractable __instance, ref float __result)
-        {
-            try
-            {
-                var list = chars(__instance);
-                int i = index(__instance);
-                if (list == null || i < 0 || i >= list.Count) return true;
-                var c = list[i];
-                if (c == null || c.Navigator == null || c.Ai == null || !c.Ai.isActiveAndEnabled) return true;
-                var a = c.Navigator.Agent;
-                if (a == null || (a.isActiveAndEnabled && a.isOnNavMesh)) return true;
-                if (c.Ai.GetActiveBehaviour<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour>() == null) return true;
-                __result = 0.1f;
-                return false;
-            }
-            catch { return true; }
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // Changing boats in port: the old boat's devices are destroyed while the resource bar still listens
-    // to them -> one error per device. Nothing left to show, so the error is dropped.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.Resources.ResourceGUI), "Gain_Modified")]
-    internal static class Fix_ResourceGuiBoatChange
-    {
-        private static System.Exception Finalizer(System.Exception __exception) => __exception is System.NullReferenceException ? null : __exception;
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // Skip the start videos (studio + publisher logo) and go straight to the main menu.
-    // Works from the moment the mod is loaded; the very first Unity logo comes before any mod and cannot be skipped.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.IntroScene), "Update")]
-    internal static class SkipStartupIntros
-    {
-        private static bool done;
-        private static void Prefix(UBOAT.Game.UI.IntroScene __instance)
-        {
-            if (done) return;
-            try
-            {
-                if (!Settings.B("SkipStartupIntros")) { done = true; return; }
-                var t = HarmonyLib.Traverse.Create(__instance);
-                if (System.Convert.ToInt32(t.Field("launchMode").GetValue()) != 0) { done = true; return; }   // only normal start
-                var warn = t.Field("gameFilesCorruptedWarning").GetValue<UnityEngine.GameObject>();
-                if (warn != null && warn.activeSelf) return;                                                   // let the player read that
-                if (t.Field("sceneResource").GetValue() == null) return;                                       // menu not requested yet
-                int stage = t.Field("stage").GetValue<int>();
-                if (stage > 1) { done = true; return; }
-                var vp = t.Field("videoPlayer").GetValue();
-                if (vp != null) HarmonyLib.AccessTools.Method(vp.GetType(), "Stop")?.Invoke(vp, null);
-                t.Field("wasPlaying").SetValue(true);
-                t.Field("stage").SetValue(1);   // the game's own code now opens the main menu this frame
-                done = true;
-                Util.Log("Start-Intros übersprungen");
-            }
-            catch (System.Exception e) { done = true; Util.Log("Start-Intros: " + e.Message); }
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // Every place in the game that asks a man's walk agent "how far is it still?" gets a safe version:
-    // if the agent is switched off or not on walkable ground right now, the answer is 0 instead of
-    // Unity's red "GetRemainingDistance can only be called on an active agent" line.
-    // (The game checks the ground once and then asks a few lines later, after the man may have been moved.)
-    [HarmonyLib.HarmonyPatch]
-    internal static class Fix_RemainingDistanceSafe
-    {
-        private static readonly System.Reflection.MethodInfo getter =
-            HarmonyLib.AccessTools.PropertyGetter(typeof(UnityEngine.AI.NavMeshAgent), "remainingDistance");
-        private static readonly System.Reflection.MethodInfo safe =
-            HarmonyLib.AccessTools.Method(typeof(Fix_RemainingDistanceSafe), nameof(Remaining));
-
-        public static float Remaining(UnityEngine.AI.NavMeshAgent a)
-        {
-            if (a == null || !a.isActiveAndEnabled || !a.isOnNavMesh) return 0f;
-            return a.remainingDistance;
-        }
-
-        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
-        {
-            var list = new System.Collections.Generic.List<System.Reflection.MethodBase>();
-            foreach (var t in new[] { typeof(UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator),
-                                      typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour),
-                                      typeof(UBOAT.Game.Scene.Characters.DockRecruitsInteractable) })
-                foreach (var m in HarmonyLib.AccessTools.GetDeclaredMethods(t))
-                {
-                    if (m.IsAbstract || m.ContainsGenericParameters) continue;
-                    try
-                    {
-                        foreach (var i in HarmonyLib.PatchProcessor.ReadMethodBody(m))
-                            if (i.Value is System.Reflection.MethodInfo mi && mi == getter) { list.Add(m); break; }
-                    }
-                    catch { }
-                }
-            return list;
-        }
-
-        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
-        {
-            foreach (var c in code)
-            {
-                if ((c.opcode == System.Reflection.Emit.OpCodes.Callvirt || c.opcode == System.Reflection.Emit.OpCodes.Call) && c.operand is System.Reflection.MethodInfo mi && mi == getter)
-                {
-                    c.opcode = System.Reflection.Emit.OpCodes.Call;
-                    c.operand = safe;
-                }
-                yield return c;
-            }
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // Fix NullReferenceException in TimeCompressionExtendedUI.OnEnable/OnDisable and
-    // TorpedoSalvoPreviewUI.ValidateQueuedUpdate: right after a boat change (or on a boat without the torpedo
-    // panel) the game's "current torpedo launchers panel" is still empty, and these methods ask it whether it is
-    // open. Now an empty panel simply counts as closed, and the rest of each method runs normally.
-    [HarmonyLib.HarmonyPatch]
-    internal static class Fix_LaunchersUiMissing
-    {
-        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
-        {
-            yield return HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.TimeCompressionExtendedUI), "OnEnable");
-            yield return HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.TimeCompressionExtendedUI), "OnDisable");
-            yield return HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.TorpedoSalvoPreviewUI), "ValidateQueuedUpdate");
-        }
-
-        public static bool Active(UBOAT.Game.UI.Periscope.TorpedoLaunchersUI ui) => ui != null && ui.gameObject.activeInHierarchy;
-        public static bool Opened(UBOAT.Game.UI.Periscope.TorpedoLaunchersUI ui) => ui != null && ui.IsOpened;
-
-        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
-        {
-            var getUi = HarmonyLib.AccessTools.PropertyGetter(typeof(UBOAT.Game.UI.GameUI), "CurrentTorpedoLaunchersUI");
-            var getGo = HarmonyLib.AccessTools.PropertyGetter(typeof(UnityEngine.Component), "gameObject");
-            var getAct = HarmonyLib.AccessTools.PropertyGetter(typeof(UnityEngine.GameObject), "activeInHierarchy");
-            var getOpen = HarmonyLib.AccessTools.PropertyGetter(typeof(UBOAT.Game.UI.Periscope.TorpedoLaunchersUI), "IsOpened");
-            var list = new System.Collections.Generic.List<HarmonyLib.CodeInstruction>(code);
-            for (int i = 0; i < list.Count - 1; i++)
-            {
-                if (!(list[i].operand is System.Reflection.MethodInfo m) || m != getUi) continue;
-                var n = list[i + 1].operand as System.Reflection.MethodInfo;
-                if (n == getOpen) { list[i + 1].opcode = System.Reflection.Emit.OpCodes.Call; list[i + 1].operand = HarmonyLib.AccessTools.Method(typeof(Fix_LaunchersUiMissing), nameof(Opened)); }
-                else if (n == getGo && i + 2 < list.Count && list[i + 2].operand as System.Reflection.MethodInfo == getAct)
-                {
-                    list[i + 1].opcode = System.Reflection.Emit.OpCodes.Call; list[i + 1].operand = HarmonyLib.AccessTools.Method(typeof(Fix_LaunchersUiMissing), nameof(Active));
-                    list[i + 2].opcode = System.Reflection.Emit.OpCodes.Nop; list[i + 2].operand = null;
-                }
-            }
-            return list;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // Fix "ArgumentOutOfRangeException ... MorphTarget.ApplyTo" (10x, e.g. on arriving in port): a character's face/body
-    // morph was made for a mesh with more vertices than the mesh he wears now. The game then throws every frame for him.
-    // Now: the error is caught, that one morph layer is switched off for this character (he keeps the plain mesh), and it
-    // is logged once with the character's path.
-    [HarmonyLib.HarmonyPatch(typeof(DWS.Common.Characters.Deformers.MorphDeformer), "UpdateDeformer")]
-    internal static class Fix_MorphOutOfRange
-    {
-        private static readonly System.Collections.Generic.HashSet<int> logged = new System.Collections.Generic.HashSet<int>();
-        private static System.Exception Finalizer(System.Exception __exception, DWS.Common.Characters.Deformers.MorphDeformer __instance)
-        {
-            if (!(__exception is System.ArgumentOutOfRangeException) || __instance == null) return __exception;
-            __instance.enabled = false;
-            if (logged.Add(__instance.GetInstanceID()))
-            {
-                var t = __instance.transform; string path = t.name;
-                for (int i = 0; i < 3 && t.parent != null; i++) { t = t.parent; path = t.name + "/" + path; }
-                Util.Log("Figur: Gesichts-/Körperform passt nicht zum Modell, abgeschaltet: " + path);
-            }
-            return null;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // "GameObject is already being activated or deactivated" when the game saves while the port window is open:
-    // after every save SavingNotificationUI switches the whole game UI off and on; that disables the port window, whose
-    // OnDisable then calls GameUI.SetMode(Normal) = SetActive on the UI that is just being switched off -> Unity error,
-    // and the port window is left in "Normal" mode (closed state broken). Now SetMode is skipped while the game UI itself
-    // is being switched off; when it comes back on, the port window simply stays open.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.PortActivitiesUI), "OnDisable")]
-    internal static class Fix_PortWindowSaveToggle
-    {
-        private static float nextLog;
-        public static void SetMode(UBOAT.Game.UI.GameUI ui, UBOAT.Game.UI.GameUI.Mode mode)
-        {
-            if (ui != null && !ui.gameObject.activeSelf)
-            {
-                if (UnityEngine.Time.unscaledTime > nextLog) { nextLog = UnityEngine.Time.unscaledTime + 60f; Util.Log("Hafen-Fenster: Umschalten beim Speichern übersprungen (Unity-Fehler vermieden)"); }
-                return;
-            }
-            ui.SetMode(mode);
-        }
-
-        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
-        {
-            var target = HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.GameUI), "SetMode", new[] { typeof(UBOAT.Game.UI.GameUI.Mode) });
-            int n = 0;
-            foreach (var c in code)
-            {
-                if (c.operand as System.Reflection.MethodInfo == target) { c.opcode = System.Reflection.Emit.OpCodes.Call; c.operand = HarmonyLib.AccessTools.Method(typeof(Fix_PortWindowSaveToggle), nameof(SetMode)); n++; }
-                yield return c;
-            }
-            if (n == 0) Util.Log("Hafen-Fenster-Fix: SetMode nicht gefunden, Fix nicht aktiv");
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // 'Slot "Fuel 1" / "Hidden Goods 1" is defined for entity type "Large Freighter 01/02" in game data, but it's missing
-    // in the entity prefab': the game data gives these freighters cargo for slots their 3D model does not have, so the game
-    // logs an error and that cargo item is never placed on the ship. Now the missing slot is added at runtime, next to a
-    // similar slot of the same ship (e.g. "Hidden Goods 1" next to another "Goods" slot), and the cargo is placed there.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.SandboxEntity), "SpawnEquipment", new[] { typeof(UBOAT.Game.Sandbox.SandboxEquipment), typeof(bool) }, new[] { HarmonyLib.ArgumentType.Normal, HarmonyLib.ArgumentType.Ref })]
-    internal static class Fix_MissingCargoSlot
-    {
-        private static readonly System.Collections.Generic.HashSet<string> logged = new System.Collections.Generic.HashSet<string>();
-        private static readonly System.Collections.Generic.List<UBOAT.Game.Scene.Entities.ShipEquipmentSlot> buf = new System.Collections.Generic.List<UBOAT.Game.Scene.Entities.ShipEquipmentSlot>();
-
-        private static void Prefix(UBOAT.Game.Sandbox.SandboxEntity __instance, UBOAT.Game.Sandbox.SandboxEquipment equipment, ref bool sceneSlotsAlreadyBuffered)
-        {
-            try
-            {
-                var ent = __instance?.SpawnedEntity;
-                if (ent == null || equipment?.Slot == null) return;
-                string name = equipment.Slot.Name;
-                if (string.IsNullOrEmpty(name) || name == "Deck Goods A") return;
-                ent.GetComponentsInChildren(true, buf);
-                foreach (var s in buf) if (s != null && s.name == name) return;          // slot exists: nothing to do
-                string stem = name.TrimEnd('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ');
-                string word = stem.Contains(" ") ? stem.Substring(stem.LastIndexOf(' ') + 1) : stem;
-                UBOAT.Game.Scene.Entities.ShipEquipmentSlot like = null;
-                foreach (var s in buf) if (s != null && s.name.StartsWith(stem)) { like = s; break; }
-                if (like == null) foreach (var s in buf) if (s != null && s.name.Contains(word)) { like = s; break; }
-                if (like == null) foreach (var s in buf) if (s != null && s.GetComponentInParent<UBOAT.Game.Scene.Items.Storage>() != null) { like = s; break; }
-                if (like == null) return;   // nothing similar on this ship: leave it to the game
-                var go = new UnityEngine.GameObject(name);
-                go.layer = like.gameObject.layer;
-                go.transform.SetParent(like.transform.parent, false);
-                go.transform.localPosition = like.transform.localPosition + new UnityEngine.Vector3(0f, 0f, 0.8f);
-                go.transform.localRotation = like.transform.localRotation;
-                go.AddComponent<UBOAT.Game.Scene.Entities.ShipEquipmentSlot>();
-                sceneSlotsAlreadyBuffered = false;   // the game re-reads the ship's slots and now finds the new one
-                string type = Util.SafeGet(() => __instance.Type.Name, "?");
-                if (logged.Add(type + "/" + name)) Util.Log("Ladung: Platz \"" + name + "\" fehlte im Modell von " + type + ", neben \"" + like.name + "\" ergänzt");
-            }
-            catch (System.Exception e) { Util.Log("Ladung: Platz ergänzen fehlgeschlagen: " + e.Message); }
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Characters.Skills;
-
-    // A periscope whose "vision" renderer has no material (seen on a custom boat model): Periscope.Awake stops at
-    // Instantiate(vision.sharedMaterial) ("The Object you want to instantiate is null"), so the rest of Awake never runs
-    // and Periscope.Update then throws a NullReferenceException EVERY FRAME (lag, periscope unusable). Now the empty
-    // renderer gets the visionUI material (or a plain one) first, so Awake finishes. Logged once per periscope.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Items.Periscope), "Awake")]
-    internal static class Fix_PeriscopeNoMaterial
-    {
-        private static void Prefix(UBOAT.Game.Scene.Items.Periscope __instance)
-        {
-            try
-            {
-                var vision = __instance.Vision;
-                if (vision == null || vision.sharedMaterial != null) return;
-                var ui = __instance.VisionUI;
-                var mat = ui != null && ui.sharedMaterial != null ? ui.sharedMaterial : null;
-                if (mat == null) { var sh = UnityEngine.Shader.Find("Unlit/Texture") ?? UnityEngine.Shader.Find("Standard"); if (sh != null) mat = new UnityEngine.Material(sh); }
-                if (mat == null) return;
-                vision.sharedMaterial = mat;
-                Util.Log("Sehrohr: '" + __instance.name + "' hatte kein Bild-Material, Ersatz gesetzt (" + mat.name + ") - sonst Fehler in jedem Bild");
-            }
-            catch (System.Exception e) { Util.Log("Sehrohr: Ersatz-Material fehlgeschlagen: " + e.Message); }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/GameFixes.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.IO;
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::DWS.Common.InjectionFramework;
-    using global::UBOAT.Game.Core.Time;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Missions;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Stories;
-    using global::UBOAT.Game.Scene.Tasks;
-    using global::UBOAT.Game.UI;
-
-    // Small game fixes, own code. Each part has its own switch.
-    public class GameFixes : ModuleBase
-    {
-        [Inject] internal static StoryFragmentsDatabase fragments;
-        private PlayerShip lastShip;
-
-        private bool warned;
-        private float nextPortCheck;
-
-        public override void Tick()
-        {
-            var ship = Util.PlayerShip;
-            if (ship != null && Settings.B("FixSkipperDead") && Time.unscaledTime > nextPortCheck)
-            {
-                nextPortCheck = Time.unscaledTime + 5.7f;
-                Util.Safe("Fixes.PortWarn", () => PortWarning(ship));
-            }
-            Util.Safe("Fixes.SpeedOff", Fix_SpeedCompression.Restore);
-            Util.Safe("Fixes.Officers", ExtraOfficers);
-            Util.Safe("Fixes.Sailors", ExtraSailors);
-            if (ship == null || ship == lastShip) return;
-            lastShip = ship;   // new game scene / save loaded
-            Util.Safe("Fixes.Inject", () => InjectionFramework.Instance.InjectIntoAssembly(typeof(GameFixes).Assembly));
-            if (Settings.B("FixPortDialogue")) Util.Safe("Fixes.Tags", () => CleanTags(ship));
-        }
-
-        // Stuck conversation tags make port officers show no options. Remove them once per load.
-        private static readonly string[] officerTrees = { "Driver", "Personnel Officer", "Harbor Captain", "Flotilla Commander", "Operations Officer" };
-        private static void CleanTags(PlayerShip ship)
-        {
-            var vars = ship.SandboxEntity?.Variables;
-            if (vars == null || vars.Count == 0) return;
-            var names = new HashSet<string> { "Activate", "FirstDialogue" };
-            var list = fragments == null ? null : Traverse.Create(fragments).Field("storyFragments").GetValue<List<StoryFragment>>();
-            if (list != null)
-                foreach (var f in list)
-                    if (f.Path != null && officerTrees.Any(p => f.Path.StartsWith(p)) && f.Id.Length > f.Path.Length)
-                        names.Add(f.Id.Substring(f.Path.Length));
-            int n = names.Count(vars.Remove);
-            if (n > 0) Util.Log("Hafen-Dialog: " + n + " haengende Gespraechs-Markierungen entfernt");
-        }
-
-        // Before reaching a port: warn if the commander is dead or wounded (port talks need him).
-        private void PortWarning(PlayerShip ship)
-        {
-            bool nearPort = !ship.Docked && Util.Find<UBOAT.Game.Scene.Dock.DockArea>(5f)
-                .Any(d => d != null && (d.transform.position - ship.transform.position).sqrMagnitude < 3000f * 3000f);
-            if (!nearPort) { warned = false; return; }
-            if (warned || SkipperOk()) return;
-            warned = true;
-            string text = "Achtung: Kommandant tot oder verwundet! Vor dem Anlegen heilen (F10 > Cheat > Alle heilen), sonst gehen die Hafen-Gespr\u00e4che nicht.";
-            var bar = UnityEngine.Object.FindObjectOfType<NotificationBarUI>();
-            if (bar != null) bar.OpenNow("Icons/Notification Bar/Notification - 40 - Danger", text);
-            Util.Log(text);
-        }
-
-        // More officers allowed on board (runtime only, nothing is written into the save).
-        private Modifier officerMod;
-        private object officerCareer;
-        private void ExtraOfficers()
-        {
-            var c = Util.Career;
-            float want = Settings.F("ExtraOfficers");
-            if (c == null) return;
-            if (!ReferenceEquals(c, officerCareer)) { officerMod = null; officerCareer = c; }
-            // 0.4.20: the value stored in the savegame is found again (by name) instead of adding a second one
-            if (want <= 0f) { Util.DropDelta(c.OfficersOnBoardLimit, "Toolkit Officers"); officerMod = null; return; }
-            officerMod = Util.OneDelta(c.OfficersOnBoardLimit, "Toolkit Officers");
-            if (officerMod.Value != want) officerMod.Value = want;
-            // 0.4.41 (DoMe: "ich kann plötzlich nur noch 19 offiziere mitnehmen"): the sum is written out whenever it changes
-            float total = c.OfficersOnBoardLimit.Value;
-            if (total != officerShown) { officerShown = total; Util.Log("Offiziere an Bord: Spiel " + (total - want).ToString("0") + " + Toolkit " + want.ToString("0") + " = " + total.ToString("0") + " erlaubt (Regler geht bis +60)"); }
-        }
-        private float officerShown = -1f;
-
-        // More sailors allowed on board. "Volle Crew" recruits up to FullCrewSize men, but the game
-        // only lets 20 sailors aboard a Type VII. With "SailorsFollowFullCrew" on, the sailor limit is
-        // raised so the whole wanted crew fits (FullCrewSize minus the officer places). Plus a manual
-        // extra. Runtime only, nothing is written into the save.
-        private Modifier sailorMod;
-        private object sailorCareer;
-        private void ExtraSailors()
-        {
-            var c = Util.Career;
-            if (c == null) return;
-            if (!ReferenceEquals(c, sailorCareer)) { sailorMod = null; sailorCareer = c; }
-            // 0.4.20 (log: "Matrosen an Bord: jetzt bis 1438 erlaubt"): the extra places stored in the savegame were
-            // counted as the game's own limit and new ones were added on top after every load.
-            sailorMod = Util.OneDelta(c.SailorsOnBoardLimit, "Toolkit Sailors", false);
-            float game = c.SailorsOnBoardLimit.Value - (sailorMod != null ? sailorMod.Value : 0f);
-            float want = 0f;
-            if (Settings.B("SailorsFollowFullCrew") && Settings.B("FullCrewAtStart"))
-                want = Mathf.Max(0f, Settings.F("FullCrewSize") - c.OfficersOnBoardLimit.Value - 1f - game);   // -1 = commander
-            want += Mathf.Max(0f, Settings.F("ExtraSailors"));
-            if (want <= 0f) { if (sailorMod != null) { sailorMod.Remove(); sailorMod = null; } return; }
-            if (sailorMod == null) sailorMod = Util.OneDelta(c.SailorsOnBoardLimit, "Toolkit Sailors");
-            want = Mathf.Round(want);
-            if (sailorMod.Value != want) { sailorMod.Value = want; Util.Log("Matrosen an Bord: jetzt bis " + Mathf.RoundToInt(game + want) + " erlaubt"); }
-        }
-
-        internal static bool SkipperOk()
-        {
-            var crew = Util.Find<PlayerCrew>(30f).FirstOrDefault();
-            var s = crew != null ? crew.Skipper : null;
-            return crew == null || (s != null && !s.Injury);
-        }
-    }
-
-    // --- Berlin time: all clocks show German time (CET), no time zone messages.
-    [HarmonyPatch(typeof(TimeZoneTracker), "LocalOffsetFromCET", MethodType.Getter)]
-    internal static class Fix_BerlinOffset
-    {
-        private static bool Prefix(ref int __result) { if (!Settings.B("BerlinTime")) return true; __result = 0; return false; }
-    }
-    [HarmonyPatch(typeof(TimeZoneTracker), "UpdateTimeZone")]
-    internal static class Fix_BerlinZone
-    {
-        private static bool Prefix(ref int ___currentUtcOffsetHours)
-        {
-            if (!Settings.B("BerlinTime")) return true;
-            ___currentUtcOffsetHours = 1;
-            return false;
-        }
-    }
-
-    // --- Commander dead or wounded: no port officer talks and no story dialogues that need him.
-    [HarmonyPatch(typeof(PortActivitiesUI), "StartAction")]
-    internal static class Fix_SkipperPortTalk
-    {
-        private static bool Prefix(string destinationOfficerTag)
-        {
-            if (!Settings.B("FixSkipperDead") || destinationOfficerTag == null || !destinationOfficerTag.StartsWith("Dialogue:")) return true;
-            return GameFixes.SkipperOk();
-        }
-    }
-    [HarmonyPatch(typeof(StoryDialogueAction), "GetState")]
-    internal static class Fix_SkipperStory
-    {
-        private static void Postfix(ref ActionStateData __result)
-        {
-            if (Settings.B("FixSkipperDead") && !GameFixes.SkipperOk()) __result = new ActionStateData(ActionState.Hidden);
-        }
-    }
-
-    // --- Port dialogue: a click while the dialogue closes must not break it.
-    [HarmonyPatch(typeof(GenericStory), "ContinueStory")]
-    internal static class Fix_StoryContinue
-    {
-        private static bool Prefix(GenericStory __instance, ref bool __result, object ___scriptingEnvironment)
-        {
-            if (!Settings.B("FixPortDialogue") || __instance.Running || ___scriptingEnvironment != null) return true;
-            __result = false;
-            return false;
-        }
-    }
-    [HarmonyPatch(typeof(GenericStory), "AddTempTag")]
-    internal static class Fix_StoryTag
-    {
-        private static bool Prefix(GenericStory __instance, object ___scriptingEnvironment)
-            => !Settings.B("FixPortDialogue") || __instance.Running || ___scriptingEnvironment != null;
-    }
-
-    // --- Radio assignments: rewards of earlier finished assignments get paid too.
-    [HarmonyPatch(typeof(MissionSummaryAnimation), "StopAnimation")]
-    internal static class Fix_RadioRewards
-    {
-        private static void Prefix(bool ___notableEventsMode, IMission ___mission, out object[] __state) { __state = new object[] { ___notableEventsMode, ___mission }; }
-        private static void Finalizer(object[] __state)
-        {
-            if (!Settings.B("FixRadioRewards") || __state == null || (bool)__state[0]) return;
-            Util.Safe("Fix.RadioRewards", () =>
-            {
-                var reg = Resources.FindObjectsOfTypeAll<MissionsRegister>().FirstOrDefault();
-                if (reg == null) return;
-                int paid = 0;
-                for (int i = 0; i < reg.Count; i++)
-                {
-                    var m = reg[i];
-                    var a = m as IAssignmentMission;
-                    if (a == null || ReferenceEquals(m, __state[1]) || m.State != MissionState.Completed) continue;
-                    if ((m.CompletionFlags & MissionCompletionFlags.RewardAccepted) != 0 || a.AssignmentObjectiveState != AssignmentObjectiveState.Completed) continue;
-                    m.GiveRewardsToPlayer();
-                    paid++;
-                }
-                if (paid == 0) return;
-                Util.Log("Funkauftrag: " + paid + " vergessene Belohnung(en) ausgezahlt");
-                var ui = UnityEngine.Object.FindObjectOfType<ActiveMissionSummaryUI>(true);
-                if (ui != null) AccessTools.Method(typeof(ActiveMissionSummaryUI), "ValidateDropdownOptions")?.Invoke(ui, null);
-            });
-        }
-    }
-
-    // --- Speed & range at high time compression (own approach):
-    // 1) physics runs at most x100 instead of x300, the rest is plain time skip
-    [HarmonyPatch(typeof(TimeCompressionController), "TimeCompressionScale_Changed")]
-    internal static class Fix_SpeedCompression
-    {
-        internal static bool Applied;
-        private static TimeCompressionController last;
-        // 0.4.22 (option audit): switched off while the time compression runs = the game's own values at once
-        // (before they came back only at the next change of the compression).
-        internal static void Restore()
-        {
-            if (!Applied || Settings.B("FixSpeedRange")) return;
-            Applied = false;
-            var c = last;
-            if (c != null)
-            {
-                var t = Traverse.Create(c);
-                if (!t.Field("timeCompression").GetValue<bool>()) return;
-                var mod = t.Field("timeScaleModifier").GetValue<Modifier>();
-                var gt = t.Field("gameTime").GetValue<GameTime>();
-                var par = t.Field("timeCompressionScale").GetValue<Parameter>();
-                if (mod == null || gt == null || par == null) return;
-                float s = par;
-                mod.Value = Mathf.Min(300f, s);
-                gt.ArtificialTimeScale = Mathf.Max(1f, s / 300f);
-                Util.Log("Zeitraffer-Fix aus: Spielwerte wieder gesetzt (Physik x" + mod.Value.ToString("0") + ")");
-            }
-        }
-        private static void Postfix(TimeCompressionController __instance, Parameter timeCompressionScale)
-        {
-            if (!Settings.B("FixSpeedRange")) { Applied = false; return; }   // the game's own method just set its own values
-            var t = Traverse.Create(__instance);
-            if (!t.Field("timeCompression").GetValue<bool>()) return;
-            Applied = true; last = __instance;
-            var mod = t.Field("timeScaleModifier").GetValue<Modifier>();   // field is a Modifier (was read as wrong type -> "Specified cast is not valid")
-            var gt = t.Field("gameTime").GetValue<GameTime>();
-            if (mod == null || gt == null) return;
-            float s = timeCompressionScale;
-            mod.Value = Mathf.Min(100f, s);
-            gt.ArtificialTimeScale = Mathf.Max(1f, s / 100f);
-        }
-    }
-    // 2) spray on the tower slows the boat a lot at high speed-up -> skipped there
-    [HarmonyPatch(typeof(ConningTowerSprayEffect), "FixedUpdate")]
-    internal static class Fix_SpeedSpray
-    {
-        private static bool Prefix(ConningTowerSprayEffect __instance)
-        {
-            if (!Settings.B("FixSpeedRange") || Time.timeScale < 100f) return true;
-            var ship = Util.PlayerShip;
-            if (ship == null || !__instance.transform.IsChildOf(ship.transform)) return true;
-            return ship.SubmergedOrGoingToSubmerge || ship.ActiveEngine == null || ship.ActiveEngine.GearIndex == 0;
-        }
-    }
-    // 3) water drag: learn the real value per boat and gear at normal speed, use it at x100 and more
-    [HarmonyPatch(typeof(PlayWay.Water.Extensions.NeuralNetworkPhysics), "SimpleUpdate")]
-    internal static class Fix_SpeedDrag
-    {
-        private static readonly Dictionary<string, float> learned = new Dictionary<string, float>();
-        private static bool loaded;
-        private static float nextSave;
-        private static string File => Path.Combine(Settings.Folder, "toolkit-drag.txt");
-
-        private static string Key(PlayerShip s) => (s.SandboxEntity?.Type?.Name ?? "?") + "|" + s.ActiveEngine.GearIndex;
-
-        internal static void Handle(PlayWay.Water.Extensions.NeuralNetworkPhysics p)
-        {
-            if (!Settings.B("FixSpeedRange")) return;
-            var ship = Util.PlayerShip;
-            if (ship == null || ship.ActiveEngine == null || ship.SubmergedOrGoingToSubmerge || ship.ActiveEngine.GearIndex == 0) return;
-            if (!p.transform.IsChildOf(ship.transform)) return;
-            Load();
-            var t = Traverse.Create(p);
-            string k = Key(ship);
-            if (Time.timeScale < 20f)
-            {
-                float now = t.Field("areaFractionSmoothed").GetValue<float>();
-                if (now <= 0.01f || now > 0.6f) return;
-                learned[k] = learned.TryGetValue(k, out var old) ? Mathf.Lerp(old, now, 0.01f) : now;
-                if (Time.unscaledTime > nextSave) { nextSave = Time.unscaledTime + 60f; Save(); }
-            }
-            else if (Time.timeScale >= 100f)
-            {
-                if (!learned.TryGetValue(k, out var v))
-                {
-                    string type = k.Substring(0, k.IndexOf('|') + 1);
-                    var any = learned.Where(e => e.Key.StartsWith(type)).Select(e => e.Value).ToList();
-                    v = any.Count > 0 ? any.Average() : 0.12f;
-                }
-                t.Field("areaFractionSmoothed").SetValue(v);
-                t.Field("submergedAreaFraction").SetValue(v);
-            }
-        }
-
-        private static void Load()
-        {
-            if (loaded) return;
-            loaded = true;
-            try
-            {
-                if (!System.IO.File.Exists(File)) return;
-                foreach (var line in System.IO.File.ReadAllLines(File))
-                {
-                    int i = line.LastIndexOf('=');
-                    if (i > 0 && float.TryParse(line.Substring(i + 1), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v)) learned[line.Substring(0, i)] = v;
-                }
-            }
-            catch { }
-        }
-
-        private static void Save()
-        {
-            try { System.IO.File.WriteAllLines(File, learned.Select(e => e.Key + "=" + e.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))); } catch { }
-        }
-
-        private static void Prefix(PlayWay.Water.Extensions.NeuralNetworkPhysics __instance) => Handle(__instance);
-    }
-    [HarmonyPatch(typeof(PlayWay.Water.Extensions.NeuralNetworkPhysics), "Execute")]
-    internal static class Fix_SpeedDragFull
-    {
-        private static void Prefix(List<PlayWay.Water.Extensions.NeuralNetworkPhysics> list) { if (Time.timeScale >= 100f) Each(list); }
-        private static void Postfix(List<PlayWay.Water.Extensions.NeuralNetworkPhysics> list) => Each(list);
-        private static void Each(List<PlayWay.Water.Extensions.NeuralNetworkPhysics> list)
-        {
-            if (list == null || !Settings.B("FixSpeedRange")) return;
-            var ship = Util.PlayerShip;
-            if (ship == null) return;
-            for (int i = 0; i < list.Count; i++)
-                if (list[i] != null && list[i].transform.IsChildOf(ship.transform)) { Fix_SpeedDrag.Handle(list[i]); break; }
-        }
-    }
-
-    // --- Pause without blur and without the dark overlay.
-    [HarmonyPatch(typeof(PauseEffects), "SetPostProcessingWeight")]
-    internal static class Fix_PauseBlur
-    {
-        private static void Prefix(ref float f) { if (Settings.B("NoPauseBlur")) f = 0f; }
-    }
-    [HarmonyPatch(typeof(PauseOverlayUI), "ValidateState")]
-    internal static class Fix_PauseOverlay
-    {
-        private static void Postfix(PauseOverlayUI __instance) { if (Settings.B("NoPauseDark") && __instance.gameObject.activeSelf) __instance.gameObject.SetActive(false); }
-    }
-
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.IO;
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::DWS.Common.InjectionFramework;
-    using global::UBOAT.Game.Core.Time;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Missions;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Stories;
-    using global::UBOAT.Game.Scene.Tasks;
-    using global::UBOAT.Game.UI;
-
-    // New career: skip the intro tutorial (switch "SkipIntroTutorial", default on).
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.Missions.StartScript), "StartIntroTutorial")]
-    internal static class GameFixes_SkipIntroTutorialPatch
-    {
-        private static bool Prefix()
-        {
-            if (!Settings.B("SkipIntroTutorial")) return true;
-            Util.Log("Einführungs-Tutorial übersprungen");
-            return false;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.IO;
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::DWS.Common.InjectionFramework;
-    using global::UBOAT.Game.Core.Time;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Missions;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Stories;
-    using global::UBOAT.Game.Scene.Tasks;
-    using global::UBOAT.Game.UI;
-
-    // QoL: "Mesh assigned to a collider is not readable: Bin / Clock / Folder_01".
-    // Cause (game code, Entity.CollectColliders): some small props in the boat/port have a collision
-    // shape whose 3D data is locked. The game then cannot compute its volume, writes a red error and
-    // counts the part with volume 0 (it is left out of weight/buoyancy spreading).
-    // Fix: the red line is replaced by one quiet toolkit log line per object, and the volume is
-    // taken from the shape's bounding box instead (always readable), so the part counts again.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Entities.Entity), "CollectColliders")]
-    internal static class GameFixes_UnreadableColliderPatch
-    {
-        private static readonly System.Collections.Generic.HashSet<string> told = new System.Collections.Generic.HashSet<string>();
-
-        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
-        {
-            var logError = HarmonyLib.AccessTools.Method(typeof(UnityEngine.Debug), "LogError", new[] { typeof(object) });
-            var quiet = HarmonyLib.AccessTools.Method(typeof(GameFixes_UnreadableColliderPatch), nameof(Quiet));
-            foreach (var ci in code)
-            {
-                if (ci.Calls(logError)) yield return new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call, quiet) { labels = ci.labels, blocks = ci.blocks };
-                else yield return ci;
-            }
-        }
-
-        public static void Quiet(object msg)
-        {
-            if (!Settings.B("FixUnreadableColliders")) { UnityEngine.Debug.LogError(msg); return; }
-            string s = msg as string ?? "";
-            if (told.Add(s)) Util.Log("Kollision ohne lesbare Form, Volumen aus Umriss berechnet: " + s.Replace("Mesh assigned to a collider is not readable: ", ""));
-        }
-
-        private static void Postfix(ref UnityEngine.Collider[] colliders, ref float[] colliderVolumes, ref float totalVolume)
-        {
-            if (!Settings.B("FixUnreadableColliders") || colliders == null || colliderVolumes == null) return;
-            try
-            {
-                for (int i = 0; i < colliders.Length && i < colliderVolumes.Length; i++)
-                {
-                    var mc = colliders[i] as UnityEngine.MeshCollider;
-                    if (mc == null || mc.sharedMesh == null || mc.sharedMesh.isReadable || colliderVolumes[i] > 0f) continue;
-                    var size = mc.sharedMesh.bounds.size;
-                    var sc = mc.transform.lossyScale;
-                    float v = UnityEngine.Mathf.Abs(size.x * sc.x * size.y * sc.y * size.z * sc.z);
-                    colliderVolumes[i] = v;
-                    totalVolume += v;
-                }
-            }
-            catch (System.Exception e) { Util.Log("Kollisions-Fix: " + e.Message); }
-        }
-    }
-
-    // QoL: "Couldn't sample navmesh for position (-65.7, 2.1, -41.4)".
-    // Cause (game code, GoToBehaviour.SnapTarget): a crew member is sent to a spot that lies a bit
-    // off the walkable area (here in port). The game only searches 1.5 m around it, finds nothing,
-    // writes the red error and the man gives up / stands around. Fix: search wider (up to 5 m)
-    // and send him to the nearest walkable point instead.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "SnapTarget")]
-    internal static class GameFixes_NavmeshSnapPatch
-    {
-        private static readonly System.Collections.Generic.HashSet<string> Warned = new System.Collections.Generic.HashSet<string>();
-        private static readonly System.Collections.Generic.Dictionary<string, int> Tries = new System.Collections.Generic.Dictionary<string, int>();
-        private static bool Prefix(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour __instance, ref UnityEngine.Vector3 ___target, ref bool __result)
-        {
-            if (!Settings.B("FixNavmeshSnap")) return true;
-            try
-            {
-                var nav = HarmonyLib.Traverse.Create(__instance).Field("navigator").GetValue<UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator>();
-                if (nav == null) return true;
-                int mask = nav.WalkableAreasMask;
-                if (UnityEngine.AI.NavMesh.SamplePosition(___target, out var hit, 1.5f, mask)) return true;   // normal case: game does it
-                if (!UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 5f, mask)
-                    && !UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 60f, mask))
-                {
-                    // 0.3.53 (DoMe: many short error popups): nothing walkable within 60 m. The game would log a red
-                    // error every 3 s for minutes. Return the same "false" quietly and note it once in our log.
-                    string key = ___target.ToString();
-                    // 0.3.54 (DoMe: "nach 5 erfolglosen Versuchen helfen"): from the 5th try search up to 300 m and walk there.
-                    Tries.TryGetValue(key, out int n); Tries[key] = ++n;
-                    if (n >= 5 && UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 300f, mask)
-                        && (!Util.IsPlayers(nav) || Util.PlayerShip == null
-                            || UnityEngine.Vector3.Distance(hit.position, Util.PlayerShip.transform.position) < 80f))   // crew on own boat stays on own boat
-                    {
-                        Util.Log("Laufweg: Ziel " + key + " nach " + n + " Versuchen auf " + hit.position + " verlegt (" + UnityEngine.Vector3.Distance(___target, hit.position).ToString("0") + " m)");
-                        Tries.Remove(key);
-                        ___target = hit.position; __result = true; return false;
-                    }
-                    if (Warned.Add(key)) Util.Log("Laufweg: Ziel " + key + " nicht erreichbar (" + __instance.GetType().Name + "), Fehler-Popup unterdrückt");
-                    __result = false;
-                    return false;
-                }
-                ___target = hit.position;
-                __result = true;
-                return false;
-            }
-            catch { return true; }
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.IO;
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::DWS.Common.InjectionFramework;
-    using global::UBOAT.Game.Core.Time;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Missions;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Stories;
-    using global::UBOAT.Game.Scene.Tasks;
-    using global::UBOAT.Game.UI;
-
-    // QoL: "InvalidOperationException: Unrecognized mode." (game code, UseGun.OnModeChosen).
-    // The gun's target buttons (Ships / Aircraft / Hold fire) share one window with other devices.
-    // When the window switches, the old buttons are only removed at the end of the frame and can
-    // still fire with a mode the gun does not know -> error. Unknown modes are now simply ignored.
-    [HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Actions.UseGun), "OnModeChosen")]
-    internal static class Fix_GunUnknownMode
-    {
-        private static Exception Finalizer(Exception __exception, string mode)
-        {
-            if (__exception is InvalidOperationException && Settings.B("FixGunModeError"))
-            {
-                Util.Log("Geschütz: unbekannter Modus \"" + mode + "\" ignoriert");
-                return null;
-            }
-            return __exception;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.IO;
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::DWS.Common.InjectionFramework;
-    using global::UBOAT.Game.Core.Time;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Missions;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Stories;
-    using global::UBOAT.Game.Scene.Tasks;
-    using global::UBOAT.Game.UI;
-
-    // Unity "Development Console" (only exists in a Development Build of the game): it pops up on every error and covers
-    // the screen. It is closed again in the same frame. Logging is not affected: errors still go to output_log.txt.
-    // 0.3.91 (DoMe: "beim Laden flackert immer wieder die Debug-Konsole"): closing it once per Update was too late while
-    // loading (long frames, the console was drawn in between). Now it is also closed right when the error is logged
-    // (the console opens because of that error), before rendering and in OnGUI.
-    public class DevConsoleHide : ModuleBase
-    {
-        private static bool logged, hooked;
-        private static int closed, reasons; private static float nextCount;
-        internal static void Close()
-        {
-            if (!Settings.B("HideDevConsole") || !UnityEngine.Debug.developerConsoleVisible) return;
-            UnityEngine.Debug.developerConsoleVisible = false;
-            closed++;
-            if (UnityEngine.Time.unscaledTime > nextCount) { nextCount = UnityEngine.Time.unscaledTime + 60f; Util.Log("Entwickler-Konsole: bisher " + closed + " mal sofort wieder geschlossen"); }
-            if (!logged) { logged = true; Util.Log("Entwickler-Konsole geschlossen (Spiel läuft als Development Build: " + UnityEngine.Debug.isDebugBuild + ")"); }
-        }
-        internal static void Hook()
-        {
-            if (hooked) return;
-            hooked = true;
-            UnityEngine.Application.logMessageReceived += (c, st, t) =>
-            {
-                if (t != UnityEngine.LogType.Error && t != UnityEngine.LogType.Exception && t != UnityEngine.LogType.Assert) return;
-                bool was = UnityEngine.Debug.developerConsoleVisible;
-                Close();
-                // 0.3.93: name what opened the console (first line only), so the cause can be found in the log.
-                if (reasons < 30) { reasons++; var line = c ?? ""; int n = line.IndexOf('\n'); if (n >= 0) line = line.Substring(0, n); if (line.Length > 160) line = line.Substring(0, 160); DebugLog.Write("INFO", "Konsole ausgelöst von (" + t + (was ? ", war offen" : "") + "): " + line); }
-            };
-            UnityEngine.Application.onBeforeRender += Close;
-            // 0.4.45 (DoMe: "ploppt dauerhaft kurz die debug console auf"): errors that Unity raises WHILE it draws the
-            // picture (log: SkinnedMeshRenderer "rendering stopped", AmbientOcclusion) open the console after the points
-            // above and it stayed on screen for that one frame. Now it is also closed after every camera has drawn,
-            // which is the last moment before the console itself is painted.
-            UnityEngine.Camera.onPostRender += cam => Close();
-            UnityEngine.Rendering.RenderPipelineManager.endCameraRendering += (ctx, cam) => Close();
-            UnityEngine.Rendering.RenderPipelineManager.endFrameRendering += (ctx, cams) => Close();
-            Util.Log("Entwickler-Konsole: wird jetzt auch nach dem Zeichnen jeder Kamera geschlossen");
-        }
-        private float nextLog;
-        public override void Frame()
-        {
-            Hook();
-            Close();
-            if (closed > 0 && UnityEngine.Time.unscaledTime > nextLog) { nextLog = UnityEngine.Time.unscaledTime + 60f; Util.Log("Entwickler-Konsole " + closed + "x geschlossen in der letzten Minute"); closed = 0; }
-        }
-    }
-
-    // Diagnosis (DoMe 2026-11-13: "end patrol -> port takes forever"): logs every scene unload/load with time since
-    // the previous one, so the log shows how long a transition really took.
-    public class SceneTiming : ModuleBase
-    {
-        private static bool hooked;
-        private static float last = -1f;
-        private static void Mark(string what, string scene)
-        {
-            float now = UnityEngine.Time.realtimeSinceStartup;
-            Util.Log("Szene " + what + ": " + scene + (last >= 0f ? " (+" + (now - last).ToString("0.0") + " s)" : ""));
-            last = now;
-        }
-        public override void Frame()
-        {
-            if (hooked) return;
-            hooked = true;
-            UnityEngine.SceneManagement.SceneManager.sceneUnloaded += s => Mark("entladen", s.name);
-            UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) => Mark("geladen", s.name + " " + m);
-        }
-    }
-
-    // Fix (DoMe 2026-11-13): quitting while a save is still being written left Autosave_5 at 16 KB, and "Fortsetzen"
-    // then crashed while loading it. Quitting now waits until the game has finished writing, then quits by itself.
-    public class QuitGuard : ModuleBase
-    {
-        private static bool hooked, quitPending;
-        private static UBOAT.Game.Core.Serialization.SavesManager saves;
-        private static UBOAT.Game.Core.Serialization.SavesManager Saves
-        {
-            get
-            {
-                if (saves == null)
-                {
-                    try { saves = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Core.Serialization.SavesManager>(); } catch { }
-                    if (saves == null) saves = UnityEngine.Object.FindObjectOfType<UBOAT.Game.Core.Serialization.SavesManager>();
-                }
-                return saves;
-            }
-        }
-        private static bool WantsToQuit()
-        {
-            try
-            {
-                if (!Settings.B("QuitWaitsForSave")) return true;
-                var s = Saves;
-                if (s == null || !s.IsSaving) return true;
-                if (!quitPending) Util.Log("Beenden wartet: Spielstand wird noch geschrieben");
-                quitPending = true;
-                return false;
-            }
-            catch { return true; }
-        }
-        public override void Frame()
-        {
-            if (!hooked) { hooked = true; UnityEngine.Application.wantsToQuit += WantsToQuit; }
-            if (!quitPending) return;
-            var s = Saves;
-            if (s != null && s.IsSaving) return;
-            quitPending = false;
-            Util.Log("Spielstand fertig geschrieben, Spiel wird beendet");
-            typeof(UnityEngine.Application).GetMethod("Quit", System.Type.EmptyTypes).Invoke(null, null);   // via reflection: direct call is forbidden in mods
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.IO;
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::DWS.Common.InjectionFramework;
-    using global::UBOAT.Game.Core.Time;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Missions;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::UBOAT.Game.Scene.Entities;
-    using global::UBOAT.Game.Scene.Stories;
-    using global::UBOAT.Game.Scene.Tasks;
-    using global::UBOAT.Game.UI;
-
-    // 0.3.58 (DoMe: upgrades cannot be bought, short error each click): the game's InstallUpgrade crashes (NRE) when
-    // the boat has no slot for the item (unfinished game upgrades like "Reinforced Pistons", unlocked by research cheats).
-    // Now: no crash, a short notice instead.
-    [HarmonyPatch(typeof(PortServicesProvider), "InstallUpgrade")]
-    internal static class Fix_UpgradeNoSlot
-    {
-        private static readonly System.Reflection.MethodInfo Find = AccessTools.Method(typeof(PortServicesProvider), "FindSuitableSlot");
-        private static bool Prefix(PortServicesProvider __instance, SandboxEquipmentData equipmentData, ref bool __result)
-        {
-            try
-            {
-                var ship = Util.PlayerShip;
-                if (Find == null || ship == null || equipmentData == null) return true;
-                if (Find.Invoke(__instance, new object[] { ship, equipmentData }) != null) return true;
-                Util.Log("Upgrade: kein passender Platz im Boot fuer " + equipmentData.Name);
-                ToolkitRunner.ShowNotice("Passt nicht in dein Boot: " + equipmentData.Name, 4f);
-                __result = false;
-                return false;
-            }
-            catch { return true; }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/GameGuards.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections;
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.UI;
-    using global::UnityEngine;
-
-    // Game error guards: places where the game itself throws an error every frame (stutter, slow menus,
-    // crashes). Each guard only acts after the error really happened, or on the exact broken state.
-    internal static class Guards
-    {
-        internal static bool On(string key) => Settings.B(key);
-        private static readonly HashSet<string> logged = new HashSet<string>();
-        internal static void Once(string key, string text) { if (logged.Add(key)) Util.Log("Fehlerschutz: " + text); }
-        internal static bool IsNull(Exception e) => e is NullReferenceException;
-    }
-
-    // 1) Character without an action queue: the role code reads it every frame and throws.
-    [HarmonyPatch(typeof(CharacterRole), "HasPlayerOrders", new Type[] { typeof(ActionQueue) })]
-    internal static class Guard_NoQueueOrders
-    {
-        private static bool Prefix(ActionQueue actionQueue, ref bool __result)
-        {
-            if (actionQueue != null || !Guards.On("GuardNoQueue")) return true;
-            __result = false; return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(CharacterRole), "AssignJob", new Type[] { typeof(PlayableCharacter) })]
-    internal static class Guard_NoQueueJob
-    {
-        private static bool Prefix(PlayableCharacter character)
-        {
-            if (!Guards.On("GuardNoQueue")) return true;
-            if (character == null) return false;
-            try { return character.ActionQueue != null; } catch { return false; }
-        }
-    }
-
-    // 2) Card game that keeps running after its table is gone: finish it instead of erroring every frame.
-    [HarmonyPatch(typeof(PlayCardsAction), "UpdateAction")]
-    internal static class Guard_CardsWithoutTable
-    {
-        private static readonly FieldInfo table = AccessTools.Field(typeof(PlayCardsAction), "table");
-        private static bool Prefix(PlayCardsAction __instance)
-        {
-            if (!Guards.On("GuardCards")) return true;
-            if (__instance == null) return false;
-            try
-            {
-                if (table == null || table.GetValue(__instance) != null) return true;
-                __instance.CompleteAction();
-                Guards.Once("cards", "Kartenspiel ohne Tisch beendet");
-                return false;
-            }
-            catch { return true; }
-        }
-    }
-
-    // 3) Destroyed enemy torpedo launcher group that errors every frame: switch off only that broken one.
-    [HarmonyPatch]
-    internal static class Guard_EnemyLauncher
-    {
-        private static MethodBase target;
-        private static readonly HashSet<int> broken = new HashSet<int>();
-        private static bool Prepare()
-        {
-            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Items.NPCTorpedoLauncherGroup");
-            target = t != null ? AccessTools.Method(t, "DoUpdate") : null;
-            return target != null;
-        }
-        private static MethodBase TargetMethod() => target;
-        private static bool Prefix(object __instance)
-        {
-            var o = __instance as UnityEngine.Object;
-            return o == null || !broken.Contains(o.GetInstanceID());
-        }
-        private static Exception Finalizer(object __instance, Exception __exception)
-        {
-            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardEnemyLauncher")) return __exception;
-            try
-            {
-                if (__instance is UnityEngine.Object o) broken.Add(o.GetInstanceID());
-                if (__instance is Behaviour b) b.enabled = false;
-                Guards.Once("launcher", "kaputte Torpedowerfer-Gruppe eines Gegners abgeschaltet");
-            }
-            catch { }
-            return null;
-        }
-    }
-
-    // 4) Ceiling fade area with a missing neighbour (after interior changes): switch off only that one.
-    [HarmonyPatch]
-    internal static class Guard_CeilingFade
-    {
-        private static MethodBase target;
-        private static bool Prepare()
-        {
-            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Effects.FadingCeilingArea");
-            target = t != null ? AccessTools.Method(t, "DoUpdate") : null;
-            return target != null;
-        }
-        private static MethodBase TargetMethod() => target;
-        private static Exception Finalizer(object __instance, Exception __exception)
-        {
-            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardCeiling")) return __exception;
-            try { if (__instance is Behaviour b) b.enabled = false; Guards.Once("ceiling", "kaputte Decken-Blende abgeschaltet"); } catch { }
-            return null;
-        }
-    }
-
-    // 5) Portrait bar keeps destroyed portraits after crew changes: clean the list.
-    internal static class PortraitRepair
-    {
-        private static readonly FieldInfo portraits = AccessTools.Field(typeof(CharacterPortraitsUI), "portraits");
-        private static readonly FieldInfo start = AccessTools.Field(typeof(CharacterPortraitsUI), "displayStartIndex");
-        private static readonly FieldInfo end = AccessTools.Field(typeof(CharacterPortraitsUI), "displayEndIndex");
-        private static readonly FieldInfo count = AccessTools.Field(typeof(CharacterPortraitsUI), "displayablePortraitsCount");
-        private static readonly HashSet<int> dirty = new HashSet<int>();
-        internal static void Mark(CharacterPortraitsUI ui) { if (ui != null) dirty.Add(ui.GetInstanceID()); }
-        internal static void RepairIfDirty(CharacterPortraitsUI ui) { if (ui != null && dirty.Remove(ui.GetInstanceID())) Repair(ui); }
-        internal static void Repair(CharacterPortraitsUI ui)
-        {
-            if (ui == null || portraits == null) return;
-            try
-            {
-                var src = portraits.GetValue(ui) as CharacterPortraitUI[];
-                if (src == null || src.Length == 0) return;
-                var clean = new List<CharacterPortraitUI>();
-                foreach (var p in src) if (p != null && p) clean.Add(p);
-                if (clean.Count == src.Length) return;
-                portraits.SetValue(ui, clean.ToArray());
-                int live = clean.Count, s = 0;
-                try { if (start != null) s = Mathf.Clamp((int)start.GetValue(ui), 0, live); } catch { }
-                try { start?.SetValue(ui, s); } catch { }
-                try { end?.SetValue(ui, Mathf.Clamp(live, s, live)); } catch { }
-                try { count?.SetValue(ui, live); } catch { }
-                Guards.Once("portraits", "zerstörte Porträts aus der Leiste entfernt");
-            }
-            catch { }
-        }
-    }
-
-    [HarmonyPatch]
-    internal static class Guard_PortraitsMark
-    {
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            foreach (var n in new[] { "Character_Added", "Character_Removed", "OnEnable", "OnDisable" })
-            { var m = AccessTools.Method(typeof(CharacterPortraitsUI), n); if (m != null) yield return m; }
-        }
-        private static void Postfix(CharacterPortraitsUI __instance) { if (Guards.On("GuardPortraits")) PortraitRepair.Mark(__instance); }
-    }
-
-    [HarmonyPatch]
-    internal static class Guard_PortraitsRun
-    {
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            foreach (var n in new[] { "RenderPortraits", "DoUpdate", "DisplayRange" })
-            { var m = AccessTools.Method(typeof(CharacterPortraitsUI), n); if (m != null) yield return m; }
-        }
-        private static void Prefix(CharacterPortraitsUI __instance) { if (Guards.On("GuardPortraits")) PortraitRepair.RepairIfDirty(__instance); }
-        private static Exception Finalizer(CharacterPortraitsUI __instance, Exception __exception)
-        {
-            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardPortraits")) return __exception;
-            PortraitRepair.Repair(__instance);
-            return null;
-        }
-    }
-
-    // 6) Duty schedule / squad screen keeps destroyed buttons when closing: clean lists, catch that error.
-    [HarmonyPatch]
-    internal static class Guard_ScheduleGroup
-    {
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            foreach (var n in new[] { "CreateCharacterButtons", "Start", "OnAddAnySailor", "OnDisbandAnySailor", "OnCharacterToggle" })
-            { var m = AccessTools.Method(typeof(AssignmentManagementGroupUI), n); if (m != null) yield return m; }
-        }
-        private static void Prefix(AssignmentManagementGroupUI __instance) { if (Guards.On("GuardSchedule")) Compact(__instance); }
-        private static Exception Finalizer(AssignmentManagementGroupUI __instance, Exception __exception)
-        {
-            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardSchedule")) return __exception;
-            Compact(__instance);
-            Guards.Once("schedule", "Dienstplan-Fehler abgefangen");
-            return null;
-        }
-        private static void Compact(object o)
-        {
-            if (o == null) return;
-            try
-            {
-                foreach (var f in o.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                {
-                    if (!(f.GetValue(o) is IList list) || list.IsReadOnly || list.IsFixedSize) continue;
-                    for (int i = list.Count - 1; i >= 0; i--)
-                    {
-                        var v = list[i];
-                        if (v == null || (v is UnityEngine.Object u && !u)) list.RemoveAt(i);
-                    }
-                }
-            }
-            catch { }
-        }
-    }
-
-    // 7) The squad +/- buttons sometimes change the type (sailor/officer) of other men: put it back.
-    [HarmonyPatch]
-    internal static class Guard_SquadTypeFence
-    {
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            foreach (var n in new[] { "OnAddAnySailor", "OnDisbandAnySailor" })
-            { var m = AccessTools.Method(typeof(AssignmentManagementGroupUI), n); if (m != null) yield return m; }
-        }
-        private static void Prefix(out Dictionary<PlayableCharacterData, PlayableCharacterData.Type> __state)
-        {
-            __state = null;
-            if (!Guards.On("GuardSquadType")) return;
-            var crew = Util.Find<PlayerCrew>(30f);
-            __state = new Dictionary<PlayableCharacterData, PlayableCharacterData.Type>();
-            foreach (var pc in crew)
-                if (pc != null && pc.Characters != null)
-                    foreach (var c in pc.Characters) if (c != null && c.Data != null) __state[c.Data] = c.Data.CharacterType;
-        }
-        private static Exception Finalizer(Dictionary<PlayableCharacterData, PlayableCharacterData.Type> __state, Exception __exception)
-        {
-            if (__state == null) return __exception;
-            foreach (var kv in __state)
-                try
-                {
-                    if (kv.Key.CharacterType != kv.Value)
-                    {
-                        kv.Key.CharacterType = kv.Value;
-                        Guards.Once("squadtype", "Trupp-Knopf hat einen Mann-Typ verändert - zurückgesetzt");
-                    }
-                }
-                catch { }
-            return __exception;
-        }
-    }
-
-    // 8) Schedule controller keeps a destroyed part after changing game settings.
-    [HarmonyPatch]
-    internal static class Guard_ScheduleSettings
-    {
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Tasks.ExpandedSchedulesController");
-            var m = t != null ? AccessTools.Method(t, "UserSettings_Changed") : null;
-            if (m != null) yield return m;
-        }
-        private static Exception Finalizer(Exception __exception)
-        {
-            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardSchedule")) return __exception;
-            Guards.Once("schedset", "Dienstplan-Fehler nach Einstellungen abgefangen");
-            return null;
-        }
-    }
-
-    // 9) Follower buttons on a portrait: hover check must not break the crew screen.
-    [HarmonyPatch(typeof(CharacterPortraitUI), "ValidateFollowerButtons")]
-    internal static class Guard_FollowerButtons
-    {
-        private static Exception Finalizer(Exception __exception)
-        {
-            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardPortraits")) return __exception;
-            Guards.Once("followers", "Gefolgs-Knopf-Fehler abgefangen");
-            return null;
-        }
-    }
-
-    // 10) Boarding checkboxes in port: the game removes/adds the man and destroys/spawns his body inside the click
-    // (stutter with many clicks). Here the click only marks the box; the real changes run one by one afterwards
-    // through the game's own handler, so all its rules (limits, healing, spawn point) stay the same.
-    public class BoardingQueue : ModuleBase
-    {
-        private static readonly FieldInfo toggleAction = AccessTools.Field(typeof(CrewListUI), "toggleAction");
-        private static readonly FieldInfo items = AccessTools.Field(typeof(CrewListUI), "items");
-        private static readonly FieldInfo stateFunc = AccessTools.Field(typeof(CrewListUI), "toggleStateFunc");
-        private static readonly List<PlayableCharacterData> order = new List<PlayableCharacterData>();
-        private static readonly Dictionary<PlayableCharacterData, bool> want = new Dictionary<PlayableCharacterData, bool>();
-        private static CrewListUI ui;
-        private static float nextAt;
-        internal static bool Busy;
-
-        internal static bool IsDefault(CrewListUI u)
-        {
-            try { var a = toggleAction?.GetValue(u) as Action<PlayableCharacterData>; return a != null && a.Method.Name == "DefaultToggleHandler"; }
-            catch { return false; }
-        }
-
-        internal static bool Board(PlayableCharacterData d)
-        {
-            var crew = Util.Find<PlayerCrew>(30f);
-            foreach (var c in crew) if (c != null) return c.GetCharacter(d) != null;
-            return false;
-        }
-
-        // Too many selected for the game's limits? Counts the ticked boxes (incl. waiting changes).
-        internal static bool Full(CrewListUI u, PlayableCharacterData cand)
-        {
-            var career = Util.Career;
-            if (career == null) return false;
-            int sailors = 0, officers = 0; bool counted = false;
-            foreach (var row in u.GetComponentsInChildren<CrewListItemUI>(true))
-            {
-                if (row == null || row.CharacterData == null || !row.Toggled) continue;
-                if (ReferenceEquals(row.CharacterData, cand)) counted = true;
-                if (row.CharacterData.CharacterType == PlayableCharacterData.Type.Sailor) sailors++; else officers++;
-            }
-            if (!counted) { if (cand.CharacterType == PlayableCharacterData.Type.Sailor) sailors++; else officers++; }
-            return cand.CharacterType == PlayableCharacterData.Type.Sailor ? sailors > career.SailorsOnBoardLimit.Value : officers > career.OfficersOnBoardLimit.Value;
-        }
-
-        internal static void Queue(CrewListUI u, PlayableCharacterData d, bool board)
-        {
-            ui = u;
-            if (Board(d) == board) { want.Remove(d); order.Remove(d); }
-            else { if (!want.ContainsKey(d)) order.Add(d); want[d] = board; }
-            nextAt = Time.unscaledTime + 0.35f;
-        }
-
-        public override void Frame()
-        {
-            if (order.Count == 0 || Time.unscaledTime < nextAt) return;
-            var d = order[0]; order.RemoveAt(0);
-            bool w = want.TryGetValue(d, out bool v) && v; want.Remove(d);
-            Busy = true;
-            try { if (d != null && Board(d) != w) CrewListUI.DefaultToggleHandler(d); }
-            catch (Exception e) { Util.Log("Einschiffen: " + e.Message); }
-            finally { Busy = false; }
-            nextAt = Time.unscaledTime + 0.18f;
-            RefreshRows();
-        }
-
-        // Same row refresh the game does after a click.
-        private static void RefreshRows()
-        {
-            try
-            {
-                if (ui == null || !ui || !ui.gameObject.activeInHierarchy) return;
-                var list = items?.GetValue(ui) as IList;
-                var f = stateFunc?.GetValue(ui) as Func<PlayableCharacterData, CrewListUI.CharacterStateInfo>;
-                if (list != null && f != null)
-                    for (int i = list.Count - 1; i >= 0; i--)
-                        if (list[i] is CrewListItemUI it && it)
-                        {
-                            var s = f(it.CharacterData);
-                            it.State = s.State; it.Toggleable = s.Toggleable;
-                        }
-                ui.ValidateCountLabels();
-            }
-            catch { }
-        }
-
-        internal static void FlushNow() { nextAt = 0f; }
-    }
-
-    [HarmonyPatch(typeof(CrewListUI), "OnToggle")]
-    internal static class Boarding_TogglePatch
-    {
-        private static bool Prefix(CrewListUI __instance, CrewListItemUI item, bool value)
-        {
-            if (!Settings.B("BoardingQueue") || BoardingQueue.Busy || !BoardingQueue.IsDefault(__instance)) return true;
-            if (item == null || item.CharacterData == null) return true;
-            if (value && !BoardingQueue.Board(item.CharacterData) && BoardingQueue.Full(__instance, item.CharacterData))
-            {
-                try { item.Toggled = false; } catch { }
-                return false;
-            }
-            BoardingQueue.Queue(__instance, item.CharacterData, value);
-            try { __instance.ValidateCountLabels(); } catch { }
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(CrewListUI), "OnDisable")]
-    internal static class Boarding_ClosePatch
-    {
-        private static void Postfix() => BoardingQueue.FlushNow();
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections;
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.UI;
-    using global::UnityEngine;
-
-    // Commander creation: the skill list (SkillTreeUI) crashed in Start with a NullReferenceException,
-    // so the list stayed empty and no campaign could be started. This repairs a missing link to the
-    // character screen and writes exactly what was missing into the toolkit log.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.SkillTreeUI), "Start")]
-    internal static class GuardSkillTree
-    {
-        private static void Prefix(UBOAT.Game.UI.SkillTreeUI __instance, ref UBOAT.Game.Scene.Spaces.CharacterScreenScene ___scene)
-        {
-            try
-            {
-                string path = __instance.transform.name; var p = __instance.transform.parent;
-                while (p != null) { path = p.name + "/" + path; p = p.parent; }
-                if (___scene == null)
-                {
-                    ___scene = UnityEngine.Object.FindObjectOfType<UBOAT.Game.Scene.Spaces.CharacterScreenScene>();
-                    Util.Log("Fähigkeiten-Liste: Verbindung zum Charakter-Bildschirm fehlte (" + path + ", Szene " + __instance.gameObject.scene.name + ") - " + (___scene != null ? "repariert" : "nicht gefunden"));
-                }
-                else if (___scene.Character == null || ___scene.Character.Data == null)
-                    Util.Log("Fähigkeiten-Liste: noch keine Figur geladen (" + path + ")");
-            }
-            catch (System.Exception e) { Util.Log("Fähigkeiten-Liste Prüfung: " + e); }
-        }
-
-        private static System.Exception Finalizer(UBOAT.Game.UI.SkillTreeUI __instance, System.Exception __exception)
-        {
-            if (__exception != null) Util.Log("Fähigkeiten-Liste Fehler: " + __exception);
-            return __exception;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections;
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Scene.Characters;
-    using global::UBOAT.Game.Scene.Characters.Actions;
-    using global::UBOAT.Game.UI;
-    using global::UnityEngine;
-
-    // The captain creation screen has a skill page the game never fills (it is not wired up there).
-    // The game opens that page by itself when the new captain has free skill points. Normally he has
-    // none, but with our skill point cheats he has, so the empty page showed and blocked the campaign
-    // start. Here the creation screen stays on the appearance page; the cheat works later as usual.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.CharacterScreenGUI), "Scene_CharacterChanged")]
-    internal static class GuardCreationSkillTab
-    {
-        private static void Postfix(UBOAT.Game.UI.CharacterScreenGUI __instance, UnityEngine.UI.Toggle ___skillsButton, UnityEngine.UI.Toggle ___customizeButton)
-        {
-            try
-            {
-                if (__instance.gameObject.scene.name != "Character Creation") return;
-                if (___skillsButton != null && ___skillsButton.isOn && ___customizeButton != null)
-                {
-                    ___customizeButton.isOn = true;
-                    Util.Log("Kapitän-Erstellung: leere Fähigkeiten-Seite übersprungen, Aussehen-Seite offen");
-                }
-            }
-            catch (System.Exception e) { Util.Log("Kapitän-Erstellung Prüfung: " + e); }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/GameHelpers.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Core.Serialization;
-    using global::UBOAT.Game.Core.Time;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Scene.Tasks;
-    using global::UnityEngine;
-
-    // Access to game singletons that are only injected into game classes (read via their static fields).
-    internal static class Game
-    {
-        private static TimeCompressionController tcc;
-        private static SandboxPlayerWolfpack wolfpack;
-        private static SavesManager saves;
-        private static BackgroundTasksManager tasks;
-
-        public static TimeCompressionController TimeCompression =>
-            tcc ?? (tcc = Traverse.Create(typeof(DisallowTimeCompressionDuringAircraftAttack)).Field("timeCompressionController").GetValue<TimeCompressionController>());
-
-        public static SandboxPlayerWolfpack Wolfpack =>
-            wolfpack ?? (wolfpack = Traverse.Create(typeof(UBOAT.Game.UI.Notifications.ShallowAreaNotification)).Field("wolfpack").GetValue<SandboxPlayerWolfpack>());
-
-        public static SavesManager Saves =>
-            saves ?? (saves = Traverse.Create(typeof(LeakBlockingBySailors)).Field("savesManager").GetValue<SavesManager>());
-
-        public static BackgroundTasksManager Tasks =>
-            tasks ?? (tasks = Traverse.Create(typeof(ExpandedSchedulesController)).Field("backgroundTasksManager").GetValue<BackgroundTasksManager>());
-
-        public static void StopTimeCompression(string why)
-        {
-            var t = TimeCompression;
-            if (t == null || !t.TimeCompression) return;
-            t.TimeCompression = false;
-            ToolkitRunner.ShowNotice(why);
-        }
-
-        public static bool CanSave()
-        {
-            var s = Saves;
-            return s != null && !s.IsLoading && !s.HasSaveBlockadesExcept(null, out _);
-        }
-
-        public static bool Ctrl => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-        public static bool Shift => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-    }
-}
-
-// ====================================================================================================
 // Abschnitt: Modules/GameTuning.cs
 // ====================================================================================================
 namespace UboatToolkit.Modules
@@ -35893,602 +28731,6 @@ namespace UboatToolkit.Modules
                 }
             }
             return false;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/Inventory.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UnityEngine;
-
-    // Cheats #18 + #23: items and ammunition (almost) weigh nothing (0.0000001, never 0),
-    // and one storage slot holds (almost) unlimited items of one kind.
-    // Adding real extra slots broke items in the old "Slot Machine" mod, so this uses
-    // the game's own "ignore stack limits" switch instead (safe for saves).
-    public class Inventory : ModuleBase
-    {
-        private float next, nextMerge;
-        private string lastState = "";
-
-        // Same items in several slots of one storage are put together into one stack
-        // (e.g. medkits bought as 5-packs). No reordering, slots with open loading orders are left alone.
-        internal static int MergeStacks()
-        {
-            int moves = 0;
-            foreach (var s in Util.Find<Storage>())
-            {
-                if (s == null || s.IsShop || s.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() != null) continue;
-                int slots = Util.Slots(s);
-                for (int a = 0; a < slots; a++)
-                {
-                    if (!(s.GetItemAt(a) is Cargo ca) || ca.Data == null || ca.Data.StackLimit <= 1f || s.HasTransportOrders(a)) continue;
-                    for (int b = a + 1; b < slots; b++)
-                    {
-                        if (!(s.GetItemAt(b) is Cargo cb) || cb.Data == null || cb.Data.Name != ca.Data.Name || s.HasTransportOrders(b)) continue;
-                        float room = (float)ca.StackLimit - ca.Count;
-                        if (room <= 0f) break;
-                        float move = Mathf.Min(room, cb.Count);
-                        if (move <= 0f) continue;
-                        UBOAT.Game.Scene.Utilities.StorageUtility.TransferInstantly(s, b, s, a, move);
-                        moves++;
-                    }
-                }
-            }
-            return moves;
-        }
-
-        // Sets the stack size of one item right away (used for new items too, so they do not
-        // wait for the next 5-second pass). At least "CheatMinStackSize" per slot.
-        public static void ApplyStack(Cargo c)
-        {
-            if (c == null || c.StackLimit == null) return;
-            float dataLimit = c.Data != null ? c.Data.StackLimit : 1f;
-            // Stackable items: the bigger stack is written into the item database itself (see StackData),
-            // because the game's storage window (drag, buy, split) only reads the database value.
-            // Keep the item's own "Base" value in step with it.
-            if (dataLimit > 1f)
-            {
-                var m = c.StackLimit.GetDeltaModifier("Base", true);
-                if (m != null && Mathf.Abs(m.Value - dataLimit) > 0.0001f) m.Value = dataLimit;
-                Util.ScaleParameter(c.StackLimit, 1f);
-                return;
-            }
-            float f = Mathf.Max(1f, Settings.F("CheatStackSize"));
-            float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
-            if (minStack > 0f) f = Mathf.Max(f, minStack);
-            Util.ScaleParameter(c.StackLimit, f);
-        }
-
-        // Cheat: the dealer in port has at least "CheatShopStock" of every stackable item (DoMe 2026-11-13: buy slider
-        // stopped at the dealer's 15 decoys although one storage place holds 100000). Only while docked, every 5 s.
-        private static int shopLogged;
-        private static void ShopStock()
-        {
-            float want = Settings.F("CheatShopStock");
-            var ship = Util.PlayerShip;
-            if (want <= 0f || ship == null || !ship.Docked) return;
-            int n = 0;
-            foreach (var st in UnityEngine.Object.FindObjectsOfType<Storage>())
-            {
-                if (st == null || !st.IsShop) continue;
-                for (int i = Util.Slots(st) - 1; i >= 0; i--)
-                {
-                    var c = st.GetItemAt(i) as Cargo;
-                    if (c == null || c.Data == null || c.Data.StackLimit <= 1f || c is Fuel) continue;
-                    if (c.Count < want) { c.Count = want; n++; }
-                }
-            }
-            if (n > 0 && shopLogged++ < 5) Util.Log("Händler: " + n + " Waren auf " + want + " Stück aufgefüllt");
-        }
-
-        public override void Tick()
-        {
-            var ship = Util.PlayerShip;
-            if (ship == null) return;
-            bool noWeight = Settings.B("CheatNoWeight");
-            float stack = Mathf.Max(1f, Settings.F("CheatStackSize"));
-            float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
-            // 0.3.69 ("Langsam: Inventory.Tick ~48 ms" every 5 s): the full pass over all storages and items now runs
-            // at once when a setting changed, otherwise only every 20 s. New items get their stack size right away (ApplyStack).
-            bool noLimit = Settings.B("CheatNoMassLimit");
-            string state = noWeight + "/" + noLimit + "/" + stack + "/" + minStack + "/" + Settings.F("CheatShopStock") + "/" + Settings.B("CheatMergeStacks") + "/" + ship.Docked;
-            if (state == lastState && Time.unscaledTime < next) return;
-            next = Time.unscaledTime + (state != lastState ? 2f : 20f);
-            lastState = state;
-
-            foreach (var s in Util.Find<Storage>())
-            {
-                if (s.IsShop) continue;
-                // 0.4.2: torpedo tubes and torpedo racks are left exactly as the game made them (suspect for the
-                // empty tube window / crew not loading; torpedoes never stack anyway).
-                if (s is TorpedoLauncherGroup || s is TorpedoStorage)
-                {
-                    var tt = Traverse.Create(s);
-                    tt.Field("ignoreStackLimits").SetValue(Util.Original<bool>(s, "ignoreStackLimits"));
-                    Util.ScaleParameter(tt.Field("itemsMassLimit").GetValue<Parameter>(), 1f);
-                    continue;
-                }
-                var t = Traverse.Create(s);
-                bool origIgnore = Util.Original<bool>(s, "ignoreStackLimits");
-                t.Field("ignoreStackLimits").SetValue(stack > 1f || minStack > 0f || origIgnore);
-                // Never for diesel tanks: the game shows fuel % as (fuel mass / tank mass limit), so a bigger
-                // limit made the tank read 0 % and the boat "out of fuel" although it was full.
-                bool fuelTank = s.StorageType != null && s.StorageType.StartsWith("Fuel");
-                Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noLimit && !fuelTank ? 1000000f : 1f);
-            }
-            StackData.Apply();
-            Util.Safe("ShopStock", ShopStock);
-            if (Settings.B("CheatMergeStacks") && Time.unscaledTime >= nextMerge)
-            {
-                nextMerge = Time.unscaledTime + 15f;
-                int m = MergeStacks();
-                if (m > 0) Util.Log("Stapel zusammengelegt: " + m);
-            }
-            foreach (var e in Util.Find<Equipment>())
-            {
-                // Never for diesel: the game reads the fuel amount from its weight, so "no weight"
-                // made every tank show 0 kg and look empty, even right after refuelling.
-                Util.ScaleParameter(e.Mass, noWeight && !(e is Fuel) && !(e is StoredTorpedo) ? 0.0000001f : 1f);   // 0.4.2: torpedoes keep their game weight
-                if (e is Cargo c) ApplyStack(c);
-            }
-            Util.Safe("StackCheck", StackCheck);
-        }
-
-        // 0.4.68 (DoMe 2026-11-19: "der stackcheat scheint auch nicht mehr korrekt zu funktionieren"; the log only
-        // showed the database write, not what lies in the storages). Read only: what the boat's storages really hold.
-        private static string lastCheck = ""; private static float nextCheck;
-        private static void StackCheck()
-        {
-            int stores = 0, items = 0, split = 0, low = 0, ignoreOff = 0; float big = 0f, bigLimit = 0f; string bigName = "-", splitEx = "-", lowEx = "-";
-            float want = Mathf.Max(Mathf.Max(1f, Settings.F("CheatStackSize")), Settings.F("CheatMinStackSize"));
-            bool cheat = want > 1f;
-            foreach (var s in Util.Find<Storage>())
-            {
-                if (s == null || s.IsShop || s is TorpedoLauncherGroup || s is TorpedoStorage || s.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() != null) continue;
-                stores++;
-                if (cheat && !Traverse.Create(s).Field("ignoreStackLimits").GetValue<bool>()) ignoreOff++;
-                var seen = new System.Collections.Generic.HashSet<string>();
-                for (int i = 0; i < Util.Slots(s); i++)
-                {
-                    var c = s.GetItemAt(i) as Cargo;
-                    if (c == null || c.Data == null || c is Fuel) continue;
-                    items++;
-                    float lim = c.StackLimit != null ? (float)c.StackLimit : 0f;
-                    if (c.Count > big) { big = c.Count; bigLimit = lim; bigName = c.Data.Name; }
-                    if (!seen.Add(c.Data.Name) && c.Data.StackLimit > 1f) { split++; if (splitEx == "-") splitEx = c.Data.Name + " in " + s.name; }
-                    if (cheat && c.Data.StackLimit > 1f && lim < want - 0.5f) { low++; if (lowEx == "-") lowEx = c.Data.Name + " Limit " + lim.ToString("0") + " (Datenbank " + c.Data.StackLimit.ToString("0") + ")"; }
-                }
-            }
-            string line = "Lager-Prüfung (nur lesen): " + stores + " Lager, " + items + " belegte Plätze; größter Stapel " + big.ToString("0") + " von " + bigLimit.ToString("0") + " (" + bigName + "); gleiche Sache in getrennten Plätzen " + split + " (z. B. " + splitEx
-                + "); Stapel-Limit unter Soll " + want.ToString("0") + ": " + low + " (z. B. " + lowEx + "); Lager ohne 'Limit ignorieren': " + ignoreOff;
-            if (line == lastCheck && Time.unscaledTime < nextCheck) return;
-            lastCheck = line; nextCheck = Time.unscaledTime + 300f;
-            Util.Log(line);
-        }
-    }
-
-    // (ShopStock is a member of Inventory, see below)
-    // One place that writes the stack size into the item database (all stackable items, e.g. medkits 5 -> 100000).
-    // Stack cheat: base x "CheatStackSize", at least "CheatMinStackSize". Tight packing skill adds its bonus on top.
-    // Switched off = the game's own value again.
-    internal static class StackData
-    {
-        private static readonly System.Collections.Generic.Dictionary<UBOAT.Game.Sandbox.SandboxEquipmentData, float> baseStack =
-            new System.Collections.Generic.Dictionary<UBOAT.Game.Sandbox.SandboxEquipmentData, float>();
-        internal static int PackBonus;
-        private static string last = "";
-
-        internal static void Apply()
-        {
-            float f = Mathf.Max(1f, Settings.F("CheatStackSize"));
-            float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
-            bool all = Settings.B("CheatStackAll") && (f > 1f || minStack > 0f);
-            string key = f + "/" + minStack + "/" + PackBonus + "/" + all;
-            if (key == last) return;
-            var db = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Sandbox.Devices.EquipmentDatabase>();
-            var bps = db != null ? db.GetEquipmentDirect() : null;
-            if (bps == null) return;
-            int n = 0;
-            foreach (var d in bps)
-            {
-                if (d == null) continue;
-                if (!baseStack.TryGetValue(d, out float b)) { b = d.StackLimit; baseStack[d] = b; }
-                // single items (game stack 1): only plain goods (Cargo types, not diesel) and only with "CheatStackAll";
-                // switched off = back to the game's 1
-                if (b <= 1f && !(all && PlainGoods(d)))
-                {
-                    if (Mathf.Abs(d.StackLimit - b) > 0.0001f) { d.StackLimit = b; n++; }
-                    continue;
-                }
-                float v = Mathf.Max(Mathf.Max(b, 1f) * f, minStack) + PackBonus;
-                if (Mathf.Abs(d.StackLimit - v) > 0.0001f) { d.StackLimit = v; n++; }
-            }
-            last = key;
-            foreach (var c in UnityEngine.Object.FindObjectsOfType<Cargo>()) Inventory.ApplyStack(c);
-            Util.Log("Stapel: " + n + " Gegenstaende neu (x" + f + ", mind. " + minStack + ", Packen +" + PackBonus + ", Einzel-Sachen " + (all ? "auch" : "nein") + ")");
-        }
-
-        private static bool PlainGoods(UBOAT.Game.Sandbox.SandboxEquipmentData d)
-        {
-            var t = d.Type;
-            return t != null && typeof(UBOAT.Game.Scene.Items.Cargo).IsAssignableFrom(t) && !typeof(UBOAT.Game.Scene.Items.Fuel).IsAssignableFrom(t);
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/Loading.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::System.Collections.Generic;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UBOAT.Game.Scene.Utilities;
-    using global::UnityEngine;
-
-    // QoL #39: loading in port. With many items at once the port workers can get stuck and
-    // nothing reaches the boat any more. While docked, transport orders between port and boat
-    // that nobody works on (or that did not move for a while) are finished right away,
-    // with the game's own "resolve instantly" function.
-    public class Loading : ModuleBase
-    {
-        private readonly List<TransportOrder> buffer = new List<TransportOrder>();
-        private readonly HashSet<TransportOrder> seen = new HashSet<TransportOrder>();
-        private readonly Dictionary<TransportOrder, KeyValuePair<float, float>> progress = new Dictionary<TransportOrder, KeyValuePair<float, float>>();
-        private float next;
-
-        private UBOAT.Game.Scene.Tasks.PortServicesProvider provider;
-        private double lastLeft = -1;
-        private float lastChange;
-        private float nextDiag;
-        private int kicks;
-
-        // Watchdog for the port resupply queue: if "loading" shows but nothing moves,
-        // push it once more; if it is still stuck, cancel it so you can order again.
-        // The menu switch "CancelPortLoading" cancels it by hand.
-        // Dead orders: finished (or nothing left to carry) but still hanging on a storage slot.
-        // The slot then shows "wird verladen... 0 / 0" forever. Seen when a storage got more slots
-        // (Complete() removes the order only from the slot index it remembers) or when an order ran
-        // down to 0 without being completed. They are completed and taken off every slot.
-        private readonly List<TransportOrder> sweepBuf = new List<TransportOrder>();
-        internal int SweepDeadOrders()
-        {
-            int n = 0;
-            if (Util.PlayerShip == null) return 0;
-            foreach (var s in Util.Find<Storage>())
-                for (int i = 0; i < Util.Slots(s); i++)
-                {
-                    sweepBuf.Clear();
-                    if (!s.GetTransportOrders(i, sweepBuf)) continue;
-                    foreach (var o in sweepBuf)
-                    {
-                        if (o == null) { s.RemoveTransportOrder(i, o); n++; continue; }
-                        bool dead = o.IsCompleted || (o.CountLeft <= 0f && o.CountInTransit <= 0f);
-                        if (!dead) continue;
-                        if (!o.IsCompleted) { try { o.Complete(); } catch (System.Exception ex) { Util.Log("Verladen: Abschluss-Fehler " + ex.Message); } }
-                        s.RemoveTransportOrder(i, o);
-                        n++;
-                    }
-                }
-            if (n > 0) Util.Log("Verladen: " + n + " tote Aufträge (0 / 0) entfernt");
-            return n;
-        }
-
-        private void Watchdog()
-        {
-            if (Util.PlayerShip != null && Util.PlayerShip.Docked) SweepDeadOrders();
-            if (provider == null)
-                provider = HarmonyLib.Traverse.Create(typeof(UBOAT.Game.Sandbox.Missions.TutorialUtility)).Field("portServicesProvider").GetValue<UBOAT.Game.Scene.Tasks.PortServicesProvider>();
-            if (provider == null) return;
-            var t = HarmonyLib.Traverse.Create(provider);
-            var orders = t.Field("transportOrders").GetValue<List<TransportOrder>>();
-
-            var cancel = Settings.Get("CancelPortLoading");
-            if (cancel != null && cancel.On)
-            {
-                cancel.Value = 0f;
-                Settings.Save();
-                provider.CancelResupply();
-                ToolkitRunner.ShowNotice("Verladen abgebrochen. Du kannst neu bestellen.");
-                lastLeft = -1; kicks = 0;
-                return;
-            }
-            var force = Settings.Get("FixMyDamnShipment");
-            if (force != null && force.On)
-            {
-                force.Value = 0f;
-                Settings.Save();
-                ForceDeliver(provider, orders);
-                lastLeft = -1; kicks = 0;
-                return;
-            }
-            if (orders == null || orders.Count == 0) { lastLeft = -1; kicks = 0; return; }
-
-            double left = 0;
-            foreach (var o in orders) if (o != null) left += o.CountLeft;
-            if (left != lastLeft) { lastLeft = left; lastChange = Time.unscaledTime; return; }
-            if (Time.unscaledTime - lastChange < Settings.F("PortLoadingStuckSeconds")) return;
-
-            lastChange = Time.unscaledTime;
-            if (kicks == 0)
-            {
-                kicks++;
-                Util.Log("Verladen hängt, neuer Anstoß");
-                t.Method("AddDateListener").GetValue();
-            }
-            else
-            {
-                kicks = 0;
-                provider.CancelResupply();
-                ToolkitRunner.ShowNotice("Verladen hing fest und wurde abgebrochen. Bitte neu bestellen.");
-            }
-        }
-
-        // "Fix my damn shipment": deliver EVERYTHING that is ordered into the boat right now,
-        // including orders a worker is carrying, then clear whatever is left in the queue.
-        private void ForceDeliver(UBOAT.Game.Scene.Tasks.PortServicesProvider p, List<TransportOrder> orders)
-        {
-            var all = new HashSet<TransportOrder>();
-            if (orders != null) foreach (var o in orders) if (o != null) all.Add(o);
-            var ship = Util.PlayerShip;
-            if (ship != null)
-                foreach (var s in Util.Find<Storage>())
-                    for (int i = 0; i < Util.Slots(s); i++)
-                    {
-                        buffer.Clear();
-                        if (s.GetTransportOrders(i, buffer)) foreach (var o in buffer) if (o != null) all.Add(o);
-                    }
-            int n = 0;
-            foreach (var o in all)
-            {
-                if (o.IsCompleted) continue;
-                try
-                {
-                    if (o.CountInTransit > 0f) { o.CountLeft += o.CountInTransit; o.CountInTransit = 0f; }
-                    StorageUtility.ResolveTransportOrderInstantly(o);
-                }
-                catch (System.Exception ex) { Util.Log("Force: " + ex.Message); }
-                if (!o.IsCompleted) o.Complete();
-                n++;
-            }
-            n += SweepDeadOrders();
-            p.CancelResupply();   // clears any leftovers and ends the "loading" state
-            progress.Clear();
-            ToolkitRunner.ShowNotice("FIX MY DAMN SHIPMENT: " + n + " Lieferungen erzwungen. Ruhe jetzt.");
-        }
-
-        public override void Frame() => Loading_ResupplyPatch.RunPending();
-
-        public override void Tick()
-        {
-            if (Settings.B("PortLoadingFix") || Settings.B("FixMyDamnShipment") || Settings.B("CancelPortLoading")) Util.Safe("LoadingWatchdog", Watchdog);
-            if (!Settings.B("InstantPortLoading") || Time.unscaledTime < next) return;
-            next = Time.unscaledTime + 2f;
-            var ship = Util.PlayerShip;
-            // Before the first patrol the game keeps bought goods waiting until you sail out
-            // ("Georderte Waren werden ... geladen, bevor es zu seinem ersten Einsatz ausläuft").
-            // Then the boat does not count as docked, so allow that case too.
-            var career = Util.Career;
-            bool firstPatrol = career != null && career.BeforeFirstPatrol;
-            if (!ship.Docked && !firstPatrol) { progress.Clear(); return; }
-
-            seen.Clear();
-            foreach (var s in Util.Find<Storage>())
-                for (int i = 0; i < Util.Slots(s); i++)
-                {
-                    buffer.Clear();
-                    if (!s.GetTransportOrders(i, buffer)) continue;
-                    foreach (var o in buffer) if (o != null) seen.Add(o);
-                }
-
-            int done = 0, nDone = 0, nTransit = 0, nInside = 0, nBusy = 0;
-            float stuckAfter = Settings.F("PortLoadingStuckSeconds");
-            foreach (var o in seen)
-            {
-                if (o.IsCompleted || o.CountLeft <= 0f) { nDone++; continue; }
-                if (o.CountInTransit > 0f) { nTransit++; continue; }
-                bool portToBoat = !IsShip(o.SourceStorage, ship) || !IsShip(o.TargetStorage, ship);
-                if (!portToBoat) { nInside++; continue; }
-
-                bool idle = o.CharacterAction == null;
-                bool stuck = false;
-                if (!idle)
-                {
-                    if (progress.TryGetValue(o, out var p) && p.Key == o.CountLeft) stuck = Time.unscaledTime - p.Value > stuckAfter;
-                    else progress[o] = new KeyValuePair<float, float>(o.CountLeft, Time.unscaledTime);
-                }
-                if (!idle && !stuck && !firstPatrol) { nBusy++; continue; }
-
-                Util.Safe("Loading", () => StorageUtility.ResolveTransportOrderInstantly(o));
-                progress.Remove(o);
-                done++;
-            }
-            if (done > 0) Util.Log("Verladen: " + done + " Aufträge sofort erledigt" + (firstPatrol ? " (vor erster Feindfahrt)" : ""));
-            else if (seen.Count > 0 && Time.unscaledTime >= nextDiag)
-            {
-                nextDiag = Time.unscaledTime + 30f;
-                Util.Log("Verladen: " + seen.Count + " Aufträge gefunden, keiner erledigt (angedockt " + ship.Docked + ", vor erster Feindfahrt " + firstPatrol
-                    + "; fertig " + nDone + ", wird getragen " + nTransit + ", nur im Boot umräumen " + nInside + ", Crew arbeitet dran " + nBusy + ")");
-            }
-        }
-
-        private static bool IsShip(IItemStorage s, UBOAT.Game.Scene.Entities.PlayerShip ship)
-        {
-            var c = s as Component;
-            return c != null && c.transform.IsChildOf(ship.transform);
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::System.Collections.Generic;
-    using global::UBOAT.Game.Scene.Items;
-    using global::UBOAT.Game.Scene.Utilities;
-    using global::UnityEngine;
-
-    // The real cause of the port hang: PortServicesProvider.AddDateListener moves ONE unit per loop
-    // step on the main thread. With tiny item weight the wait per unit becomes 0 ticks, so a stack of
-    // millions of units is moved in one endless loop -> the game freezes and the queue stays blocked
-    // (no more ammo, items or fuel). Fix: move the whole order in one step.
-    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.PortServicesProvider), "AddDateListener")]
-    internal static class Loading_ResupplyPatch
-    {
-        private static readonly UBOAT.Game.Core.Data.GameDataReference durationFactor =
-            new UBOAT.Game.Core.Data.GameDataReference("General/Settings/Trade/Transfer Duration Factor (s/kg)");
-
-        // Providers whose next order must be moved. Not done right away: the shop screen still reads the
-        // shop slot right after placing the order (price, name). Moving the goods in that same moment
-        // emptied the slot -> crash in the shop screen and the order stayed "wird verladen" forever.
-        // So the move happens one frame later (RunPending, called every frame by the Loading module).
-        private static readonly System.Collections.Generic.List<UBOAT.Game.Scene.Tasks.PortServicesProvider> pending =
-            new System.Collections.Generic.List<UBOAT.Game.Scene.Tasks.PortServicesProvider>();
-        private static bool running;
-
-        internal static void RunPending()
-        {
-            if (pending.Count == 0) return;
-            var list = pending.ToArray(); pending.Clear();
-            foreach (var p in list)
-            {
-                if (p == null) continue;
-                running = true;
-                try { Util.Safe("Verladen", () => Traverse.Create(p).Method("AddDateListener").GetValue()); }
-                finally { running = false; }
-            }
-        }
-
-        private static bool Prefix(UBOAT.Game.Scene.Tasks.PortServicesProvider __instance)
-        {
-            if (!running && (Settings.B("InstantPortLoading") || Settings.B("PortLoadingFix")))
-            {
-                if (!pending.Contains(__instance)) pending.Add(__instance);
-                return false;
-            }
-            bool instant = Settings.B("InstantPortLoading");
-            bool fix = Settings.B("PortLoadingFix");
-            if (!instant && !fix) return true;
-            var t = HarmonyLib.Traverse.Create(__instance);
-            var orders = t.Field("transportOrders").GetValue<System.Collections.Generic.List<UBOAT.Game.Scene.Items.TransportOrder>>();
-            if (orders == null) return true;
-            orders.RemoveAll(o => o == null || o.IsCompleted);     // base fix: drop dead orders that block the queue
-            if (orders.Count == 0) return true;
-
-            var order = orders[0];
-            if (!instant)
-            {
-                // Base fix only: keep the game's normal waiting, but never let it run into the
-                // endless loop (0 ticks per unit because of tiny weight, or giant stacks).
-                long perUnit = order.ItemData.HasTag("Torpedo") ? 1 : (long)((double)order.ItemData.Mass * (double)(float)durationFactor * 10000000.0);
-                if (perUnit >= 1 && order.CountLeft <= 10000f) return true;
-            }
-            t.Field("currentTransportOrder").SetValue(order);
-            try
-            {
-                // Complete() fires the game's own handler, which starts the next order (back into this patch).
-                UBOAT.Game.Scene.Utilities.StorageUtility.ResolveTransportOrderInstantly(order);
-            }
-            catch (System.Exception ex)
-            {
-                Util.Log("Verladen Fehler: " + ex.Message);
-                if (!order.IsCompleted) order.Complete();
-            }
-            return false;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/MemoryCleaner.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::UnityEngine;
-
-    // Memory cleanup against the game's slowly growing RAM use: every X minutes the mod frees
-    // unused graphics/sound data and runs the .NET garbage collector. This causes one short hitch,
-    // so it waits for a calm moment (game paused or time compression on).
-    public class MemoryCleaner : ModuleBase
-    {
-        private float due = -1f, shipSince;
-
-        public override void Tick()
-        {
-            float min = Settings.F("MemoryCleanMinutes");
-            if (min <= 0f) { due = -1f; return; }
-            if (due < 0f) { due = Time.unscaledTime + min * 60f; return; }
-            if (Time.unscaledTime < due) return;
-            // Never while a save is loading or the boat just appeared: freeing "unused" assets then can unload
-            // ship prefabs the game is about to spawn (seen: HDML / Flower-Class spawn errors after a load).
-            if (SaveTools_LoadSpeedPatch.IsLoading || !Util.ShipReady || Util.SafeGet(() => Game.Saves != null && Game.Saves.IsLoading, false)
-                || Time.unscaledTime - shipSince < 120f)
-            { if (Util.PlayerShip == null) shipSince = Time.unscaledTime; return; }
-            bool calm = Time.timeScale == 0f || (Game.TimeCompression?.TimeCompression ?? false);
-            // Only in a calm moment (paused or time compression): the cleanup itself takes 0.3-0.65 s, which was
-            // a visible hitch when it was forced after 5 minutes during normal play.
-            if (!calm) return;
-            due = Time.unscaledTime + min * 60f;
-            long before = System.GC.GetTotalMemory(false);
-            Resources.UnloadUnusedAssets();
-            System.GC.Collect();
-            long after = System.GC.GetTotalMemory(false);
-            Util.Log("Speicher aufgeräumt: " + ((before - after) / 1048576) + " MB frei");
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::UnityEngine;
-
-    // Disk cache cleanup, once per game start: old cached data sheets (.dat, the game rebuilds them when needed),
-    // old crash reports and old mod logs older than X days are deleted. Save games are never touched.
-    public class CacheCleaner : ModuleBase
-    {
-        private bool done;
-
-        public override void Tick()
-        {
-            if (done || !Settings.B("AutoCleanCache")) return;
-            done = true;
-            Util.Safe("CacheCleaner", () =>
-            {
-                var limit = System.DateTime.Now.AddDays(-Mathf.Max(1f, Settings.F("AutoCleanDays")));
-                string root = Application.persistentDataPath;
-                int n = 0; long bytes = 0;
-                n += Clean(System.IO.Path.Combine(root, "Data Sheets"), "*.dat", limit, ref bytes);
-                n += Clean(System.IO.Path.Combine(Settings.Folder, "logs"), "*.*", limit, ref bytes, keep: "kriegstagebuch.txt");
-                n += Clean(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Deep Water Studio", "UBOAT", "Crashes"), "*.*", limit, ref bytes);
-                if (n > 0) Util.Log("Cache aufgeräumt: " + n + " Dateien, " + (bytes / 1048576) + " MB");
-            });
-        }
-
-        private static int Clean(string dir, string pattern, System.DateTime limit, ref long bytes, string keep = null)
-        {
-            if (!System.IO.Directory.Exists(dir)) return 0;
-            int n = 0;
-            foreach (var f in System.IO.Directory.GetFiles(dir, pattern, System.IO.SearchOption.AllDirectories))
-            {
-                try
-                {
-                    var fi = new System.IO.FileInfo(f);
-                    if (keep != null && fi.Name == keep) continue;
-                    if (fi.LastWriteTime > limit) continue;
-                    bytes += fi.Length;
-                    fi.Delete();
-                    n++;
-                }
-                catch { }
-            }
-            return n;
         }
     }
 }
@@ -36623,848 +28865,6 @@ namespace UboatToolkit.Modules
             }
             if (n > 0) Util.Log("Mehr Frachter: " + n + " Handels-Startpunkte auf x" + f.ToString("0.##") + " gesetzt");
             lastFactor = f;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/OtherModFixes.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::DWS.Common.Characters;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UnityEngine.SceneManagement;
-    using global::UBOAT.Game.UI.MainMenu;
-
-    // Fix for the "Supply Price Editor" mod: it searched the whole scene for the main menu every
-    // frame, even at sea. Now it only searches while the main menu is loaded, at most once a second.
-    [HarmonyPatch]
-    internal static class SupplyPriceMenu_Patch
-    {
-        private static MainMenu cached;
-        private static float nextSearch;
-        private static bool errorLogged;
-
-        private static MethodBase Target()
-        {
-            var t = UboatToolkit.Util.FindType("SupplyPriceEditor.MainMenuContext");
-            var m = t == null ? null : AccessTools.Method(t, "FindMainMenu", Type.EmptyTypes);
-            return m != null && m.ReturnType == typeof(MainMenu) ? m : null;
-        }
-
-        private static bool Prepare()
-        {
-            bool ok = Target() != null;
-            Util.Log("Preis-Editor-Fix: " + (ok ? "aktiv (Hauptmenü-Suche nur im Hauptmenü, höchstens 1x pro Sekunde)." : "Supply Price Editor nicht gefunden - nichts zu tun."));
-            return ok;
-        }
-
-        private static MethodBase TargetMethod() => Target();
-
-        private static bool Prefix(ref MainMenu __result)
-        {
-            try
-            {
-                if (!Settings.B("FixSupplyPriceMenu")) return true;
-                if (!SceneManager.GetSceneByName("Main Menu").isLoaded) { cached = null; __result = null; return false; }
-                if (cached != null && cached.isActiveAndEnabled && cached.gameObject.scene.isLoaded) { __result = cached; return false; }
-                float now = Time.unscaledTime;
-                if (now < nextSearch) { __result = cached; return false; }
-                nextSearch = now + 1f;
-                return true;
-            }
-            catch (Exception e)
-            {
-                if (!errorLogged) { errorLogged = true; Util.Log("Preis-Editor-Fix: Fehler, nehme Original-Suche (einmalig): " + e.Message); }
-                return true;
-            }
-        }
-
-        private static void Postfix(MainMenu __result) { cached = __result; }
-    }
-
-    // Fix for the "Realistic Uniforms Revival" mod: it rebuilt a crewman's textures again and again
-    // although nothing on him changed. Those own rebuilds are skipped when renderers, meshes and
-    // materials are unchanged; rebuilds that other mods ask for afterwards are never touched.
-    internal static class UniformFix
-    {
-        public sealed class Pending
-        {
-            public object Character;
-            public Renderer[] Renderers;
-            public Material[][] Before;
-            public Mesh[] Meshes;
-            public int[] Verts, Subs;
-        }
-
-        public static Pending pending;
-        public static object afterBody;
-        public static FieldInfo redirectCharacter;
-        public static int skipped, passed, foreign, skippedR, passedR, foreignR, nextReport;
-        private static bool errorLogged;
-
-        public static MethodBase Apply()
-        {
-            var rt = UboatToolkit.Util.FindType("RealisticUniformsRevival.RealisticUniformClothesRuntime");
-            var rs = UboatToolkit.Util.FindType("RealisticUniformsRevival.RedirectState");
-            redirectCharacter = rs == null ? null : AccessTools.Field(rs, "Character");
-            var m = rt == null ? null : AccessTools.Method(rt, "ApplyMaterialToExistingWearable");
-            return m != null && redirectCharacter != null ? m : null;
-        }
-
-        public static bool On => Settings.B("FixUniformRebuild");
-
-        public static Mesh MeshOf(Renderer r)
-        {
-            if (r == null) return null;
-            if (r is SkinnedMeshRenderer sk) return sk.sharedMesh;
-            var f = r.GetComponent<MeshFilter>();
-            return f == null ? null : f.sharedMesh;
-        }
-
-        public static bool Unchanged(Pending p)
-        {
-            if (p.Character is Component body)
-                foreach (var r in body.GetComponentsInChildren<Renderer>(true)) if (r != null && Array.IndexOf(p.Renderers, r) < 0) return false;
-            for (int i = 0; i < p.Renderers.Length; i++)
-            {
-                var r = p.Renderers[i];
-                var was = p.Before[i];
-                if (r == null || was == null) return false;
-                var mesh = MeshOf(r);
-                if (!ReferenceEquals(mesh, p.Meshes[i])) return false;
-                if (mesh != null && (mesh.vertexCount != p.Verts[i] || mesh.subMeshCount != p.Subs[i])) return false;
-                var now = r.sharedMaterials;
-                if (now.Length != was.Length) return false;
-                for (int j = 0; j < now.Length; j++) if (!ReferenceEquals(now[j], was[j])) return false;
-            }
-            return true;
-        }
-
-        public static void Report()
-        {
-            int now = Environment.TickCount;
-            if (unchecked(now - nextReport) < 0) return;
-            nextReport = now + 60000;
-            int s = skipped - skippedR, q = passed - passedR, f = foreign - foreignR;
-            if (s == 0 && q == 0 && f == 0) return;
-            skippedR = skipped; passedR = passed; foreignR = foreign;
-            if (Settings.B("UniformLog")) Util.Log("Uniform-Fix: letzte Minute " + s + " unnötige Neuaufbauten übersprungen, " + q + " durchgelassen, " + f + " von anderen Mods unberührt. Sitzung: " + skipped + "/" + passed + "/" + foreign + ".");
-        }
-
-        public static void Error(Exception e) { if (!errorLogged) { errorLogged = true; Util.Log("Uniform-Fix: Fehler, Spielverhalten (einmalig): " + e); } }
-    }
-
-    [HarmonyPatch]
-    internal static class UniformFix_Apply
-    {
-        private static bool Prepare() => UniformFix.Apply() != null;
-        private static MethodBase TargetMethod() => UniformFix.Apply();
-
-        private static void Prefix(object[] __args)
-        {
-            UniformFix.pending = null;
-            UniformFix.afterBody = null;
-            try
-            {
-                if (!UniformFix.On || __args == null || __args.Length < 2) return;
-                var wearable = __args[1] as Component;
-                object character = __args[0] == null ? null : UniformFix.redirectCharacter.GetValue(__args[0]);
-                if (wearable == null || character == null) return;
-                var set = new List<Renderer>();
-                if (character is Component body) foreach (var r in body.GetComponentsInChildren<Renderer>(true)) if (r != null) set.Add(r);
-                var lods = wearable.GetComponent<LODReferences>();
-                var levels = lods != null ? lods.GetLODsDirect() : null;
-                if (levels != null)
-                    foreach (var lv in levels)
-                    {
-                        if (lv == null || lv.renderers == null) continue;
-                        foreach (var r in lv.renderers) if (r != null && !set.Contains(r)) set.Add(r);
-                    }
-                foreach (var r in wearable.GetComponentsInChildren<Renderer>(true)) if (r != null && !set.Contains(r)) set.Add(r);
-                var rs = set.ToArray();
-                var p = new UniformFix.Pending { Character = character, Renderers = rs, Before = new Material[rs.Length][], Meshes = new Mesh[rs.Length], Verts = new int[rs.Length], Subs = new int[rs.Length] };
-                for (int i = 0; i < rs.Length; i++)
-                {
-                    p.Before[i] = rs[i] != null ? rs[i].sharedMaterials : null;
-                    p.Meshes[i] = UniformFix.MeshOf(rs[i]);
-                    p.Verts[i] = p.Meshes[i] != null ? p.Meshes[i].vertexCount : -1;
-                    p.Subs[i] = p.Meshes[i] != null ? p.Meshes[i].subMeshCount : -1;
-                }
-                UniformFix.pending = p;
-            }
-            catch (Exception e) { UniformFix.pending = null; UniformFix.Error(e); }
-        }
-
-        // Runs first among postfixes: from here on rebuild requests come from other mods.
-        [HarmonyPriority(Priority.First)]
-        [HarmonyBefore("officersandsailors.nzo.compat")]
-        private static void Postfix()
-        {
-            var p = UniformFix.pending;
-            UniformFix.pending = null;
-            UniformFix.afterBody = p != null ? p.Character : null;
-        }
-
-        private static Exception Finalizer(Exception __exception)
-        {
-            UniformFix.pending = null;
-            UniformFix.afterBody = null;
-            UniformFix.Report();
-            return __exception;
-        }
-    }
-
-    [HarmonyPatch]
-    internal static class UniformFix_Dirty
-    {
-        private static bool Prepare() => UniformFix.Apply() != null;
-        private static MethodBase TargetMethod() => AccessTools.Method(typeof(Character), "SetLODLevelsDirty", Type.EmptyTypes);
-
-        private static bool Prefix(object __instance)
-        {
-            var p = UniformFix.pending;
-            if (p == null)
-            {
-                if (UniformFix.afterBody != null && ReferenceEquals(UniformFix.afterBody, __instance)) UniformFix.foreign++;
-                return true;
-            }
-            if (!ReferenceEquals(p.Character, __instance)) return true;
-            try { if (UniformFix.Unchanged(p)) { UniformFix.skipped++; return false; } }
-            catch (Exception e) { UniformFix.Error(e); }
-            UniformFix.passed++;
-            return true;
-        }
-    }
-
-    // Companion fixes for the "Projekt Bifrost" mod: its gauges are updated at a few Hz instead of
-    // every frame (list in toolkit-bifrost-throttle.txt, "Typ = Hz"), its depth-charge tally no longer
-    // throws on every detonation when its chalkboard never bound, plus a UI path report in the log.
-    internal static class BifrostCfg
-    {
-        private static readonly string[] DefaultTypes = { "ThermoPlath", "Uboat.Mods.Moonphase.Mapper.SmoothRotator", "IndicatorHandlerEM2", "IndicatorHandler", "Uboat.Mods.Moonphase.Mapper.Thermo_outer", "Uboat.Mods.Moonphase.Mapper.hgWet" };
-        private static readonly float[] DefaultHz = { 10f, 30f, 10f, 10f, 10f, 10f };
-        private static List<KeyValuePair<string, float>> list;
-        public static bool On => Settings.B("FixBifrost");
-        private static string FilePath => System.IO.Path.Combine(Settings.Folder, "toolkit-bifrost-throttle.txt");
-
-        public static List<KeyValuePair<string, float>> Throttles()
-        {
-            if (list != null) return list;
-            list = new List<KeyValuePair<string, float>>();
-            for (int i = 0; i < DefaultTypes.Length; i++) list.Add(new KeyValuePair<string, float>(DefaultTypes[i], DefaultHz[i]));
-            try
-            {
-                if (!System.IO.File.Exists(FilePath))
-                {
-                    System.IO.Directory.CreateDirectory(Settings.Folder);
-                    var sb = new System.Text.StringBuilder();
-                    sb.AppendLine("# Bifrost-Anzeigen: wie oft pro Sekunde sie neu gerechnet werden (0 = jedes Bild).");
-                    sb.AppendLine("# Zeile: Typname = Hz. Neue Zeilen für weitere Anzeigen sind erlaubt. Wirkt nach Spiel-Neustart.");
-                    for (int i = 0; i < DefaultTypes.Length; i++) sb.AppendLine(DefaultTypes[i] + " = " + DefaultHz[i].ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    System.IO.File.WriteAllText(FilePath, sb.ToString());
-                }
-                foreach (var raw in System.IO.File.ReadAllLines(FilePath))
-                {
-                    var line = raw.Trim();
-                    if (line.Length == 0 || line[0] == '#') continue;
-                    int eq = line.IndexOf('=');
-                    if (eq <= 0) continue;
-                    string type = line.Substring(0, eq).Trim();
-                    if (!float.TryParse(line.Substring(eq + 1).Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float hz)) continue;
-                    hz = Mathf.Clamp(hz, 0f, 120f);
-                    int at = list.FindIndex(kv => string.Equals(kv.Key, type, StringComparison.OrdinalIgnoreCase));
-                    if (at >= 0) list[at] = new KeyValuePair<string, float>(type, hz); else list.Add(new KeyValuePair<string, float>(type, hz));
-                }
-            }
-            catch (Exception e) { Util.Log("Bifrost-Fix: Liste nicht lesbar, nehme Standard: " + e.Message); }
-            return list;
-        }
-    }
-
-    [HarmonyPatch]
-    internal static class Bifrost_Throttle
-    {
-        private static readonly Dictionary<int, float> nextDue = new Dictionary<int, float>();
-        private static readonly Dictionary<Type, float> interval = new Dictionary<Type, float>();
-        public static long Skipped, Ran;
-
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            var missing = new List<string>();
-            foreach (var kv in BifrostCfg.Throttles())
-            {
-                var t = UboatToolkit.Util.FindType(kv.Key);
-                var u = t == null ? null : AccessTools.DeclaredMethod(t, "Update");
-                if (u == null) { missing.Add(kv.Key); continue; }
-                interval[t] = kv.Value <= 0f ? 0f : 1f / kv.Value;
-                yield return u;
-            }
-            if (missing.Count > 0 && interval.Count > 0) Util.Log("Bifrost-Fix: nicht gefunden (übersprungen): " + string.Join(", ", missing.ToArray()));
-        }
-
-        private static bool Prepare()
-        {
-            foreach (var kv in BifrostCfg.Throttles()) if (UboatToolkit.Util.FindType(kv.Key) != null) return true;
-            return false;
-        }
-
-        private static bool Prefix(MonoBehaviour __instance)
-        {
-            try
-            {
-                if (!BifrostCfg.On || __instance == null) return true;
-                if (!interval.TryGetValue(__instance.GetType(), out float iv) || iv <= 0f) return true;
-                int id = __instance.GetInstanceID();
-                float now = Time.unscaledTime;
-                if (nextDue.TryGetValue(id, out float due) && now < due) { Skipped++; return false; }
-                if (nextDue.Count >= 256 && !nextDue.ContainsKey(id)) nextDue.Clear();   // forget destroyed instances
-                nextDue[id] = now + iv;
-                Ran++;
-                return true;
-            }
-            catch { return true; }
-        }
-
-        private static void Cleanup()
-        {
-            if (interval.Count == 0) return;
-            Util.Log("Bifrost-Fix: " + interval.Count + " Anzeige(n) gedrosselt.");
-            Application.quitting += () =>
-            {
-                long all = Skipped + Ran;
-                if (all == 0) return;
-                Util.Log("Bifrost-Fix: Sitzung " + Skipped + " von " + all + " Anzeige-Updates gespart (" + (Skipped * 100.0 / all).ToString("0.0") + " %)" + (Bifrost_DepthCharge.Suppressed > 0 ? ", " + Bifrost_DepthCharge.Suppressed + " Wasserbomben-Fehler verhindert" : "") + ".");
-            };
-        }
-    }
-
-    [HarmonyPatch]
-    internal static class Bifrost_DepthCharge
-    {
-        private static FieldInfo chalk;
-        private static bool logged;
-        public static int Suppressed;
-
-        private static MethodBase Target()
-        {
-            var t = UboatToolkit.Util.FindType("UBOAT.Mods.Moonphase.Main");
-            if (t == null) return null;
-            chalk = AccessTools.Field(t, "chalkHandler");
-            var m = AccessTools.DeclaredMethod(t, "depthChargesDetonatedDuringCurrentEncounterChanged");
-            return chalk != null ? m : null;
-        }
-
-        private static bool Prepare() => Target() != null;
-        private static MethodBase TargetMethod() => Target();
-
-        private static bool Prefix()
-        {
-            try
-            {
-                if (!BifrostCfg.On || !Settings.B("FixBifrostDepthCharge")) return true;
-                if (chalk.GetValue(null) as UnityEngine.Object != null) return true;
-                Suppressed++;
-                if (!logged) { logged = true; Util.Log("Bifrost-Fix: Kreidetafel nie verbunden - Wasserbomben-Zähler übersprungen (sonst Fehler bei jeder Detonation). Wasserbomben selbst unverändert."); }
-                return false;
-            }
-            catch (Exception e)
-            {
-                if (!logged) { logged = true; Util.Log("Bifrost-Fix: Wächter fehlgeschlagen, Bifrost läuft normal: " + e.Message); }
-                return true;
-            }
-        }
-    }
-
-    // Writes Bifrost's UI paths to the log once, 20 s after the game UI appears.
-    public class BifrostProbe : ModuleBase
-    {
-        private float probeAt = -1f, firstTry = -1f, nextTry;
-        private bool done;
-        private static int moonphase;   // 0 = not checked yet, 1 = there, 2 = not there (TypeByName scans every assembly: ~350 ms)
-        private static readonly string[] Paths = { "GUI/Viewport/Main UI Area", "GUI/Viewport/Main UI Area/TimeCompressionExtendedUI", "GUI/Viewport/Main UI Area/TimeCompressionExtendedUI Alternative", "GUI/Viewport/Main UI Area/TimeCompressionExtendedUI Alternative/Timer" };
-
-        public override void Tick()
-        {
-            if (done || !BifrostCfg.On || !Settings.B("BifrostUiLog")) return;
-            if (moonphase == 0) moonphase = UboatToolkit.Util.FindType("UBOAT.Mods.Moonphase.Main") != null ? 1 : 2;
-            if (moonphase == 2) { done = true; return; }
-            float now = Time.unscaledTime;
-            // GameObject.Find searches the whole scene (300-600 ms here). It ran every second for as long as the
-            // UI path was missing, i.e. all game long. Now: one try every 15 s, give up after 5 minutes.
-            if (probeAt < 0f)
-            {
-                if (firstTry < 0f) firstTry = now;
-                if (now - firstTry > 300f) { done = true; Util.Log("Bifrost-Fix: UI-Pfad nicht gefunden, Prüfung beendet"); return; }
-                if (now < nextTry) return;
-                nextTry = now + 15f;
-                if (GameObject.Find(Paths[0]) != null) probeAt = now + 20f;
-            }
-            if (probeAt < 0f || now < probeAt) return;
-            done = true;
-            Util.Safe("Bifrost.Probe", () =>
-            {
-                var sb = new System.Text.StringBuilder("Bifrost-Fix: UI-Pfade:");
-                foreach (var p in Paths)
-                {
-                    var go = GameObject.Find(p);
-                    sb.Append("\n   ").Append(go != null ? "OK      " : "FEHLT   ").Append(p);
-                    if (go != null) sb.Append("  (Kinder ").Append(go.transform.childCount).Append(", Text ").Append(go.GetComponentsInChildren<UnityEngine.UI.Text>(true).Length).Append(", Bild ").Append(go.GetComponentsInChildren<UnityEngine.UI.Image>(true).Length).Append(")");
-                }
-                var area = GameObject.Find(Paths[0]);
-                if (area != null)
-                {
-                    sb.Append("\n   Kinder von 'Main UI Area':");
-                    for (int i = 0; i < area.transform.childCount; i++) sb.Append("\n     ").Append(area.transform.GetChild(i).name).Append(area.transform.GetChild(i).gameObject.activeInHierarchy ? "" : "  (inaktiv)");
-                }
-                Util.Log(sb.ToString());
-            });
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::DWS.Common.Characters;
-    using global::UBOAT.Game.Scene.Effects;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UnityEngine.SceneManagement;
-    using global::UBOAT.Game.UI.MainMenu;
-
-    // Fix for mods that give characters clothes which do not exist in the game (seen: "Cap NCO" from
-    // "officers-and-sailors-better-ncos"). The game then writes two red errors per character and the
-    // piece stays empty anyway. Here a missing accessory is simply left out, without the errors.
-    [HarmonyPatch]
-    internal static class MissingWearable_Patch
-    {
-        private static DWS.Common.Resources.ResourceManager rm;
-        private static readonly HashSet<string> reported = new HashSet<string>();
-
-        private static IEnumerable<MethodBase> TargetMethods()
-        {
-            yield return AccessTools.Method(typeof(Character), "LoadWearable", new[] { typeof(string), typeof(bool) });
-            yield return AccessTools.Method(typeof(Character), "LoadWearableAsync", new[] { typeof(string), typeof(bool) });
-        }
-
-        private static bool Prefix(string path)
-        {
-            try
-            {
-                if (!Settings.B("FixMissingWearables") || path == null || !path.StartsWith("Character/Accessories/")) return true;
-                if (rm == null) rm = Traverse.Create(typeof(Character)).Field("resourceManager").GetValue<DWS.Common.Resources.ResourceManager>();
-                if (rm == null || rm.AssetExists(path)) return true;
-                if (reported.Add(path)) Util.Log("Kleidung fehlt im Spiel, wird weggelassen: " + path);
-                return false;   // LoadWearable then returns null, same as the game does after its error
-            }
-            catch { return true; }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/PerfLogger.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Globalization;
-    using global::System.IO;
-    using global::System.Linq;
-    using global::System.Reflection;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UnityEngine.Profiling;
-    using global::UnityEngine.SceneManagement;
-    using global::UBOAT.Game.Scene.Entities;
-
-    // Performance logger (plan: /uboat/logger-mod-plan.md). Off by default.
-    // Writes one small CSV per session to <persistent data>/UboatToolkit/logs (max. about 10 MB):
-    //  1. scene load times, 2. frames slower than 100 ms, 3. memory + GC every 5 min,
-    //  4. object counts every 5 min, 5. hotspot finder (F11): time spent in the game's Update methods, top 20 per minute.
-    public class PerfLogger : ModuleBase
-    {
-        private const long MaxBytes = 10L * 1024 * 1024;
-        private static string file;
-        private static long written;
-        private static double sceneLoadStart;
-        private float nextMemory, nextObjects;
-        private bool hooked;
-
-        // hotspot finder
-        private static readonly Dictionary<MethodBase, double> timeSpent = new Dictionary<MethodBase, double>();
-        private static readonly List<MethodBase> patched = new List<MethodBase>();
-        private static bool hotspotsOn;
-        private float nextHotspotDump;
-
-        private static void Write(string kind, string a, string b = "", string c = "")
-        {
-            if (!Settings.B("PerfLogger")) return;
-            try
-            {
-                if (file == null)
-                {
-                    var dir = Path.Combine(Settings.Folder, "logs");
-                    Directory.CreateDirectory(dir);
-                    file = Path.Combine(dir, "perf-" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".csv");
-                    File.WriteAllText(file, "time;realtime_s;kind;value1;value2;value3\n");
-                }
-                if (written > MaxBytes) return;
-                string line = DateTime.Now.ToString("HH:mm:ss.fff") + ";" + Time.realtimeSinceStartup.ToString("0.00", CultureInfo.InvariantCulture) + ";" + kind + ";" + a + ";" + b + ";" + c + "\n";
-                written += line.Length;
-                BgFile.Append(file, line);
-            }
-            catch (Exception e) { Util.Log("logger: " + e.Message); }
-        }
-
-        public override void Frame()
-        {
-            if (!hooked)
-            {
-                hooked = true;
-                SceneManager.sceneLoaded += (s, m) =>
-                {
-                    double took = Time.realtimeSinceStartupAsDouble - sceneLoadStart;
-                    Write("scene_loaded", s.name, sceneLoadStart > 0 ? took.ToString("0.00", CultureInfo.InvariantCulture) + " s since previous scene change" : "");
-                    sceneLoadStart = Time.realtimeSinceStartupAsDouble;
-                };
-                SceneManager.sceneUnloaded += s => { Write("scene_unloaded", s.name); sceneLoadStart = Time.realtimeSinceStartupAsDouble; };
-            }
-            if (!Settings.B("PerfLogger")) { if (hotspotsOn) SetHotspots(false); return; }
-
-            float ms = Time.unscaledDeltaTime * 1000f;
-            if (ms > 100f) Write("slow_frame", ms.ToString("0", CultureInfo.InvariantCulture) + " ms");
-            FrameSplit.Sample();
-
-            float now = Time.unscaledTime;
-            if (now >= nextMemory)
-            {
-                nextMemory = now + 300f;
-                Write("memory", "mono_MB=" + (Profiler.GetMonoUsedSizeLong() / 1048576),
-                    "reserved_MB=" + (Profiler.GetTotalReservedMemoryLong() / 1048576),
-                    "gc_runs=" + GC.CollectionCount(0) + "/" + GC.CollectionCount(1) + "/" + GC.CollectionCount(2));
-            }
-            if (now >= nextObjects)
-            {
-                nextObjects = now + 300f;
-                Write("objects", "gameobjects=" + Resources.FindObjectsOfTypeAll<GameObject>().Length,
-                    "textures=" + Resources.FindObjectsOfTypeAll<Texture>().Length + " meshes=" + Resources.FindObjectsOfTypeAll<Mesh>().Length,
-                    "sounds=" + Resources.FindObjectsOfTypeAll<AudioClip>().Length);
-            }
-
-            bool button = Settings.B("PerfHotspotsNow");
-            if (button) Settings.Set("PerfHotspotsNow", 0);
-            if (Settings.B("PerfHotspots") && (button || Keys.Down("KeyHotspotFinder2"))) SetHotspots(!hotspotsOn);
-            if (!Settings.B("PerfHotspots") && hotspotsOn) SetHotspots(false);
-            if (hotspotsOn && now >= nextHotspotDump)
-            {
-                nextHotspotDump = now + 60f;
-                int rank = 0;
-                foreach (var kv in timeSpent.OrderByDescending(k => k.Value).Take(20))
-                    Write("hotspot", (++rank).ToString(), kv.Key.DeclaringType?.Name + "." + kv.Key.Name, (kv.Value * 1000).ToString("0.0", CultureInfo.InvariantCulture) + " ms/min");
-                timeSpent.Clear();
-            }
-        }
-
-        private void SetHotspots(bool on)
-        {
-            var h = ToolkitLoader.Harmony;
-            var pre = new HarmonyMethod(AccessTools.Method(typeof(PerfLogger), nameof(Before)));
-            var post = new HarmonyMethod(AccessTools.Method(typeof(PerfLogger), nameof(After)));
-            if (on)
-            {
-                foreach (var type in AccessTools.GetTypesFromAssembly(typeof(PlayerShip).Assembly))
-                {
-                    if (!typeof(MonoBehaviour).IsAssignableFrom(type) || type.IsGenericTypeDefinition) continue;
-                    foreach (var name in new[] { "Update", "LateUpdate", "FixedUpdate" })
-                    {
-                        var m = AccessTools.DeclaredMethod(type, name, Type.EmptyTypes);
-                        if (m == null || m.IsAbstract || m.GetMethodBody() == null) continue;
-                        try { h.Patch(m, pre, post); patched.Add(m); } catch { }
-                    }
-                }
-                nextHotspotDump = Time.unscaledTime + 60f;
-                Write("hotspots", "on", patched.Count + " methods measured");
-            }
-            else
-            {
-                foreach (var m in patched)
-                {
-                    try { h.Unpatch(m, pre.method); h.Unpatch(m, post.method); } catch { }
-                }
-                patched.Clear();
-                timeSpent.Clear();
-                Write("hotspots", "off");
-            }
-            hotspotsOn = on;
-            UboatToolkit.ToolkitRunner.ShowNotice(on ? "Bremsen-Finder AN (kostet selbst Leistung) - Strg+Shift+H schaltet aus" : "Bremsen-Finder AUS", 5f);
-        }
-
-        private static void Before(out double __state) { __state = Time.realtimeSinceStartupAsDouble; }
-
-        private static void After(MethodBase __originalMethod, double __state)
-        {
-            double d = Time.realtimeSinceStartupAsDouble - __state;
-            timeSpent.TryGetValue(__originalMethod, out var t);
-            timeSpent[__originalMethod] = t + d;
-        }
-    }
-}
-
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Globalization;
-    using global::System.IO;
-    using global::System.Linq;
-    using global::System.Reflection;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UnityEngine.Profiling;
-    using global::UnityEngine.SceneManagement;
-    using global::UBOAT.Game.Scene.Entities;
-
-    // Frame split: where does a frame go (scripts, physics, drawing, garbage collection, audio...)?
-    // Uses Unity's own profiler counters (work in the development build), one "frame_split" line per minute.
-    internal static class FrameSplit
-    {
-        private static readonly string[] Names = {
-            "PlayerLoop", "BehaviourUpdate", "LateBehaviourUpdate", "FixedBehaviourUpdate", "Physics.Simulate",
-            "GC.Collect", "Camera.Render", "Gfx.WaitForPresentOnGfxThread", "Gfx.WaitForGfxCommandsFromMainThread",
-            "Animators.Update", "AudioManager.Update", "ParticleSystem.Update", "Canvas.SendWillRenderCanvases",
-            "NavMeshManager", "Loading.ReadObject", "Instantiate", "Destroy" };
-        // 0.3.72: the fixed list above explained only ~20 of ~46 ms per frame (convoy test 2026-11-16). Every engine phase
-        // of the frame ("PostLateUpdate.xyz" ...) and the UI / IMGUI / culling markers are recorded too; once per
-        // minute the 14 biggest are logged as "Frame-Phasen".
-        private static readonly string[] Prefixes = { "Initialization.", "EarlyUpdate.", "FixedUpdate.", "PreUpdate.", "Update.", "PreLateUpdate.", "PostLateUpdate.", "TimeUpdate." };
-        private static readonly string[] Extra = {
-            "UGUI.Rendering.UpdateBatches", "Canvas.BuildBatch", "Layout", "GUI.Repaint", "GUI.ProcessEvents", "GUIUtility.SetSkin", "Culling", "Render Camera",
-            "MeshSkinning.Update", "EventSystem.Update", "CoroutinesDelayedCalls", "Gfx.PresentFrame", "WaitForTargetFPS", "Semaphore.WaitForSignal",
-            "Director.Update", "Animators.Update", "UpdateRendererBoundingVolumes", "Shadows.RenderShadowMap", "Drawing", "RenderLoop.Prepare", "SceneCulling",
-            "ScriptableRenderContext.Submit", "Camera.FireOnPreCull", "OnPreCull", "OnPreRender", "OnPostRender", "OnRenderImage", "Physics.Processing", "Physics.ProcessReports",
-            "Physics.UpdateBodies", "Physics.SyncColliderTransform", "Physics.Raycast", "Terrain.Heightmap.RenderStep1", "Water", "UIEvents.WillRenderCanvases",
-            "MeshSkinning.GPUSkinning", "MeshSkinning.Skin", "MeshSkinning.Render", "RenderForward.RenderLoopJob", "RenderDeferred.GBuffer", "Batch.DrawInstanced", "Mesh.DrawVBO", "ParticleSystem.Draw",
-            "Gfx.WaitForRenderThread", "WaitForJobGroupID", "Gfx.WaitForPresentOnGfxThread", "JobHandle.Complete" };
-        private static readonly List<Unity.Profiling.ProfilerRecorder> rec2 = new List<Unity.Profiling.ProfilerRecorder>();
-        private static readonly List<string> name2 = new List<string>();
-        private static readonly List<double> sum2 = new List<double>();
-        private static Unity.Profiling.ProfilerRecorder[] rec;
-        private static double[] sum;
-        private static int frames; private static float nextDump; private static bool failed;
-
-        internal static void Sample()
-        {
-            if (failed) return;
-            try
-            {
-                if (rec == null)
-                {
-                    rec = new Unity.Profiling.ProfilerRecorder[Names.Length];
-                    sum = new double[Names.Length];
-                    var all = new List<Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle>();
-                    Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle.GetAvailable(all);
-                    var found = new List<string>();
-                    foreach (var h in all)
-                    {
-                        var d = Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle.GetDescription(h);
-                        int i = Array.IndexOf(Names, d.Name);
-                        if (i < 0 && rec2.Count < 160 && d.Name != null && !name2.Contains(d.Name))
-                        {
-                            bool want = Array.IndexOf(Extra, d.Name) >= 0;
-                            if (!want) foreach (var pre in Prefixes) if (d.Name.StartsWith(pre)) { want = true; break; }
-                            if (want) { rec2.Add(Unity.Profiling.ProfilerRecorder.StartNew(d.Category, d.Name, 1)); name2.Add(d.Name); sum2.Add(0); }
-                        }
-                        if (i < 0 || rec[i].Valid) continue;
-                        rec[i] = Unity.Profiling.ProfilerRecorder.StartNew(d.Category, d.Name, 1);
-                        found.Add(d.Name);
-                    }
-                    Util.Log("Frame-Aufteilung: " + found.Count + " von " + Names.Length + " Messpunkten gefunden, dazu " + rec2.Count + " Phasen");
-                    nextDump = Time.unscaledTime + 60f;
-                }
-                for (int i = 0; i < rec.Length; i++) if (rec[i].Valid) sum[i] += rec[i].LastValue / 1e6;
-                for (int i = 0; i < rec2.Count; i++) if (rec2[i].Valid) sum2[i] += rec2[i].LastValue / 1e6;
-                frames++;
-                if (Time.unscaledTime < nextDump) return;
-                nextDump = Time.unscaledTime + 60f;
-                var sb = new System.Text.StringBuilder();
-                sb.Append("frames=").Append(frames).Append(" fps=").Append((frames / 60f).ToString("0.0", CultureInfo.InvariantCulture)).Append(" ms/frame:");
-                for (int i = 0; i < rec.Length; i++)
-                    if (rec[i].Valid) sb.Append(' ').Append(Names[i]).Append('=').Append((sum[i] / Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture));
-                int ships = 0; foreach (var e in Entity.List) if (e is Ship) ships++;
-                sb.Append(" ships=").Append(ships);
-                Util.Log("Frame-Aufteilung " + sb);
-                if (rec2.Count > 0)
-                {
-                    var idx = new List<int>(); for (int i = 0; i < rec2.Count; i++) idx.Add(i);
-                    idx.Sort((a, b) => sum2[b].CompareTo(sum2[a]));
-                    var s2 = new System.Text.StringBuilder();
-                    for (int k = 0; k < idx.Count && k < 14; k++)
-                        s2.Append(' ').Append(name2[idx[k]]).Append('=').Append((sum2[idx[k]] / Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture));
-                    Util.Log("Frame-Phasen ms/frame:" + s2);
-                    for (int i = 0; i < sum2.Count; i++) sum2[i] = 0;
-                }
-                Util.Log("Toolkit-Kosten ms/frame: Anzeige=" + (ToolkitRunner.GuiSeconds * 1000.0 / Math.Max(1, frames)).ToString("0.00", CultureInfo.InvariantCulture)
-                    + " (" + (ToolkitRunner.GuiCalls / (float)Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture) + " Durchläufe/Bild, " + ToolkitRunner.GuiSkipped + " leere Durchläufe gespart) Module=" + (ToolkitRunner.ModuleSeconds * 1000.0 / Math.Max(1, frames)).ToString("0.00", CultureInfo.InvariantCulture));
-                // menu open and closed apart: is the cost the F10 menu or the always-on displays?
-                int closedCalls = ToolkitRunner.GuiCalls - ToolkitRunner.MenuCalls;
-                Util.Log("Toolkit-Anzeige ms je Durchlauf: Menü offen=" + (ToolkitRunner.MenuSeconds * 1000.0 / Math.Max(1, ToolkitRunner.MenuCalls)).ToString("0.00", CultureInfo.InvariantCulture)
-                    + " (" + ToolkitRunner.MenuCalls + "x), Menü zu=" + ((ToolkitRunner.GuiSeconds - ToolkitRunner.MenuSeconds) * 1000.0 / Math.Max(1, closedCalls)).ToString("0.00", CultureInfo.InvariantCulture)
-                    + " (" + closedCalls + "x)");
-                Util.Log("Toolkit-Bootssuche: " + Util.FindScans + " Suchläufe, zusammen " + (Util.FindSeconds * 1000.0).ToString("0", CultureInfo.InvariantCulture) + " ms in dieser Minute");
-                Util.FindScans = 0; Util.FindSeconds = 0;
-                ToolkitRunner.GuiSeconds = 0; ToolkitRunner.GuiCalls = 0; ToolkitRunner.GuiSkipped = 0; ToolkitRunner.ModuleSeconds = 0; ToolkitRunner.MenuSeconds = 0; ToolkitRunner.MenuCalls = 0;
-                for (int i = 0; i < sum.Length; i++) sum[i] = 0; frames = 0;
-            }
-            catch (Exception ex) { failed = true; Util.Log("Frame-Aufteilung aus: " + ex.Message); }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/QueueProfiler.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Globalization;
-    using global::System.IO;
-    using global::System.Linq;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Core;
-
-    // Brake finder for the game's own update dispatcher (ExecutionQueue).
-    // Most game logic does NOT run in MonoBehaviour.Update but as Action delegates in
-    // ExecutionQueue.update / lateUpdate / fixedUpdate (decompiled com.uboat.game.dll).
-    // The PerfLogger hotspot finder cannot see these. This module times each delegate.
-    // Setting "PerfQueue" (off by default). Writes to <Settings.Folder>/logs/queue-*.csv:
-    //  - every 60 s: top 20 delegates by time (ms per minute)
-    //  - every 5 min: list sizes (growing counts = leak hint: listeners added but never removed)
-    [HarmonyPatch]
-    public class QueueProfiler : ModuleBase
-    {
-        private static readonly AccessTools.FieldRef<ExecutionQueue, List<Action>> fUpdate = AccessTools.FieldRefAccess<ExecutionQueue, List<Action>>("update");
-        private static readonly AccessTools.FieldRef<ExecutionQueue, List<Action>> fLate = AccessTools.FieldRefAccess<ExecutionQueue, List<Action>>("lateUpdate");
-        private static readonly AccessTools.FieldRef<ExecutionQueue, List<Action>> fFixed = AccessTools.FieldRefAccess<ExecutionQueue, List<Action>>("fixedUpdate");
-        private static readonly AccessTools.FieldRef<ExecutionQueue, int> iUpdate = AccessTools.FieldRefAccess<ExecutionQueue, int>("currentUpdateIndex");
-        private static readonly AccessTools.FieldRef<ExecutionQueue, int> iLate = AccessTools.FieldRefAccess<ExecutionQueue, int>("currentLateUpdateIndex");
-        private static readonly AccessTools.FieldRef<ExecutionQueue, int> iFixed = AccessTools.FieldRefAccess<ExecutionQueue, int>("currentFixedUpdateIndex");
-
-        private static readonly Dictionary<string, double> spent = new Dictionary<string, double>();
-        private static ExecutionQueue lastQueue;
-        private static bool on;
-        private static string file;
-        private static long written;
-        private float nextTop, nextSizes;
-
-        public override void Frame()
-        {
-            on = Settings.B("PerfQueue");
-            if (!on) { spent.Clear(); return; }
-            float now = Time.unscaledTime;
-            if (now >= nextTop)
-            {
-                if (nextTop > 0f)
-                {
-                    int rank = 0;
-                    foreach (var kv in spent.OrderByDescending(k => k.Value).Take(20))
-                        Write("queue_top", (++rank).ToString(), kv.Key, (kv.Value * 1000).ToString("0.0", CultureInfo.InvariantCulture) + " ms/min");
-                }
-                spent.Clear();
-                nextTop = now + 60f;
-            }
-            if (now >= nextSizes && lastQueue != null)
-            {
-                nextSizes = now + 300f;
-                Write("queue_sizes", "update=" + fUpdate(lastQueue).Count, "late=" + fLate(lastQueue).Count, "fixed=" + fFixed(lastQueue).Count);
-            }
-        }
-
-        private static void Write(string kind, string a, string b, string c)
-        {
-            try
-            {
-                if (file == null)
-                {
-                    var dir = Path.Combine(Settings.Folder, "logs");
-                    Directory.CreateDirectory(dir);
-                    file = Path.Combine(dir, "queue-" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".csv");
-                    File.WriteAllText(file, "time;kind;value1;value2;value3\n");
-                }
-                if (written > 5L * 1024 * 1024) return;
-                string line = DateTime.Now.ToString("HH:mm:ss") + ";" + kind + ";" + a + ";" + b + ";" + c + "\n";
-                written += line.Length;
-                BgFile.Append(file, line);
-            }
-            catch (Exception e) { Util.Log("queue profiler: " + e.Message); }
-        }
-
-        private static string Name(Action a) =>
-            a.Method.DeclaringType != null ? a.Method.DeclaringType.Name + "." + a.Method.Name : a.Method.Name;
-
-        // Same loop as the original, plus timing. Index field is kept in sync because
-        // RemoveUpdateListener() adjusts it while the loop runs.
-        private static void Run(ExecutionQueue q, List<Action> list, AccessTools.FieldRef<ExecutionQueue, int> idx, int start)
-        {
-            idx(q) = start;
-            Action action = null;
-            try
-            {
-                while (idx(q) >= 0)
-                {
-                    action = list[idx(q)];
-                    double t = Time.realtimeSinceStartupAsDouble;
-                    action();
-                    double d = Time.realtimeSinceStartupAsDouble - t;
-                    string n = Name(action);
-                    spent.TryGetValue(n, out var old);
-                    spent[n] = old + d;
-                    idx(q)--;
-                }
-            }
-            catch (Exception ex)
-            {
-                if (action != null) Debug.LogError("Error in execution queue method \"" + Name(action) + "\".");
-                Debug.LogException(ex);
-                Run(q, list, idx, Mathf.Min(idx(q) - 1, list.Count - 1));
-            }
-        }
-
-        [HarmonyPatch(typeof(ExecutionQueue), "RunUpdates"), HarmonyPrefix]
-        private static bool RunUpdates(ExecutionQueue __instance, int index)
-        {
-            lastQueue = __instance;
-            if (!on) return true;
-            Run(__instance, fUpdate(__instance), iUpdate, index);
-            return false;
-        }
-
-        [HarmonyPatch(typeof(ExecutionQueue), "RunLateUpdates"), HarmonyPrefix]
-        private static bool RunLateUpdates(ExecutionQueue __instance, int index)
-        {
-            if (!on) return true;
-            Run(__instance, fLate(__instance), iLate, index);
-            return false;
-        }
-
-        [HarmonyPatch(typeof(ExecutionQueue), "RunFixedUpdates"), HarmonyPrefix]
-        private static bool RunFixedUpdates(ExecutionQueue __instance, int index)
-        {
-            if (!on) return true;
-            Run(__instance, fFixed(__instance), iFixed, index);
-            return false;
         }
     }
 }
@@ -39115,6 +30515,9004 @@ namespace UboatToolkit.Modules
 }
 
 // ====================================================================================================
+// Abschnitt: Modules/Traffic.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Scene.Entities;
+
+    // Time compression ignores fishing boats and friendly (green) ships, and
+    // "back to water": if the boat is stuck on land anyway, it is put back at the last safe spot at sea.
+    public class Traffic : ModuleBase
+    {
+        private Vector2 lastSafe;
+        private bool hasSafe;
+        private float stuckSince = -1f;
+
+        // true = this group should not stop time compression.
+        public static bool Ignore(SandboxGroup g)
+        {
+            if (g == null) return false;
+            if (Settings.B("IgnoreFishingBoats") && g.Type == "Fishing Boat") return true;
+            var me = Util.PlayerShip?.SandboxEntity?.Country;
+            if (g.Country == null || me == null) return false;
+            var rel = g.Country.GetRelationWith(me);
+            if (Settings.B("IgnoreAlliedShips") && rel == Country.Relation.Ally) return true;
+            if (Settings.B("IgnoreNeutralShips") && rel == Country.Relation.Neutral) return true;
+            return false;
+        }
+
+        // For the mod's own contact stop: true if all ships of this contact are ignored.
+        public static bool Ignore(IContactInfo c)
+        {
+            var list = new List<SingularContactInfo>();
+            if (c is SingularContactInfo s) list.Add(s);
+            else if (c is CompoundContactInfo cc)
+                list.AddRange(Traverse.Create(cc).Field("entityInfos").GetValue<List<SingularContactInfo>>() ?? new List<SingularContactInfo>());
+            if (list.Count == 0) return false;
+            foreach (var x in list)
+            {
+                var e = Traverse.Create(x).Field("entity").GetValue<SandboxEntity>();
+                if (!Ignore(e?.Group)) return false;
+            }
+            return true;
+        }
+
+        public override void Tick()
+        {
+            var w = Game.Wolfpack;
+            var ship = Util.PlayerShip;
+            if (w == null || ship.Docked) { stuckSince = -1f; return; }
+
+            // Remember the last spot with at least 1 km water to the coast.
+            if (w.LandDistance > 1f) { lastSafe = w.Position; hasSafe = true; }
+
+            var o = Settings.Get("BackToWaterNow");
+            if (o != null && o.On) { o.Value = 0; BackToWater("von Hand"); return; }
+
+            if (!Settings.B("BackToWater")) { stuckSince = -1f; return; }
+            bool engineOn = ship.ActiveEngine != null && ship.ActiveEngine.GearIndex != 0;
+            bool stuck = w.LandDistance < 0.3f && engineOn && Mathf.Abs(ship.AverageVelocity) < 0.3f;
+            if (!stuck) { stuckSince = -1f; return; }
+            if (stuckSince < 0f) { stuckSince = Time.unscaledTime; return; }
+            if (Time.unscaledTime - stuckSince >= Settings.F("BackToWaterSeconds")) BackToWater("automatisch");
+        }
+
+        private void BackToWater(string how)
+        {
+            stuckSince = -1f;
+            if (!hasSafe) { ToolkitRunner.ShowNotice("Keine sichere Stelle gemerkt", 4f); return; }
+            var w = Game.Wolfpack;
+            var tc = Game.TimeCompression;
+            if (tc != null) tc.TimeCompression = false;
+            w.SetPosition(lastSafe, true, true);
+            ToolkitRunner.ShowNotice("Zurück ins Wasser (" + how + ")", 6f);
+        }
+    }
+
+    // The game's own time compression stop on a new sighting: undo it for ignored groups.
+    [HarmonyPatch(typeof(SandboxPlayerWolfpack), "PlayerWolfpack_ObservationAdded")]
+    internal static class Traffic_ObservationPatch
+    {
+        private static void Prefix(out bool __state)
+        {
+            __state = Game.TimeCompression?.TimeCompression ?? false;
+        }
+
+        private static void Postfix(GroupObservation observation, bool __state)
+        {
+            var tc = Game.TimeCompression;
+            if (!__state || tc == null || tc.TimeCompression) return;
+            if (Traffic.Ignore(observation?.Group)) tc.TimeCompression = true;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/WolfpackTuning.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Sandbox.HQ;
+    using global::UBOAT.Game.Sandbox.Missions;
+
+    // Wolfpack settings: from which date packs form, chance, max boats, first target tonnage.
+    // Done by swapping the game's own values in its code (transpiler); untouched if the game changed.
+    internal static class WolfpackTuning
+    {
+        public static readonly string[] FromNames = { "September 1940 (erster Rudel-Einsatz)", "Juli 1940", "November 1940", "Januar 1941", "8. Mai 1941 (Spiel)" };
+        private static readonly DateTime[] FromDates = { new DateTime(1940, 9, 1), new DateTime(1940, 7, 1), new DateTime(1940, 11, 1), new DateTime(1941, 1, 1), new DateTime(1941, 5, 8) };
+        private static bool On => Settings.B("Wolfpack");
+
+        internal static readonly MethodInfo ToFloat = Conversion("op_Implicit", typeof(float));
+        internal static readonly MethodInfo ToInt = Conversion("op_Explicit", typeof(int));
+        private static MethodInfo Conversion(string name, Type returns)
+        {
+            try
+            {
+                foreach (var m in typeof(GameDataReference).GetMethods(BindingFlags.Public | BindingFlags.Static))
+                {
+                    if (m.Name != name || m.ReturnType != returns) continue;
+                    var ps = m.GetParameters();
+                    if (ps.Length == 1 && ps[0].ParameterType == typeof(GameDataReference)) return m;
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        public static DateTime GateDate(int year, int month, int day)
+        {
+            if (!On) return new DateTime(year, month, day);
+            int i = (int)Math.Round(Settings.F("WolfpackFrom"));
+            return FromDates[i < 0 || i >= FromDates.Length ? 0 : i];
+        }
+        public static float Probability(GameDataReference r) { float v = (float)r; return On ? Math.Max(5f, Math.Min(100f, Settings.F("WolfpackChance"))) / 100f : v; }
+        public static float MaxUnits(GameDataReference r) { float v = (float)r; return On ? Math.Max(2f, Math.Min(8f, (float)Math.Round(Settings.F("WolfpackBoats")))) : v; }
+        public static int FirstObjectiveGrt(GameDataReference r) { int v = (int)r; return On ? (int)Math.Max(1000f, Math.Min(50000f, Settings.F("WolfpackGrt"))) : v; }
+
+        internal static bool IsCall(CodeInstruction c, MethodInfo m) => m != null && (c.opcode == OpCodes.Call || c.opcode == OpCodes.Callvirt) && c.operand as MethodInfo == m;
+        internal static bool IsStaticLoad(CodeInstruction c, string name) => c.opcode == OpCodes.Ldsfld && (c.operand as FieldInfo)?.Name == name;
+        internal static bool IsDateCtor(CodeInstruction c)
+        {
+            var ctor = c.operand as ConstructorInfo;
+            if (c.opcode != OpCodes.Newobj || ctor == null || ctor.DeclaringType != typeof(DateTime)) return false;
+            var ps = ctor.GetParameters();
+            return ps.Length == 3 && ps[0].ParameterType == typeof(int) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int);
+        }
+
+        // Replaces the call right after "ldsfld name" with our method (exactly one site, else untouched).
+        internal static List<CodeInstruction> SwapAfterField(IEnumerable<CodeInstruction> code, string field, MethodInfo conv, string ours, string where)
+        {
+            var list = new List<CodeInstruction>(code);
+            int site = -1, found = 0;
+            for (int i = 0; i + 1 < list.Count; i++)
+                if (IsStaticLoad(list[i], field) && IsCall(list[i + 1], conv)) { site = i + 1; found++; }
+            if (found != 1) { Util.Log("Rudel: " + where + " Stelle " + field + " " + found + "/1 - nicht geändert (Spiel-Update?)"); return list; }
+            list[site].operand = AccessTools.Method(typeof(WolfpackTuning), ours);
+            return list;
+        }
+    }
+
+    [HarmonyPatch(typeof(Headquarters), "ParseReport")]
+    internal static class Wolfpack_ParseReportPatch
+    {
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
+        {
+            var list = new List<CodeInstruction>(code);
+            int dates = 0, probs = 0;
+            foreach (var c in list) { if (WolfpackTuning.IsDateCtor(c)) dates++; else if (WolfpackTuning.IsCall(c, WolfpackTuning.ToFloat)) probs++; }
+            if (dates != 1 || probs != 1) { Util.Log("Rudel: ParseReport Datum " + dates + "/1, Chance " + probs + "/1 - nicht geändert (Spiel-Update?)"); return list; }
+            foreach (var c in list)
+            {
+                if (WolfpackTuning.IsDateCtor(c)) { c.opcode = OpCodes.Call; c.operand = AccessTools.Method(typeof(WolfpackTuning), "GateDate"); }
+                else if (WolfpackTuning.IsCall(c, WolfpackTuning.ToFloat)) c.operand = AccessTools.Method(typeof(WolfpackTuning), "Probability");
+            }
+            return list;
+        }
+    }
+
+    [HarmonyPatch(typeof(Headquarters), "StartWolfpack")]
+    internal static class Wolfpack_StartPatch
+    {
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code) =>
+            WolfpackTuning.SwapAfterField(code, "maxUnitsPerWolfpack", WolfpackTuning.ToFloat, "MaxUnits", "StartWolfpack");
+    }
+
+    [HarmonyPatch(typeof(WolfpackAttackMission), "OnMissionStarted")]
+    internal static class Wolfpack_MissionPatch
+    {
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code) =>
+            WolfpackTuning.SwapAfterField(code, "wolfpackFirstObjectiveGRT", WolfpackTuning.ToInt, "FirstObjectiveGrt", "OnMissionStarted");
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Wasserbomben-Zähler (0.4.32)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+
+    // DoMe 2026-11-18: wants the depth charge achievement ("Survivor"). Game rule (SurvivorAchievement, DepthCharge.Explode):
+    // 100 depth charges must explode closer than 1500 m to the boat during ONE encounter; the achievement is given
+    // when the boat then leaves the group area and is in no enemy area any more. Leaving earlier resets the count.
+    // This only shows the game's own counter (display, nothing is changed).
+    [HarmonyPatch(typeof(UBOAT.Game.Sandbox.PlayerCareer), "DepthChargesDetonatedDuringCurrentEncounter", MethodType.Setter)]
+    internal static class DepthChargeCounter_Patch
+    {
+        private static int last;
+        private static void Postfix(UBOAT.Game.Sandbox.PlayerCareer __instance)
+        {
+            try
+            {
+                int n = __instance.DepthChargesDetonatedDuringCurrentEncounter;
+                if (n == last) return;
+                int before = last; last = n;
+                if (!Settings.B("DepthChargeCounter")) return;
+                if (n == 0) { if (before > 0) Util.Log("Wasserbomben-Zähler: zurück auf 0 (Begegnung verlassen), vorher " + before); return; }
+                if (n == 1 || n % 10 == 0 || n == 100)
+                {
+                    Util.Log("Wasserbomben-Zähler: " + n + " von 100 in dieser Begegnung");
+                    UboatToolkit.ToolkitRunner.ShowNotice(n >= 100 ? "Wasserbomben: " + n + "/100 erreicht. Jetzt ablaufen, bis kein Gegner-Gebiet mehr da ist!" : "Wasserbomben: " + n + "/100", n >= 100 ? 10f : 3f);
+                }
+            }
+            catch { }
+        }
+    }
+}
+
+// ####################################################################################################
+// BEREICH 3 CHEATS
+// ####################################################################################################
+
+// ====================================================================================================
+// Abschnitt: Modules/Pump.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UnityEngine;
+
+    // QoL #38: pump switches on by itself when there is water in the boat.
+    // Cheat #38: strong pump (x power), works at any depth, boat can never fill up with water.
+    public class Pump : ModuleBase
+    {
+        public override void Tick()
+        {
+            var tw = Settings.Get("CheatPumpTestWater");
+            if (tw != null && tw.On) { tw.Value = 0; Util.Safe("Testwasser", TestWater); }
+            if (!Settings.B("AutoPump")) return;
+            var ship = Util.PlayerShip;
+            foreach (var p in Util.Find<TrimPump>())
+                if (Util.IsPlayers(p) && !p.enabled && Pump_Patch.InteriorWater(ship) > 0.1)   // 0.4.0: only water in the rooms counts, not trim/hull tanks
+                {
+                    p.SetDisableFlag(DeviceDisableFlag.TurnedOff, false);
+                    Util.Log("Pumpe automatisch an");
+                }
+        }
+
+        // DoMe 2026-11-17: "put 1-10 m³ water into the boat, to test the pumps". Water goes into the compartment the
+        // camera is in (else the control room, else the first one), at most up to the compartment's size.
+        private static void TestWater()
+        {
+            var ship = Util.PlayerShip;
+            if (ship == null || ship.Interior == null) { ToolkitRunner.ShowNotice("Testwasser: kein Boot", 3f); return; }
+            float m3 = Mathf.Clamp(Settings.F("CheatPumpTestWaterM3"), 1f, 10f);
+            UBOAT.Game.Scene.Items.Compartment c = null;
+            var cam = Camera.main;
+            if (cam != null) { try { c = ship.Interior.FindContainingCompartment(cam.transform.position); } catch { } }
+            if (c == null)
+                foreach (var x in ship.Interior.Compartments)
+                    if (x != null && (x.name.IndexOf("Control", System.StringComparison.OrdinalIgnoreCase) >= 0 || x.name.IndexOf("Zentrale", System.StringComparison.OrdinalIgnoreCase) >= 0)) { c = x; break; }
+            if (c == null && ship.Interior.Compartments.Length > 0) c = ship.Interior.Compartments[0];
+            if (c == null) { ToolkitRunner.ShowNotice("Testwasser: kein Raum gefunden", 3f); return; }
+            double before = c.Water;
+            double after = System.Math.Min((double)c.Capacity, before + m3);
+            c.Water = after;
+            string note = Settings.B("CheatNeverFlood") ? " (Achtung: \"Boot kann nie volllaufen\" ist an, das Wasser verschwindet sofort)" : "";
+            Util.Log("Testwasser: " + (after - before).ToString("0.0") + " m³ in " + c.name + " (vorher " + before.ToString("0.0") + ", jetzt " + after.ToString("0.0") + " m³)" + note);
+            ToolkitRunner.ShowNotice("Testwasser: " + (after - before).ToString("0.0") + " m³ in " + c.name + note, 5f);
+        }
+
+        public override void Frame()
+        {
+            if (!Settings.B("CheatNeverFlood")) return;
+            var ship = Util.PlayerShip;
+            if (ship == null) return;
+            foreach (var c in ship.Interior.Compartments)
+                if (c != null && c.Water > 0.0) c.Water = 0.0;
+        }
+    }
+
+    // Extra pumping on top of the game's own (only while the pump runs).
+    [HarmonyPatch(typeof(TrimPump), "Update")]
+    internal static class Pump_Patch
+    {
+        public static double InteriorWater(PlayerShip ship)
+        {
+            double w = 0;
+            foreach (var c in ship.Interior.Compartments) if (c != null) w += c.Water;
+            return w;
+        }
+
+        private static void Postfix(TrimPump __instance)
+        {
+            float power = Settings.F("CheatPumpPower");
+            bool anyDepth = Settings.B("CheatPumpAnyDepth");
+            if (power <= 1f && !anyDepth) return;
+            if (!Util.IsPlayers(__instance)) return;
+
+            var t = Traverse.Create(__instance);
+            var sub = t.Field("submarine").GetValue<PlayableSubmarine>();
+            var lps = t.Field("litresPerSecond").GetValue<Parameter>();
+            var pressure = t.Field("litresPerSecondPressureModifier").GetValue<Modifier>();
+            var tanks = t.Field("tanks").GetValue<TrimPump.ConnectedTank[]>();
+            var gt = Traverse.Create(typeof(TrimPump)).Field("gameTime").GetValue<UBOAT.Game.Core.Time.GameTime>();
+            if (sub == null || lps == null || tanks == null || gt == null) return;
+
+            float baseLps = lps.GetValueExcludingModifier(pressure);
+            float dt = Time.deltaTime * gt.ArtificialTimeScale;
+            foreach (var ct in tanks)
+            {
+                // 0.4.0 (DoMe: "das Boot flutet übertrieben"): the pump is also connected to tanks that are not rooms
+                // (trim / compensating / hull tanks). Emptying those x50 at depth made the boat's depth keeping flood
+                // them again at once. The toolkit now only adds pumping for water standing in the ROOMS of the boat.
+                if (ct == null || ct.Tank == null) continue;
+                if (!(ct.Tank is UBOAT.Game.Scene.Items.Compartment))
+                {
+                    if (otherLogged.Count < 20 && otherLogged.Add(ct.Tank.name)) Util.Log("Pumpe: Tank \"" + ct.Tank.name + "\" ist kein Raum, Toolkit pumpt ihn nicht zusätzlich (Wasser " + ct.Tank.Water.ToString("0.00") + " von " + ct.Tank.Capacity.ToString("0.00") + ")");
+                    continue;
+                }
+                float gameDepth = 1f - Mathf.Clamp01(sub.DeckDepth / ct.MaxDepth);
+                float ourDepth = anyDepth ? 1f : gameDepth;
+                gameRate += baseLps * ct.PerformanceModifier * gameDepth;
+                ourRate += baseLps * ct.PerformanceModifier * ourDepth * Mathf.Max(1f, power);
+                double extra = baseLps * ct.PerformanceModifier * (ourDepth * Mathf.Max(1f, power) - gameDepth) * dt;
+                if (extra <= 0) continue;
+                if (extra > ct.Tank.Water) extra = ct.Tank.Water;
+                ct.Tank.Water -= extra;
+                removed += extra;
+            }
+            samples++;
+            LastDepth = sub.DeckDepth;
+            LastGameRate = (float)(gameRate / samples); LastOurRate = (float)(ourRate / samples);
+            if (Time.unscaledTime >= nextLog)
+            {
+                if (removed > 0)
+                    Util.Log("Pumpe: Tiefe " + sub.DeckDepth.ToString("0") + " m, Spiel allein " + (LastGameRate * 1000f).ToString("0.0") + " l/s, mit Toolkit " + (LastOurRate * 1000f).ToString("0.0")
+                        + " l/s (Pumpenleistung x" + Mathf.Max(1f, power).ToString("0.#") + (anyDepth ? ", volle Leistung in jeder Tiefe" : "") + "), in der letzten Minute zusätzlich " + (removed * 1000.0).ToString("0") + " l abgepumpt, Wasser in den Räumen jetzt " + (InteriorWater(Util.PlayerShip) * 1000.0).ToString("0") + " l");
+                nextLog = Time.unscaledTime + 60f; removed = 0; gameRate = ourRate = 0; samples = 0;
+            }
+        }
+
+        private static readonly System.Collections.Generic.HashSet<string> otherLogged = new System.Collections.Generic.HashSet<string>();
+        private static double removed, gameRate, ourRate; private static int samples; private static float nextLog;
+        internal static float LastDepth, LastGameRate, LastOurRate;
+    }
+
+    // 0.3.94 (DoMe: the pump tooltip still says reduced/red at depth, so he doubts the cheat works): with the pump
+    // cheats on, the game's red/orange pressure line is replaced by the real toolkit rate.
+    [HarmonyPatch(typeof(TrimPump), nameof(TrimPump.GetStateText))]
+    internal static class Pump_TooltipPatch
+    {
+        private static void Postfix(TrimPump __instance, ref string __result)
+        {
+            try
+            {
+                float power = Settings.F("CheatPumpPower");
+                bool anyDepth = Settings.B("CheatPumpAnyDepth");
+                if ((power <= 1f && !anyDepth) || __result == null || !Util.IsPlayers(__instance)) return;
+                int cut = __result.IndexOf("<line-height=50%>");
+                string head = cut >= 0 ? __result.Substring(0, cut) : __result;
+                string line = "Toolkit: Pumpenleistung x" + Mathf.Max(1f, power).ToString("0.#") + (anyDepth ? ", volle Leistung in jeder Tiefe" : ", Tiefe bremst wie im Spiel");
+                if (Pump_Patch.LastOurRate > 0f) line += " (" + (Pump_Patch.LastOurRate * 1000f).ToString("0") + " l/s statt " + (Pump_Patch.LastGameRate * 1000f).ToString("0") + " l/s)";
+                __result = head + "<line-height=50%>\n<line-height=100%>\n<color=#7CFC00>" + line + "</color>";
+            }
+            catch { }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/CrewCheats.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Navigation;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UnityEngine;
+
+    // Cheats: crew walks faster (#32), crew cannot die / lose health, supplies never run out (#10).
+    public class CrewCheats : ModuleBase
+    {
+        private PlayerCrew crew;
+
+        public override void Tick()
+        {
+            if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
+            if (crew == null) return;
+            float f = Mathf.Max(1f, Settings.F("CheatCrewWalkSpeed"));
+            foreach (var c in crew.Characters)
+            {
+                if (c == null) continue;
+                var nav = c.GetComponent<NavMeshNavigator>();
+                if (nav != null) Util.ScaleParameter(nav.SpeedMultiplier, f);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(PlayableCharacter), "SetHealth")]
+    internal static class CrewCheats_HealthPatch
+    {
+        private static void Prefix(PlayableCharacter __instance, ref float value)
+        {
+            bool noWounds = Settings.B("CheatNoWounds");
+            if (!noWounds && !Settings.B("CheatImmortalCrew")) return;
+            if (__instance.Data == null) return;
+            var t = __instance.Data.CharacterType;
+            if (t != PlayableCharacterData.Type.Sailor && t != PlayableCharacterData.Type.Officer && t != PlayableCharacterData.Type.Skipper) return;
+            if (noWounds) { if (value < __instance.Health) value = __instance.Health; }
+            else if (value <= 0f) value = 0.01f;   // immortal only: health may drop, but never to death
+        }
+    }
+
+    [HarmonyPatch(typeof(PlayableCharacter), "BleedoutHealth", MethodType.Setter)]
+    internal static class CrewCheats_BleedoutPatch
+    {
+        private static void Prefix(PlayableCharacter __instance, ref float value)
+        {
+            if (!Settings.B("CheatImmortalCrew") && !Settings.B("CheatNoWounds")) return;
+            if (value < __instance.BleedoutHealth) value = __instance.BleedoutHealth;
+        }
+    }
+
+    // Supplies on the boat are never used up (food, spare parts, medkits ...). Cooking still works.
+    [HarmonyPatch(typeof(Cargo), "Consume")]
+    internal static class CrewCheats_SupplyPatch
+    {
+        private static bool Prefix(Cargo __instance, float count)
+        {
+            if (!Settings.B("CheatNoSupplyUse") || count <= 0f) return true;
+            return !Util.IsPlayers(__instance);
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/DeckCrew.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Statuses;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+
+    // Cheat "deck crew stays": the boat dives even with men on deck, they stay at the guns and never drown.
+    // Guns stay usable while diving; they still fire only as long as the gun itself is above the water.
+
+    // The game refuses to close the tower hatch while someone is on deck (and drowns the injured).
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.CloseExteriorHatch), "ValidateHatchOpeness")]
+    internal static class DeckCrew_HatchPatch
+    {
+        private static bool Prefix(ref bool __result)
+        {
+            if (!Settings.B("CheatDeckCrewStays")) return true;
+            var ship = Util.PlayerShip;
+            var hatch = ship != null ? ship.GetEquipment<Hatch>("Exterior") : null;
+            if (hatch == null) return true;
+            hatch.Locked = true;
+            __result = true;
+            return false;
+        }
+    }
+
+    // Nobody drowns: "drowning off board" death is blocked.
+    [HarmonyPatch(typeof(PlayableCharacterData), nameof(PlayableCharacterData.AddStatus), new[] { typeof(CharacterStatus) })]
+    internal static class DeckCrew_NoDrownPatch
+    {
+        // With "immortal crew" every death is blocked (also deaths the game sets directly, not via health).
+        // Immortal also means unhurt: no bleeding wounds.
+        private static bool Prefix(CharacterStatus status)
+        {
+            if (Settings.B("CheatImmortalCrew") && status is Dead) return false;
+            if (Settings.B("CheatNoWounds") && status is Bleeding) return false;
+            return !(Settings.B("CheatNoDrown") && status is Dead d && d.Cause == DeathCause.DrowningOffBoard);
+        }
+    }
+
+    // Guns are not switched off when the boat dives.
+    [HarmonyPatch(typeof(Gun), "ParentShip_SubmergeStateChanged")]
+    internal static class DeckCrew_GunPatch
+    {
+        private static void Postfix(Gun __instance)
+        {
+            // 0.4.22 (option audit, player-only rule): only OUR guns. Before, every gun in the scene kept working under
+            // water, enemy submarines included.
+            if (Settings.B("CheatGunsUnderWater") && Util.IsPlayers(__instance) && !Util.WarthogModOwns(Util.PlayerShip)) __instance.SetDisableFlag(DeviceDisableFlag.Depth, false);
+        }
+    }
+
+    // Immortal crew does not fall over from hits.
+    [HarmonyPatch(typeof(PlayableCharacter), nameof(PlayableCharacter.EnableRagdoll))]
+    internal static class DeckCrew_NoRagdollPatch
+    {
+        private static bool Prefix() => !Settings.B("CheatNoRagdoll");
+    }
+
+    // One-shot heal: every crew member gets full health, wounds and illnesses are removed, the fallen stand up.
+    public class HealAll : ModuleBase
+    {
+        public override void Frame()
+        {
+            if (Keys.Down("KeyHealAll")) { var o = Settings.Get("CheatHealNow"); if (o != null) o.Value = 1; }
+        }
+
+        public override void Tick()
+        {
+            var o = Settings.Get("CheatHealNow");
+            if (o == null || !o.On) return;
+            o.Value = 0;
+            Util.Safe("HealAll", () =>
+            {
+                var crew = UnityEngine.Object.FindObjectOfType<PlayerCrew>();
+                if (crew == null) return;
+                int n = 0;
+                foreach (var c in crew.Characters)
+                {
+                    if (c == null || c.Data == null || c.Data.HasStatus<Dead>()) continue;
+                    c.Data.RemoveStatuses<Bleeding>();
+                    c.Data.RemoveStatuses<Illness>();
+                    c.Data.RemoveStatuses<EarlyIllness>();
+                    c.Data.RemoveStatuses<Choking>();
+                    c.Health = 1f;
+                    c.BleedoutHealth = 1f;
+                    if (c.Ragdoll) c.DisableRagdoll();
+                    n++;
+                }
+                ToolkitRunner.ShowNotice(n + " Mann geheilt", 4f);
+            });
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/Strike.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UnityEngine.UI;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+
+    // Cheats: "Sink the convoy" (every enemy ship nearby gets torpedoes) and
+    // "remote torpedo" (fire at the nearest enemy from anywhere, e.g. from your bunk).
+    // Torpedoes are spawned close to the target, the same way the game's own developer console does it,
+    // and count as fired by your boat.
+    public class Strike : ModuleBase
+    {
+        public override void Frame()
+        {
+            if (Util.PlayerShip == null) return;
+            if (Keys.Down("KeyRemoteTorpedo") && Settings.B("CheatRemoteTorpedo")) Util.Safe("RemoteTorpedo", RemoteTorpedo);
+            if (Keys.Down("KeySinkConvoy")) { var o = Settings.Get("CheatSinkConvoy"); if (o != null) o.Value = 1; }
+            // 0.4.60: the torpedoes of "Sink the convoy" start a few per frame instead of all in one frame.
+            for (int i = 0; i < 4 && pending.Count > 0; i++)
+            {
+                var e = pending[pending.Count - 1]; pending.RemoveAt(pending.Count - 1);
+                if (e != null && e.Health > 0f) { Util.Safe("SinkConvoy spawn", () => Spawn(e, "G7a Torpedo T1 - Pi1.1")); spawned++; }
+                if (pending.Count == 0) Util.Log("Konvoi versenken: fertig, " + spawned + " Torpedos erzeugt (nicht aus Rohr oder Lager). Torpedos an Bord vorher " + stockBefore + ", jetzt " + Stock());
+            }
+        }
+
+        private static readonly System.Collections.Generic.List<Entity> pending = new System.Collections.Generic.List<Entity>();
+        private static int spawned, stockBefore;
+        // torpedoes in the boat's tubes and storages (crew backpacks excluded)
+        private static int Stock()
+        {
+            int n = 0;
+            foreach (var l in Util.Find<TorpedoLauncher>()) if (l != null && l.Torpedo != null && Util.IsPlayers(l)) n++;
+            foreach (var st in Util.Find<Storage>())
+            {
+                if (st == null || st is TorpedoLauncherGroup || st.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() != null) continue;
+                for (int i = 0; i < Util.Slots(st); i++) if (st.GetItemAt(i) is StoredTorpedo) n++;
+            }
+            return n;
+        }
+
+        public override void Tick()
+        {
+            var o = Settings.Get("CheatSinkConvoy");
+            if (o != null && o.On) { o.Value = 0; Util.Safe("SinkConvoy", SinkConvoy); }
+        }
+
+        private static bool IsEnemyShip(Entity e, Country me)
+        {
+            if (!(e is Ship) || e is PlayerShip || e is Torpedo || e.Health <= 0f) return false;
+            var se = e.SandboxEntity;
+            if (se == null || se.IsPacified || se.Type == null || se.Type.IsAircraft) return false;
+            var c = se.PerceivedCountry;
+            return c != null && me != null && c.GetRelationWith(me) == Country.Relation.Enemy;
+        }
+
+        private static void SinkConvoy()
+        {
+            var ship = Util.PlayerShip;
+            var me = ship.SandboxEntity?.Country;
+            float range = Settings.F("SinkConvoyRange") * 1000f;
+            int per = Mathf.Max(1, (int)Settings.F("SinkConvoyTorpedoes"));
+            int ships = 0;
+            if (pending.Count > 0) { ToolkitRunner.ShowNotice("Sink the convoy läuft noch (" + pending.Count + " Torpedos offen)", 4f); Util.Log("Konvoi versenken: Taste ignoriert, noch " + pending.Count + " Torpedos offen"); return; }
+            spawned = 0; stockBefore = Stock();
+            foreach (var e in Entity.List.ToArray())
+            {
+                if (!IsEnemyShip(e, me)) continue;
+                if ((e.transform.position - ship.transform.position).magnitude > range) continue;
+                for (int i = 0; i < per; i++) pending.Add(e);
+                ships++;
+            }
+            Util.Log("Konvoi versenken: " + ships + " Schiffe, " + pending.Count + " Torpedos, 4 pro Bild");
+            ToolkitRunner.ShowNotice(ships > 0 ? "Sink the convoy: " + ships + " Schiffe im Visier" : "Kein Gegner in Reichweite", 6f);
+        }
+
+        private static void RemoteTorpedo()
+        {
+            var ship = Util.PlayerShip;
+            var me = ship.SandboxEntity?.Country;
+            Entity target = null; float best = float.MaxValue;
+            foreach (var e in Entity.List)
+            {
+                if (!IsEnemyShip(e, me)) continue;
+                float d = (e.transform.position - ship.transform.position).sqrMagnitude;
+                if (d < best) { best = d; target = e; }
+            }
+            if (target == null) { ToolkitRunner.ShowNotice("Kein Gegner in Reichweite", 3f); return; }
+
+            // A loaded tube gives its torpedo type (and loses it, unless unlimited torpedoes is on).
+            string type = "G7a Torpedo T1 - Pi1.1";
+            var tube = Util.Find<TorpedoLauncher>().FirstOrDefault(l => l.Torpedo != null && l.IsLoaded && !(l.Torpedo is StoredMinePacket));
+            if (tube == null && !Settings.B("CheatInfiniteTorpedoes")) { ToolkitRunner.ShowNotice("Kein Rohr geladen", 3f); return; }
+            if (tube != null)
+            {
+                type = tube.Torpedo.name.Replace("(Clone)", "").Trim();
+                if (!Settings.B("CheatInfiniteTorpedoes"))
+                {
+                    var t = tube.Torpedo;
+                    tube.SetTorpedo(null);
+                    Object.Destroy(t.gameObject);
+                }
+            }
+            Spawn(target, type);
+            ToolkitRunner.ShowNotice("Torpedo los auf " + target.name.Replace("(Clone)", "").Trim(), 3f);
+        }
+
+        private static void Spawn(Entity target, string type)
+        {
+            var sandbox = Object.FindObjectOfType<UBOAT.Game.Sandbox.Sandbox>();
+            var w = Game.Wolfpack;
+            if (sandbox == null || w == null) return;
+            var se = SandboxEntity.Create(type, sandbox.NeutralCountry);
+            se.SpawnsInstantly = true;
+            w.AddEntity(se);
+            se.UpdatePosition();
+            if (!(se.SpawnedEntity is Torpedo torp)) return;
+            Vector3 aim = target.transform.position;
+            if (target is Ship s) { var f = target.transform.forward; f.y = 0f; aim += f.normalized * (s.AverageVelocity * 15f); }
+            torp.WasSpawnedInsteadLaunched = true;
+            var st = torp.GetComponent<StoredTorpedo>();
+            st.Start();
+            st.transform.position = aim + Quaternion.AngleAxis(Random.value * 360f, Vector3.up) * new Vector3(0f, 0f, 270f);
+            var dir = aim - st.transform.position; dir.y = 0f; dir.Normalize();
+            st.transform.rotation = Quaternion.AngleAxis(Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg, Vector3.up);
+            st.DudSeed = 1f;
+            st.Launch(Util.PlayerShip, target.transform, aim, aim, 0, st.Speed1, new Collider[0]);
+        }
+    }
+
+    // Tube icons: hovering over the torpedo symbol of a tube shows its exact type.
+    [HarmonyPatch(typeof(UBOAT.Game.UI.TorpedoLauncherUI), "ValidateTorpedoIcon")]
+    internal static class Strike_TubeTooltipPatch
+    {
+        private static void Postfix(UBOAT.Game.UI.TorpedoLauncherUI __instance)
+        {
+            if (!Settings.B("TubeDisplay")) return;
+            var img = Traverse.Create(__instance).Field("torpedoImage").GetValue<Image>();
+            if (img == null) return;
+            var ui = __instance;
+            UBOAT.Game.UI.Tooltip.SetTooltip(img.rectTransform, () =>
+            {
+                var t = ui.Launcher != null ? ui.Launcher.Torpedo : null;
+                return t == null ? "leer" : t.name.Replace("(Clone)", "").Trim();
+            });
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Gegner ist Pazifist (0.4.32)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+
+    // DoMe 2026-11-18: "cheat: Gegner ist Pazifist". Weakening the enemy is allowed, each effect with its own switch.
+    // Scope: only weapons that do NOT belong to the player's boat and are not allied (same test as the enemy gun
+    // spread, EnemyGunnery.InScope). The player's own weapons are never touched. Every blocked attack is counted and
+    // written to the log once per minute, so the effect can be proven.
+    internal static class EnemyPacifist
+    {
+        private static readonly Dictionary<string, int> counts = new Dictionary<string, int>();
+        private static float nextLog;
+
+        internal static bool Enemy(Component c)
+        {
+            if (c == null) return false;
+            var e = c.GetComponentInParent<Entity>();
+            return e != null && EnemyGunnery.InScope(e);
+        }
+
+        internal static void Count(string what)
+        {
+            int n; counts.TryGetValue(what, out n); counts[what] = n + 1;
+            if (Time.unscaledTime < nextLog) return;
+            nextLog = Time.unscaledTime + 60f;
+            var sb = new System.Text.StringBuilder("Gegner-Cheats (nur fremde Waffen, nie eigene): ");
+            foreach (var kv in counts) sb.Append(kv.Key).Append(" ").Append(kv.Value).Append("x, ");
+            Util.Log(sb.ToString().TrimEnd(',', ' '));
+            counts.Clear();
+        }
+    }
+
+    [HarmonyPatch(typeof(Gun), "Fire")]
+    internal static class EnemyPacifist_Gun
+    {
+        [HarmonyPriority(Priority.First)]
+        private static bool Prefix(Gun __instance, ref Shell __result)
+        {
+            if (!Settings.B("CheatPacifistGuns") || __instance == null || Util.IsPlayers(__instance) || !EnemyGunnery.InScope(__instance.ParentEntity)) return true;
+            __result = null;
+            EnemyPacifist.Count("Kanonenschuss verhindert");
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(BombLauncher), nameof(BombLauncher.LaunchSeries))]
+    internal static class EnemyPacifist_Bombs
+    {
+        private static bool Prefix(BombLauncher __instance)
+        {
+            if (__instance == null) return true;
+            bool bombs = __instance.UseBombs;
+            if (!Settings.B(bombs ? "CheatPacifistBombs" : "CheatPacifistDepthCharges") || !EnemyPacifist.Enemy(__instance)) return true;
+            EnemyPacifist.Count(bombs ? "Bombenwurf verhindert" : "Wasserbomben-Serie verhindert");
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(HedgehogLauncher), nameof(HedgehogLauncher.LaunchSalvo))]
+    internal static class EnemyPacifist_Hedgehog
+    {
+        private static bool Prefix(HedgehogLauncher __instance)
+        {
+            if (!Settings.B("CheatPacifistHedgehog") || !EnemyPacifist.Enemy(__instance)) return true;
+            EnemyPacifist.Count("Hedgehog-Salve verhindert");
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(RocketLauncher), nameof(RocketLauncher.TryLaunchSeries))]
+    internal static class EnemyPacifist_Rockets
+    {
+        private static bool Prefix(RocketLauncher __instance)
+        {
+            if (!Settings.B("CheatPacifistRockets") || !EnemyPacifist.Enemy(__instance)) return true;
+            EnemyPacifist.Count("Raketen verhindert");
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(NPCTorpedoLauncherGroup), "FindBestTarget")]
+    internal static class EnemyPacifist_Torpedoes
+    {
+        private static void Postfix(NPCTorpedoLauncherGroup __instance, ref Entity __result)
+        {
+            if (__result == null || !Settings.B("CheatPacifistTorpedoes") || !EnemyPacifist.Enemy(__instance)) return;
+            __result = null;
+            EnemyPacifist.Count("Torpedo-Ziel verweigert");
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/DetectCheat.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Missions;
+
+    // Cheat (DoMe 2026-11-16: "detect cheat dauerhaft aktiv, Missionsziel direkt anfahren"): keeps contacts on the map,
+    // the same way the game's console command "Detect" does it, but every 3 s instead of 12 times a second,
+    // also after loading, and without the console. 1 = only targets of missions, 2 = every group.
+    public class DetectCheat : ModuleBase
+    {
+        private float next;
+        private int lastCount = -1;
+        public override void Tick()
+        {
+            int mode = Mathf.RoundToInt(Settings.F("CheatDetect"));
+            if (mode <= 0 || Time.unscaledTime < next) return;
+            next = Time.unscaledTime + 3f;
+            var w = Game.Wolfpack;
+            var sb = Traverse.Create(typeof(UBOAT.Game.UI.DevConsole.DevConsoleCommands)).Field("sandbox").GetValue<Sandbox>();
+            if (w == null || sb == null) return;
+            float km = Settings.F("CheatDetectKm");
+            float max2 = km > 0f ? km * km : float.MaxValue;
+            List<SandboxGroup> groups = sb.GetGroupsDirect();
+            int n = 0;
+            for (int i = 0; i < groups.Count; i++)
+            {
+                var g = groups[i];
+                if (!g || g.IsGroupPublic || g == w) continue;
+                if (g.DistanceToPlayerSquared > max2) continue;
+                if (mode == 1 && !IsTarget(g)) continue;
+                w.AddObservation(g, GroupDetectionMethod.NotSpecified).AddKnownData(GroupData.All, 0f, true);
+                n++;
+            }
+            if (n != lastCount) { lastCount = n; Util.Log("[Kontakte] " + n + " Gruppen auf der Karte gehalten (Modus " + mode + ")"); }
+        }
+
+        private static bool IsTarget(SandboxGroup g)
+        {
+            var es = g.Entities;
+            for (int i = 0; i < es.Count; i++)
+            {
+                var st = es[i]?.Statuses;
+                if (st == null) continue;
+                for (int j = 0; j < st.Count; j++) if (st[j] is IMissionTarget) return true;
+            }
+            return false;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/SensorCheats.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UBOAT.Game.Scene.Utilities;
+
+    // Cheats:
+    // - Radio reception at any depth.
+    // - Hydrophone hears fully when surfaced and at high speed.
+    // - Exact target data (speed, course, distance) instead of rough estimates.
+    // - Hull armour: damage to your boat and crew is reduced (explosions, shells, torpedoes, depth charges, ramming).
+    public class SensorCheats : ModuleBase
+    {
+        // "Hydrophone hears fully surfaced / fast": see HydroSame below (no per-tick overwrite any more).
+        private readonly System.Collections.Generic.Dictionary<Hydrophone, bool> state = new System.Collections.Generic.Dictionary<Hydrophone, bool>();
+        public override void Tick()
+        {
+            foreach (var h in Util.Find<Hydrophone>())
+            {
+                if (h == null) continue;
+                bool want = HydroSame.Wanted(h);
+                state.TryGetValue(h, out var was);
+                if (want == was) continue;
+                state[h] = want;
+                if (want) HydroSame.Force(h); else HydroSame.Restore(h);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Antenna), "LowFrequencyUpdate")]
+    internal static class Sensor_RadioDepthPatch
+    {
+        private static void Postfix(Antenna __instance)
+        {
+            if (Settings.B("CheatRadioAnyDepth") && __instance.ReceiveRangeDepthModifier != null)
+                __instance.ReceiveRangeDepthModifier.Value = 1f;
+        }
+    }
+
+    [HarmonyPatch(typeof(Hydrophone), nameof(Hydrophone.AllowOnlyCrudeEstimations), MethodType.Getter)]
+    internal static class Sensor_ExactTargetsPatch
+    {
+        // 0.4.29 (player-only rule): only the player's own hydrophone, never an enemy one.
+        private static void Postfix(Hydrophone __instance, ref bool __result)
+        {
+            if (Settings.B("CheatExactTargets") && Util.IsPlayers(__instance)) __result = false;
+        }
+    }
+
+    // Cheat (DoMe 2026-11-16: "instant Schusslösung"): the game builds the firing solution from "tracking progress" that
+    // grows while a contact is watched (accuracy = 1 - e^(-0.1 x progress)). With the cheat every sighting by the
+    // player's boat counts as fully tracked at once, so type, speed, course and distance are there immediately.
+    [HarmonyPatch(typeof(DirectObservation), nameof(DirectObservation.UpdateObservation))]
+    internal static class Sensor_InstantSolutionPatch
+    {
+        private static void Prefix(DirectObservation __instance, ref float trackingProgress)
+        {
+            if (!Settings.B("CheatInstantSolution") || !(__instance.Observator is PlayerShip)) return;
+            if (__instance.TrackingProgress < 100f) trackingProgress = Mathf.Max(trackingProgress, 100f - __instance.TrackingProgress);
+        }
+    }
+
+    [HarmonyPatch(typeof(DamageUtility), nameof(DamageUtility.ApplyDamage))]
+    internal static class Sensor_ArmourPatch
+    {
+        private static float nextNote;
+        private static readonly Collider[] buf = new Collider[256];
+        private static bool OthersInBlast(PlayerShip ship, Vector3 position, float radius)
+        {
+            int n = Physics.OverlapSphereNonAlloc(position, radius * 1.35f, buf, 1090049, QueryTriggerInteraction.Collide);
+            if (n >= buf.Length) return true;                       // too many to check: be safe, no armour
+            for (int i = 0; i < n; i++)
+            {
+                var e = buf[i] != null ? buf[i].GetComponentInParent<Entity>() : null;
+                if (e != null && e != ship) return true;
+            }
+            return false;
+        }
+        private static void Prefix(Entity appliedBy, Vector3 position, float damageRadius, ref float damage, ref float crewDamage, ref float fireChance, Ship target)
+        {
+            float hull = Settings.F("CheatHullArmour");
+            bool crew = Settings.B("CheatCrewProtection");
+            if (hull >= 1f && !crew) return;
+            var ship = Util.PlayerShip;
+            if (ship == null || appliedBy == ship) return;
+            if (target != null && target != ship) return;
+            if ((position - ship.transform.position).magnitude > 80f + damageRadius) return;
+            // 0.4.22 (option audit, player-only rule): a blast without a fixed target (bomb, depth charge, shell burst) has ONE
+            // damage value for everything in its radius. If anything else than our boat is inside, the value stays as the
+            // game made it, so no enemy next to us is ever protected by our armour.
+            if (hull < 1f && target == null && OthersInBlast(ship, position, damageRadius))
+            {
+                if (Time.unscaledTime > nextNote) { nextNote = Time.unscaledTime + 30f; Util.Log("Rumpfpanzerung: Explosion trifft auch andere Schiffe, Schaden bleibt Spielwert (Panzerung gilt nur allein für dein Boot)"); }
+                hull = 1f;
+            }
+            if (hull < 1f) { damage *= hull; fireChance *= hull; }
+            if (crew) crewDamage = 0f;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UBOAT.Game.Scene.Utilities;
+
+    // Own shells / flak must not damage our own boat. The game fires player shells with friendlyFire=true,
+    // so a shell that bursts on our own tower or deck hurts hull, devices and crew - and the armour cheat
+    // skipped those hits (appliedBy == our boat). Here our boat's parts are removed from the hit list.
+    [HarmonyPatch(typeof(DamageUtility), "DoApplyDamage")]
+    internal static class Sensor_OwnShellsPatch
+    {
+        internal static bool Active;
+        private static bool logged;
+
+        private static void Prefix(Entity appliedBy, DamageType damageType, ref float crewDamage)
+        {
+            Active = false;
+            if (!Settings.B("CheatOwnShellsSafe") || damageType != DamageType.Projectile) return;
+            var ship = Util.PlayerShip;
+            if (ship == null || appliedBy != ship) return;
+            Active = true;
+            crewDamage = 0f;
+            if (!logged) { logged = true; Util.Log("Eigene Granaten: Treffer am eigenen Boot werden ignoriert."); }
+        }
+
+        private static System.Exception Finalizer(System.Exception __exception) { Active = false; return __exception; }
+    }
+
+    [HarmonyPatch(typeof(DamageUtility), "CollectComponents")]
+    internal static class Sensor_OwnShellsCollectPatch
+    {
+        private static readonly System.Reflection.FieldInfo compsF = AccessTools.Field(typeof(DamageUtility), "components");
+        private static readonly System.Reflection.FieldInfo rendF = AccessTools.Field(typeof(DamageUtility), "damageRenderers");
+        private static readonly System.Collections.Generic.List<UBOAT.Game.Scene.Effects.HullEffectsRenderer> drop = new System.Collections.Generic.List<UBOAT.Game.Scene.Effects.HullEffectsRenderer>();
+
+        private static void Postfix()
+        {
+            if (!Sensor_OwnShellsPatch.Active) return;
+            var ship = Util.PlayerShip;
+            if (ship == null) return;
+            var comps = compsF != null ? compsF.GetValue(null) as System.Collections.Generic.SortedList<float, Equipment> : null;
+            if (comps != null)
+                for (int i = comps.Count - 1; i >= 0; i--)
+                {
+                    var eq = comps.Values[i];
+                    if (eq != null && eq.ParentEntity == ship) comps.RemoveAt(i);
+                }
+            var rend = rendF != null ? rendF.GetValue(null) as System.Collections.Generic.Dictionary<UBOAT.Game.Scene.Effects.HullEffectsRenderer, bool> : null;
+            if (rend != null)
+            {
+                drop.Clear();
+                foreach (var k in rend.Keys) if (k != null && k.ParentEntity == ship) drop.Add(k);
+                for (int i = 0; i < drop.Count; i++) rend.Remove(drop[i]);
+                drop.Clear();
+            }
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UBOAT.Game.Scene.Utilities;
+
+    // Hydrophone "as good surfaced and fast as submerged and slow" (cheat CheatHydrophoneAlways, Warthog WhPassiveSame).
+    // The game eases the speed penalty EVERY FRAME (Hydrophone.UpdateShipVelocityModifier) and fades the surface penalty
+    // over 0.5 s. Overwriting the modifiers once per tick made the range jump between two values = the two green range
+    // circles on the map flickered. The old fix patched SetShipVelocityModifiers, a 6-line method the JIT inlines, so it
+    // never ran (no log line in DoMe's log 2026-11-13). Now the game's TARGET values are set to 1 in the bigger methods
+    // that decide them, so the game itself settles on 1 and there is only one value.
+    internal static class HydroSame
+    {
+        private static readonly System.Reflection.FieldInfo targetF = AccessTools.Field(typeof(Hydrophone), "shipVelocityModifierTargetValue");
+        private static readonly System.Reflection.FieldInfo tweenF = AccessTools.Field(typeof(Hydrophone), "rangeModifierTween");
+        private static readonly string[] Mods = { "surfaceRangeModifier", "surfaceGroupRangeModifier", "shipVelocityRangeModifier", "shipVelocityGroupRangeModifier" };
+        private static bool logged;
+
+        internal static bool Wanted(Hydrophone h)
+        {
+            if (h == null || !Util.IsPlayers(h)) return false;
+            if (Settings.B("CheatHydrophoneAlways") || Settings.B("CheatHydrophoneFast")) return true;
+            return Warthog.WarthogSonar.On && Settings.B("WhPassive") && Settings.B("WhPassiveSame");
+        }
+
+        internal static void Force(Hydrophone h)
+        {
+            try
+            {
+                // 0.4.29: two separate switches (surfaced / high speed); the Warthog passive sonar switch still means both
+                bool wh = Warthog.WarthogSonar.On && Settings.B("WhPassive") && Settings.B("WhPassiveSame");
+                bool surf = wh || Settings.B("CheatHydrophoneAlways"), fast = wh || Settings.B("CheatHydrophoneFast");
+                if (fast && targetF != null) targetF.SetValue(h, 1f);
+                // The game's range tween is NOT aborted any more: the map draws the green range circles from it (gone since 0.2.54).
+                var t = Traverse.Create(h);
+                foreach (var f in Mods) { if (!(f.StartsWith("surface") ? surf : fast)) continue; var m = t.Field(f).GetValue<Modifier>(); if (m != null && m.Value != 1f) m.Value = 1f; }
+                if (!logged) { logged = true; Util.Log("Hydrophon (nur eigenes Gerät): Abzug aufgetaucht " + (surf ? "aufgehoben" : "wie im Spiel") + ", Abzug hohe Fahrt " + (fast ? "aufgehoben" : "wie im Spiel") + " (" + h.name + ")"); }
+            }
+            catch (System.Exception e) { Util.Log("Hydrophon: " + e.Message); }
+        }
+
+        // switched off again: let the game compute its own values
+        internal static void Restore(Hydrophone h)
+        {
+            try
+            {
+                var t = Traverse.Create(h);
+                t.Method("ValidateVelocityModifier").GetValue();
+                if (h.ParentEntity is UBOAT.Game.Scene.Entities.PlayableSubmarine) t.Method("SurfaceRangeModifierParameter_Changed", new[] { typeof(Parameter) }, new object[] { null }).GetValue();
+            }
+            catch (System.Exception e) { Util.Log("Hydrophon zurück: " + e.Message); }
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class HydroSame_Patches
+    {
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            foreach (var n in new[] { "ValidateVelocityModifier", "UpdateShipVelocityModifier", "Submarine_SubmergeStateChanged", "SurfaceRangeModifierParameter_Changed", "OnSandboxRepresentationSet" })
+            {
+                var m = AccessTools.Method(typeof(Hydrophone), n);
+                if (m != null) yield return m; else Util.Log("Hydrophon: Spiel-Methode " + n + " fehlt");
+            }
+        }
+        private static void Postfix(Hydrophone __instance) { if (HydroSame.Wanted(__instance)) HydroSame.Force(__instance); }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/AchievementTools.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Linq;
+    using global::System.Reflection;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Achievements;
+
+    // - Achievements stay allowed even when the developer console was used (also in old saves:
+    //   the save's "locked out" flag is cleared, so it stays clean after the next save).
+    // - One-shot cheat: unlock every Steam achievement of the game.
+    public class AchievementTools : ModuleBase
+    {
+        private static readonly FieldInfo LockField = AccessTools.Field(typeof(PlayerCareer), "isPlaythroughLockedOutOfAchievements");
+        public override void Tick()
+        {
+            if (Settings.B("AchievementsOn"))
+            {
+                // Searching all objects every second cost 40-46 ms (part of the lag). The career is cached.
+                var pc = Util.Career;
+                if (pc != null && LockField != null && (bool)LockField.GetValue(pc))
+                {
+                    LockField.SetValue(pc, false);
+                    Util.Log("[Erfolge] Sperre im Spielstand entfernt (Konsole war benutzt)");
+                }
+            }
+
+            var o = Settings.Get("CheatAllAchievements");
+            if (o != null && o.On) { o.Value = 0; Util.Safe("AllAchievements", UnlockAll); }
+        }
+
+        private static void UnlockAll()
+        {
+            var ids = typeof(AchievementManager).GetNestedType("AchievementIDs", BindingFlags.NonPublic);
+            Type stats = UboatToolkit.Util.FindType("Steamworks.SteamUserStats");
+            if (ids == null || stats == null) { ToolkitRunner.ShowNotice("Steam nicht gefunden", 4f); return; }
+            var set = stats.GetMethod("SetAchievement", new[] { typeof(string) });
+            var store = stats.GetMethod("StoreStats", Type.EmptyTypes);
+            int n = 0;
+            foreach (var f in ids.GetFields(BindingFlags.Public | BindingFlags.Static))
+                if (f.IsLiteral && f.GetRawConstantValue() is string name) { set.Invoke(null, new object[] { name }); n++; }
+            store?.Invoke(null, null);
+            ToolkitRunner.ShowNotice(n + " Erfolge freigeschaltet", 5f);
+        }
+    }
+
+    [HarmonyPatch(typeof(PlayerCareer), nameof(PlayerCareer.IsPlaythroughLockedOutOfAchievements), MethodType.Getter)]
+    internal static class AchievementTools_LockPatch
+    {
+        private static bool Prefix(ref bool __result)
+        {
+            if (!Settings.B("AchievementsOn")) return true;
+            // While the console runs a command it must see "already locked", else it asks for the confirmation again
+            // and again and never runs the command (DoMe 2026-11-16). The save's real flag stays untouched.
+            __result = AchievementTools_ConsolePatch.InSubmit;
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.UI.DevConsole.DevConsole), "Submit", new[] { typeof(string), typeof(bool) })]
+    internal static class AchievementTools_ConsolePatch
+    {
+        internal static bool InSubmit;
+        private static void Prefix() { InSubmit = true; }
+        private static readonly FieldInfo Lock = AccessTools.Field(typeof(PlayerCareer), "isPlaythroughLockedOutOfAchievements");
+        private static Exception Finalizer(Exception __exception, string __0)
+        {
+            InSubmit = false;
+            // 0.3.98 proof line (DoMe: console cheats without losing achievements): the save's real flag is checked
+            // right after each command and cleared at once, not only at the next tick.
+            try
+            {
+                if (Settings.B("AchievementsOn") && !string.IsNullOrEmpty(__0))
+                {
+                    var pc = Util.Career;
+                    bool locked = pc != null && Lock != null && (bool)Lock.GetValue(pc);
+                    if (locked) Lock.SetValue(pc, false);
+                    Util.Log("Konsole: " + __0 + ", Erfolge weiter erlaubt: " + (pc == null ? "kein Spielstand geladen" : "ja" + (locked ? " (Sperre sofort entfernt)" : "")));
+                }
+            }
+            catch { }
+            return __exception;
+        }
+    }
+
+    // One-shot cheats for the current assignment (DoMe 2026-11-16: "Mission per Knopfdruck erfolgreich").
+    // Same calls as the game's console command "Mission Stage", but without the console, so nothing is flagged.
+    public class MissionCheat : ModuleBase
+    {
+        private static readonly string[] homeStages = { "Report", "Return", "ReturnToPort", "DockInPort", "DockAtDestinationPort", "FinishingTask", "ReportToOfficer" };
+        public override void Tick()
+        {
+            var done = Settings.Get("CheatMissionDone");
+            if (done != null && done.On) { done.Value = 0; Util.Safe("MissionDone", () => Run(true)); }
+            var step = Settings.Get("CheatMissionStep");
+            if (step != null && step.On) { step.Value = 0; Util.Safe("MissionStep", () => Run(false)); }
+            if (Settings.B("CheatEscortEasy") || Settings.B("CheatEscortFullSpeed") || Settings.B("CheatEscortNoDamage")) Util.Safe("EscortEasy", EscortEasy);
+            else
+            {
+                if (escProtected.Count > 0) { foreach (var x in escProtected) if (x != null) x.IsProtected = false; escProtected.Clear(); }
+                Util.Safe("EscortEasyOff", EscortEasyOff);
+            }
+        }
+
+        // Escort duty (DoMe 2026-11-16, Weserübung: "dauert ewig ... beim dritten Mal gescheitert"). The game fails the
+        // assignment only when the troopship is lost; attackers are spawned every 0.4-2 days and sent at the convoy, and
+        // the convoy sails at a random part of its speed. Cheat: no new attackers, convoy at full speed.
+        private static readonly FieldInfo escNext = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "nextEnemySpawnTicks");
+        private static readonly FieldInfo escScale = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "velocityScale");
+        private static bool escLogged;
+        private static readonly FieldInfo escGroup = AccessTools.Field(typeof(UBOAT.Game.Sandbox.Missions.EscortDutyAssignment), "escortedGroup");
+        private static readonly System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity> escProtected = new System.Collections.Generic.List<UBOAT.Game.Sandbox.SandboxEntity>();
+        // 0.4.22 (option audit): switching the cheat off gives the assignment its attackers back. The far-away spawn time
+        // is itself the mark that the cheat was active (it is stored in the savegame), so this also works after loading.
+        private static void EscortAttackersBack()
+        {
+            var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
+            if (e == null || escNext == null || (long)escNext.GetValue(e) < long.MaxValue / 4) return;
+            var gt = Traverse.Create(e).Field("gameTime").GetValue();
+            if (gt == null) return;
+            long now = Traverse.Create(gt).Property("StoryTicks").GetValue<long>();
+            escNext.SetValue(e, now + (long)(UnityEngine.Random.Range(0.4f, 1.4f) * 8.64E+11f));
+            Util.Log("[Auftrag] Geleitschutz: Angreifer kommen wieder (nächster in 0,4 bis 1,4 Tagen)");
+        }
+
+        private static void EscortEasyOff()
+        {
+            var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
+            if (e == null || escNext == null || (long)escNext.GetValue(e) < long.MaxValue / 4) return;
+            var gt = Traverse.Create(e).Field("gameTime").GetValue();
+            if (gt == null) return;
+            long now = Traverse.Create(gt).Property("StoryTicks").GetValue<long>();
+            escNext.SetValue(e, now + (long)(UnityEngine.Random.Range(0.4f, 1.4f) * 8.64E+11f));
+            var grp = escGroup == null ? null : escGroup.GetValue(e) as UBOAT.Game.Sandbox.SandboxGroup;
+            if (grp) foreach (var x in grp.Entities) if (x != null && x.IsProtected) x.IsProtected = false;
+            escLogged = false;
+            Util.Log("[Auftrag] Geleitschutz-Cheat aus: Angreifer kommen wieder (nächster in 0,4 bis 1,4 Tagen), Geleit nimmt wieder Schaden");
+        }
+        private static void EscortEasy()
+        {
+            var e = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.EscortDutyAssignment;
+            if (e == null) { escLogged = false; return; }
+            // 0.4.29: three separate switches
+            bool noAtt = Settings.B("CheatEscortEasy"), full = Settings.B("CheatEscortFullSpeed"), noDmg = Settings.B("CheatEscortNoDamage");
+            if (noAtt) { if (escNext != null) escNext.SetValue(e, long.MaxValue / 2); }
+            else Util.Safe("EscortEasyOff", EscortAttackersBack);
+            if (full && escScale != null && (float)escScale.GetValue(e) < 1f) escScale.SetValue(e, 1f);
+            if (!noDmg)
+            {
+                if (escProtected.Count > 0) { foreach (var x in escProtected) if (x != null) x.IsProtected = false; escProtected.Clear(); Util.Log("[Auftrag] Geleitschutz: Geleit nimmt wieder Schaden"); }
+                if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer " + (noAtt ? "an" : "aus") + ", volle Fahrt " + (full ? "an" : "aus") + ", kein Schaden aus"); }
+                return;
+            }
+            // the escorted ships take no damage (the game's own "protected" flag, used in its tutorials)
+            var grp = escGroup == null ? null : escGroup.GetValue(e) as UBOAT.Game.Sandbox.SandboxGroup;
+            if (grp)
+                foreach (var x in grp.Entities)
+                    if (x != null && !x.IsProtected) { x.IsProtected = true; escProtected.Add(x); }
+            if (!escLogged) { escLogged = true; Util.Log("[Auftrag] Geleitschutz: keine neuen Angreifer " + (noAtt ? "an" : "aus") + ", volle Fahrt " + (full ? "an" : "aus") + ", kein Schaden an"); }
+        }
+
+        private static void Run(bool finish)
+        {
+            var m = Util.Career == null ? null : Util.Career.CurrentAssignment as UBOAT.Game.Sandbox.Missions.Mission;
+            if (m == null) { ToolkitRunner.ShowNotice("Kein laufender Auftrag", 4f); return; }
+            // names of the assignment's stages (enum "Stages" of the class or one of its base classes)
+            string[] names = new string[0];
+            for (var t = m.GetType(); t != null && names.Length == 0; t = t.BaseType)
+            {
+                var e = t.GetNestedType("Stages", BindingFlags.Public | BindingFlags.NonPublic);
+                if (e != null && e.IsEnum) names = Enum.GetNames(e);
+            }
+            int stage = m.Stage, target = stage;
+            if (!finish) target = stage + 1;
+            else
+                for (int i = stage; i < names.Length; i++)
+                    if (Array.IndexOf(homeStages, names[i]) >= 0) { target = i; break; }
+            if (names.Length > 0 && target > names.Length - 1) target = names.Length - 1;
+            string from = stage < names.Length ? names[stage] : stage.ToString();
+            if (target > stage) m.SetDebugStage(target);
+            if (finish)
+            {
+                var p = m.GetType().GetProperty("AssignmentObjectiveState", BindingFlags.Public | BindingFlags.Instance);
+                if (p != null && p.CanWrite) p.SetValue(m, UBOAT.Game.Sandbox.Missions.AssignmentObjectiveState.Completed, null);
+            }
+            string to = m.Stage < names.Length ? names[m.Stage] : m.Stage.ToString();
+            Util.Log("[Auftrag] " + m.GetType().Name + ": Schritt " + from + " -> " + to + (finish ? ", Ziel als erfüllt gesetzt" : ""));
+            ToolkitRunner.ShowNotice(finish ? "Auftrag als erfüllt gesetzt (Schritt: " + to + "). Im Heimathafen abgeben." : "Auftrag: Schritt " + from + " -> " + to, 6f);
+        }
+    }
+
+    // Diagnosis: the game only tracks achievements after this check passes (polled every 5 s). In DoMe's last two
+    // sessions it never passed (no "Starting N achievement objects" line), so no achievement could be earned.
+    // Log once per minute which condition is missing, and log every real unlock.
+    [HarmonyPatch(typeof(AchievementManager), "ListenForSteamDownload")]
+    internal static class AchievementTools_StartDiag
+    {
+        private static float next;
+        private static void Postfix(float __result)
+        {
+            if (!float.IsNaN(__result)) { if (Time.unscaledTime < next) return; next = Time.unscaledTime + 60f; }
+            string why = "";
+            Util.Safe("AchDiag", () =>
+            {
+                var st = UboatToolkit.Util.FindType("Steamworks.SteamUserStats"); object steam = st != null ? st.GetMethod("RequestCurrentStats", Type.EmptyTypes)?.Invoke(null, null) : "?";
+                var com = Traverse.Create(typeof(AchievementManager)).Field("campaignObjectivesManager").GetValue();
+                int objectives = com != null ? Traverse.Create(com).Property("List").Property("Count").GetValue<int>() : -1;
+                var wp = Traverse.Create(typeof(AchievementManager)).Field("wolfpack").GetValue() as UnityEngine.Object;
+                why = "Steam-Statistik=" + steam + ", Kampagnenziele=" + objectives + ", Wolfpack=" + (wp != null);
+            });
+            Util.Log(float.IsNaN(__result) ? "[Erfolge] Erfolgs-Prüfung des Spiels läuft (" + why + ")" : "[Erfolge] Spiel prüft Erfolge noch NICHT: " + why);
+        }
+    }
+
+    [HarmonyPatch(typeof(AchievementManager), "OnAchievementComplete")]
+    internal static class AchievementTools_UnlockLog
+    {
+        private static void Postfix(IAchievement achievement) =>
+            Util.Log("[Erfolge] freigeschaltet: " + achievement?.Name + " (gesperrt=" + (Util.Career != null && Util.Career.IsPlaythroughLockedOutOfAchievements) + ")");
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/Cheats.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+
+    // Cheats for the player's boat (single player). Every cheat is off by default.
+    public class Cheats : ModuleBase
+    {
+        private PlayerCrew crew;
+        private PlayerCareer career;
+
+        private static readonly string[] SensorKeys = { "CheatRangeLookout", "CheatRangeHydro", "CheatRangeSonar", "CheatRangeRadar", "CheatRangeRadarWarn" };
+        private static readonly string[] sensorNow = new string[5];
+        private static readonly float[] sensorNear = new float[5];
+        private static float nextSensorInfo, nextSensorLine;
+        private static bool sensorHooked;
+        private static string hydroParts;
+        // every part that goes into a range value: base parts (+) and factors (x), by name
+        private int capped;
+        private static string Parts(Parameter p)
+        {
+            if (p == null) return "-";
+            var sb = new System.Text.StringBuilder();
+            try
+            {
+                foreach (var m in p.DeltaModifiers) if (m != null) sb.Append(" +").Append(m.Name).Append("=").Append(m.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+                foreach (var m in p.ScaleModifiers) if (m != null) sb.Append(" x").Append(m.Name).Append("=").Append(m.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" => ").Append(p.Value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+            }
+            catch (System.Exception e) { sb.Append(" (nicht lesbar: ").Append(e.Message).Append(")"); }
+            return sb.ToString();
+        }
+        private static int SensorKind(UBOAT.Game.Scene.Items.BaseDetector d)
+        {
+            if (d is UBOAT.Game.Scene.Items.Hydrophone) return 1;
+            if (d is UBOAT.Game.Scene.Items.Sonar) return 2;
+            if (d is UBOAT.Game.Scene.Items.Radar) return 3;
+            if (d is UBOAT.Game.Scene.Items.RadarDetector) return 4;
+            return 0;
+        }
+
+        public override void Tick()
+        {
+            var ship = Util.PlayerShip;
+
+            // 0.4.4: one range factor per sensor type, player only. Enemies always get factor 1 (game range).
+            bool sensorLog = Time.unscaledTime >= nextSensorInfo;
+            if (sensorLog) { nextSensorInfo = Time.unscaledTime + 1f; for (int i = 0; i < SensorKeys.Length; i++) sensorNow[i] = null; }
+            foreach (var d in Util.Find<UBOAT.Game.Scene.Items.BaseDetector>())
+            {
+                bool mine = Util.IsPlayers(d);
+                int kind = SensorKind(d);
+                float m = mine ? Mathf.Max(0.05f, Settings.F(SensorKeys[kind])) : 1f;
+                Util.ScaleParameter(d.DetectionRange, m);
+                Util.ScaleParameter(d.GroupDetectionRange, m);
+                // 0.4.19 (DoMe: "limiter, nicht größer als 1000 km"): our factor is cut back so that the range of the
+                // player's sensor never exceeds the limit. Near range is in metres, far range in kilometres.
+                // 0.4.39 (DoMe: "ich kann immer noch halb europa abhorchen, was muss ich limitieren"): the limit now holds
+                // always, not only when our own factor is above 1, so the Warthog and listener bonuses cannot pass it. For
+                // the hydrophone the boat's own listening factor counts too, because the game multiplies it in afterwards
+                // (the map circle showed far range x boat factor, which the old check never saw).
+                if (mine)
+                {
+                    float cap = Mathf.Max(10f, Settings.F(kind == 0 ? "CheatRangeMaxKmLookout" : "CheatRangeMaxKm"));
+                    Util.Safe("Sensor-Grenze", () =>
+                    {
+                        float hsc = 1f;
+                        if (kind == 1) { try { hsc = Mathf.Max(0.01f, (float)ship.HydroacousticDetectorsRangeScale); } catch { } }
+                        if (d.DetectionRange != null && d.DetectionRange.Value * hsc > cap * 1000f) { Util.ScaleParameter(d.DetectionRange, Mathf.Max(0.01f, m * cap * 1000f / (d.DetectionRange.Value * hsc))); capped++; }
+                        if (d.GroupDetectionRange != null && d.GroupDetectionRange.Value * hsc > cap) { Util.ScaleParameter(d.GroupDetectionRange, Mathf.Max(0.01f, m * cap / (d.GroupDetectionRange.Value * hsc))); capped++; }
+                    });
+                }
+                if (mine && sensorLog && d.DetectionRange != null)
+                {
+                    float near = d.DetectionRange.Value / 1000f, far = d.GroupDetectionRange != null ? d.GroupDetectionRange.Value : 0f;
+                    // 0.4.9: the hydrophone values are multiplied by the boat's own listening factor before the game uses
+                    // them (map circle: near x factor x 0.64, far x factor); without it the log showed "fern 13500 km".
+                    if (kind == 1)
+                    {
+                        float hs = 1f;
+                        try { hs = (float)ship.HydroacousticDetectorsRangeScale; } catch { }
+                        near *= hs * 0.64f; far *= hs;
+                        if (Time.unscaledTime >= nextSensorLine) hydroParts = "Hydrophon fern: Faktor Boot " + hs.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + ", Teile " + Parts(d.GroupDetectionRange);
+                    }
+                    if (sensorNow[kind] == null || near > sensorNear[kind])
+                    {
+                        sensorNear[kind] = near;
+                        sensorNow[kind] = "(jetzt nah " + near.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " km" + (far > 0f ? ", fern " + far.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + " km" : "") + ")";
+                    }
+                }
+            }
+            if (sensorLog)
+            {
+                if (!sensorHooked)
+                {
+                    sensorHooked = true;
+                    for (int i = 0; i < SensorKeys.Length; i++) { int k = i; var o = Settings.Get(SensorKeys[k]); if (o != null) o.Extra = () => sensorNow[k] ?? "(nicht an Bord)"; }
+                }
+                if (Time.unscaledTime >= nextSensorLine)
+                {
+                    nextSensorLine = Time.unscaledTime + 60f;
+                    var sb = new System.Text.StringBuilder("Sensoren (nur eigenes Boot):");
+                    for (int i = 0; i < SensorKeys.Length; i++) sb.Append(" ").Append(SensorKeys[i].Substring(10)).Append(" x").Append(Settings.F(SensorKeys[i]).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)).Append(" ").Append(sensorNow[i] ?? "(nicht an Bord)").Append(";");
+                    sb.Append(". Grenze Sicht ").Append(Settings.F("CheatRangeMaxKmLookout").ToString("0")).Append(" km, übrige ").Append(Settings.F("CheatRangeMaxKm").ToString("0")).Append(" km, ").Append(capped).Append(" mal gekürzt, doppelte Faktoren entfernt: ").Append(Util.DuplicatesRemoved);
+                    capped = 0;
+                    Util.Log(sb.ToString());
+                    if (hydroParts != null) { Util.Log(hydroParts); hydroParts = null; }
+                }
+            }
+
+            // Undetectable: seen, heard (sonar + hydrophones) and radar-detected at almost zero range.
+            float f = Settings.B("CheatUndetectable") ? 0.001f : 1f;
+            var t = Traverse.Create(ship);
+            foreach (var field in new[] { "visualDetectability", "sonarDetectability", "radarDetectorDetectability" })
+                Util.ScaleParameter(t.Field(field).GetValue<Parameter>(), f);
+            // 0.4.22 (option audit): "hydroacousticDetectorsRangeScale" is the range of OUR OWN listening gear. It was scaled
+            // down with the cheat, so the own hydrophone and sonar went deaf. Always back to the game value now.
+            Util.ScaleParameter(t.Field("hydroacousticDetectorsRangeScale").GetValue<Parameter>(), 1f);
+            // Also the boat's own noise (dB, heard by hydrophones) and its radar size (cm): the game's own
+            // dev-console "undetectable" sets exactly these to 0. Shown in the detection tooltip too.
+            bool und = Settings.B("CheatUndetectable");
+            Util.Safe("Undetectable.Noise", () =>
+            {
+                Util.OneScale(ship.HydrophoneDetectability, Util.ModifierName).Value = und ? 0f : 1f;
+                Util.OneScale(ship.SandboxEntity.SignatureRadius, Util.ModifierName).Value = und ? 0f : 1f;
+            });
+
+            Util.ScaleParameter(t.Field("hullCrackThreshold").GetValue<Parameter>(), Settings.B("CheatDeepDive") ? 100f : 1f);
+            // The game also has a separate "hull crush" timer (HullCrushController): below the boat's CrushDepth
+            // it counts down and then sets the hull to 0 = boom, even without any leaks. Push that depth far away.
+            Util.Safe("DeepDive.Crush", () =>
+                Util.ScaleParameter(ship.SandboxEntity.Parameters.GetParameter("CrushDepth"), Settings.B("CheatDeepDive") ? 100f : 1f));
+
+            if (Settings.B("CheatFullFuel")) Util.Safe("FullFuel", () => FillFuel(ship));
+            if (Settings.B("CheatFullBattery")) Fill(ship.Energy);
+            if (Settings.B("CheatFullAir")) Fill(ship.Oxygen);
+            if (Settings.B("CheatFullDiscipline"))
+            {
+                Fill(ship.Discipline);
+            }
+            Util.Safe("Moral", () => NoMoraleLoss(ship));
+            if (Settings.B("NoStress") && ship.Stress != null) ship.Stress.Amount = 0;
+
+            if (Settings.B("CheatCrewNeverTired"))
+            {
+                if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
+                if (crew != null && crew.Characters != null)
+                    foreach (var c in crew.Characters) if (c != null) c.Energy = 1f;
+            }
+
+            float money = Settings.F("CheatMoney"), rep = Settings.F("CheatReputation");
+            if (money > 0f || rep > 0f)
+            {
+                if (career == null) career = Util.Career;
+                if (career != null)
+                {
+                    if (money > 0f && career.Budget < money) Util.SetField(career, "budget", Mathf.RoundToInt(money));
+                    if (rep > 0f && career.ReputationPoints < rep) career.ReputationPoints = Mathf.RoundToInt(rep);
+                }
+            }
+        }
+
+        // The diesel % is computed by the game from the fuel lying in the tanks, so filling only the
+        // number would be undone at once. Fill the tanks themselves.
+        // Morale (game: "Discipline") with the cheat on: refilling alone left the display at e.g. "-102" (a big crew drains it
+        // fast). Our own delta cancels exactly the negative part of the gain, so it shows 0 and never drops; gains stay.
+        private const string MoraleMod = "UboatToolkit Moral";
+        private static void NoMoraleLoss(PlayerShip ship)
+        {
+            var g = ship.Discipline != null ? ship.Discipline.Gain : null;
+            if (g == null) return;
+            var m = Util.OneDelta(g, MoraleMod);
+            float want = 0f;
+            if (Settings.B("CheatFullDiscipline"))
+            {
+                float v0 = g.GetValueWithModifierOverride(m, 0f), v1 = g.GetValueWithModifierOverride(m, 1f);
+                if (v0 < 0f && v1 - v0 > 1e-6f) want = -v0 / (v1 - v0);
+            }
+            if (Mathf.Abs(m.Value - want) > 1e-6f) m.Value = want;
+        }
+
+        private static void FillFuel(UBOAT.Game.Scene.Entities.PlayerShip ship)
+        {
+            var srcs = ship.FuelSources;
+            if (srcs == null) return;
+            foreach (var f in srcs)
+            {
+                if (f == null || f.Storage == null || f.Data == null || f.Data.Mass <= 0f) continue;
+                double full = f.Storage.ItemsMassLimit / f.Data.Mass;
+                if (full > 0 && f.DoubleCount < full) f.DoubleCount = full;
+            }
+        }
+
+        private static void Fill(Resource r)
+        {
+            if (r == null || r.Capacity == null) return;
+            double cap = r.Capacity.Value;
+            if (cap > 0 && r.Amount < cap) r.Amount = cap;
+        }
+    }
+
+    // Hull health of the player's boat never goes down.
+    [HarmonyPatch(typeof(Entity), nameof(Entity.Health), MethodType.Setter)]
+    internal static class Cheats_HullPatch
+    {
+        private static void Prefix(Entity __instance, ref float value)
+        {
+            if (Settings.B("CheatNoHullDamage") && __instance is PlayerShip && value < __instance.Health) value = __instance.Health;
+        }
+    }
+
+    // No water pressure damage at great depth.
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.ApplyWaterDamageToPlayerShip), "DoDamageTick")]
+    internal static class Cheats_DeepDivePatch
+    {
+        private static bool Prefix(ref float __result)
+        {
+            if (!Settings.B("CheatDeepDive")) return true;
+            __result = 5f; // check again in 5 seconds
+            return false;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+
+    // "Crew never tired": also the game's own tired check (Fatigue skill, updated every second per man) always says rested,
+    // and the man's energy is refilled right there (Tick alone missed men between ticks / new men).
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Skills.Fatigue), "UpdateFatigue")]
+    internal static class Cheats_NeverTiredPatch
+    {
+        private static void Prefix(UBOAT.Game.Scene.Characters.Skills.Fatigue __instance)
+        {
+            if (!Settings.B("CheatCrewNeverTired")) return;
+            var c = __instance.Character;
+            if (c != null) c.Energy = 1f;
+        }
+    }
+
+    // Energy never goes down at all (DoMe: prevent the loss, not refill it): every write to Energy becomes "full".
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.PlayableCharacter), "Energy", HarmonyLib.MethodType.Setter)]
+    internal static class Cheats_NoEnergyLossPatch
+    {
+        private static void Prefix(ref float value)
+        {
+            if (Settings.B("CheatCrewNeverTired")) value = 1f;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/ExtraFeatures.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Text.RegularExpressions;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::DWS.Common.Tasks;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UBOAT.Game.UI.Loading;
+
+    // Ideas from popular workshop mods, own implementation, all in one:
+    // energy saving, tube display (torpedo types), officer roles + skill choice (tab "Crew"),
+    // faster torpedo loading, faster game loading.
+    public class ExtraFeatures : ModuleBase
+    {
+        private bool energySaved;
+        public static string TubeLine;
+
+        // Searching all loaded objects for these took 150-200 ms each second (lag every few seconds).
+        // They are found once and kept; the skill cheats only need to run every 10 seconds.
+        private static CharacterClasses classesCache;
+        private static PlayerCrew crewCache;
+        private static float nextSkills;
+        private static int lastFlags = -1;
+
+        // A failed search (main menu, loading) used to be repeated on every call: 100-400 ms each time.
+        private static float classesRetry, crewRetry;
+        private static IEnumerable<CharacterClass> Classes()
+        {
+            if (classesCache == null && Time.unscaledTime >= classesRetry) { classesRetry = Time.unscaledTime + 30f; classesCache = Resources.FindObjectsOfTypeAll<CharacterClasses>().FirstOrDefault(); }
+            return classesCache?.GetClassesDirect();
+        }
+
+        private static PlayerCrew Crew()
+        {
+            if (crewCache == null && Time.unscaledTime >= crewRetry) { crewRetry = Time.unscaledTime + 30f; crewCache = Object.FindObjectOfType<PlayerCrew>(); }
+            return crewCache;
+        }
+
+        // The skill cheats walk every skill of every crew member (100-400 ms with a big crew). The result only changes
+        // when the crew changes, so they run again only then (and every 5 minutes as a safety net).
+        private static int lastCrewCount = -1;
+        private static float fullRunAt;
+        // A promotion resets the officer's skill list (PromoteToClass), the crew count stays the same:
+        // so the skill cheats are applied again right away, before the promotion screen shows the list.
+        internal static void ReapplySkills()
+        {
+            lastCrewCount = -1; nextSkills = 0f;
+            if (Settings.B("CheatAllSkills")) AllSkills();
+            if (Settings.B("CheatSkillsAnyLevel")) SkillLevels(true);
+            if (Settings.B("CheatLinguist")) Linguists();
+        }
+        private static bool CrewChanged()
+        {
+            int n = Util.SafeGet(() => Crew()?.Characters?.Count() ?? -1, -1);
+            if (n == lastCrewCount && Time.unscaledTime < fullRunAt) return false;
+            lastCrewCount = n; fullRunAt = Time.unscaledTime + 300f;
+            return true;
+        }
+
+        public override void Tick()
+        {
+            var ship = Util.PlayerShip;
+            EnergySaver(ship);
+            Tubes();
+            // Crew specializations (diving / silent running / discipline, 10 each): always enough free points.
+            if (Settings.B("CheatSpecPoints"))
+                Util.Safe("SpecPoints", () =>
+                {
+                    var c = Crew();
+                    if (c == null) return;
+                    int need = Mathf.Max(0, 30 - c.SpecializationDivingPoints - c.SpecializationSilentRunningPoints - c.SpecializationDisciplinePoints);
+                    if (c.FreeSpecializationPoints < need) c.FreeSpecializationPoints = need;
+                });
+            bool any = Settings.B("CheatSkillsAnyLevel");
+            if (!any && skillLevels.Count > 0) SkillLevels(false);
+            if (Time.unscaledTime < nextSkills) return;
+            nextSkills = Time.unscaledTime + 10f;
+            bool all = Settings.B("CheatAllSkills"), ling = Settings.B("CheatLinguist");
+            bool turnedOn = (all ? 1 : 0) + (any ? 2 : 0) + (ling ? 4 : 0) != lastFlags;
+            lastFlags = (all ? 1 : 0) + (any ? 2 : 0) + (ling ? 4 : 0);
+            if (!CrewChanged() && !turnedOn) return;
+            if (all) AllSkills();
+            if (any) SkillLevels(true);
+            if (ling) Linguists();
+        }
+
+        // Everyone who speaks one foreign language ("... Speaker") also gets "Linguist" (all languages).
+        private static void Linguists()
+        {
+            var classes = Classes();
+            var ling = classes?.SelectMany(c => c.Skills).FirstOrDefault(x => x != null && x.Name == "Linguist");
+            var crew = Crew();
+            if (ling == null || crew?.Characters == null) return;
+            foreach (var ch in crew.Characters)
+            {
+                var d = ch?.Data;
+                if (d == null) continue;
+                var sk = d.Statuses.OfType<CharacterSkill>().ToList();
+                if (sk.Any(x => x.Name.EndsWith(" Speaker")) && !sk.Any(x => x.Name == "Linguist")) d.LearnSkill(ling, false);
+            }
+        }
+
+        // All skills can be learned at any level: the level requirement is set to 0 (and restored when switched off).
+        private static readonly Dictionary<CharacterSkill, int> skillLevels = new Dictionary<CharacterSkill, int>();
+        private static void SkillLevels(bool on)
+        {
+            if (!on)
+            {
+                if (skillLevels.Count == 0) return;
+                foreach (var kv in skillLevels) if (kv.Key != null) kv.Key.RequiredLevel = kv.Value;
+                skillLevels.Clear();
+                return;
+            }
+            var list = new List<CharacterSkill>();
+            var classes = Classes();
+            if (classes != null) list.AddRange(classes.SelectMany(c => c.Skills));
+            var crew = Crew();
+            if (crew?.Characters != null)
+                foreach (var ch in crew.Characters)
+                    if (ch?.Data?.AvailableSkills != null) list.AddRange(ch.Data.AvailableSkills);
+            foreach (var sk in list)
+            {
+                if (sk == null || sk.RequiredLevel <= 0) continue;
+                if (!skillLevels.ContainsKey(sk)) skillLevels[sk] = sk.RequiredLevel;
+                sk.RequiredLevel = 0;
+            }
+        }
+
+        // Battery low under water: switch off big power users (compressor, searchlight) once.
+        private void EnergySaver(UBOAT.Game.Scene.Entities.PlayerShip ship)
+        {
+            float lim = Settings.F("EnergySaverPercent") / 100f;
+            var r = ship.GetResource("Energy");
+            if (lim <= 0f || r == null) { energySaved = false; return; }
+            float v = (float)r.Amount;
+            if (v > lim + 0.1f) energySaved = false;
+            if (energySaved || v >= lim || !ship.SubmergedOrGoingToSubmerge) return;
+            energySaved = true;
+            int n = 0;
+            foreach (var c in Util.Find<AirCompressor>()) if (Util.IsPlayers(c) && !c.HasDisableFlag(DeviceDisableFlag.TurnedOff)) { c.SetDisableFlag(DeviceDisableFlag.TurnedOff, true); n++; }
+            foreach (var s in Util.Find<Searchlight>()) if (Util.IsPlayers(s) && !s.HasDisableFlag(DeviceDisableFlag.TurnedOff)) { s.SetDisableFlag(DeviceDisableFlag.TurnedOff, true); n++; }
+            if (n > 0) ToolkitRunner.ShowNotice("Strom sparen: " + n + " Geräte aus (Batterie " + (v * 100f).ToString("0") + " %)", 6f);
+        }
+
+        // "Rohr 1: T2 | Rohr 2: leer ..." in the info area.
+        private static void Tubes()
+        {
+            if (!Settings.B("TubeDisplay")) { TubeLine = null; return; }
+            var parts = new List<string>();
+            int i = 1;
+            // 0.4.22 (option audit): only OUR tubes (enemy submarines were listed too), in a fixed order (by name)
+            var own = new List<TorpedoLauncher>();
+            foreach (var x in Util.Find<TorpedoLauncher>())
+                if (x != null && (Util.IsPlayers(x) || (x.Group != null && x.Group.ParentEntity is UBOAT.Game.Scene.Entities.PlayerShip))) own.Add(x);
+            own.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+            foreach (var l in own)
+            {
+                string t = "leer";
+                if (l.Torpedo != null)
+                {
+                    var m = Regex.Match(l.Torpedo.name, @"\bT\d+[a-z]?\b");
+                    t = m.Success ? m.Value : (l.Torpedo is StoredMinePacket ? "Mine" : l.Torpedo.name.Replace("(Clone)", "").Trim());
+                    if (!l.IsLoaded) t += " (lädt)";
+                }
+                parts.Add(i++ + ": " + t);
+            }
+            TubeLine = parts.Count > 0 ? "Rohre  " + string.Join("  |  ", parts) : null;
+        }
+
+        // Cheat: every officer may choose skills of all classes.
+        private static void AllSkills()
+        {
+            var classes = Classes();
+            if (classes == null) return;
+            var all = classes.SelectMany(c => c.Skills).GroupBy(s => s.Name).Select(g => g.First()).ToList();
+            var crew = Crew();
+            if (crew?.Characters == null) return;
+            foreach (var ch in crew.Characters)
+            {
+                var d = ch?.Data;
+                if (d == null || d.CharacterType == PlayableCharacterData.Type.Sailor) continue;
+                var owned = new HashSet<string>(d.Statuses.OfType<CharacterSkill>().Select(s => s.Name));
+                var avail = d.AvailableSkills.ToList();
+                bool changed = false;
+                foreach (var s in all)
+                    if (!owned.Contains(s.Name) && !avail.Any(a => a.Name == s.Name)) { avail.Add(s); changed = true; }
+                if (changed) Util.SetField(d, "availableSkills", avail.ToArray());
+            }
+        }
+
+        // ---------- Tab "Crew" in the F10 menu: roles + skill points ----------
+        private static readonly List<ICharacterRole> roles = new List<ICharacterRole>();
+
+        public static void DrawCrewTab()
+        {
+            var crew = Crew();
+            if (Util.PlayerShip == null || crew?.Characters == null) { Imgui.Label("Nur im Spiel verfügbar."); return; }
+            var db = Traverse.Create(typeof(UBOAT.Game.Scene.Tasks.ExpandedSchedulesController)).Field("characterRolesDatabase").GetValue() as ICharacterRolesDatabase;
+            Imgui.Label("Offiziere: Rolle mit Klick wechseln. „Skills bearbeiten“ öffnet den Skill-Editor (alle Skills aller Klassen).");
+            // 0.3.44 (DoMe): for the whole crew (officers AND sailors), one click each
+            Imgui.BeginH();
+            if (Imgui.Button("Ganze Mannschaft: Max Stufe", 260)) Util.Safe("Crew.MaxLevel", () => MaxLevelAll(crew));
+            if (Imgui.Button("Ganze Mannschaft: alle Skills", 260)) Util.Safe("Crew.AllSkills", () => AllSkillsAll(crew));
+            Imgui.EndH();
+            foreach (var ch in crew.Characters)
+            {
+                var d = ch?.Data;
+                if (d == null || d.CharacterType == PlayableCharacterData.Type.Sailor) continue;
+                Imgui.BeginH();
+                Imgui.Label(d.Name + "  (Skillpunkte frei: " + d.GetAvailableSkillPoints() + ")", 330);
+                string roleName = ch.Role?.Name ?? "keine";
+                if (Imgui.Button("Rolle: " + roleName, 300) && db != null)
+                {
+                    db.GetAvailableRoles(ch, roles);
+                    var allowed = roles.Where(r => r.IsRoleAllowedForCharacter(ch)).ToList();
+                    if (allowed.Count > 0)
+                    {
+                        int i = allowed.IndexOf(ch.Role);
+                        ch.Role = allowed[(i + 1) % allowed.Count];
+                    }
+                }
+                bool open = editSkills == d;
+                if (Imgui.Button(open ? "Skills zu" : "Skills bearbeiten", 160)) editSkills = open ? null : d;
+                Imgui.EndH();
+                if (editSkills == d) SkillEditor(d);
+            }
+        }
+
+        private static void MaxLevelAll(PlayerCrew crew)
+        {
+            int n = 0;
+            foreach (var ch in crew.Characters)
+            {
+                var d = ch?.Data; if (d == null) continue;
+                int before = Traverse.Create(d).Field("level").GetValue<int>();
+                for (int i = 0; i < 30; i++) d.AddExperiencePoints(100000);
+                int after = Traverse.Create(d).Field("level").GetValue<int>();
+                if (after > before) n++;
+            }
+            Util.Log("Mannschaft: Max Stufe, " + n + " Leute aufgestiegen");
+            ToolkitRunner.ShowNotice("Max Stufe: " + n + " Leute aufgestiegen", 5f);
+        }
+
+        private static void AllSkillsAll(PlayerCrew crew)
+        {
+            var classes = Classes();
+            if (classes == null) { ToolkitRunner.ShowNotice("Skill-Liste nicht gefunden", 5f); return; }
+            var all = classes.SelectMany(c => c.Skills).Where(x => x != null).GroupBy(x => x.Name).Select(g => g.First()).ToList();
+            int n = 0;
+            foreach (var ch in crew.Characters)
+            {
+                var d = ch?.Data; if (d == null) continue;
+                var owned = d.Statuses.OfType<CharacterSkill>().Select(o => o.Name).ToList();
+                foreach (var sk in all) if (!owned.Contains(sk.Name)) { try { d.LearnSkill(sk, false); n++; } catch { } }
+            }
+            Util.Log("Mannschaft: alle Skills, " + n + " Skills vergeben");
+            ToolkitRunner.ShowNotice("Alle Skills: " + n + " vergeben", 5f);
+        }
+
+        // Skill editor: every skill of every class, one click adds or removes it (no points, no level needed).
+        private static PlayableCharacterData editSkills;
+        private static void SkillEditor(PlayableCharacterData d)
+        {
+            var classes = Classes();
+            if (classes == null) { Imgui.Label("  Skill-Liste nicht gefunden."); return; }
+            var all = classes.SelectMany(c => c.Skills).Where(x => x != null).GroupBy(x => x.Name).Select(g => g.First()).OrderBy(x => x.Name).ToList();
+            var owned = d.Statuses.OfType<CharacterSkill>().ToList();
+            Imgui.BeginH();
+            Imgui.Label("  Klick = Skill dazu (+) oder weg (✓).", 330);
+            if (Imgui.Button("Alle geben", 120)) foreach (var sk in all) if (!owned.Any(o => o.Name == sk.Name)) d.LearnSkill(sk, false);
+            if (Imgui.Button("Alle weg", 120)) foreach (var o in owned) d.RemoveStatus(o);
+            Imgui.EndH();
+            for (int i = 0; i < all.Count; i += 3)
+            {
+                Imgui.BeginH();
+                Imgui.Space(20);
+                for (int j = i; j < i + 3 && j < all.Count; j++)
+                {
+                    var sk = all[j];
+                    var have = owned.FirstOrDefault(o => o.Name == sk.Name);
+                    if (Imgui.Button((have != null ? "✓ " : "+ ") + sk.Name, 250))
+                    {
+                        if (have != null) d.RemoveStatus(have);
+                        else d.LearnSkill(sk, false);
+                    }
+                }
+                Imgui.EndH();
+            }
+            Imgui.Space(6);
+        }
+    }
+
+    [HarmonyPatch(typeof(PlayableCharacterData), nameof(PlayableCharacterData.PromoteToClass))]
+    internal static class ExtraFeatures_PromotePatch
+    {
+        private static void Postfix() { Util.Safe("Skills.Promote", () => { ExtraFeatures.ReapplySkills(); Util.Log("Beförderung: Skill-Cheats neu angewendet"); }); }
+    }
+
+    // Cheat: extra skill points for every officer.
+    [HarmonyPatch(typeof(PlayableCharacterData), nameof(PlayableCharacterData.GetAvailableSkillPoints))]
+    internal static class ExtraFeatures_SkillPointsPatch
+    {
+        // The game clamps at 0, so the extra points are added before that clamp (recomputed here).
+        private static void Postfix(PlayableCharacterData __instance, ref int __result)
+        {
+            if (Settings.B("CheatUnlimitedSkillPoints")) { __result = 99; return; }
+            int extra = Mathf.Max(0, (int)Settings.F("CheatExtraSkillPoints"));
+            if (extra == 0) return;
+            int level = Traverse.Create(__instance).Field("level").GetValue<int>();
+            int used = __instance.Statuses.OfType<CharacterSkill>().Count(sk => !sk.IsFree);
+            __result = Mathf.Max(0, level - 1 - used + extra);
+        }
+    }
+
+    // Torpedo loading x faster (1000 = practically instant).
+    [HarmonyPatch(typeof(LoadTorpedoesAction), "StartMainCharacter")]
+    internal static class ExtraFeatures_TorpedoLoadPatch
+    {
+        private static void Postfix(LoadTorpedoesAction __instance)
+        {
+            float f = Settings.F("TorpedoLoadSpeed");
+            if (f <= 1f) return;
+            var t = Traverse.Create(__instance).Field("performanceMultiplier");
+            t.SetValue(t.GetValue<float>() * f);
+        }
+    }
+
+    // Faster game loading: while the loading screen runs, the game's background work may use the
+    // whole frame (normally only ~2 ms per frame) and textures are uploaded in bigger pieces.
+    [HarmonyPatch(typeof(LoadingUIController), "UpdateSceneLoading")]
+    internal static class ExtraFeatures_LoadingBoostPatch
+    {
+        private static bool boosted, asyncSet;
+        private static System.Threading.ThreadPriority origAsync;
+        internal static bool Boosted => boosted;
+        private static int origSlice, origBuffer;
+        private static ThreadPriority origPriority;
+
+        private static void Postfix(LoadingUIController __instance)
+        {
+            bool loading = Traverse.Create(__instance).Field("isLoading").GetValue<bool>();
+            var ex = TaskExecutor.Instance;
+            if (loading && Settings.B("FastLoading"))
+            {
+                if (!boosted) { origSlice = QualitySettings.asyncUploadTimeSlice; origBuffer = QualitySettings.asyncUploadBufferSize; origPriority = Application.backgroundLoadingPriority; }
+                if (ex != null) ex.UnlimitedFrameBudget = true;
+                // 0.4.8: the game's helper threads (terrain, crew meshes) run at the lowest priority; normal while loading
+                if (ex != null && !boosted) Util.Safe("Laden: Hilfs-Threads", () => { origAsync = ex.AsyncThreadsPriority; ex.AsyncThreadsPriority = System.Threading.ThreadPriority.Normal; asyncSet = true; });
+                QualitySettings.asyncUploadTimeSlice = 33;
+                QualitySettings.asyncUploadBufferSize = 256;   // 0.3.68: test, was 64 (DoMe: texture loading takes forever; 40-58 s of each load is waiting)
+                Application.backgroundLoadingPriority = ThreadPriority.High;
+                boosted = true;
+            }
+            else if (boosted)
+            {
+                if (ex != null) ex.UnlimitedFrameBudget = false;
+                if (ex != null && asyncSet) Util.Safe("Laden: Hilfs-Threads", () => { ex.AsyncThreadsPriority = origAsync; asyncSet = false; });
+                QualitySettings.asyncUploadTimeSlice = origSlice;
+                QualitySettings.asyncUploadBufferSize = origBuffer;
+                Application.backgroundLoadingPriority = origPriority;
+                boosted = false;
+            }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/Extras.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Devices;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UBOAT.Game.Scene.Utilities;
+
+    // Own ideas + remaining cheats:
+    // research speed, sonar (echo sounder) auto-ping, all upgrades/boats unlocked, faster torpedoes,
+    // quick travel, depth keys, reload all tubes, swap watch shifts, tidy storage, route ETA + range.
+    public class Extras : ModuleBase
+    {
+        public override void Frame()
+        {
+            if (Util.PlayerShip == null) return;
+            // depth keys: see DepthGauge (key alone / Shift x10 / Alt x100)
+            if (Keys.Down("KeyReloadAll")) Util.Safe("ReloadAll", ReloadAll);
+            if (Keys.Down("KeyQuickTravel") && Settings.B("CheatQuickTravel")) Util.Safe("QuickTravel", QuickTravel);
+            if (Keys.Down("KeySortStorage")) Util.Safe("SortStorage", SortStorage);
+            if (Keys.Down("KeySwapShifts")) Util.Safe("SwapShifts", SwapShifts);
+            if (Keys.Down("KeyCallMilkCow")) Util.Safe("CallMilkCow", CallMilkCow);
+            if (Keys.Down("KeySpawnConvoy")) Util.Safe("SpawnConvoy", SpawnConvoy);
+            if (Keys.Down("KeyBackToWater")) { var o = Settings.Get("BackToWaterNow"); if (o != null) o.Value = 1; }
+        }
+
+        public override void Tick()
+        {
+            var ship = Util.PlayerShip;
+            OneShot("ReloadAllNow", ReloadAll);
+            OneShot("SwapShiftsNow", SwapShifts);
+            OneShot("SortStorageNow", SortStorage);
+            OneShot("CheatUnlockAll", UnlockAll);
+            OneShot("CheatUnlockBoats", UnlockBoats);
+            OneShot("CheatQuickTravelNow", QuickTravel);
+            OneShot("CallMilkCow", CallMilkCow);
+            OneShot("CheatSpawnConvoy", SpawnConvoy);
+
+            // Research at the headquarters x faster (instant = finishes within a second).
+            Util.Safe("research", () => Util.ScaleParameter(ship.SandboxEntity?.Country?.Headquarters?.TaskExecutionPerformance,
+                Settings.B("CheatInstantResearch") ? 1000000f : Settings.F("CheatResearchSpeed")));
+            OneShot("CheatResearchAll", () => ResearchAll(ship));
+            OneShot("CheatAddReputation", () =>
+            {
+                var c = Util.Career; if (c == null) return;
+                int add = Mathf.Max(1, (int)Settings.F("CheatAddReputationAmount"));
+                c.ReputationPoints += add;
+                ToolkitRunner.ShowNotice("+" + add + " Ansehen (jetzt " + c.ReputationPoints + ")", 4f);
+            });
+            OneShot("CheatAddUpgradePoints", () =>
+            {
+                var c = Util.Career; if (c == null) return;
+                int add = Mathf.Max(1, (int)Settings.F("CheatAddReputationAmount"));
+                c.ShipUpgradePoints += add;
+                ToolkitRunner.ShowNotice("+" + add + " Upgrade-Punkte (jetzt " + c.ShipUpgradePoints + ")", 4f);
+            });
+
+            // Echo sounder pings by itself while submerged.
+            bool autoPing = Settings.B("CheatSonarPing");
+            if (autoPing || autoPingWas)
+                foreach (var d in Util.Find<SoundRangingDevice>())
+                    if (Util.IsPlayers(d)) d.IsSendButtonPressed = autoPing && ship.SubmergedOrGoingToSubmerge;
+            if (autoPingWas && !autoPing) Util.Log("Echolot: Dauer-Ping aus, Sendetaste losgelassen");
+            autoPingWas = autoPing;
+
+            // Faster torpedoes: the speed values of all own torpedoes are raised, so the
+            // torpedo computer also aims with the new speed.
+            float tf = Settings.F("CheatTorpedoSpeed");
+            foreach (var t in Util.Find<StoredTorpedo>(1f))
+            {
+                Util.ScaleParameter(t.Speed1, tf);
+                Util.ScaleParameter(t.Speed2, tf);
+                Util.ScaleParameter(t.Speed3, tf);
+            }
+
+            NavInfo(ship);
+        }
+
+        private static readonly Dictionary<string, int> oneShotTries = new Dictionary<string, int>();
+
+        // A switch that does something once and turns itself off. Waits until the boat is fully
+        // loaded; if it still fails, it tries again next second (up to 10 times) instead of giving up.
+        private static bool autoPingWas;
+        private static void OneShot(string key, System.Action a)
+        {
+            var o = Settings.Get(key);
+            if (o == null || !o.On || !Util.ShipReady) return;
+            try { a(); o.Value = 0; oneShotTries.Remove(key); }
+            catch (System.Exception e)
+            {
+                oneShotTries.TryGetValue(key, out int n); oneShotTries[key] = ++n;
+                if (n >= 10) { o.Value = 0; oneShotTries.Remove(key); Util.Log("Aktion " + key + " fehlgeschlagen: " + e); }
+            }
+        }
+
+        private static void ChangeDepth(float delta)
+        {
+            var ship = Util.PlayerShip;
+            float d = Mathf.Max(0f, ship.TargetDepth + delta);
+            Owners.Depth(ship, "Tiefen-Taste (du)", Owners.Player, d, false, true);
+            ToolkitRunner.ShowNotice("Zieltiefe " + d.ToString("0") + " m", 2f);
+        }
+
+        // Every empty tube gets the nearest torpedo from the boat's own storage (nothing is created).
+        private static void ReloadAll()
+        {
+            var ship = Util.PlayerShip;
+            var storages = Util.Find<Storage>().Where(s => s != null && !(s is UBOAT.Game.Scene.Items.TorpedoLauncherGroup) && s.GetComponentInParent<PlayableCharacter>() == null).ToArray();
+            int n = 0;
+            foreach (var l in Util.Find<TorpedoLauncher>())
+            {
+                // 0.4.22 (option audit): only OUR tubes, and never a tube the crew is loading right now (see Torpedoes.TubeBusy)
+                if (l == null || !(Util.IsPlayers(l) || (l.Group != null && l.Group.ParentEntity is PlayerShip))) continue;
+                if (l.Torpedo != null || Torpedoes.TubeBusy(l)) continue;
+                Storage best = null; int bestSlot = -1; float bestDist = float.MaxValue;
+                foreach (var s in storages)
+                    for (int i = 0; i < Util.Slots(s); i++)
+                    {
+                        if (!(s.GetItemAt(i) is StoredTorpedo t) || t is StoredMinePacket || s.HasTransportOrders(i)) continue;
+                        float dist = (s.transform.position - l.transform.position).sqrMagnitude;
+                        if (dist < bestDist) { best = s; bestSlot = i; bestDist = dist; }
+                    }
+                if (best == null) break;
+                var torp = (StoredTorpedo)best.GetItemAt(bestSlot);
+                best.SetItemAt(bestSlot, null);
+                l.SetTorpedo(torp);
+                l.CompleteLoading(quiet: true);
+                n++;
+            }
+            ToolkitRunner.ShowNotice(n > 0 ? n + " Rohr(e) nachgeladen" : "Kein leeres Rohr oder kein Torpedo im Lager", 4f);
+        }
+
+        // Groups with the same job swap their watch hours (e.g. tired watch goes to bed).
+        private static void SwapShifts()
+        {
+            var crew = Object.FindObjectOfType<PlayerCrew>();
+            if (crew?.SailorGroups == null) return;
+            int swapped = 0;
+            foreach (var role in crew.SailorGroups.Where(g => g != null && g.Enabled && !g.Hidden).GroupBy(g => g.Role))
+            {
+                var list = role.ToList();
+                if (list.Count < 2) continue;
+                var first = Copy(list[0].Schedule);
+                for (int i = 0; i < list.Count; i++)
+                {
+                    var src = i + 1 < list.Count ? Copy(list[i + 1].Schedule) : first;
+                    for (int h = 0; h < 24; h++) list[i].Schedule[h] = src[h];
+                }
+                swapped++;
+            }
+            ToolkitRunner.ShowNotice(swapped > 0 ? "Wachen getauscht" : "Keine Gruppen zum Tauschen", 4f);
+        }
+
+        private static Schedule.Behaviour[] Copy(Schedule s)
+        {
+            var a = new Schedule.Behaviour[24];
+            for (int h = 0; h < 24; h++) a[h] = s[h];
+            return a;
+        }
+
+        // Tidy each storage: fill up same items into one stack, then move items to the front.
+        private static void SortStorage()
+        {
+            int moves = 0;
+            foreach (var s in Util.Find<Storage>())
+            {
+                if (s.GetComponentInParent<PlayableCharacter>() != null) continue;
+                for (int a = 0; a < Util.Slots(s); a++)
+                {
+                    if (!(s.GetItemAt(a) is Cargo ca) || s.HasTransportOrders(a)) continue;
+                    for (int b = a + 1; b < Util.Slots(s); b++)
+                    {
+                        if (!(s.GetItemAt(b) is Cargo cb) || cb.Data.Name != ca.Data.Name || s.HasTransportOrders(b)) continue;
+                        float room = (float)ca.StackLimit - ca.Count;
+                        if (room <= 0f) break;
+                        float move = Mathf.Min(room, cb.Count);
+                        if (move <= 0f) continue;
+                        StorageUtility.TransferInstantly(s, b, s, a, move);
+                        moves++;
+                    }
+                }
+                for (int a = 0; a < Util.Slots(s); a++)
+                {
+                    if (s.GetItemAt(a) != null || s.HasTransportOrders(a)) continue;
+                    for (int b = a + 1; b < Util.Slots(s); b++)
+                    {
+                        var item = s.GetItemAt(b);
+                        if (item == null || s.HasTransportOrders(b) || !s.IsItemAllowed(a, item)) continue;
+                        float count = item is Cargo c ? c.Count : 1f;
+                        StorageUtility.TransferInstantly(s, b, s, a, count);
+                        moves++;
+                        break;
+                    }
+                }
+            }
+            ToolkitRunner.ShowNotice("Lager aufgeräumt (" + moves + " Schritte)", 4f);
+        }
+
+        // Every research task of the headquarters that is not running is finished at once (the game's own Finish = item researched).
+        // Finishes every research of the headquarters: waiting ones, ones whose requirements are not met
+        // yet, and ones an officer is working on right now (those are completed through their handler,
+        // so the officer is free again and rewards are given).
+        private static void ResearchAll(PlayerShip ship)
+        {
+            var hq = ship.SandboxEntity?.Country?.Headquarters;
+            if (hq == null) return;
+            int n = 0, running = 0;
+            for (int pass = 0; pass < 5; pass++)   // finished research can unlock more research
+            {
+                int before = n + running;
+                foreach (var t in hq.Tasks.ToArray())
+                {
+                    // Research cards and production cards on the HQ table (crate = items, torpedo/shells = equipment).
+                    if (!(t is UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase r) || r.IsCompleted) continue;
+                    if (!(t is UBOAT.Game.Sandbox.HQ.Research || t is UBOAT.Game.Sandbox.HQ.EquipmentProduction
+                          || t is UBOAT.Game.Sandbox.HQ.ItemsProduction || t is UBOAT.Game.Sandbox.HQ.Production)) continue;
+                    try
+                    {
+                        var h = hq.GetHandlerOf(r);
+                        if (h != null && h.Task == r) { h.CompleteTask(); running++; }
+                        else { r.Finish(); n++; }
+                    }
+                    catch (System.Exception e) { Util.Log("Erforschen: " + r.Name + " Fehler " + e.Message); }
+                }
+                if (n + running == before) break;
+            }
+            var db = Resources.FindObjectsOfTypeAll<EquipmentDatabase>().FirstOrDefault();
+            if (db != null) foreach (var e in db.GetEquipmentDirect()) if (e != null) e.Researched = true;
+            var left = hq.Tasks.Where(t => t != null && !t.IsCompleted).GroupBy(t => t.GetType().Name).Select(g => g.Key + " " + g.Count());
+            Util.Log("Erforschen: fertig " + n + ", davon liefen " + running + "; offen bleiben (andere Aufgaben): " + string.Join(", ", left.ToArray()));
+            ToolkitRunner.ShowNotice("Erforscht: " + (n + running) + " Forschungen (" + running + " davon liefen gerade)", 6f);
+        }
+
+        private static void UnlockAll()
+        {
+            int items = 0;
+            var db = Resources.FindObjectsOfTypeAll<EquipmentDatabase>().FirstOrDefault();
+            if (db != null)
+                foreach (var e in db.GetEquipmentDirect())
+                    if (e != null && !e.Researched) { e.Researched = true; items++; }
+            ToolkitRunner.ShowNotice("Freigeschaltet: " + items + " Ausrüstungen", 6f);
+        }
+
+        private static void UnlockBoats()
+        {
+            var career = Util.Career;
+            if (career != null)
+                foreach (var b in new[] { "Type IIA", "Type IID", "Type VIIB", "Type VIIC", "Type VIIC41", "Type IXA", "Type IXC", "Type IXC40" })
+                    career.UnlockShip(b, true);
+            ToolkitRunner.ShowNotice(career != null ? "Alle Boote freigeschaltet" : "Keine Karriere geladen", 6f);
+        }
+
+        // Jumps to the end of the planned route on the map.
+        private static void QuickTravel()
+        {
+            var w = Game.Wolfpack;
+            if (w?.Route == null || w.Route.Count == 0) { ToolkitRunner.ShowNotice("Erst einen Kurs auf der Karte setzen", 4f); return; }
+            var target = w.Route[w.Route.Count - 1];
+            var ship = Util.PlayerShip;
+            if (ship.Docked) ship.Undock();
+            w.SetPosition(target, true, true);
+            w.Route.Clear();
+            ToolkitRunner.ShowNotice("Schnellreise: am Ziel", 4f);
+        }
+
+        // Cheat: an enemy convoy appears ahead of the boat, the same way the game's own developer command "Spawn Convoy"
+        // does it (nearest convoy spawner, spawned instantly, placed x km in front, marked on the map).
+        private static void SpawnConvoy()
+        {
+            var w = Game.Wolfpack;
+            var sb = Traverse.Create(typeof(UBOAT.Game.UI.DevConsole.DevConsoleCommands)).Field("sandbox").GetValue<UBOAT.Game.Sandbox.Sandbox>();
+            if (w == null || sb == null) { ToolkitRunner.ShowNotice("Konvoi: Spiel noch nicht bereit", 4f); return; }
+            var sp = sb.GetNearestSpawner(w.Position, "Convoy", Country.Relation.Enemy);
+            if (sp == null)   // early war: spawners can be time-restricted; take the nearest enemy one anyway
+            {
+                float best = float.MaxValue;
+                foreach (var g in sb.GroupSpawners)
+                {
+                    if (g == null || g.SpawnType != "Convoy" || !g.Countries.Any(c => c.GetRelationWith(w.Country) == Country.Relation.Enemy)) continue;
+                    float d = (w.Position - (Vector2)g.transform.position).sqrMagnitude;
+                    if (d < best) { best = d; sp = g; }
+                }
+            }
+            if (sp == null) { ToolkitRunner.ShowNotice("Konvoi: kein Konvoi-Startpunkt gefunden", 4f); return; }
+            var grp = sp.SpawnInstantly(true);
+            if (grp == null) { ToolkitRunner.ShowNotice("Konvoi: Spiel hat keinen erzeugt", 4f); return; }
+            float km = Settings.F("SpawnConvoyKm");
+            grp.Position = w.Position + w.Up * km;
+            grp.UpdateGroup();
+            grp.UpdateGroupLowFrequency(false);
+            if (grp.AI != null) for (int i = 0; i < 3; i++) grp.AI.UpdateAI();
+            w.AddObservation(grp, GroupDetectionMethod.IndirectObservation).AddKnownData(GroupData.TransportType, 2f, true);
+            Util.Log("Konvoi gespawnt: " + grp.name + " aus " + sp.name + ", " + km + " km voraus");
+            ToolkitRunner.ShowNotice("Konvoi " + km.ToString("0") + " km voraus (auf der Karte)", 5f);
+        }
+
+        // Nearest supply U-boat comes to you (3 km away).
+        private static void CallMilkCow()
+        {
+            var hq = Util.PlayerShip.SandboxEntity?.Country?.Headquarters;
+            var w = Game.Wolfpack;
+            if (hq == null || w == null) return;
+            UBOAT.Game.Sandbox.SandboxGroup best = null; float bestDist = float.MaxValue;
+            foreach (var t in hq.Tasks.OfType<UBOAT.Game.Sandbox.HQ.AddSupplyShip>())
+            {
+                var g = t.SupplyShip?.Group;
+                if (g == null || t.SupplyShip.IsPacified) continue;
+                float d = (g.Position - w.Position).sqrMagnitude;
+                if (d < bestDist) { best = g; bestDist = d; }
+            }
+            if (best == null) { ToolkitRunner.ShowNotice("Keine Milchkuh auf See", 4f); return; }
+            best.SetPosition(w.Position + new Vector2(3f, 0f), true);
+            ToolkitRunner.ShowNotice("Milchkuh ist da (3 km östlich)", 5f);
+        }
+
+        private static void NavInfo(PlayerShip ship)
+        {
+            string speed = Events.SpeedText;
+            if (!Settings.B("NavInfo")) { ToolkitRunner.InfoLine = speed; return; }
+            var w = Game.Wolfpack;
+            string eta = null, diesel = null;
+            if (Settings.B("InfoEta") && w?.Route != null && w.Route.Count > 0)
+            {
+                float km = w.Route.TotalLength;
+                eta = "Ziel: " + km.ToString("0") + " km";
+                if (w.Velocity > 0.0001f)
+                {
+                    float h = km / w.Velocity / 3600f;
+                    eta += ", Ankunft in " + ((int)h) + " h " + ((int)((h - (int)h) * 60f)).ToString("00") + " min (Spielzeit)";
+                }
+            }
+            if (Settings.B("InfoDiesel"))
+                try { diesel = "Diesel-Reichweite (3. Stufe): " + (ship.EstimatedRangeOnThirdGear > 100000f ? "∞" : ship.EstimatedRangeOnThirdGear.ToString("0") + " km"); } catch { }
+            ToolkitRunner.InfoLine = Events.Join(speed, eta, diesel);
+        }
+    }
+
+    [HarmonyPatch(typeof(SandboxDock), nameof(SandboxDock.GetBuyPrice))]
+    internal static class Extras_PricePatch
+    {
+        private static void Postfix(ref int __result)
+        {
+            float f = Settings.F("CheatPriceFactor");
+            if (f <= 0f || f >= 1f || __result <= 0) return;
+            __result = Mathf.Max(1, Mathf.CeilToInt(__result * f));
+        }
+    }
+
+    [HarmonyPatch(typeof(RepairAction), "StartMainCharacter")]
+    internal static class Extras_RepairPatch
+    {
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<RepairAction, object> done = new System.Runtime.CompilerServices.ConditionalWeakTable<RepairAction, object>();
+        private static void Postfix(RepairAction __instance)
+        {
+            float f = Settings.F("CheatRepairSpeed");
+            if (f <= 1f || !Util.IsPlayers(__instance.Activator)) return;
+            // 0.4.22 (option audit): once per repair action. The game never resets the field, so a second start of the
+            // same action multiplied the factor again.
+            object seen;
+            if (done.TryGetValue(__instance, out seen)) return;
+            done.Add(__instance, null);
+            var t = Traverse.Create(__instance).Field("performanceMultiplier");
+            t.SetValue(t.GetValue<float>() * f);
+        }
+    }
+
+    // Fast torpedoes: safer hit detection so they do not pass through a ship between two physics steps.
+    [HarmonyPatch(typeof(Torpedo), "Start")]
+    internal static class Extras_TorpedoHitPatch
+    {
+        private static void Postfix(Torpedo __instance)
+        {
+            if (Settings.F("CheatTorpedoSpeed") <= 1f || __instance.Owner != Util.PlayerShip) return;
+            var rb = __instance.GetComponent<Rigidbody>();
+            if (rb != null) rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Devices;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UBOAT.Game.Scene.Utilities;
+
+    // Cheat: research and production cards of your own headquarters need no earlier research and no date.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase), "IsAllowed", HarmonyLib.MethodType.Getter)]
+    internal static class NoResearchRequirements_Patch
+    {
+        private static object playerCountry;
+        private static void Postfix(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase __instance, ref bool __result)
+        {
+            if (__result || !Settings.B("CheatNoResearchRequirements")) return;
+            if (!(__instance is UBOAT.Game.Sandbox.HQ.Research || __instance is UBOAT.Game.Sandbox.HQ.EquipmentProduction
+                  || __instance is UBOAT.Game.Sandbox.HQ.ItemsProduction || __instance is UBOAT.Game.Sandbox.HQ.Production)) return;
+            try
+            {
+                var c = Util.PlayerShip?.SandboxEntity?.Country;
+                if (c != null) playerCountry = c;
+                if (playerCountry != null && ReferenceEquals(__instance.Country, playerCountry) && !__instance.IsCompleted) __result = true;
+            }
+            catch { }
+        }
+    }
+
+    // 0.4.10 (DoMe 2026-11-17: "Forschung ohne Voraussetzungen wirkt nicht, ich muss immer noch einen Offizier haben"):
+    // the officer slots of a task come from this list; with the cheat it is empty, so the task starts without an officer
+    // (the game then runs it at normal speed, HeadquartersTaskHandler: no agents = performance 1).
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase), "CharacterRequirements", HarmonyLib.MethodType.Getter)]
+    internal static class NoResearchOfficer_Patch
+    {
+        private static readonly UBOAT.Game.Sandbox.HQ.CharacterRequirement[] none = new UBOAT.Game.Sandbox.HQ.CharacterRequirement[0];
+        private static void Postfix(UBOAT.Game.Sandbox.HQ.HeadquartersTaskBase __instance, ref UBOAT.Game.Sandbox.HQ.CharacterRequirement[] __result)
+        {
+            if (__result == null || __result.Length == 0 || !Settings.B("CheatNoResearchRequirements")) return;
+            if (!(__instance is UBOAT.Game.Sandbox.HQ.Research || __instance is UBOAT.Game.Sandbox.HQ.EquipmentProduction
+                  || __instance is UBOAT.Game.Sandbox.HQ.ItemsProduction || __instance is UBOAT.Game.Sandbox.HQ.Production)) return;
+            try
+            {
+                var c = Util.PlayerShip?.SandboxEntity?.Country;
+                if (c != null && ReferenceEquals(__instance.Country, c)) __result = none;
+            }
+            catch { }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/Inventory.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UnityEngine;
+
+    // Cheats #18 + #23: items and ammunition (almost) weigh nothing (0.0000001, never 0),
+    // and one storage slot holds (almost) unlimited items of one kind.
+    // Adding real extra slots broke items in the old "Slot Machine" mod, so this uses
+    // the game's own "ignore stack limits" switch instead (safe for saves).
+    public class Inventory : ModuleBase
+    {
+        private float next, nextMerge;
+        private string lastState = "";
+
+        // Same items in several slots of one storage are put together into one stack
+        // (e.g. medkits bought as 5-packs). No reordering, slots with open loading orders are left alone.
+        internal static int MergeStacks()
+        {
+            int moves = 0;
+            foreach (var s in Util.Find<Storage>())
+            {
+                if (s == null || s.IsShop || s.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() != null) continue;
+                int slots = Util.Slots(s);
+                for (int a = 0; a < slots; a++)
+                {
+                    if (!(s.GetItemAt(a) is Cargo ca) || ca.Data == null || ca.Data.StackLimit <= 1f || s.HasTransportOrders(a)) continue;
+                    for (int b = a + 1; b < slots; b++)
+                    {
+                        if (!(s.GetItemAt(b) is Cargo cb) || cb.Data == null || cb.Data.Name != ca.Data.Name || s.HasTransportOrders(b)) continue;
+                        float room = (float)ca.StackLimit - ca.Count;
+                        if (room <= 0f) break;
+                        float move = Mathf.Min(room, cb.Count);
+                        if (move <= 0f) continue;
+                        UBOAT.Game.Scene.Utilities.StorageUtility.TransferInstantly(s, b, s, a, move);
+                        moves++;
+                    }
+                }
+            }
+            return moves;
+        }
+
+        // Sets the stack size of one item right away (used for new items too, so they do not
+        // wait for the next 5-second pass). At least "CheatMinStackSize" per slot.
+        public static void ApplyStack(Cargo c)
+        {
+            if (c == null || c.StackLimit == null) return;
+            float dataLimit = c.Data != null ? c.Data.StackLimit : 1f;
+            // Stackable items: the bigger stack is written into the item database itself (see StackData),
+            // because the game's storage window (drag, buy, split) only reads the database value.
+            // Keep the item's own "Base" value in step with it.
+            if (dataLimit > 1f)
+            {
+                var m = c.StackLimit.GetDeltaModifier("Base", true);
+                if (m != null && Mathf.Abs(m.Value - dataLimit) > 0.0001f) m.Value = dataLimit;
+                Util.ScaleParameter(c.StackLimit, 1f);
+                return;
+            }
+            float f = Mathf.Max(1f, Settings.F("CheatStackSize"));
+            float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
+            if (minStack > 0f) f = Mathf.Max(f, minStack);
+            Util.ScaleParameter(c.StackLimit, f);
+        }
+
+        // Cheat: the dealer in port has at least "CheatShopStock" of every stackable item (DoMe 2026-11-13: buy slider
+        // stopped at the dealer's 15 decoys although one storage place holds 100000). Only while docked, every 5 s.
+        private static int shopLogged;
+        private static void ShopStock()
+        {
+            float want = Settings.F("CheatShopStock");
+            var ship = Util.PlayerShip;
+            if (want <= 0f || ship == null || !ship.Docked) return;
+            int n = 0;
+            foreach (var st in UnityEngine.Object.FindObjectsOfType<Storage>())
+            {
+                if (st == null || !st.IsShop) continue;
+                for (int i = Util.Slots(st) - 1; i >= 0; i--)
+                {
+                    var c = st.GetItemAt(i) as Cargo;
+                    if (c == null || c.Data == null || c.Data.StackLimit <= 1f || c is Fuel) continue;
+                    if (c.Count < want) { c.Count = want; n++; }
+                }
+            }
+            if (n > 0 && shopLogged++ < 5) Util.Log("Händler: " + n + " Waren auf " + want + " Stück aufgefüllt");
+        }
+
+        public override void Tick()
+        {
+            var ship = Util.PlayerShip;
+            if (ship == null) return;
+            bool noWeight = Settings.B("CheatNoWeight");
+            float stack = Mathf.Max(1f, Settings.F("CheatStackSize"));
+            float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
+            // 0.3.69 ("Langsam: Inventory.Tick ~48 ms" every 5 s): the full pass over all storages and items now runs
+            // at once when a setting changed, otherwise only every 20 s. New items get their stack size right away (ApplyStack).
+            bool noLimit = Settings.B("CheatNoMassLimit");
+            string state = noWeight + "/" + noLimit + "/" + stack + "/" + minStack + "/" + Settings.F("CheatShopStock") + "/" + Settings.B("CheatMergeStacks") + "/" + ship.Docked;
+            if (state == lastState && Time.unscaledTime < next) return;
+            next = Time.unscaledTime + (state != lastState ? 2f : 20f);
+            lastState = state;
+
+            foreach (var s in Util.Find<Storage>())
+            {
+                if (s.IsShop) continue;
+                // 0.4.2: torpedo tubes and torpedo racks are left exactly as the game made them (suspect for the
+                // empty tube window / crew not loading; torpedoes never stack anyway).
+                if (s is TorpedoLauncherGroup || s is TorpedoStorage)
+                {
+                    var tt = Traverse.Create(s);
+                    tt.Field("ignoreStackLimits").SetValue(Util.Original<bool>(s, "ignoreStackLimits"));
+                    Util.ScaleParameter(tt.Field("itemsMassLimit").GetValue<Parameter>(), 1f);
+                    continue;
+                }
+                var t = Traverse.Create(s);
+                bool origIgnore = Util.Original<bool>(s, "ignoreStackLimits");
+                t.Field("ignoreStackLimits").SetValue(stack > 1f || minStack > 0f || origIgnore);
+                // Never for diesel tanks: the game shows fuel % as (fuel mass / tank mass limit), so a bigger
+                // limit made the tank read 0 % and the boat "out of fuel" although it was full.
+                bool fuelTank = s.StorageType != null && s.StorageType.StartsWith("Fuel");
+                Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noLimit && !fuelTank ? 1000000f : 1f);
+            }
+            StackData.Apply();
+            Util.Safe("ShopStock", ShopStock);
+            if (Settings.B("CheatMergeStacks") && Time.unscaledTime >= nextMerge)
+            {
+                nextMerge = Time.unscaledTime + 15f;
+                int m = MergeStacks();
+                if (m > 0) Util.Log("Stapel zusammengelegt: " + m);
+            }
+            foreach (var e in Util.Find<Equipment>())
+            {
+                // Never for diesel: the game reads the fuel amount from its weight, so "no weight"
+                // made every tank show 0 kg and look empty, even right after refuelling.
+                Util.ScaleParameter(e.Mass, noWeight && !(e is Fuel) && !(e is StoredTorpedo) ? 0.0000001f : 1f);   // 0.4.2: torpedoes keep their game weight
+                if (e is Cargo c) ApplyStack(c);
+            }
+            Util.Safe("StackCheck", StackCheck);
+        }
+
+        // 0.4.68 (DoMe 2026-11-19: "der stackcheat scheint auch nicht mehr korrekt zu funktionieren"; the log only
+        // showed the database write, not what lies in the storages). Read only: what the boat's storages really hold.
+        private static string lastCheck = ""; private static float nextCheck;
+        private static void StackCheck()
+        {
+            int stores = 0, items = 0, split = 0, low = 0, ignoreOff = 0; float big = 0f, bigLimit = 0f; string bigName = "-", splitEx = "-", lowEx = "-";
+            float want = Mathf.Max(Mathf.Max(1f, Settings.F("CheatStackSize")), Settings.F("CheatMinStackSize"));
+            bool cheat = want > 1f;
+            foreach (var s in Util.Find<Storage>())
+            {
+                if (s == null || s.IsShop || s is TorpedoLauncherGroup || s is TorpedoStorage || s.GetComponentInParent<UBOAT.Game.Scene.Characters.PlayableCharacter>() != null) continue;
+                stores++;
+                if (cheat && !Traverse.Create(s).Field("ignoreStackLimits").GetValue<bool>()) ignoreOff++;
+                var seen = new System.Collections.Generic.HashSet<string>();
+                for (int i = 0; i < Util.Slots(s); i++)
+                {
+                    var c = s.GetItemAt(i) as Cargo;
+                    if (c == null || c.Data == null || c is Fuel) continue;
+                    items++;
+                    float lim = c.StackLimit != null ? (float)c.StackLimit : 0f;
+                    if (c.Count > big) { big = c.Count; bigLimit = lim; bigName = c.Data.Name; }
+                    if (!seen.Add(c.Data.Name) && c.Data.StackLimit > 1f) { split++; if (splitEx == "-") splitEx = c.Data.Name + " in " + s.name; }
+                    if (cheat && c.Data.StackLimit > 1f && lim < want - 0.5f) { low++; if (lowEx == "-") lowEx = c.Data.Name + " Limit " + lim.ToString("0") + " (Datenbank " + c.Data.StackLimit.ToString("0") + ")"; }
+                }
+            }
+            string line = "Lager-Prüfung (nur lesen): " + stores + " Lager, " + items + " belegte Plätze; größter Stapel " + big.ToString("0") + " von " + bigLimit.ToString("0") + " (" + bigName + "); gleiche Sache in getrennten Plätzen " + split + " (z. B. " + splitEx
+                + "); Stapel-Limit unter Soll " + want.ToString("0") + ": " + low + " (z. B. " + lowEx + "); Lager ohne 'Limit ignorieren': " + ignoreOff;
+            if (line == lastCheck && Time.unscaledTime < nextCheck) return;
+            lastCheck = line; nextCheck = Time.unscaledTime + 300f;
+            Util.Log(line);
+        }
+    }
+
+    // (ShopStock is a member of Inventory, see below)
+    // One place that writes the stack size into the item database (all stackable items, e.g. medkits 5 -> 100000).
+    // Stack cheat: base x "CheatStackSize", at least "CheatMinStackSize". Tight packing skill adds its bonus on top.
+    // Switched off = the game's own value again.
+    internal static class StackData
+    {
+        private static readonly System.Collections.Generic.Dictionary<UBOAT.Game.Sandbox.SandboxEquipmentData, float> baseStack =
+            new System.Collections.Generic.Dictionary<UBOAT.Game.Sandbox.SandboxEquipmentData, float>();
+        internal static int PackBonus;
+        private static string last = "";
+
+        internal static void Apply()
+        {
+            float f = Mathf.Max(1f, Settings.F("CheatStackSize"));
+            float minStack = Mathf.Max(0f, Settings.F("CheatMinStackSize"));
+            bool all = Settings.B("CheatStackAll") && (f > 1f || minStack > 0f);
+            string key = f + "/" + minStack + "/" + PackBonus + "/" + all;
+            if (key == last) return;
+            var db = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Sandbox.Devices.EquipmentDatabase>();
+            var bps = db != null ? db.GetEquipmentDirect() : null;
+            if (bps == null) return;
+            int n = 0;
+            foreach (var d in bps)
+            {
+                if (d == null) continue;
+                if (!baseStack.TryGetValue(d, out float b)) { b = d.StackLimit; baseStack[d] = b; }
+                // single items (game stack 1): only plain goods (Cargo types, not diesel) and only with "CheatStackAll";
+                // switched off = back to the game's 1
+                if (b <= 1f && !(all && PlainGoods(d)))
+                {
+                    if (Mathf.Abs(d.StackLimit - b) > 0.0001f) { d.StackLimit = b; n++; }
+                    continue;
+                }
+                float v = Mathf.Max(Mathf.Max(b, 1f) * f, minStack) + PackBonus;
+                if (Mathf.Abs(d.StackLimit - v) > 0.0001f) { d.StackLimit = v; n++; }
+            }
+            last = key;
+            foreach (var c in UnityEngine.Object.FindObjectsOfType<Cargo>()) Inventory.ApplyStack(c);
+            Util.Log("Stapel: " + n + " Gegenstaende neu (x" + f + ", mind. " + minStack + ", Packen +" + PackBonus + ", Einzel-Sachen " + (all ? "auch" : "nein") + ")");
+        }
+
+        private static bool PlainGoods(UBOAT.Game.Sandbox.SandboxEquipmentData d)
+        {
+            var t = d.Type;
+            return t != null && typeof(UBOAT.Game.Scene.Items.Cargo).IsAssignableFrom(t) && !typeof(UBOAT.Game.Scene.Items.Fuel).IsAssignableFrom(t);
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Auftragsziel genau (0.4.35)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Missions;
+
+    // DoMe 2026-11-18: "gibt das Spiel her, wo auf den Meter genau das eigentliche Ziel ist? ... SS Fairwood finden ...
+    // Mission teilweise verbuggt". Game code (SinkShipMission): the target is one ship of a moving convoy or warship
+    // group. "Find" is done when that GROUP appears in 3D near the boat, "Sink" when the ship is sunk. The mission only
+    // listens for the sinking. When the group reaches its port and is removed, nothing ends the mission: it stays
+    // open for ever. This part reads the group's exact map position (display only, changes nothing) and writes into
+    // the log what state the target is in. Scope: map/mission data only, no boat, no enemy is changed.
+    public class MissionTargetInfo : ModuleBase
+    {
+        private static readonly System.Reflection.FieldInfo GroupF = AccessTools.Field(typeof(SinkShipMission), "groupToAttack");
+        private static readonly System.Reflection.FieldInfo EntityF = AccessTools.Field(typeof(SinkShipMission), "targetEntity");
+        private static readonly System.Text.StringBuilder tree = new System.Text.StringBuilder();
+        private float next, nextNotice; private string lastState = "";
+
+        private string lastTree = "";
+        private static void Collect(IMission m, List<SinkShipMission> found, int depth)
+        {
+            if (m == null || depth > 6) return;
+            tree.Append(depth == 0 ? "" : " > ").Append(m.GetType().Name);
+            var st = AccessTools.Field(m.GetType(), "stage"); if (st != null) tree.Append(" (Stufe ").Append(st.GetValue(m)).Append(")");
+            var s = m as SinkShipMission; if (s != null) found.Add(s);
+            var mm = m as Mission; if (mm == null) return;
+            foreach (var c in mm.Children) Collect(c, found, depth + 1);
+        }
+
+        public override void Tick()
+        {
+            if (Time.unscaledTime < next) return;
+            next = Time.unscaledTime + 10f;
+            var career = Util.Career; var w = Game.Wolfpack;
+            if (career == null || w == null || GroupF == null || EntityF == null) return;
+            var list = new List<SinkShipMission>();
+            tree.Length = 0;
+            Collect(career.CurrentAssignment as IMission, list, 0);
+            string t = tree.ToString();
+            if (t != lastTree) { lastTree = t; Util.Log("Auftragsziel: aktive Aufträge im Spiel: " + (t == "" ? "keine" : t)); }
+            if (list.Count == 0) { if (lastState != "") { lastState = ""; Util.Log("Auftragsziel: kein Auftrag „Schiff finden/versenken“ mehr aktiv"); } return; }
+            foreach (var m in list)
+            {
+                var grp = GroupF.GetValue(m) as SandboxGroup; var ent = EntityF.GetValue(m) as SandboxEntity;
+                string name = ent == null ? "?" : (ent.RequestIdentitity() != null ? ent.RequestIdentitity().Name : ent.Name);
+                string state, text;
+                if (ent == null || !grp)
+                {
+                    state = name + "|weg";
+                    text = "Auftragsziel " + name + ": Die Schiffsgruppe gibt es nicht mehr (im Hafen angekommen oder aufgelöst). Der Auftrag kann so nicht mehr erfüllt werden; das Spiel beendet ihn in diesem Fall nicht von selbst.";
+                }
+                else
+                {
+                    Vector2 d = grp.Position - w.Position;
+                    float km = d.magnitude, brg = Mathf.Atan2(d.x, d.y) * Mathf.Rad2Deg; if (brg < 0f) brg += 360f;
+                    var mob = grp as SandboxMobileGroup;
+                    float crs = Mathf.Atan2(grp.Up.x, grp.Up.y) * Mathf.Rad2Deg; if (crs < 0f) crs += 360f;
+                    state = name + "|" + m.Stage + "|" + grp.SpawnState + "|" + ent.IsPacified;
+                    text = "Auftragsziel " + name + " (Stufe " + m.Stage + "): " + km.ToString("0.0") + " km entfernt, Peilung " + brg.ToString("000") + "°, Kurs " + crs.ToString("000") + "°"
+                        + (mob != null ? ", Fahrt " + mob.Velocity.ToString("0.0") + " (Kartenwert), noch " + mob.Route.Count + " Wegpunkte" : ", steht")
+                        + ", Gruppe " + grp.Name + " mit " + grp.Entities.Count + " Schiffen, in 3D: " + (grp.SpawnState == SpawnState.Spawned ? "ja" : "nein") + (ent.IsPacified ? ", Ziel ist schon ausgeschaltet" : "");
+                }
+                bool changed = state != lastState; lastState = state;
+                if (changed) Util.Log(text);
+                if (Settings.B("CheatMissionTarget") && (changed || Time.unscaledTime >= nextNotice))
+                {
+                    nextNotice = Time.unscaledTime + 30f;
+                    if (!changed) Util.Log(text);
+                    ToolkitRunner.ShowNotice(text, 12f);
+                }
+            }
+        }
+    }
+}
+
+// ####################################################################################################
+// BEREICH 4 GPU_IMPROVEMENTS: Zeichnen sparen
+// ####################################################################################################
+
+// ====================================================================================================
+// Abschnitt: Modules/ExplosionLimit.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Shell explosions: the game spawns one explosion effect per hit (Shell.Explode). Here the effect is made smaller
+    // and at most x per second are spawned. Damage is computed before and is not changed.
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Entities.Shell), "Explode")]
+    internal static class ExplosionLimit_Patch
+    {
+        private static readonly MethodInfo Inst = AccessTools.FirstMethod(typeof(Object), m => m.Name == "Instantiate" && m.IsGenericMethodDefinition && m.GetParameters().Length == 1)?.MakeGenericMethod(typeof(GameObject));
+        private static readonly MethodInfo Mine = AccessTools.Method(typeof(ExplosionLimit_Patch), nameof(Spawn));
+        // The game forbids direct calls to Object.Instantiate in mod code: the non-generic overload is called via reflection.
+        private static readonly MethodInfo InstObj = typeof(Object).GetMethod("Instantiate", new[] { typeof(Object) });
+        private static GameObject Clone(GameObject p) => (GameObject)InstObj.Invoke(null, new object[] { p });
+        private static float second; private static int count; private static int skipped; private static float nextLog;
+
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
+        {
+            int n = 0;
+            foreach (var ci in code)
+            {
+                if (Inst != null && ci.Calls(Inst)) { n++; yield return new CodeInstruction(OpCodes.Call, Mine); continue; }
+                yield return ci;
+            }
+            Util.Log("Explosionen: " + n + " Stelle(n) umgeleitet");
+        }
+
+        // Smoothed frames per second (real time).
+        private static float fps = 60f, lastT;
+        internal static float Fps()
+        {
+            float t = Time.unscaledTime, dt = Time.unscaledDeltaTime;
+            if (t != lastT && dt > 0f) { lastT = t; fps = Mathf.Lerp(fps, 1f / dt, 0.2f); }
+            return fps;
+        }
+
+        private static GameObject Spawn(GameObject prefab)
+        {
+            if (!Settings.B("ExplosionLimit")) return Clone(prefab);
+            float now = Time.unscaledTime;
+            float scale = Mathf.Clamp(Settings.F("ExplosionScale"), 0.1f, 1f);
+            int max = Mathf.Max(1, Mathf.RoundToInt(Settings.F("ExplosionMaxPerSec")));
+            if (Settings.B("ExplosionAuto"))
+            {
+                // Load-based detail: at target FPS or better full effects; below, scale and count go down with the FPS.
+                float load = Mathf.Clamp01(Fps() / Mathf.Max(1f, Settings.F("ExplosionTargetFps")));
+                scale = Mathf.Lerp(scale, 1f, load);
+                max = load >= 0.999f ? 1000 : Mathf.Max(1, Mathf.RoundToInt(Mathf.Lerp(1f, max * 3f, load)));
+            }
+            if (now - second >= 1f) { second = now; count = 0; }
+            if (++count > max)
+            {
+                skipped++;
+                if (now > nextLog) { nextLog = now + 60f; Util.Log("Explosionen begrenzt: " + skipped + " Effekte ausgelassen (gesamt)"); }
+                var dummy = new GameObject("SkippedExplosion");
+                Object.Destroy(dummy, 0.1f);
+                return dummy;
+            }
+            var go = Clone(prefab);
+            float s = scale;
+            if (s < 0.999f)
+            {
+                go.transform.localScale = prefab.transform.localScale * s;
+                foreach (var ps in go.GetComponentsInChildren<ParticleSystem>(true))
+                {
+                    var main = ps.main;
+                    main.scalingMode = ParticleSystemScalingMode.Hierarchy;
+                }
+            }
+            return go;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/GpuAudit.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::UnityEngine;
+
+    // 0.4.50 (DoMe 2026-11-18: "vollinvestigation was man alles auf die GPU auslagern kann"). Read-only count of what the
+    // processor prepares for drawing, every 5 minutes, so that each later step has a number before and after.
+    public class GpuAudit : ModuleBase
+    {
+        private float next = 60f;
+        public override void Tick()
+        {
+            if (Time.unscaledTime < next || Util.PlayerShip == null) return;
+            next = Time.unscaledTime + 300f;
+            Util.Safe("GpuAudit", () =>
+            {
+                double t0 = Time.realtimeSinceStartupAsDouble;
+                var mats = new HashSet<Material>(); var meshes = new Dictionary<Mesh, int>();
+                int rend = 0, visible = 0, noInst = 0, rendNoInst = 0, repeat = 0, repeatNoInst = 0;
+                foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
+                {
+                    if (r == null || !r.enabled) continue;
+                    rend++; if (r.isVisible) visible++;
+                    var m = r.sharedMaterial; bool inst = m != null && m.enableInstancing;
+                    if (m != null && mats.Add(m) && !inst) noInst++;
+                    if (!inst) rendNoInst++;
+                    var f = r.GetComponent<MeshFilter>(); var mesh = f != null ? f.sharedMesh : null;
+                    if (mesh == null) continue;
+                    int c; meshes.TryGetValue(mesh, out c); meshes[mesh] = c + 1;
+                    if (c >= 1) { repeat++; if (!inst) repeatNoInst++; }
+                }
+                int skin = 0, skinVisible = 0, bones = 0;
+                foreach (var s in Object.FindObjectsOfType<SkinnedMeshRenderer>())
+                {
+                    if (s == null || !s.enabled) continue;
+                    skin++; if (s.isVisible) { skinVisible++; bones += s.bones != null ? s.bones.Length : 0; }
+                }
+                int ps = 0, playing = 0, alive = 0, meshMode = 0, meshNoInst = 0;
+                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
+                {
+                    if (p == null) continue;
+                    ps++; if (p.isPlaying) playing++; alive += p.particleCount;
+                    var pr = p.GetComponent<ParticleSystemRenderer>();
+                    if (pr != null && pr.renderMode == ParticleSystemRenderMode.Mesh) { meshMode++; if (!pr.enableGPUInstancing) meshNoInst++; }
+                }
+                int canvases = 0, graphics = 0;
+                foreach (var c in Object.FindObjectsOfType<Canvas>()) if (c != null && c.isActiveAndEnabled) canvases++;
+                foreach (var g in Object.FindObjectsOfType<UnityEngine.UI.Graphic>()) if (g != null && g.isActiveAndEnabled) graphics++;
+                int markers = Object.FindObjectsOfType<UBOAT.Game.UI.Map.EntityMarkerUI>().Length;
+                int ships = Object.FindObjectsOfType<UBOAT.Game.Scene.Entities.Ship>().Length;
+                // water module (com.playway.water): values live in its settings objects, read by name
+                var wsb = new System.Text.StringBuilder();
+                foreach (var tn in new[] { "PlayWay.Water.WaterProjectSettings", "PlayWay.Water.WaterQualitySettings" })
+                {
+                    var tp = HarmonyLib.AccessTools.TypeByName(tn); if (tp == null) { wsb.Append(' ').Append(tn).Append(" fehlt;"); continue; }
+                    var ip = HarmonyLib.AccessTools.Property(tp, "Instance"); object inst = ip != null ? ip.GetValue(null, null) : null;
+                    if (inst == null) { wsb.Append(' ').Append(tn).Append(" ohne Instanz;"); continue; }
+                    foreach (var pn in new[] { "PhysicsThreads", "PhysicsThreadsPriority", "AllowCpuFFT", "AllowFloatingPointMipMaps", "SinglePrecision", "CurrentQualityLevel", "MaxSpectrumResolution", "AllowHighPrecisionTextures", "TileSizeScale", "WavesMode" })
+                    {
+                        var pp = HarmonyLib.AccessTools.Property(tp, pn);
+                        if (pp != null && pp.GetIndexParameters().Length == 0) wsb.Append(' ').Append(pn).Append('=').Append(System.Convert.ToString(pp.GetValue(inst, null), System.Globalization.CultureInfo.InvariantCulture)).Append(';');
+                    }
+                }
+                Util.Log("Wasser-Modul (nur lesen):" + wsb);
+                double ms = (Time.realtimeSinceStartupAsDouble - t0) * 1000.0;
+                Util.Log("Rechenkerne (nur lesen): PC meldet " + SystemInfo.processorCount + " Kerne, Unity nutzt " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount + " Arbeiter + Hauptfaden (Höchstwert " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerMaximumCount + ")");
+                Util.Log("Zeichnen (Zählung, nur lesen): Schiffe " + ships + "; Teile " + rend + " (im Bild " + visible + "), davon ohne Gruppen-Zeichnen " + rendNoInst
+                    + "; gleiche Teile mehrfach " + repeat + ", davon ohne Gruppen-Zeichnen " + repeatNoInst + "; Materialien " + mats.Count + ", ohne Gruppen-Zeichnen " + noInst
+                    + "; Figuren-Modelle " + skin + " (im Bild " + skinVisible + ", Knochen " + bones + "); Partikel-Systeme " + ps + " (laufen " + playing + ", Partikel " + alive
+                    + ", aus 3D-Modellen " + meshMode + ", davon ohne Gruppen-Zeichnen " + meshNoInst + "); Oberfläche: Flächen " + canvases + ", Elemente " + graphics
+                    + ", Kontakt-Markierungen " + markers + "; Grafikkarte: " + SystemInfo.graphicsDeviceType + ", Gruppen-Zeichnen möglich " + SystemInfo.supportsInstancing
+                    + ", Rechen-Shader " + SystemInfo.supportsComputeShaders + ", Zeichnen auf mehreren Kernen " + SystemInfo.graphicsMultiThreaded + " (" + SystemInfo.renderingThreadingMode + ")"
+                    + ", Prozessor-Kerne " + SystemInfo.processorCount + "; Zählung dauerte " + ms.ToString("0") + " ms");
+            });
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/ViewSavings.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Camera;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene;
+    using global::DWS.Common.InjectionFramework;
+
+    // 0.4.52 (DoMe 2026-11-18: "sachen die man aktuell nicht sieht braucht man ja nicht berechnen ... kartenmodus").
+    // Picture only: nothing here changes what a ship does, sees or hits. One switch = one effect, all off by default,
+    // everything is put back when the switch goes off or the map closes. One log line per minute with the counts.
+    public class ViewSavings : ModuleBase
+    {
+        private const float PureMapHeight = 800f;   // same height the game uses for "map only" (free camera lock)
+        private const float FarSpray = 2000f;        // the game's own border between detail steps Low and VeryLow
+
+        private float nextFast, nextScan, nextLog; private int scanStep;
+        private bool mapPaused, mapShadow, mapLod;
+        private readonly List<ParticleSystem> paused = new List<ParticleSystem>();
+        private readonly Dictionary<ParticleSystem, ParticleSystemCullingMode> cull = new Dictionary<ParticleSystem, ParticleSystemCullingMode>();
+        private readonly HashSet<ParticleSystemRenderer> inst = new HashSet<ParticleSystemRenderer>();
+        private readonly HashSet<Behaviour> sprayOff = new HashSet<Behaviour>();
+        private MapCameraController mapCam; private UserSettings user;
+        private static readonly System.Reflection.FieldInfo ShadowField = AccessTools.Field(typeof(MapCameraController), "shadowDistance");
+        private static readonly System.Type BowType = AccessTools.TypeByName("PlayWay.Water.ShipBowWavesEmitter");
+        private int nMapPaused, nCull, nInst, nSpray; private float mapSeconds;
+
+        private static bool PureMap()
+        {
+            var cam = MainCamera.Instance;
+            return cam != null && cam.CurrentMode == CameraMode.Map && cam.transform.position.y > PureMapHeight;
+        }
+
+        public override void Tick()
+        {
+            float now = Time.unscaledTime;
+            if (now < nextFast) return;
+            float step = now - (nextFast - 0.5f); nextFast = now + 0.5f;
+            if (Util.PlayerShip == null) return;
+            bool map = PureMap();
+            if (map) mapSeconds += Mathf.Clamp(step, 0f, 2f);
+            Util.Safe("Save.MapEffects", () => MapEffects(map && Settings.B("SaveMapEffects"), now));
+            Util.Safe("Save.MapShadows", () => MapShadows(map && Settings.B("SaveMapShadows")));
+            Util.Safe("Save.MapDetail", () => MapDetail(map && Settings.B("SaveMapDetail")));
+            // 0.4.55: the four searches through the whole scene never run in the same picture; one of them every 3 s,
+            // so each comes round every 12 s (a search costs more the more ships are loaded).
+            if (now >= nextScan)
+            {
+                nextScan = now + 3f; scanStep = (scanStep + 1) % 4;
+                if (scanStep == 0) { Util.Safe("Save.Unseen", () => Unseen(Settings.B("SaveUnseenEffects"))); Util.Safe("Save.Underwater", () => Underwater(Settings.B("SaveNoSmokeUnderwater"))); }
+                else if (scanStep == 1) Util.Safe("Save.MeshGpu", () => MeshGpu(Settings.B("SaveMeshParticlesGpu")));
+                else if (scanStep == 2) Util.Safe("Save.FarSpray", () => Spray(Settings.B("SaveFarSpray")));
+                else Util.Safe("Save.Markers", () => Markers(Settings.B("SaveMarkersOwnCanvas")));
+            }
+            if (now >= nextLog)
+            {
+                nextLog = now + 60f;
+                if (Settings.B("SaveMarkersOwnCanvas") || Settings.B("SaveWedgesCalm"))
+                {
+                    Util.Log("Sparen: Kontakt-Markierungen mit eigener Zeichenfläche und eigenem Klick-Empfänger " + markerClick + " (ausgelassen " + markerSkipped + "), Teile " + markerCanvas.Count + "; Kontakt-Keile neu gebaut " + UboatToolkit.Patches.WedgeCalm_Patch.Ran + " mal, übersprungen " + UboatToolkit.Patches.WedgeCalm_Patch.Skipped + " mal in der letzten Minute");
+                    UboatToolkit.Patches.WedgeCalm_Patch.Ran = 0; UboatToolkit.Patches.WedgeCalm_Patch.Skipped = 0;
+                }
+                if (Settings.B("SaveMapEffects") || Settings.B("SaveMapShadows") || Settings.B("SaveMapDetail") || Settings.B("SaveUnseenEffects") || Settings.B("SaveMeshParticlesGpu") || Settings.B("SaveFarSpray"))
+                    Util.Log("Sparen: reine Karte " + mapSeconds.ToString("0") + " s in der letzten Minute; angehaltene Effekte auf der Karte " + nMapPaused + (mapPaused ? " (jetzt)" : "")
+                        + ", Schatten auf der Karte " + (mapShadow ? "aus" : "normal") + ", Detail auf der Karte " + (mapLod ? "niedrig" : "normal")
+                        + "; Effekte mit Anhalten außerhalb des Bildes " + nCull + "; Trümmer-Partikel gesammelt gezeichnet " + nInst + "; Gischt/Bugwelle ferner Schiffe aus " + nSpray);
+                mapSeconds = 0f;
+                if (Settings.B("SaveNoSmokeUnderwater")) Util.Log("Sparen: Rauch/Feuer tiefer als 5 m unter Wasser gestoppt " + nUnder + " (seit Spielstart), gerade gestoppt " + under.Count + ", nach Auftauchen wieder gestartet " + nUnderBack);
+            }
+        }
+
+        // map only: every running smoke/fire/spray effect waits and goes on exactly where it stopped
+        private float nextMapScan;
+        private void MapEffects(bool on, float now)
+        {
+            if (on)
+            {
+                if (mapPaused && now < nextMapScan) return;
+                nextMapScan = now + 15f; mapPaused = true;
+                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
+                {
+                    if (p == null || !p.isPlaying || p.isPaused) continue;
+                    p.Pause(false); paused.Add(p);
+                }
+                nMapPaused = paused.Count;
+            }
+            else if (mapPaused)
+            {
+                mapPaused = false; int back = 0;
+                foreach (var p in paused) if (p != null && p.isPaused) { p.Play(false); back++; }
+                Util.Log("Sparen: Karte verlassen, " + back + " von " + paused.Count + " angehaltenen Effekten laufen weiter");
+                paused.Clear();
+            }
+        }
+
+        private void MapShadows(bool on)
+        {
+            if (on == mapShadow || ShadowField == null) return;
+            if (mapCam == null && MainCamera.Instance != null) mapCam = AccessTools.Field(typeof(MainCamera), "mapController").GetValue(MainCamera.Instance) as MapCameraController;
+            if (mapCam == null) return;
+            ShadowField.SetValue(mapCam, on ? 1f : 900f); mapShadow = on;
+            Util.Log("Sparen: Schatten in der reinen Kartenansicht " + (on ? "aus (Reichweite 1 m)" : "wieder wie im Spiel (900 m)"));
+        }
+
+        private void MapDetail(bool on)
+        {
+            if (on == mapLod) return;
+            if (user == null) user = ScriptableObjectSingleton.LoadSingleton<UserSettings>();
+            if (user == null) return;
+            if (on) user.OverrideLODBias(0.15f); else user.ResetLODBias();
+            mapLod = on;
+            Util.Log("Sparen: Detailstufe in der reinen Kartenansicht " + (on ? "niedrig (0,15)" : "wieder wie eingestellt (" + QualitySettings.lodBias.ToString("0.00") + ")"));
+        }
+
+        // 3D view: an effect outside the picture waits ("qualmt erst wieder, wenn du hinsiehst")
+        private void Unseen(bool on)
+        {
+            if (on)
+            {
+                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
+                {
+                    if (p == null || cull.ContainsKey(p)) continue;
+                    var m = p.main; cull[p] = m.cullingMode;
+                    if (m.cullingMode != ParticleSystemCullingMode.Pause) m.cullingMode = ParticleSystemCullingMode.Pause;
+                }
+                if (cull.Count > 4000) { var dead = new List<ParticleSystem>(); foreach (var k in cull.Keys) if (k == null) dead.Add(k); foreach (var k in dead) cull.Remove(k); }
+                nCull = cull.Count;
+            }
+            else if (cull.Count > 0)
+            {
+                foreach (var kv in cull) if (kv.Key != null) { var m = kv.Key.main; m.cullingMode = kv.Value; }
+                Util.Log("Sparen: Anhalten außerhalb des Bildes aus, " + cull.Count + " Effekte wieder wie im Spiel");
+                cull.Clear(); nCull = 0;
+            }
+        }
+
+        // 0.4.67 (DoMe 2026-11-19, picture of a shot-down aircraft on the seabed with a smoke column: "ein flugzeug das
+        // noch unter wasser rauchen kann ... zweckfrei"): smoke and fire effects deeper than 5 m under the surface stop
+        // emitting (what is already in the water fades out). If the thing comes up again (a submarine's exhaust), the
+        // effect runs again. Looks only, every ship and aircraft; the own boat is left out.
+        private readonly HashSet<ParticleSystem> under = new HashSet<ParticleSystem>();
+        private int nUnder, nUnderBack;
+        private static bool SmokeName(string n)
+        {
+            return n != null && (n.IndexOf("smoke", System.StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("fire", System.StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("flame", System.StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+        private void Underwater(bool on)
+        {
+            if (!on)
+            {
+                if (under.Count == 0) return;
+                int back = 0;
+                foreach (var p in under) if (p != null && p.gameObject.activeInHierarchy) { p.Play(false); back++; }
+                Util.Log("Sparen: Rauch unter Wasser aus, " + back + " Effekte laufen wieder wie im Spiel");
+                under.Clear(); nUnder = 0;
+                return;
+            }
+            var own = Util.PlayerShip != null ? Util.PlayerShip.transform : null;
+            foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
+            {
+                if (p == null) continue;
+                float y = p.transform.position.y;
+                if (under.Contains(p))
+                {
+                    if (y > -2f) { under.Remove(p); p.Play(false); nUnderBack++; }
+                    continue;
+                }
+                if (y > -5f || !p.isEmitting) continue;
+                if (!SmokeName(p.name) && !(p.transform.parent != null && SmokeName(p.transform.parent.name))) continue;
+                if (own != null && p.transform.IsChildOf(own)) continue;
+                p.Stop(false, ParticleSystemStopBehavior.StopEmitting);
+                under.Add(p); nUnder++;
+            }
+            under.RemoveWhere(x => x == null);
+        }
+
+        // debris made of 3D models: the graphics card draws all pieces of one effect in one go
+        private void MeshGpu(bool on)
+        {
+            if (on)
+            {
+                foreach (var r in Object.FindObjectsOfType<ParticleSystemRenderer>())
+                    if (r != null && r.renderMode == ParticleSystemRenderMode.Mesh && !r.enableGPUInstancing) { r.enableGPUInstancing = true; inst.Add(r); }
+                inst.RemoveWhere(x => x == null); nInst = inst.Count;
+            }
+            else if (inst.Count > 0)
+            {
+                foreach (var r in inst) if (r != null) r.enableGPUInstancing = false;
+                inst.Clear(); nInst = 0;
+            }
+        }
+
+        // Every contact marker gets its own small drawing surface. Moving one marker then no longer makes the processor
+        // rebuild the picture of ALL markers; the graphics card just draws each small surface again.
+        private readonly List<Component> markerCanvas = new List<Component>();
+        private readonly HashSet<GameObject> markerDone = new HashSet<GameObject>();
+        private static readonly System.Reflection.FieldInfo Rep3d = AccessTools.Field(typeof(UBOAT.Game.UI.Map.EntityMarkerUI), "representation3d");
+        private void Markers(bool on)
+        {
+            if (!on)
+            {
+                if (markerCanvas.Count == 0) return;
+                for (int i = markerCanvas.Count - 1; i >= 0; i--) if (markerCanvas[i] != null) Object.Destroy(markerCanvas[i]);   // raycasters were added last, so they go first
+                Util.Log("Sparen: eigene Zeichenflächen der Kontakt-Markierungen entfernt (" + markerCanvas.Count + " Teile)");
+                markerCanvas.Clear(); markerDone.Clear(); markerClick = 0; markerSkipped = 0;
+                return;
+            }
+            foreach (var m in Object.FindObjectsOfType<UBOAT.Game.UI.Map.EntityMarkerUI>())
+            {
+                if (m == null) continue;
+                Own(m.gameObject);
+                // 0.4.66: the 3D twin of the marker is left alone (own event camera, click area must stay the game's)
+            }
+            markerCanvas.RemoveAll(x => x == null); markerDone.RemoveWhere(x => x == null);
+        }
+        private int markerClick, markerSkipped;
+        private void Own(GameObject go)
+        {
+            if (go == null || !markerDone.Add(go) || go.GetComponent<Canvas>() != null) return;
+            var parent = go.transform.parent != null ? go.transform.parent.GetComponentInParent<Canvas>() : null;
+            if (parent == null) return;
+            // 0.4.66 (DoMe 2026-11-19: "das anklicken von gegner ist glückssache und gefühlt nur noch 1pixel breit"): a
+            // canvas of its own needs a click receiver of its own. Up to 0.4.65 it only got one when the NEAREST canvas
+            // above had one; the game's receiver sits further up, so most markers lost their click area. Now the
+            // receiver is looked up along the whole chain and its settings are copied; without one above, the marker
+            // is not touched at all.
+            var up = parent.GetComponentInParent<UnityEngine.UI.GraphicRaycaster>();
+            if (up == null) { markerSkipped++; return; }
+            markerCanvas.Add(go.AddComponent<Canvas>());
+            var gr = go.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            gr.ignoreReversedGraphics = up.ignoreReversedGraphics; gr.blockingObjects = up.blockingObjects;
+            markerCanvas.Add(gr); markerClick++;
+        }
+
+        // spray control and bow wave of ships farther than 2 km (or everything while only the map is shown) rest
+        private void Spray(bool on)
+        {
+            if (!on)
+            {
+                if (sprayOff.Count > 0) { foreach (var b in sprayOff) if (b != null) b.enabled = true; sprayOff.Clear(); nSpray = 0; }
+                return;
+            }
+            var cam = MainCamera.Instance; if (cam == null) return;
+            Vector3 c = cam.transform.position; bool map = PureMap();
+            var own = Util.PlayerShip != null ? Util.PlayerShip.transform : null;
+            var list = new List<Behaviour>();
+            foreach (var s in Object.FindObjectsOfType<ShipEffectsController>()) list.Add(s);
+            if (BowType != null) foreach (var o in Object.FindObjectsOfType(BowType)) { var b = o as Behaviour; if (b != null) list.Add(b); }
+            foreach (var b in sprayOff) if (b != null && !b.enabled) list.Add(b);
+            foreach (var b in list)
+            {
+                if (b == null || (own != null && b.transform.IsChildOf(own))) continue;
+                bool far = map || (b.transform.position - c).sqrMagnitude > FarSpray * FarSpray;
+                if (far && b.enabled) { b.enabled = false; sprayOff.Add(b); }
+                else if (!far && !b.enabled && sprayOff.Contains(b)) { b.enabled = true; sprayOff.Remove(b); }
+            }
+            sprayOff.RemoveWhere(x => x == null); nSpray = sprayOff.Count;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/AutoDetail.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::UnityEngine;
+
+    // Automatic detail (setting ExplosionAuto): at low FPS Unity runs MORE physics steps per frame to catch up
+    // (FixedUpdate of the contact handling, ships, rudders ...), which makes the next frame even slower.
+    // Below half the target FPS the catch-up per frame is limited (max. 0.1 s game time per frame); above, the game value is back.
+    public class AutoDetail : ModuleBase
+    {
+        private bool limited;
+        private float nextSwitch;
+        private static UBOAT.Game.Core.Time.GameTime gameTime;
+        internal static float gameStep = -1f;   // the game's own physics step (1/75 s)
+        internal const float GameStepMax = 1f / 75f;
+        private float nextCensus, autoHz, nextPhysLine; private int autoWait;
+
+        // 0.3.69 physics rate (DoMe: get performance out of the engine). Measured: with 48 ships the physics took
+        // 149 of 224 ms per frame. The game runs physics 75 times per second and up to 5 steps per frame.
+        // "PhysicsHz" lowers the rate through the game's own GameTime.FixedDeltaTime (50 = the step the game itself
+        // uses at 2x time compression). Only set at normal speed; time compression keeps the game's own logic.
+        public override void Tick()
+        {
+            if (gameTime == null) gameTime = Object.FindObjectOfType<UBOAT.Game.Core.Time.GameTime>();
+            if (gameTime == null) return;
+            if (gameStep < 0f) gameStep = Mathf.Min(gameTime.FixedDeltaTime, GameStepMax);   // 0.4.28: never learn an already lowered value as "the game value"
+            float hz = Settings.F("PhysicsHz");
+            float want = hz >= 20f ? Mathf.Max(gameStep, 1f / hz) : gameStep;
+            // time compression: back to the game's own step (the game multiplies it there itself); pause: leave alone
+            if (Time.timeScale < 0.99f) return;
+            if (Time.timeScale > 1.01f) want = gameStep;
+            else if (Settings.B("PhysicsFollowFps"))
+            {
+                // 0.4.8 (DoMe: optimise the game): at 16 FPS the game needed 3 physics steps of 20 ms per frame but may
+                // do only 2 ("PhysicsMaxSteps"), so the whole game ran in slow motion and still paid 18 ms per frame for
+                // physics. The game itself uses longer steps under time compression (x4 = 30 per second, x5 = 25).
+                // Now the step follows the frame rate in stages of 5 per second, never below "PhysicsAutoMinHz".
+                float fps = ExplosionLimit_Patch.Fps();
+                float top = 1f / want, low = Mathf.Clamp(Settings.F("PhysicsAutoMinHz"), 15f, top);
+                float target = Mathf.Clamp(Mathf.Floor(fps * 1.5f / 5f) * 5f, low, top);   // 1.5 steps per frame on average
+                if (autoHz <= 0f) autoHz = top;
+                if (Mathf.Abs(target - autoHz) > 0.5f) { if (++autoWait >= 3) { autoHz = target; autoWait = 0; } } else autoWait = 0;
+                want = 1f / Mathf.Clamp(autoHz, low, top);
+            }
+            if (Mathf.Abs(gameTime.FixedDeltaTime - want) > 0.00001f && !SaveTools_LoadSpeedPatch.IsLoading)
+            {
+                gameTime.FixedDeltaTime = want;
+                Util.Log("Physik-Takt: " + (1f / want).ToString("0") + " pro Sekunde (Spiel: " + (1f / gameStep).ToString("0") + ")");
+            }
+            // 0.4.9: proof line once per minute (was missing: no way to see whether the automatic step is active)
+            if (Time.unscaledTime >= nextPhysLine)
+            {
+                nextPhysLine = Time.unscaledTime + 60f;
+                // 0.4.28 (DoMe: boat bobs in time compression, log showed 12 steps/s where the game itself uses 18):
+                // compare with the game's own formula and say so.
+                float own = 1f / (gameStep * (1f + (Mathf.Max(1f, Time.timeScale) - 1f) * 0.5f));
+                if (Time.timeScale > 1.01f && 1f / Time.fixedDeltaTime < own - 0.5f)
+                    Util.Log("Physik: WARNUNG Takt im Zeitraffer gröber als das Spiel selbst (" + (1f / Time.fixedDeltaTime).ToString("0") + " statt " + own.ToString("0") + " pro Sekunde), Grundwert " + (1f / gameTime.FixedDeltaTime).ToString("0") + ", lädt gerade " + (SaveTools_LoadSpeedPatch.IsLoading ? "ja" : "nein"));
+                Util.Log("Physik: Takt " + (1f / Time.fixedDeltaTime).ToString("0") + " pro Sekunde, höchstens " + (Time.maximumDeltaTime / Time.fixedDeltaTime).ToString("0.#") + " Schritte pro Bild, Zeitraffer x" + Time.timeScale.ToString("0.#") + ", FPS " + ExplosionLimit_Patch.Fps().ToString("0") + ", Automatik " + (Settings.B("PhysicsFollowFps") ? (Time.timeScale > 1.01f ? "ruht (Zeitraffer, Spiel regelt selbst)" : "an") : "aus"));
+            }
+            // Census for the next tuning step: what is in the physics scene when it is slow (max. every 2 min).
+            float f = ExplosionLimit_Patch.Fps();
+            if (f < Settings.F("ExplosionTargetFps") * 0.5f && Time.unscaledTime >= nextCensus && Time.timeScale > 0f)
+            {
+                nextCensus = Time.unscaledTime + 120f;
+                Util.Safe("Physik-Zählung", () => Census(f));
+            }
+        }
+
+        private static void Census(float fps)
+        {
+            int rb = 0, dyn = 0, awake = 0, col = 0, mesh = 0, concave = 0, trig = 0;
+            foreach (var r in Object.FindObjectsOfType<Rigidbody>()) { rb++; if (!r.isKinematic) { dyn++; if (!r.IsSleeping()) awake++; } }
+            foreach (var c in Object.FindObjectsOfType<Collider>())
+            {
+                col++; if (c.isTrigger) trig++;
+                var m = c as MeshCollider; if (m != null) { mesh++; if (!m.convex) concave++; }
+            }
+            int ships = Object.FindObjectsOfType<UBOAT.Game.Scene.Entities.Ship>().Length;
+            Util.Log("Physik-Zählung: FPS " + fps.ToString("0") + ", Schiffe " + ships + ", Körper " + rb + " (beweglich " + dyn + ", wach " + awake + "), Kollider " + col
+                + " (Auslöser " + trig + ", Netz " + mesh + ", davon hohl " + concave + "), Takt " + (1f / Time.fixedDeltaTime).ToString("0") + "/s, max. Schritte/Bild "
+                + (Time.maximumDeltaTime / Time.fixedDeltaTime).ToString("0.#") + ", Löser " + Physics.defaultSolverIterations + "/" + Physics.defaultSolverVelocityIterations
+                + ", autoSync " + Physics.autoSyncTransforms + ", Zeitraffer " + Time.timeScale.ToString("0.#"));
+        }
+
+        public override void Frame()
+        {
+            // 0.3.69: the old limit (0.1 s) was ABOVE the game's own value (5 steps = 0.067 s), so it never did anything.
+            // Now: while limited, at most "PhysicsMaxSteps" physics steps per frame (the game re-sets its value on
+            // every speed change, so this is checked every frame).
+            if (limited)
+            {
+                float cap = Time.fixedDeltaTime * Mathf.Clamp(Settings.F("PhysicsMaxSteps"), 1f, 5f);
+                if (Time.maximumDeltaTime > cap + 0.00001f) Time.maximumDeltaTime = cap;
+            }
+            // Hysteresis: limit below 50 % of target FPS, release only above 70 %, and switch at most every 10 s.
+            float f = ExplosionLimit_Patch.Fps(), target = Settings.F("ExplosionTargetFps");
+            bool want = Settings.B("ExplosionAuto") && (limited ? f < target * 0.7f : f < target * 0.5f);
+            if (want == limited || Time.unscaledTime < nextSwitch) return;
+            nextSwitch = Time.unscaledTime + 10f;
+            limited = want;
+            // release: the game's own setter recalculates step + catch-up limit for the current speed
+            if (!want && gameTime != null) gameTime.FixedDeltaTime = gameTime.FixedDeltaTime;
+            ToolkitRunner.ShowNotice(want ? "Auto-Detail: viel los (" + Mathf.RoundToInt(f) + " FPS) - Effekte, Stimmen + Physik werden gespart" : "Auto-Detail: wieder volle Details", 4f);
+            Util.Log("Auto-Detail: Physik-Aufholen " + (want ? "begrenzt (" + Settings.F("PhysicsMaxSteps").ToString("0") + " Schritte pro Bild)" : "normal (5 Schritte)"));
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::UnityEngine;
+
+    // The game checks ALL nearby ship groups (enter/leave, group update) in every physics step (SandboxPlayerWolfpack.FixedUpdate,
+    // measured ~10 s per minute with ~100 ships). Under the target FPS this check runs only every 2nd-4th step;
+    // groups are still found, just a few hundredths of a second later.
+    [HarmonyLib.HarmonyPatch]
+    internal static class AutoDetail_NearbyGroupsPatch
+    {
+        private static int step;
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            var t = typeof(UBOAT.Game.Sandbox.SandboxPlayerWolfpack);
+            var a = HarmonyLib.AccessTools.Method(t, "UpdateNearbyGroups"); if (a != null) yield return a;
+            var b = HarmonyLib.AccessTools.Method(t, "UpdateImpostorGroups"); if (b != null) yield return b;
+        }
+        private static bool Prefix(System.Reflection.MethodBase __originalMethod)
+        {
+            if (!Settings.B("ExplosionAuto")) return true;
+            float load = ExplosionLimit_Patch.Fps() / UnityEngine.Mathf.Max(1f, Settings.F("ExplosionTargetFps"));
+            // 0.3.70: measured as the biggest single game script (SandboxPlayerWolfpack.FixedUpdate avg 4.6 s per minute),
+            // so the check now runs at most every 2nd physics step even at full FPS.
+            // the slower, the rarer: 40 FPS target at 5 FPS = every 8th step (max. 10)
+            int every = load >= 1f ? 2 : UnityEngine.Mathf.Clamp(UnityEngine.Mathf.CeilToInt(1f / UnityEngine.Mathf.Max(0.01f, load)), 2, 10);
+            if (__originalMethod.Name == "UpdateNearbyGroups") step++;
+            return step % every == 0;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::UnityEngine;
+
+    // DoMe's idea: far ships only "virtual". The game already has this: groups outside the simulation distance are not
+    // spawned as real ships (they stay on the map/sensors as sandbox groups). Under the target FPS this distance is
+    // reduced step by step (down to AutoVirtualMin), so far groups go virtual; when FPS recover it goes back to the game value.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.Data.GameplaySettings), "SimulationDistanceMultiplier", HarmonyLib.MethodType.Getter)]
+    internal static class AutoDetail_VirtualShipsPatch
+    {
+        private static float smooth = 1f, lastT = -1f;
+        private static void Postfix(ref float __result)
+        {
+            if (!Settings.B("ExplosionAuto") || !Settings.B("AutoVirtualShips")) return;
+            float t = UnityEngine.Time.unscaledTime;
+            if (t != lastT)
+            {
+                lastT = t;
+                float load = UnityEngine.Mathf.Clamp01(ExplosionLimit_Patch.Fps() / UnityEngine.Mathf.Max(1f, Settings.F("ExplosionTargetFps")));
+                float want = UnityEngine.Mathf.Lerp(UnityEngine.Mathf.Clamp(Settings.F("AutoVirtualMin"), 0.2f, 1f), 1f, load);
+                smooth = UnityEngine.Mathf.MoveTowards(smooth, want, 0.02f * UnityEngine.Time.unscaledDeltaTime);   // slow: 0.1 per 5 s, no flicker
+            }
+            __result *= smooth;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::UnityEngine;
+
+    // 0.4.28: "PhysicsHz" lowered the base step (e.g. 50 per second). The module set it back for time compression only
+    // in its next tick (up to 1 s later), so the game calculated its compression step from the lowered base
+    // (log 09:13:28: 12 steps per second at x7.2, the game alone uses 18). Now the base is the game's own value
+    // BEFORE the game calculates, so the Toolkit never makes the physics coarser in time compression.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.Time.GameTime), "TimeScale_Changed")]
+    internal static class AutoDetail_CompressionBasePatch
+    {
+        private static float lastLog;
+        private static void Prefix(UBOAT.Game.Core.Time.GameTime __instance, UBOAT.Game.Core.Data.Parameter parameter)
+        {
+            try
+            {
+                if (parameter == null || parameter.Value <= 1.01f) return;
+                float own = AutoDetail.gameStep > 0f ? AutoDetail.gameStep : AutoDetail.GameStepMax;
+                var f = HarmonyLib.Traverse.Create(__instance).Field("fixedDeltaTime");
+                float cur = f.GetValue<float>();
+                if (cur <= own + 0.00001f) return;
+                f.SetValue(own);
+                if (Time.unscaledTime - lastLog > 30f)
+                {
+                    lastLog = Time.unscaledTime;
+                    Util.Log("Physik: Zeitraffer x" + parameter.Value.ToString("0.#") + ", Grundwert vorher " + (1f / cur).ToString("0") + " pro Sekunde, jetzt Spielwert " + (1f / own).ToString("0"));
+                }
+            }
+            catch (System.Exception e) { Util.Log("Physik: Zeitraffer-Grundwert Fehler " + e.Message); }
+        }
+    }
+}
+
+// ####################################################################################################
+// BEREICH 5 CPU_IMPROVEMENTS: Rechnen sparen
+// ####################################################################################################
+
+// ====================================================================================================
+// Abschnitt: Modules/SeafloorLoad.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Environment.Terrain;
+    using global::UnityEngine;
+
+    // QoL (DoMe 2026-11-13): the sea floor around the boat is always really built. The game builds real terrain only for
+    // 1 km tiles whose highest point is above -650 m; deeper tiles get a flat "sea floor" stand-in only, and depth queries
+    // there (GetInterpolatedHeight) return -2000. After the game's own scan we build every not-yet-built tile within
+    // the chosen radius. Sonar picture / depth gauge read the same terrain, so they see the real floor too.
+    [HarmonyPatch(typeof(ProceduralTerrainGrid), "ScanNearbySegments")]
+    internal static class SeafloorLoad_ScanPatch
+    {
+        private static float nextScan;
+        private static int built;
+        private static bool logged;
+
+        private static void Postfix(ProceduralTerrainGrid __instance)
+        {
+            try
+            {
+                if (!Settings.B("SeafloorAlways") || Time.unscaledTime < nextScan) return;
+                nextScan = Time.unscaledTime + 2f;
+                var ship = Util.PlayerShip;
+                if (ship == null) return;
+                float size = Mathf.Max(100f, __instance.SegmentSize);
+                float radius = Mathf.Clamp(Settings.F("SeafloorRadius"), 0.5f, 4f) * 1000f;
+                Vector3 p = ship.transform.position;
+                __instance.GetSegmentAtSceneCoordinates(p.x, p.z, out int cx, out int cz);
+                int n = Mathf.CeilToInt(radius / size);
+                for (int dz = -n; dz <= n; dz++)
+                    for (int dx = -n; dx <= n; dx++)
+                    {
+                        // distance from the boat to the nearest point of this tile
+                        float ox = Mathf.Max(0f, Mathf.Abs(dx) - 0.5f) * size, oz = Mathf.Max(0f, Mathf.Abs(dz) - 0.5f) * size;
+                        if (ox * ox + oz * oz > radius * radius) continue;
+                        var seg = __instance.GetSegment(cx + dx, cz + dz);
+                        if (seg == null || seg.Loaded || seg.Loading) continue;
+                        seg.Generate(1);
+                        seg.Active = true;
+                        built++;
+                    }
+                if (built > 0 && !logged) { logged = true; Util.Log("Meeresboden: tiefe Kacheln werden voll gebaut (Radius " + (radius / 1000f).ToString("0.0") + " km)"); }
+            }
+            catch (System.Exception e) { if (!logged) { logged = true; Util.Log("Meeresboden: " + e.Message); } }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/CrewAi/CrewAICooldown.cs
+// ====================================================================================================
+// Crew-KI (Teil des UBOAT Toolkit): CrewAICooldown. Schalter: F10 > QoL > "Crew-KI".
+
+namespace UboatToolkit.Modules.CrewAi
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::UnityEngine;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Core.AI;
+
+    internal static class CooldownToggles
+    {
+        public static bool Enabled => UboatToolkit.Settings.B("CrewStuckCooldown");
+
+        public const int DistinctTargetsBeforeCooldown = 3;
+
+        public const float FailureWindowSeconds = 20f;
+
+        public const float CooldownSeconds = 60f;
+
+        public static readonly string[] ExemptBehaviours =
+        {
+            "Escape", "Danger", "Damage", "Repair", "Leak", "Fire", "Alarm",
+            "Combat", "Fight", "Battle", "Evacuat", "Wounded", "Medic",
+            "Treatment", "Bleeding", "Order", "Command",
+            "Idle", "Compound", "Blank"
+        };
+
+        public static readonly bool LogCooldowns = true;
+    }
+
+    internal static class BehaviourCooldown
+    {
+        private class Record
+        {
+            public readonly HashSet<string> Targets = new HashSet<string>();
+            public float LastFailure;       // unscaled
+            public float CooldownUntil;     // unscaled; 0 = not on cooldown
+        }
+
+        private static readonly Dictionary<string, Record> _records = new Dictionary<string, Record>();
+
+        private static readonly Dictionary<string, string> _lastBehaviour = new Dictionary<string, string>();
+
+        private static readonly object _lock = new object();
+        private static float _lastPrune;
+
+        private static string Key(string who, string behaviour) { return who + "|" + behaviour; }
+
+        public static bool IsExempt(string behaviour)
+        {
+            if (string.IsNullOrEmpty(behaviour)) return true;
+            var ex = CooldownToggles.ExemptBehaviours;
+            for (int i = 0; i < ex.Length; i++)
+            {
+                if (behaviour.IndexOf(ex[i], StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            }
+            return false;
+        }
+
+        public static void NoteBehaviourStarted(string who, string behaviour)
+        {
+            if (!CooldownToggles.Enabled) return;
+            if (string.IsNullOrEmpty(who) || string.IsNullOrEmpty(behaviour)) return;
+            try { lock (_lock) { _lastBehaviour[who] = behaviour; } }
+            catch { }
+        }
+
+        public static string LastBehaviourOf(string who)
+        {
+            if (string.IsNullOrEmpty(who)) return null;
+            try
+            {
+                string b;
+                lock (_lock) { return _lastBehaviour.TryGetValue(who, out b) ? b : null; }
+            }
+            catch { return null; }
+        }
+
+        public static void NoteUnreachable(string who, string targetDesc)
+        {
+            if (!CooldownToggles.Enabled) return;
+            if (string.IsNullOrEmpty(who)) return;
+            try
+            {
+                string behaviour;
+                lock (_lock)
+                {
+                    if (!_lastBehaviour.TryGetValue(who, out behaviour)) return;
+                }
+                if (IsExempt(behaviour)) return;
+
+                float now = Time.unscaledTime;
+                bool tripped = false;
+                int distinct = 0;
+
+                lock (_lock)
+                {
+                    Record r;
+                    string k = Key(who, behaviour);
+                    if (!_records.TryGetValue(k, out r))
+                    {
+                        r = new Record();
+                        _records[k] = r;
+                    }
+
+                    if (now - r.LastFailure > CooldownToggles.FailureWindowSeconds)
+                        r.Targets.Clear();
+
+                    r.LastFailure = now;
+                    r.Targets.Add(targetDesc ?? "?");
+                    distinct = r.Targets.Count;
+
+                    if (r.CooldownUntil <= now && distinct >= CooldownToggles.DistinctTargetsBeforeCooldown)
+                    {
+                        r.CooldownUntil = now + CooldownToggles.CooldownSeconds;
+                        r.Targets.Clear();
+                        tripped = true;
+                    }
+                }
+
+                OptCounters.CooldownFailuresSeen++;
+                if (tripped)
+                {
+                    OptCounters.CooldownsStarted++;
+                    if (CooldownToggles.LogCooldowns)
+                    {
+                        DiagLog.Write("[Cooldown] " + who + " cannot reach " + distinct +
+                                      " distinct targets for '" + behaviour + "' - suppressing it for " +
+                                      CooldownToggles.CooldownSeconds + "s (latest target=" + targetDesc + ")");
+                    }
+                }
+            }
+            catch (Exception e) { DiagLog.WriteError("Cooldown.NoteUnreachable", e); }
+        }
+
+        public static bool IsOnCooldown(string who, string behaviour)
+        {
+            if (!CooldownToggles.Enabled) return false;
+            if (string.IsNullOrEmpty(who) || IsExempt(behaviour)) return false;
+            try
+            {
+                float now = Time.unscaledTime;
+                lock (_lock)
+                {
+                    Record r;
+                    if (!_records.TryGetValue(Key(who, behaviour), out r)) return false;
+                    if (r.CooldownUntil <= now) return false;
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                DiagLog.WriteError("Cooldown.IsOnCooldown", e);
+                return false; // fail open - never suppress because of our own error
+            }
+        }
+
+        public static void MaybePrune()
+        {
+            try
+            {
+                float now = Time.unscaledTime;
+                if (now - _lastPrune < 60f) return;
+                _lastPrune = now;
+                lock (_lock)
+                {
+                    var dead = new List<string>();
+                    foreach (var kv in _records)
+                    {
+                        var r = kv.Value;
+                        if (r.CooldownUntil <= now &&
+                            now - r.LastFailure > CooldownToggles.FailureWindowSeconds * 2f)
+                            dead.Add(kv.Key);
+                    }
+                    for (int i = 0; i < dead.Count; i++) _records.Remove(dead[i]);
+                }
+            }
+            catch { }
+        }
+    }
+
+    [HarmonyPatch(typeof(CharacterAI), "StartBehaviour", new Type[] { typeof(AIBehaviour) })]
+    internal static class Patch_Cooldown_Enforce
+    {
+        static void Postfix(CharacterAI __instance, AIBehaviour behaviour)
+        {
+            if (!CooldownToggles.Enabled) return;
+            long t0 = Perf.Begin();
+            try
+            {
+                if (behaviour == null) return;
+                string type = behaviour.GetType().Name;
+                if (BehaviourCooldown.IsExempt(type)) return;
+
+                string who = null;
+                try { who = __instance != null ? __instance.name : null; } catch { }
+                if (who == null) return;
+
+                if (BehaviourCooldown.IsOnCooldown(who, type))
+                {
+                    behaviour.State = AIBehaviourState.Cancelled;
+                    OptCounters.CooldownBehavioursCancelled++;
+                }
+                BehaviourCooldown.MaybePrune();
+            }
+            catch (Exception e) { DiagLog.WriteError("Cooldown.Enforce", e); }
+            finally { Perf.End("Cooldown.Enforce", t0); }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/CrewAi/CrewAIOptimizations.cs
+// ====================================================================================================
+// Crew-KI (Teil des UBOAT Toolkit): CrewAIOptimizations. Schalter: F10 > QoL > "Crew-KI".
+
+namespace UboatToolkit.Modules.CrewAi
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::UnityEngine;
+    using global::UnityEngine.AI;
+    using global::HarmonyLib;
+    using global::UBOAT.Game;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Interactions;
+    using global::UBOAT.Game.Scene.Characters.Navigation;
+
+    internal static class OptToggles
+    {
+        public static readonly bool ThrottleGoToRetries = true;
+
+        public const int MinRetryFrames = 15;
+
+        public const float SameTargetEpsilon = 0.05f;
+
+        public static readonly bool EarlyOutStopAction = false;
+
+        public static readonly bool BlacklistUnreachableSlots = false;
+
+        public const float BlacklistSeconds = 30f;
+
+        public const int MinDistinctFailures = 2;
+
+        public static readonly bool InstrumentCancel = true;
+
+        public static readonly bool LogCounters = true;
+
+        public static readonly bool DiscoverCharacterState = true;
+        public const float CharacterStateInterval = 120f;   // unscaled seconds
+        public static readonly bool DiscoverBehaviourProfit = true;
+        public static readonly bool DiscoverActionTypes = true;
+        public static readonly bool DiscoverBehaviourTypes = true;
+
+        public static readonly bool MeasureBehaviourChurn = true;
+    }
+
+    internal static class OptCounters
+    {
+        public static long GoToTotal, GoToThrottled, GoToNeeded;
+        public static long StopActionTotal, StopActionSkipped;
+        public static long SlotsBlacklisted, SlotChecksBlocked, BlacklistExpired;
+        public static long SlotPerCharacterBlocks;
+        public static long CancelsSeen, Fix3Errors;
+        public static long BehaviourStarts, BehaviourSameFrameStops;
+        public static long CooldownFailuresSeen, CooldownsStarted, CooldownBehavioursCancelled;
+        public static long AttackPeriscopeBlocked, AttackPeriscopeRemoved;
+        public static long LoiterDestinationsRejected;
+        public static long HatchOrdersPreserved;
+        public static long ProximityScaled, ProximityPlayerOrderExempt;
+        public static long ProximitySleepExempt, ProximityDeckAsTower;   // v0.31
+        public static long PlayerOrdersSeen, PlayerOrdersDropped, PlayerOrdersStalled;
+        public static long AiActionsDropped;
+        public static long OrdersRefusedQueueFull, PlayerOrdersRefusedQueueFull, OrdersMadeRoom;
+        public static long CompartmentTransits, ControlRoomPassThroughs, ControlRoomInAndBack;
+        public static long HatchOrdersApplied, EatSuppressedOnAlarm;
+        public static long BedChoiceImproved, BedChoiceSticky, BedChoiceHerdAvoided;
+        public static long BedPathFailures, BedChoiceBadAvoided, BedChoiceRefused;
+        public static long WatchClaimsTaken, WatchRefusedClaimed;
+        public static long RestSent, RestEndedForWork, RestEndedOther, RestNeverStarted;
+        public static long RestNoBunk, RestNotAllowed, RestSkippedReserve, RestSkippedAlarm;
+        public static long RestResumed, WatchFlips;
+        public static long BedSharedAssigned, BedSlotsAdded, WaterCheckCorrected;
+        public static long RoleDropsRunning, RoleKeeps;
+        public static long YieldAsked, YieldVacated, YieldStuck, YieldTakenByTired, RestHeldForTired;
+        public static long YieldReservedRefused, YieldReservedSteered, YieldReserveLapsed;   // v1.0.0
+        public static long BowRunDives, BowRunSent, BowRunTrimmed, BowRunReleased;   // v0.32
+        public static long CloneSlotsTurnedOff, CloneSleepersStoodUp;                // v0.33
+
+        private static float _lastDump;
+        private const float DumpInterval = 60f; // unscaled seconds
+
+        public static void MaybeDump()
+        {
+            if (!OptToggles.LogCounters) return;
+            try
+            {
+                float now = Time.unscaledTime;
+                if (now - _lastDump < DumpInterval) return;
+                _lastDump = now;
+                DiagLog.Write(
+                    "[Counters] GoTo " + GoToThrottled + "/" + GoToTotal + " throttled (" + Pct(GoToThrottled, GoToTotal) + "), " + GoToNeeded + " repeats let through because no usable path | " +
+                    "StopCurrentAction " + StopActionSkipped + "/" + StopActionTotal + " skipped (" + Pct(StopActionSkipped, StopActionTotal) + ") | " +
+                    "cancels=" + CancelsSeen + " | " +
+                    "slots blacklisted=" + SlotsBlacklisted + " globalBlocks=" + SlotChecksBlocked +
+                    " perCharBlocks=" + SlotPerCharacterBlocks + " expired=" + BlacklistExpired +
+                    " fix3errors=" + Fix3Errors + " | " +
+                    "behaviourStarts=" + BehaviourStarts + " sameFrameStops=" + BehaviourSameFrameStops +
+                    " (" + Pct(BehaviourSameFrameStops, BehaviourStarts) + ") | " +
+                    "cooldowns started=" + CooldownsStarted + " cancelled=" + CooldownBehavioursCancelled +
+                    " fromFailures=" + CooldownFailuresSeen +
+                    " | loiterRejected=" + LoiterDestinationsRejected +
+                    " hatchOrdersKept=" + HatchOrdersPreserved +
+                    " hatchOrdersApplied=" + HatchOrdersApplied +
+                    " eatSuppressed=" + EatSuppressedOnAlarm +
+                    " bedChoice improved=" + BedChoiceImproved +
+                    " sticky=" + BedChoiceSticky +
+                    " herdAvoided=" + BedChoiceHerdAvoided +
+                    " pathFailed=" + BedPathFailures +
+                    " badAvoided=" + BedChoiceBadAvoided +
+                    " refused=" + BedChoiceRefused +
+                    " proximityScaled=" + ProximityScaled +
+                    " playerOrderExempt=" + ProximityPlayerOrderExempt +
+                    " sleepExempt=" + ProximitySleepExempt +
+                    " deckAsTower=" + ProximityDeckAsTower +
+                    " | playerOrders seen=" + PlayerOrdersSeen +
+                    " droppedBeforeStart=" + PlayerOrdersDropped +
+                    " stalled=" + PlayerOrdersStalled +
+                    " aiDropped=" + AiActionsDropped +
+                    " | queueFull refused=" + OrdersRefusedQueueFull +
+                    " (player " + PlayerOrdersRefusedQueueFull + ")" +
+                    " roomMade=" + OrdersMadeRoom +
+                    " | transits=" + CompartmentTransits +
+                    " ctrlPassThru=" + ControlRoomPassThroughs +
+                    " ctrlInAndBack=" + ControlRoomInAndBack +
+                    " periscopeBlocked=" + AttackPeriscopeBlocked +
+                    " periscopeRemoved=" + AttackPeriscopeRemoved +
+                    " | watch claims=" + WatchClaimsTaken +
+                    " refusedHeld=" + WatchRefusedClaimed +
+                    " watchFlips=" + WatchFlips +
+                    " roleDrops=" + RoleDropsRunning +
+                    " roleKeeps=" + RoleKeeps +
+                    " | rest sent=" + RestSent +
+                    " leftForWork=" + RestEndedForWork +
+                    " backInBunk=" + RestResumed +
+                    " | sharing assigned=" + BedSharedAssigned +
+                    " slotsAdded=" + BedSlotsAdded +
+                    " waterFixes=" + WaterCheckCorrected +
+                    " shareSlotsOff=" + CloneSlotsTurnedOff +
+                    " shareSleepersUp=" + CloneSleepersStoodUp +
+                    " leftOther=" + RestEndedOther +
+                    " neverStarted=" + RestNeverStarted +
+                    " noBunk=" + RestNoBunk +
+                    " notAllowed=" + RestNotAllowed +
+                    " reserveHeld=" + RestSkippedReserve +
+                    " alarmTicks=" + RestSkippedAlarm +
+                    " | bedYield asked=" + YieldAsked +
+                    " vacated=" + YieldVacated +
+                    " stuck=" + YieldStuck +
+                    " takenByTired=" + YieldTakenByTired +
+                    " restHeldForTired=" + RestHeldForTired +
+                    " reservedRefused=" + YieldReservedRefused +
+                    " reservedSteered=" + YieldReservedSteered +
+                    " reserveLapsed=" + YieldReserveLapsed +
+                    " | bowRun dives=" + BowRunDives +
+                    " sent=" + BowRunSent +
+                    " trimmed=" + BowRunTrimmed +
+                    " released=" + BowRunReleased +
+                    "");
+
+                Perf.MaybeReport();
+                OrderTracker.Sweep();
+                CrowdCensus.MaybeReport();
+            }
+            catch { }
+        }
+
+        private static string Pct(long a, long b)
+        {
+            return b > 0 ? ((a * 100.0 / b)).ToString("F0") + "%" : "n/a";
+        }
+    }
+
+    internal static class GoToThrottleState
+    {
+        private class Entry
+        {
+            public Vector3 Target;
+            public float StopDistance;
+            public bool ForceRun;
+            public int LastCallFrame;
+        }
+
+        private static readonly Dictionary<int, Entry> _last = new Dictionary<int, Entry>();
+        private static readonly object _lock = new object();
+
+        public static bool ShouldThrottle(NavMeshNavigator nav, Vector3 target, float stopDistance, bool forceRun)
+        {
+            if (nav == null) return false;
+            int id = nav.GetInstanceID();
+            int frame = Time.frameCount;
+            lock (_lock)
+            {
+                Entry e;
+                if (!_last.TryGetValue(id, out e))
+                {
+                    _last[id] = new Entry { Target = target, StopDistance = stopDistance, ForceRun = forceRun, LastCallFrame = frame };
+                    return false;
+                }
+
+                bool sameTarget = (e.Target - target).sqrMagnitude <=
+                                  OptToggles.SameTargetEpsilon * OptToggles.SameTargetEpsilon;
+                bool sameParams = Mathf.Approximately(e.StopDistance, stopDistance) && e.ForceRun == forceRun;
+                bool tooSoon = (frame - e.LastCallFrame) < OptToggles.MinRetryFrames;
+
+                if (sameTarget && sameParams && tooSoon)
+                {
+                    // 0.4.17 (measured 2026-11-18: 341 x "Path to target is invalid" in 10 minutes, stations stay empty).
+                    // The game's GoToBehaviour repeats GoTo only when the agent has NO usable path (none, stopped or
+                    // stale) and counts every repeat; after 4 repeats without a path it gives the target up as
+                    // unreachable. Swallowing those repeats here made it give up without ever trying again.
+                    // Now a repeat is only swallowed when it is really redundant: a path is being calculated or a
+                    // good path is already there.
+                    bool redundant = false;
+                    try
+                    {
+                        var ag = nav.Agent;
+                        redundant = ag != null && ag.isOnNavMesh && (ag.pathPending || (ag.hasPath && !ag.isStopped && !ag.isPathStale));
+                    }
+                    catch { redundant = false; }
+                    if (redundant) return true;
+                    OptCounters.GoToNeeded++;
+                }
+
+                e.Target = target;
+                e.StopDistance = stopDistance;
+                e.ForceRun = forceRun;
+                e.LastCallFrame = frame;
+                return false;
+            }
+        }
+
+        public static void Forget(NavMeshNavigator nav)
+        {
+            if (nav == null) return;
+            try { lock (_lock) { _last.Remove(nav.GetInstanceID()); } }
+            catch { }
+        }
+    }
+
+    [HarmonyPatch(typeof(NavMeshNavigator), "GoTo", new Type[] { typeof(Vector3), typeof(float), typeof(bool) })]
+    internal static class Patch_Opt_GoToThrottle
+    {
+        static bool Prefix(NavMeshNavigator __instance, Vector3 navSpacePosition, float stopDistance, bool forceRun)
+        {
+            GoToLogState.LastCallThrottled = false;
+
+            if (!OptToggles.ThrottleGoToRetries) return true;
+            try
+            {
+                OptCounters.GoToTotal++;
+                OptCounters.MaybeDump();
+
+                if (GoToThrottleState.ShouldThrottle(__instance, navSpacePosition, stopDistance, forceRun))
+                {
+                    OptCounters.GoToThrottled++;
+                    GoToLogState.LastCallThrottled = true;
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                DiagLog.WriteError("Opt.GoToThrottle", e);
+                return true; // fail open
+            }
+        }
+    }
+
+    internal static class GoToLogState
+    {
+        public static bool LastCallThrottled;
+    }
+
+    [HarmonyPatch(typeof(NavMeshNavigator), "Stop")]
+    internal static class Patch_Opt_GoToThrottleReset
+    {
+        static void Postfix(NavMeshNavigator __instance)
+        {
+            if (!OptToggles.ThrottleGoToRetries) return;
+            try { GoToThrottleState.Forget(__instance); }
+            catch (Exception e) { DiagLog.WriteError("Opt.GoToThrottleReset", e); }
+        }
+    }
+
+    [HarmonyPatch(typeof(PlayableCharacter), "StopCurrentAction", new Type[] { typeof(bool) })]
+    internal static class Patch_Opt_StopCurrentActionEarlyOut
+    {
+        static bool Prepare() { return OptToggles.EarlyOutStopAction; }   // v1.0.0: not installed while off
+        static bool Prefix(PlayableCharacter __instance, bool ignoreCanBeStoppedFlag)
+        {
+            if (!OptToggles.EarlyOutStopAction) return true;
+            try
+            {
+                OptCounters.StopActionTotal++;
+                if (__instance == null) return true;
+                if (__instance.Action != null) return true;
+                OptCounters.StopActionSkipped++;
+                return false;
+            }
+            catch (Exception e)
+            {
+                DiagLog.WriteError("Opt.StopActionEarlyOut", e);
+                return true; // fail open
+            }
+        }
+    }
+
+    internal static class SlotBlacklist
+    {
+        private class Entry
+        {
+            public float FirstSeen;                 // unscaled
+            public float LastSeen;                  // unscaled
+            public readonly HashSet<string> Failers = new HashSet<string>();
+            public bool Global;
+        }
+
+        private static readonly Dictionary<int, Entry> _blocked = new Dictionary<int, Entry>();
+        private static readonly object _lock = new object();
+
+        public static void NoteFailure(InteractableSlot slot, string who, string reason)
+        {
+            if (slot == null) return;
+            try
+            {
+                int id = slot.GetInstanceID();
+                float now = Time.unscaledTime;
+                bool becameGlobal = false;
+                int distinct;
+
+                lock (_lock)
+                {
+                    Entry e;
+                    if (!_blocked.TryGetValue(id, out e))
+                    {
+                        e = new Entry { FirstSeen = now };
+                        _blocked[id] = e;
+                    }
+                    e.LastSeen = now;
+                    e.Failers.Add(who ?? "unknown");
+                    distinct = e.Failers.Count;
+                    if (!e.Global && distinct >= OptToggles.MinDistinctFailures)
+                    {
+                        e.Global = true;
+                        becameGlobal = true;
+                    }
+                }
+
+                OptCounters.SlotsBlacklisted++;
+                if (becameGlobal)
+                {
+                    DiagLog.Write("[Fix3] GLOBAL block on slot '" + SafeName(slot) + "' for " +
+                                  OptToggles.BlacklistSeconds + "s - " + distinct +
+                                  " distinct characters failed to reach it (latest=" + who + ", " + reason + ")");
+                }
+                else
+                {
+                    DiagLog.Write("[Fix3] per-character block on slot '" + SafeName(slot) + "' for " +
+                                  who + " (" + distinct + "/" + OptToggles.MinDistinctFailures +
+                                  " distinct failures so far, " + reason + ")");
+                }
+            }
+            catch (Exception e) { OptCounters.Fix3Errors++; DiagLog.WriteError("Opt.Blacklist.Note", e); }
+        }
+
+        public static bool IsBlocked(InteractableSlot slot, string who)
+        {
+            if (slot == null) return false;
+            try
+            {
+                int id = slot.GetInstanceID();
+                float now = Time.unscaledTime;
+                lock (_lock)
+                {
+                    Entry e;
+                    if (!_blocked.TryGetValue(id, out e)) return false;
+                    if (now - e.LastSeen >= OptToggles.BlacklistSeconds)
+                    {
+                        _blocked.Remove(id);
+                        OptCounters.BlacklistExpired++;
+                        DiagLog.Write("[Fix3] expired slot '" + SafeName(slot) + "' - available again");
+                        return false;
+                    }
+                    if (e.Global)
+                    {
+                        OptCounters.SlotChecksBlocked++;
+                        return true;
+                    }
+                    if (who != null && e.Failers.Contains(who))
+                    {
+                        OptCounters.SlotPerCharacterBlocks++;
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                OptCounters.Fix3Errors++;
+                DiagLog.WriteError("Opt.Blacklist.IsBlocked", e);
+                return false; // fail open - never block because of our own error
+            }
+        }
+
+        public static string SafeName(UnityEngine.Object o)
+        {
+            try { return o != null ? o.name : "null"; } catch { return "?"; }
+        }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "Cancel")]
+    internal static class Patch_Opt_GoToBehaviourCancel
+    {
+        static readonly System.Reflection.FieldInfo AttemptsField =
+            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "setPathAttempts");
+        static readonly System.Reflection.FieldInfo PathValidField =
+            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "wasPathValid");
+        static readonly System.Reflection.FieldInfo PathSetField =
+            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "pathSet");
+        static readonly System.Reflection.FieldInfo LoggingTargetField =
+            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "loggingTarget");
+        static readonly System.Reflection.FieldInfo UnreachableActionField =
+            AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "targetUnreachableAction");
+
+        static float _lastProbeLog;
+
+        static void Prefix(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour __instance)
+        {
+            if (!OptToggles.BlacklistUnreachableSlots && !OptToggles.InstrumentCancel) return;
+            try
+            {
+                if (__instance == null) return;
+                OptCounters.CancelsSeen++;
+
+                int attempts = AttemptsField != null ? (int)AttemptsField.GetValue(__instance) : -1;
+                bool wasValid = PathValidField != null && (bool)PathValidField.GetValue(__instance);
+                bool pathSet = PathSetField != null && (bool)PathSetField.GetValue(__instance);
+                object unreachable = UnreachableActionField != null ? UnreachableActionField.GetValue(__instance) : null;
+                object rawTarget = LoggingTargetField != null ? LoggingTargetField.GetValue(__instance) : null;
+                string unreachableStr = unreachable != null ? unreachable.ToString() : "null";
+
+                string who = "unknown";
+                try { who = __instance.AI != null ? __instance.AI.name : "unknown"; } catch { }
+
+                var tr = rawTarget as Transform;
+                InteractableSlot slot = null;
+                if (tr != null)
+                {
+                    try
+                    {
+                        slot = tr.GetComponent<InteractableSlot>();
+                        if (slot == null) slot = tr.GetComponentInParent<InteractableSlot>();
+                    }
+                    catch { }
+                }
+
+                bool confirmedShape = pathSet && !wasValid && unreachableStr == "CancelBehaviour";
+
+                if (confirmedShape)
+                {
+                    string failedTarget = "?";
+                    if (tr != null)
+                        failedTarget = (tr.parent != null ? tr.parent.name : "?") + "/" + tr.name;
+                    BehaviourCooldown.NoteUnreachable(who, failedTarget);
+                }
+
+                if (OptToggles.BlacklistUnreachableSlots && confirmedShape && slot != null)
+                {
+                    SlotBlacklist.NoteFailure(slot, who, "attempts=" + attempts + ", action=" + unreachableStr);
+                    return;
+                }
+
+                if (!OptToggles.InstrumentCancel || !DiagToggles.Verbose) return;   // v1.0.0: the line is verbose-only; NoteUnreachable above always runs
+                float now = Time.unscaledTime;
+                if (now - _lastProbeLog < 1.0f) return;
+                _lastProbeLog = now;
+
+                string targetDesc = "null";
+                if (tr != null)
+                {
+                    string parentName = tr.parent != null ? tr.parent.name : "(no parent)";
+                    targetDesc = "Transform '" + tr.name + "' parent '" + parentName + "'";
+                }
+                else if (rawTarget != null) targetDesc = rawTarget.GetType().Name;
+
+                string slotName = slot != null ? slot.name : "none";
+                string why = confirmedShape ? "matched shape but no slot found" : "shape did not match";
+                // 0.4.24: what the navmesh itself said (to tell "target cut off" from "man off the mesh")
+                string navInfo = "";
+                try
+                {
+                    var nf = AccessTools.Field(__instance.GetType(), "navigator");
+                    var tf = AccessTools.Field(__instance.GetType(), "target");
+                    var nv = nf != null ? nf.GetValue(__instance) as NavMeshNavigator : null;
+                    var ag = nv != null ? nv.Agent : null;
+                    if (ag != null && tf != null)
+                    {
+                        var tgt = (Vector3)tf.GetValue(__instance);
+                        navInfo = " | nav: mode=" + nv.AgentMode + " onMesh=" + ag.isOnNavMesh + " hasPath=" + ag.hasPath + " status=" + ag.pathStatus
+                                + " pathEndToTarget=" + (ag.hasPath ? (ag.pathEndPosition - tgt).magnitude.ToString("0.00") : "?")
+                                + " manToTarget=" + (ag.nextPosition - tgt).magnitude.ToString("0.0")
+                                + " slotUsers=" + (slot != null && slot.Interactable != null ? slot.Interactable.InteractingCharacters.Count.ToString() : "?");
+                    }
+                }
+                catch (Exception ne) { navInfo = " | nav: Fehler " + ne.GetType().Name; }
+                DiagLog.Write("[CancelProbe] " + who + " | attempts=" + attempts + " wasPathValid=" + wasValid +
+                              " pathSet=" + pathSet + " unreachableAction=" + unreachableStr +
+                              " | target=" + targetDesc + " | slot=" + slotName + " | " + why + navInfo);
+            }
+            catch (Exception e)
+            {
+                OptCounters.Fix3Errors++;
+                DiagLog.WriteError("Opt.CancelProbe", e);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(InteractableSlot), "get_IsBlockedForAI")]
+    internal static class Patch_Opt_IsBlockedForAI
+    {
+        static bool Prepare() { return OptToggles.BlacklistUnreachableSlots; }   // v1.0.0: hot getter; not installed while off
+        static void Postfix(InteractableSlot __instance, ref bool __result)
+        {
+            if (!OptToggles.BlacklistUnreachableSlots) return;
+            if (__result) return; // already blocked by the game - leave it alone
+            try
+            {
+                if (SlotBlacklist.IsBlocked(__instance, null)) __result = true;
+            }
+            catch (Exception e)
+            {
+                OptCounters.Fix3Errors++;
+                DiagLog.WriteError("Opt.IsBlockedForAI", e);
+            }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/CrewAi/CrewAIPerf.cs
+// ====================================================================================================
+// Crew-KI (Teil des UBOAT Toolkit): CrewAIPerf. Schalter: F10 > QoL > "Crew-KI".
+
+namespace UboatToolkit.Modules.CrewAi
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Text;
+    using global::UnityEngine;
+
+    internal static class PerfToggles
+    {
+        public static readonly bool Enabled = true;
+
+        public const double SlowCallMs = 15.0;
+
+        public const int MaxSlowLines = 60;
+
+        public const float ReportIntervalSeconds = 60f;
+    }
+
+    internal static class Perf
+    {
+        private sealed class Site
+        {
+            public long Calls;
+            public double TotalMs;
+            public double MaxMs;
+            public float MaxAtUnscaled;
+            public long SlowCalls;
+        }
+
+        private static readonly Dictionary<string, Site> _sites = new Dictionary<string, Site>();
+        private static readonly object _lock = new object();
+        private const double MsPerTick = 0.001;
+        private static long Now() { return (long)(Time.realtimeSinceStartupAsDouble * 1000000.0); }
+
+        private static int _slowLines;
+        private static float _lastReport;
+        private static bool _reportedFirst;
+
+        public static long Begin()
+        {
+            if (!PerfToggles.Enabled) return 0L;
+            return Now();
+        }
+
+        public static void End(string site, long startTicks)
+        {
+            if (!PerfToggles.Enabled || startTicks == 0L) return;
+            try
+            {
+                double ms = (Now() - startTicks) * MsPerTick;
+                float now = Time.unscaledTime;
+
+                bool slow;
+                lock (_lock)
+                {
+                    Site s;
+                    if (!_sites.TryGetValue(site, out s)) { s = new Site(); _sites[site] = s; }
+                    s.Calls++;
+                    s.TotalMs += ms;
+                    if (ms > s.MaxMs) { s.MaxMs = ms; s.MaxAtUnscaled = now; }
+                    slow = ms >= PerfToggles.SlowCallMs;
+                    if (slow) s.SlowCalls++;
+                }
+
+                if (slow && _slowLines < PerfToggles.MaxSlowLines)
+                {
+                    _slowLines++;
+                    DiagLog.Write("[Perf] SLOW " + site + " took " + ms.ToString("F1") +
+                                  " ms in one call (threshold " + PerfToggles.SlowCallMs + " ms)");
+                }
+            }
+            catch { }
+        }
+
+        public static void MaybeReport()
+        {
+            if (!PerfToggles.Enabled) return;
+            try
+            {
+                float now = Time.unscaledTime;
+                if (_reportedFirst && now - _lastReport < PerfToggles.ReportIntervalSeconds) return;
+                _lastReport = now;
+                _reportedFirst = true;
+
+                var sb = new StringBuilder("[Perf] ");
+                bool any = false;
+                lock (_lock)
+                {
+                    foreach (var kv in _sites)
+                    {
+                        var s = kv.Value;
+                        if (s.Calls == 0) continue;
+                        any = true;
+                        sb.Append(kv.Key).Append(' ')
+                          .Append("n=").Append(s.Calls).Append(' ')
+                          .Append("total=").Append(s.TotalMs.ToString("F1")).Append("ms ")
+                          .Append("mean=").Append((s.TotalMs / s.Calls).ToString("F3")).Append("ms ")
+                          .Append("max=").Append(s.MaxMs.ToString("F1")).Append("ms@rt")
+                          .Append(s.MaxAtUnscaled.ToString("F1"));
+                        if (s.SlowCalls > 0) sb.Append(" slow=").Append(s.SlowCalls);
+                        sb.Append(" | ");
+                    }
+                }
+                if (any) DiagLog.Write(sb.ToString());
+            }
+            catch { }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/CrewAiThrottle.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Core.AI;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UnityEngine;
+
+    // 0.3.70 (DoMe: relieve the main core). Measured: the per-frame update of all crew members costs about 3.9 s per
+    // minute with 130+ men (PlayableCharacter.Update + InteractiveCharacter.Update). Every man runs his AI every frame.
+    // Men who sleep in a bunk and are not on screen now run it only every x-th frame ("CrewAiSleepEvery").
+    // Only the per-frame call is thinned out; direct calls of the game (alarm, stories, cutscenes) always run.
+    // Once per minute the log shows the real AI cost, so the effect is measured, not guessed.
+    public class CrewAiThrottle : ModuleBase
+    {
+        internal static double Seconds;
+        internal static int Calls, Skipped;
+        internal static int Every = 1;
+        internal static bool Settle = true;
+        internal static float LoadingUntil;
+        internal static int Held, PathInvalid;
+        private long lastThrottled, lastNeeded;
+        private float nextLog, nextLoadCheck;
+
+        public override void Frame()
+        {
+            Settle = Settings.B("CrewAiWaitLoad");
+            if (!Settle || Time.unscaledTime < nextLoadCheck) return;
+            nextLoadCheck = Time.unscaledTime + 0.25f;
+            if (SaveLoading()) LoadingUntil = Time.unscaledTime + 3f;
+        }
+
+        private static bool SaveLoading()
+        {
+            try { var sm = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Core.Serialization.SavesManager>(); return sm != null && sm.IsLoading; } catch { return false; }
+        }
+
+        public override void Tick()
+        {
+            Every = Mathf.Clamp(Mathf.RoundToInt(Settings.F("CrewAiSleepEvery")), 1, 10);
+            if (Time.unscaledTime < nextLog) return;
+            if (nextLog > 0f && Calls + Skipped > 0)
+                Util.Log("Crew-KI: " + (Seconds * 1000.0).ToString("0") + " ms pro Minute in " + Calls + " Aufrufen, " + Skipped + " übersprungen (schlafend, nicht sichtbar)");
+            {
+                long t = CrewAi.OptCounters.GoToThrottled, n = CrewAi.OptCounters.GoToNeeded;
+                if (nextLog > 0f) Util.Log("Crew-Wege: " + PathInvalid + " mal \"Weg ungültig\" in der Minute; Weg-Wiederholungen: " + (t - lastThrottled) + " überflüssige geschluckt, " + (n - lastNeeded) + " nötige durchgelassen; " + CrewWarp_Patch.Warped + " Mann an den Platz gesetzt"); CrewWarp_Patch.Warped = 0;
+                lastThrottled = t; lastNeeded = n; PathInvalid = 0;
+            }
+            if (Held > 0) { Util.Log("Crew-KI: " + Held + " Aufrufe angehalten, weil das Boot noch lädt"); Held = 0; }
+            nextLog = Time.unscaledTime + 60f;
+            Seconds = 0; Calls = 0; Skipped = 0;
+        }
+    }
+
+    [HarmonyPatch(typeof(CharacterAI), nameof(CharacterAI.UpdateAI))]
+    internal static class CrewAiThrottle_Patch
+    {
+        private static readonly Dictionary<CharacterAI, PlayableCharacter> owners = new Dictionary<CharacterAI, PlayableCharacter>();
+
+        private static bool Prefix(CharacterAI __instance, bool ignoreIsUpdatingFlag, out double __state)
+        {
+            __state = 0;
+            if (!ignoreIsUpdatingFlag) return true;   // direct call of the game: never touched
+            // 0.3.91 (DoMe: console flickers while loading, log full of crew-AI null errors on the Warthog): while a save
+            // is still loading and in the first seconds of a new boat the crew AI of the player's boat waits, so it does
+            // not look for beds, food or free space before the interior exists.
+            // 0.4.29 (player-only rule): only figures of the player's crew list are held or thinned, nobody else.
+            if (!owners.TryGetValue(__instance, out var pc))
+            {
+                if (owners.Count > 2000) owners.Clear();
+                pc = __instance.GetComponent<PlayableCharacter>();
+                owners[__instance] = pc;
+            }
+            if (pc == null) return true;
+            if (CrewAiThrottle.Settle && (Time.unscaledTime < CrewAiThrottle.LoadingUntil || (Util.PlayerShip != null && !Util.ShipReady))) { CrewAiThrottle.Held++; return false; }
+            int every = CrewAiThrottle.Every;
+            if (every > 1)
+            {
+                if (pc != null && !pc.IsVisible && pc.Action is SleepAction && (Time.frameCount + (__instance.GetInstanceID() & 0x3ff)) % every != 0)
+                {
+                    CrewAiThrottle.Skipped++;
+                    return false;
+                }
+            }
+            __state = Time.realtimeSinceStartupAsDouble;
+            return true;
+        }
+
+        private static void Postfix(double __state)
+        {
+            if (__state == 0) return;
+            CrewAiThrottle.Seconds += Time.realtimeSinceStartupAsDouble - __state;
+            CrewAiThrottle.Calls++;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Core.AI;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UnityEngine;
+
+    // 0.4.17: counts how often the game gives a walking target up as unreachable (proof line "Crew-Wege").
+    [HarmonyPatch(typeof(CharacterAI), "LogAction", new System.Type[] { typeof(string) })]
+    internal static class CrewPathInvalid_Patch
+    {
+        private static void Prefix(string text)
+        {
+            if (text != null && text.StartsWith("Path to target is invalid", System.StringComparison.Ordinal)) CrewAiThrottle.PathInvalid++;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Core.AI;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UnityEngine;
+
+    // 0.4.18 (DoMe: "können wir ihn auch teleportieren?"). When the game gives a walking target up as unreachable it
+    // cancels the walk and the man's job with it. The game has a second mode for exactly this case (used in stories):
+    // set the man onto the target. For player crew with a job or an order and a real place as target (a slot at a
+    // station, a bunk ...) that mode is used now, so the post gets manned instead of staying empty.
+    [HarmonyPatch(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "Cancel")]
+    internal static class CrewWarp_Patch
+    {
+        private static readonly AccessTools.FieldRef<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable> mode =
+            AccessTools.FieldRefAccess<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable>("targetUnreachableAction");
+        private static readonly AccessTools.FieldRef<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, Transform> place =
+            AccessTools.FieldRefAccess<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour, Transform>("loggingTarget");
+        private static readonly System.Reflection.FieldInfo navField = AccessTools.Field(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "navigator");
+        internal static int Warped;
+        private static int lines;
+
+        [HarmonyPriority(Priority.Last)]
+        private static void Prefix(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour __instance)
+        {
+            try
+            {
+                if (!Settings.B("CrewWarpNoPath") || __instance == null) return;
+                if (mode(__instance) != UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable.CancelBehaviour) return;
+                var t = place(__instance);
+                if (t == null) return;                                   // no real place (free walking): leave it to the game
+                var nav = navField != null ? navField.GetValue(__instance) as UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator : null;
+                var pc = nav != null ? nav.Character as PlayableCharacter : null;
+                if (pc == null || pc.Action == null) return;             // only our crew, only with a job or an order
+                mode(__instance) = UBOAT.Game.Core.AI.Behaviours.GoToBehaviour.TargetUnreachable.Warp;
+                Warped++;
+                if (lines < 80) { lines++; Util.Log("Crew-Wege: " + pc.Name + " findet keinen Weg zu \"" + t.name + "\"" + (t.parent != null ? " (" + t.parent.name + ")" : "") + " und wird hingesetzt (Aufgabe " + pc.Action.GetType().Name + ")"); }
+            }
+            catch (System.Exception e) { if (lines < 80) { lines++; Util.Log("Crew-Wege: Hinsetzen Fehler " + e.GetType().Name); } }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/CrewLod.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Core.AI;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UnityEngine;
+
+    // Crew detail levels (against low FPS with a big crew, e.g. 100+ men in port).
+    // Every man normally re-thinks every frame: "what is my best job now?" (all his behaviours are rated).
+    // For men you cannot see, this thinking now runs only every x frames, staggered so not all think
+    // in the same frame. What they are DOING right now (walking, working, sleeping, eating) still runs
+    // every frame, so jobs, rest and food take exactly as long as before.
+    // Always full speed: men you can see, and everyone during alarm or emergency.
+    // Faces/body shape (deformers) of men you cannot see are not recalculated.
+    public class CrewLod : ModuleBase
+    {
+        internal static bool On;
+        internal static int Frames = 1, IdleFrames = 1;
+        internal static bool Busy;   // alarm / emergency
+        private float next;
+
+        public override void Tick()
+        {
+            if (Time.unscaledTime < next) return;
+            next = Time.unscaledTime + 0.5f;
+            On = Settings.B("CrewLod");
+            Frames = Mathf.Max(1, Mathf.RoundToInt(Settings.F("CrewLodFrames")));
+            IdleFrames = Mathf.Max(1, Mathf.RoundToInt(Settings.F("CrewLodIdleFrames")));
+            var ship = Util.PlayerShip;
+            Busy = ship != null && (ship.Alarmed || ship.Emergency);
+            if (Time.unscaledTime >= nextLine)
+            {
+                if (nextLine > 0f && On) Util.Log("Crew-Detailstufen: " + Skipped + " mal Überlegen ausgesetzt, " + OrderKept + " mal nicht ausgesetzt wegen wartendem Befehl, " + Direct + " direkte Aufrufe des Spiels (Befehle) nie ausgesetzt; Werte " + Frames + "/" + IdleFrames);
+                nextLine = Time.unscaledTime + 60f; if (Urgent > 0) Util.Log("Crew-Detailstufen: " + Urgent + " mal nicht ausgesetzt, weil ein Pflicht-Posten leer war"); Skipped = 0; OrderKept = 0; Direct = 0; Urgent = 0;
+            }
+        }
+
+        private static readonly Dictionary<CharacterAI, InteractiveCharacter> owner = new Dictionary<CharacterAI, InteractiveCharacter>();
+
+        // true = skip the thinking this frame
+        internal static bool Skip(CharacterAI ai)
+        {
+            if (!On || Busy || ai == null || Time.timeScale <= 0f) return false;
+            // 0.4.13 (DoMe: many idle men, but the helm stays empty): while a station that must be manned is empty,
+            // nobody's thinking is paused, so the game's own shift jobs can fill it at once.
+            if (Time.unscaledTime < UrgentUntil) { Urgent++; return false; }
+            // 0.4.5 (DoMe 2026-11-17: orders must be given twice and still are not carried out): the game calls
+            // UpdateAI directly (68 places) right after an order is given or cancelled. Those calls were skipped
+            // here too, so the man only noticed his order x frames later. Now only the routine call once per frame
+            // may be skipped, and never for a man who has an order (profit 2 and more) that is not running yet.
+            if (!FrameCall) { Direct++; return false; }
+            if (!owner.TryGetValue(ai, out var ch))
+            {
+                if (owner.Count > 3000) owner.Clear();
+                ch = ai.GetComponent<InteractiveCharacter>();
+                owner[ai] = ch;
+            }
+            if (ch == null) return false;
+            int n = Frames;
+            if (ch.IsVisible)
+            {
+                // Visible men only when they are idle (standing around, resting, smoking, chatting, sleeping):
+                // they notice a new job a fraction of a second later, nobody else is affected.
+                if (IdleFrames <= 1 || !Idle(ai)) return false;
+                n = IdleFrames;
+            }
+            else if (Idle(ai)) n = Mathf.Max(n, IdleFrames);
+            // 0.4.13: in time compression x frames are x times more game time -> pause proportionally less
+            if (Time.timeScale > 1.5f) n = Mathf.RoundToInt(n / Time.timeScale);
+            if (n <= 1) return false;
+            int id = ai.GetInstanceID();
+            if (id < 0) id = -id;
+            if ((Time.frameCount + id) % n == 0) return false;
+            if (HasWaitingOrder(ai)) { OrderKept++; return false; }
+            Skipped++;
+            return true;
+        }
+
+        internal static bool FrameCall;
+        internal static int Direct, OrderKept, Skipped, Urgent;
+        internal static float UrgentUntil;
+        private float nextLine;
+
+        private static bool HasWaitingOrder(CharacterAI ai)
+        {
+            int c = ai.BehavioursCount;
+            for (int i = 0; i < c; i++)
+            {
+                var b = ai.GetBehaviourAt(i);
+                if (b != null && b.Profit >= 2f && b.State != AIBehaviourState.Active) return true;
+            }
+            return false;
+        }
+
+        // Idle = something is active, and everything active is free time (idle, rest, smoke, chat, sleep).
+        private static bool Idle(CharacterAI ai)
+        {
+            var act = ai.GetActiveBehavioursDirect();
+            if (act == null || act.Count == 0) return false;
+            for (int i = 0; i < act.Count; i++)
+            {
+                var b = act[i];
+                if (b == null) return false;
+                if (!(b is UBOAT.Game.Core.AI.Behaviours.IdleBehaviour || b is UBOAT.Game.Core.AI.Behaviours.IRelaxBehaviour)) return false;
+                if (b.State != AIBehaviourState.Active) return false;
+            }
+            return true;
+        }
+    }
+
+    // Marks the routine call once per frame (the only caller that passes true); every other call is a direct one.
+    [HarmonyPatch(typeof(CharacterAI), nameof(CharacterAI.UpdateAI))]
+    internal static class CrewLod_FrameCall
+    {
+        [HarmonyPriority(Priority.First)]
+        private static void Prefix(bool ignoreIsUpdatingFlag, out bool __state) { __state = CrewLod.FrameCall; CrewLod.FrameCall = ignoreIsUpdatingFlag; }
+        private static void Finalizer(bool __state) { CrewLod.FrameCall = __state; }
+    }
+
+    [HarmonyPatch(typeof(CharacterAI), "UpdateInactiveBehaviours")]
+    internal static class CrewLod_Background
+    {
+        private static bool Prefix(CharacterAI __instance) => !CrewLod.Skip(__instance);
+    }
+
+    [HarmonyPatch(typeof(CharacterAI), "AnalyzeBehaviours")]
+    internal static class CrewLod_Analyze
+    {
+        private static bool Prefix(CharacterAI __instance) => !CrewLod.Skip(__instance);
+    }
+
+    [HarmonyPatch(typeof(CharacterAI), "AnalyzeBehavioursFast")]
+    internal static class CrewLod_AnalyzeFast
+    {
+        private static bool Prefix(CharacterAI __instance) => !CrewLod.Skip(__instance);
+    }
+
+    [HarmonyPatch(typeof(DWS.Common.Characters.Deformers.DeformerBase), "LateUpdate")]
+    internal static class CrewLod_Deformer
+    {
+        private static readonly AccessTools.FieldRef<DWS.Common.Characters.Deformers.DeformerBase, SkinnedMeshRenderer> smr =
+            AccessTools.FieldRefAccess<DWS.Common.Characters.Deformers.DeformerBase, SkinnedMeshRenderer>("skinnedMeshRenderer");
+
+        private static bool Prefix(DWS.Common.Characters.Deformers.DeformerBase __instance)
+        {
+            if (!CrewLod.On) return true;
+            try
+            {
+                var r = smr(__instance);
+                return r == null || r.isVisible;
+            }
+            catch { return true; }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/VoiceLimit.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Fewer voices: the same line at most every x seconds, short waiting queue, optional gun callouts muted.
+    // Every voice line of the game goes through SpeakController.Say (the 7-parameter version); a skipped line returns null
+    // (the game handles null, it does the same when a man is injured).
+    [HarmonyPatch]
+    internal static class VoiceLimit_SayPatch
+    {
+        private static readonly Dictionary<string, float> lastSaid = new Dictionary<string, float>();
+        private static FieldInfo ticketsF;
+        private static int dropped; private static float nextLog;
+
+        private static MethodBase TargetMethod()
+        {
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Tasks.SpeakController");
+            foreach (var m in AccessTools.GetDeclaredMethods(t))
+                if (m.Name == "Say" && m.GetParameters().Length == 7) return m;
+            return null;
+        }
+
+        private static bool Prefix(object __instance, string statementId1)
+        {
+            if (!Settings.B("VoiceLimit") || string.IsNullOrEmpty(statementId1)) return true;
+            if (Settings.B("VoiceMuteGunCalls") && (statementId1 == "Artillery Aim" || statementId1 == "Fire!")) return Drop();
+            float now = Time.unscaledTime;
+            float gap = Settings.F("VoiceRepeatSec");
+            int maxQ = Mathf.Max(1, Mathf.RoundToInt(Settings.F("VoiceMaxQueue")));
+            if (Settings.B("ExplosionAuto"))
+            {
+                // Dynamic like the explosions: fluid = more voices allowed, low FPS = fewer.
+                float load = Mathf.Clamp01(ExplosionLimit_Patch.Fps() / Mathf.Max(1f, Settings.F("ExplosionTargetFps")));
+                gap = Mathf.Lerp(gap * 3f, gap * 0.5f, load);
+                maxQ = Mathf.Max(1, Mathf.RoundToInt(Mathf.Lerp(1f, maxQ * 2f, load)));
+            }
+            if (gap > 0f && lastSaid.TryGetValue(statementId1, out var t) && now - t < gap) return Drop();
+            if (ticketsF == null) ticketsF = AccessTools.Field(__instance.GetType(), "tickets");
+            var q = ticketsF?.GetValue(__instance) as System.Collections.ICollection;
+            if (q != null && q.Count >= maxQ) return Drop();
+            lastSaid[statementId1] = now;
+            return true;
+        }
+
+        private static bool Drop()
+        {
+            dropped++;
+            if (Time.unscaledTime > nextLog) { nextLog = Time.unscaledTime + 60f; Util.Log("Stimmen begrenzt: " + dropped + " Ansagen ausgelassen (gesamt)"); }
+            return false;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/WedgeCalm.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::System.Runtime.CompilerServices;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.UI;
+    using global::UBOAT.Game.Scene.Camera;
+
+    // 0.4.53: the game rebuilds every contact wedge (the pink bearing fans) in every picture, also when nothing moved.
+    // With the switch on, a wedge that stands still is rebuilt 4 times per second only; as soon as it moves again or the
+    // camera height changes, it is rebuilt in every picture as before. Picture only.
+    [HarmonyPatch(typeof(DynamicContactVisualizationUI), "LateUpdate")]
+    internal static class WedgeCalm_Patch
+    {
+        private class State { public bool Still; public float At, CamY; }
+        private static readonly ConditionalWeakTable<DynamicContactVisualizationUI, State> states = new ConditionalWeakTable<DynamicContactVisualizationUI, State>();
+        public static int Ran, Skipped;
+
+        private static bool Prefix(DynamicContactVisualizationUI __instance, float ___displayedBearing, float ___displayedDistance, float ___displayedSpreadAngle, ref float ___displayTime, out Vector3 __state)
+        {
+            __state = new Vector3(___displayedBearing, ___displayedDistance, ___displayedSpreadAngle);
+            if (!Settings.B("SaveWedgesCalm")) return true;
+            var st = states.GetOrCreateValue(__instance);
+            var cam = MainCamera.Instance; float y = cam != null ? cam.transform.position.y : 0f;
+            if (st.Still && ___displayTime > 3f && Time.unscaledTime - st.At < 0.25f && Mathf.Abs(y - st.CamY) <= 0.005f * Mathf.Max(1f, Mathf.Abs(st.CamY)))
+            {
+                ___displayTime += Time.unscaledDeltaTime; Skipped++;
+                __state.x = float.NaN;
+                return false;
+            }
+            return true;
+        }
+
+        private static void Postfix(DynamicContactVisualizationUI __instance, float ___displayedBearing, float ___displayedDistance, float ___displayedSpreadAngle, Vector3 __state)
+        {
+            if (float.IsNaN(__state.x) || !Settings.B("SaveWedgesCalm")) return;
+            Ran++;
+            var st = states.GetOrCreateValue(__instance);
+            var cam = MainCamera.Instance;
+            st.Still = Mathf.Abs(Mathf.DeltaAngle(___displayedBearing, __state.x)) < 0.01f && Mathf.Abs(___displayedDistance - __state.y) < 0.002f * Mathf.Max(1f, __state.y) && Mathf.Abs(___displayedSpreadAngle - __state.z) < 0.0001f;
+            st.At = Time.unscaledTime; st.CamY = cam != null ? cam.transform.position.y : 0f;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/RouteSearchCount.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Sandbox;
+
+    // 0.4.54 (DoMe 2026-11-18: "nutzen wir NavMeshQuery / asynchrone Wege?"). The game searches every ship and convoy
+    // route in one piece on the main core. This only counts how often and how long, once per minute, nothing is changed.
+    [HarmonyPatch]
+    internal static class RouteSearchCount_Patch
+    {
+        private static int calls; private static double sum, longest; private static float nextLog;
+
+        private static IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            foreach (var m in AccessTools.GetDeclaredMethods(typeof(WorldNavMesh))) if (m.Name == "FindPath") yield return m;
+        }
+
+        // 0.4.57: also counts how many searches asked exactly the same question again within 5 s (same start, same goal,
+        // same settings). Only such repeats could be answered from a remembered result.
+        private static readonly Dictionary<long, float> seen = new Dictionary<long, float>();
+        private static int repeats; private static double repeatMs;
+        private static void Prefix(object[] __args, out double __state)
+        {
+            __state = Time.realtimeSinceStartupAsDouble;
+            long h = 17;
+            if (__args != null) foreach (var a in __args) { if (a is System.Collections.IEnumerable && !(a is string)) continue; h = h * 31 + (a != null ? a.GetHashCode() : 0); }
+            float t; bool rep = seen.TryGetValue(h, out t) && Time.unscaledTime - t < 5f;
+            seen[h] = Time.unscaledTime;
+            if (rep) { repeats++; __state = -__state; }
+            if (seen.Count > 5000) seen.Clear();
+        }
+
+        private static void Postfix(double __state)
+        {
+            bool wasRepeat = __state < 0; if (wasRepeat) __state = -__state;
+            double ms = (Time.realtimeSinceStartupAsDouble - __state) * 1000.0;
+            calls++; sum += ms; if (ms > longest) longest = ms; if (wasRepeat) repeatMs += ms;
+            if (Time.unscaledTime < nextLog) return;
+            nextLog = Time.unscaledTime + 60f;
+            Util.Log("Routen-Suche der Schiffe (Zählung, nur lesen): " + calls + " mal in der letzten Minute, zusammen " + sum.ToString("0") + " ms auf dem Hauptkern, längste einzelne " + longest.ToString("0.0") + " ms; davon dieselbe Frage erneut binnen 5 s: " + repeats + " mal, " + repeatMs.ToString("0") + " ms");
+            calls = 0; sum = 0; longest = 0; repeats = 0; repeatMs = 0;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/SaveCpu.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::System.Runtime.CompilerServices;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Scene.Entities;
+
+    // 0.4.55: the game forces a memory clean-up whenever its memory grew by 100 MB (crew models of a ship coming
+    // close, new terrain). That stops the picture for up to 39 ms. With the switch on this happens only while a save
+    // is loading; the game's own clean-up in small steps (3 ms slices) keeps running.
+    [HarmonyPatch(typeof(GameState), nameof(GameState.CollectMemory))]
+    internal static class NoForcedGc_Patch
+    {
+        public static int Skipped; private static float nextLog;
+        private static bool Prefix()
+        {
+            if (!Settings.B("SaveNoForcedGc") || UboatToolkit.Modules.SaveTools_LoadSpeedPatch.IsLoading || UboatToolkit.Modules.OfficerWatch.Loading()) return true;
+            Skipped++;
+            if (Time.unscaledTime >= nextLog)
+            {
+                nextLog = Time.unscaledTime + 60f;
+                Util.Log("Sparen: erzwungenes Speicher-Aufräumen des Spiels " + Skipped + " mal ausgelassen (Speicher jetzt " + (System.GC.GetTotalMemory(false) / 1048576L) + " MB)");
+            }
+            return false;
+        }
+    }
+
+    // 0.4.55: the game writes the spray strength of every ship in every physics step, also when the ship keeps its
+    // speed. With the switch on it is written only when the speed step changed by more than 1 %.
+    [HarmonyPatch(typeof(ShipEffectsController), "FixedUpdate")]
+    internal static class SprayOnChange_Patch
+    {
+        private class Last { public float V = -1f; }
+        private static readonly ConditionalWeakTable<ShipEffectsController, Last> last = new ConditionalWeakTable<ShipEffectsController, Last>();
+        public static int Ran, Skipped; private static float nextLog;
+        private static bool Prefix(ShipEffectsController __instance, Ship ___ship, float ___maxVelocity)
+        {
+            if (!Settings.B("SaveSprayOnChange") || ___ship == null || ___maxVelocity <= 0f) return true;
+            float v = ___ship.AverageVelocity / ___maxVelocity;
+            if (v > 1f) v = 1f; else if (v < 0.15f) v = 0f;
+            var l = last.GetOrCreateValue(__instance);
+            bool skip = Mathf.Abs(v - l.V) < 0.01f && !(v == 0f && l.V != 0f) && !(v == 1f && l.V != 1f);
+            if (skip) Skipped++; else { Ran++; l.V = v; }
+            if (Time.unscaledTime >= nextLog)
+            {
+                nextLog = Time.unscaledTime + 60f;
+                Util.Log("Sparen: Gischt-Stärke gesetzt " + Ran + " mal, ausgelassen " + Skipped + " mal in der letzten Minute");
+                Ran = 0; Skipped = 0;
+            }
+            return !skip;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/BuoyancyEarly.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // 0.4.56: the game hands the buoyancy sum of every ship to the helper cores, but the helpers only start when the
+    // main core begins to wait for the first result. With the switch on the helpers are woken after every 4th ship,
+    // so they calculate while the main core still prepares the other ships. Same numbers, same order of results.
+    [HarmonyPatch]
+    internal static class BuoyancyEarly_Patch
+    {
+        private static int since, kicks, jobs; private static float nextLog;
+        private static System.Reflection.MethodBase target;
+        private static bool Prepare()
+        {
+            var t = AccessTools.TypeByName("PlayWay.Water.Extensions.NeuralNetworkJobsRunner");
+            target = t != null ? AccessTools.Method(t, "Start") : null;
+            if (target == null) Util.Log("Auftrieb früher starten: Stelle im Wasser-Modul nicht gefunden, Schalter ohne Wirkung");
+            return target != null;
+        }
+        private static System.Reflection.MethodBase TargetMethod() => target;
+
+        private static void Postfix()
+        {
+            if (!Settings.B("SaveBuoyancyEarly")) return;
+            jobs++;
+            if (++since >= 4) { since = 0; kicks++; Unity.Jobs.JobHandle.ScheduleBatchedJobs(); }
+            if (Time.unscaledTime < nextLog) return;
+            nextLog = Time.unscaledTime + 60f;
+            Util.Log("Sparen: Auftrieb früher gestartet, " + jobs + " Schiffs-Rechnungen in der letzten Minute, Helfer-Kerne " + kicks + " mal vorzeitig geweckt");
+            jobs = 0; kicks = 0;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/DetectionCount.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Scene.Entities;
+
+    // 0.4.57: "who sees whom" - every ship checks every other ship with each of its sensors. Count only (how often, how
+    // long on the main core, how many sight-line rays), once per minute, nothing is changed. Decides the next step.
+    [HarmonyPatch(typeof(Observator), "LowFrequencyUpdate")]
+    internal static class DetectionCount_Patch
+    {
+        internal static int Rays;
+        private static int calls; private static double sum, longest; private static float nextLog;
+        private static void Prefix(out double __state) { __state = Time.realtimeSinceStartupAsDouble; }
+        private static void Postfix(double __state)
+        {
+            double ms = (Time.realtimeSinceStartupAsDouble - __state) * 1000.0;
+            calls++; sum += ms; if (ms > longest) longest = ms;
+            if (Time.unscaledTime < nextLog) return;
+            nextLog = Time.unscaledTime + 60f;
+            Util.Log("Gegner-Erkennung (Zählung, nur lesen): " + calls + " Durchläufe in der letzten Minute, zusammen " + sum.ToString("0") + " ms auf dem Hauptkern, längster " + longest.ToString("0.0") + " ms, Sichtlinien-Strahlen " + Rays);
+            calls = 0; sum = 0; longest = 0; Rays = 0;
+        }
+    }
+    [HarmonyPatch(typeof(Observator), nameof(Observator.HasVisualLOS))]
+    internal static class DetectionRayV_Patch { private static void Prefix() { DetectionCount_Patch.Rays++; } }
+    [HarmonyPatch(typeof(Observator), nameof(Observator.HasSoundLOS))]
+    internal static class DetectionRayS_Patch { private static void Prefix() { DetectionCount_Patch.Rays++; } }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/CacheCheck.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Linq;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.IO;
+    using global::System.Reflection;
+    using global::DWS.Common.InjectionFramework;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core.Mods;
+
+    // Mod-cache check: the game security-checks a mod only when it loads it from its compiled-mod cache
+    // (persistentDataPath/Temp) and then rejects it SILENTLY. This runs the game's own check on each cached
+    // mod and clears only the ones it would reject, so they are rebuilt fresh at the next start.
+    // Optional list file "toolkit-cache-clear.txt" (one DLL name per line) always clears those mods.
+    internal static class CacheCheck
+    {
+        private const string StaleMarker = ".stale-";
+        private static string ListFile => Path.Combine(Settings.Folder, "toolkit-cache-clear.txt");
+        private static string VerifiedFile => Path.Combine(Settings.Folder, "toolkit-cache-checked.txt");
+        private static List<string> list;
+        private static string listNote = "";
+        private static bool hooked;
+
+        // ---- binding to the game's own security check ----
+        private static bool bound;
+        private static string unavailable;
+        private static ConstructorInfo engineCtor;
+        private static MethodInfo checkAssembly, reportLines, setupSecurity;
+        private static PropertyInfo settingsP, restrictionsP;
+        private static FieldInfo securityOptions;
+        private static Dictionary<string, Mod> mods;
+
+        private static T Need<T>(T v, string what) where T : class
+        {
+            if (v == null) throw new MissingMemberException(what + " nicht gefunden (Spiel-Update?)");
+            return v;
+        }
+
+        private static void Bind()
+        {
+            if (bound) return;
+            bound = true;
+            try
+            {
+                Type engine = Need(UboatToolkit.Util.FindType("Trivial.CodeSecurity.CodeSecurityEngine"), "CodeSecurityEngine");
+                Type restr = Need(UboatToolkit.Util.FindType("Trivial.CodeSecurity.CodeSecurityRestrictions"), "CodeSecurityRestrictions");
+                Type report = Need(UboatToolkit.Util.FindType("Trivial.CodeSecurity.CodeSecurityReport"), "CodeSecurityReport");
+                Type roslyn = Need(UboatToolkit.Util.FindType("RoslynCSharp.RoslynCSharp"), "RoslynCSharp");
+                engineCtor = Need(engine.GetConstructor(new[] { typeof(byte[]) }), "CodeSecurityEngine(byte[])");
+                checkAssembly = Need(engine.GetMethod("SecurityCheckAssembly", new[] { restr, report.MakeByRefType() }), "SecurityCheckAssembly");
+                reportLines = Need(report.GetMethod("GetAllLines", new[] { typeof(bool) }), "GetAllLines");
+                settingsP = Need(roslyn.GetProperty("Settings", BindingFlags.Public | BindingFlags.Static), "RoslynCSharp.Settings");
+                restrictionsP = Need(roslyn.GetProperty("SecurityRestrictions", BindingFlags.Public | BindingFlags.Instance), "SecurityRestrictions");
+                setupSecurity = Need(AccessTools.Method(typeof(Mod), "SetupSecurity"), "Mod.SetupSecurity");
+                securityOptions = Need(AccessTools.Field(typeof(Mod), "securityOptions"), "Mod.securityOptions");
+                var manager = ScriptableObjectSingleton.LoadSingleton<ModManager>();
+                if (manager == null || manager.LoadedMods == null) throw new InvalidOperationException("Mod-Liste nicht verfügbar");
+                mods = new Dictionary<string, Mod>(StringComparer.OrdinalIgnoreCase);
+                foreach (Mod m in manager.LoadedMods)
+                    if (m != null && !string.IsNullOrEmpty(m.AssemblyName)) mods[m.AssemblyName] = m;
+            }
+            catch (Exception e) { unavailable = e.Message; }
+        }
+
+        private static Mod ModFor(string asm) { Bind(); return mods != null && mods.TryGetValue(asm, out var m) ? m : null; }
+        private static int PermissionsOf(Mod mod) { try { return Convert.ToInt32(securityOptions.GetValue(mod)); } catch { return -1; } }
+
+        // null = passes; otherwise the first reason the game would reject it.
+        private static string Violation(string dll, Mod mod)
+        {
+            Bind();
+            if (unavailable != null) throw new InvalidOperationException(unavailable);
+            byte[] bytes;
+            using (var fs = new FileStream(dll, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            {
+                bytes = new byte[fs.Length];
+                int read = 0;
+                while (read < bytes.Length) { int n = fs.Read(bytes, read, bytes.Length - read); if (n <= 0) break; read += n; }
+            }
+            setupSecurity.Invoke(mod, new object[] { null });
+            object rules = restrictionsP.GetValue(settingsP.GetValue(null, null), null);
+            object engine = engineCtor.Invoke(new object[] { bytes });
+            try
+            {
+                object[] args = { rules, null };
+                if ((bool)checkAssembly.Invoke(engine, args)) return null;
+                var lines = args[1] == null ? null : reportLines.Invoke(args[1], new object[] { false }) as string[];
+                if (lines == null || lines.Length == 0) return "Prüfung nicht bestanden (keine Details)";
+                return lines.Length == 1 ? lines[0] : lines.Length + " Verstöße: " + string.Join(" | ", lines);   // all of them, so a mod author can fix every one in one go
+            }
+            finally { (engine as IDisposable)?.Dispose(); }
+        }
+
+        // ---- the clearing ----
+        public static void Install()
+        {
+            if (!Settings.B("CacheCheck")) return;
+            Run("Start", true);
+            if (!hooked) { Application.quitting += () => { if (Settings.B("CacheCheck")) Run("Beenden", false); }; hooked = true; }
+        }
+
+        private static void LoadList()
+        {
+            list = null; listNote = "";
+            try
+            {
+                if (!File.Exists(ListFile)) { listNote = " (keine Liste " + Path.GetFileName(ListFile) + ")"; return; }
+                var names = new List<string>();
+                foreach (var raw in File.ReadAllLines(ListFile))
+                {
+                    string l = raw.Trim();
+                    if (l.Length == 0 || l[0] == '#') continue;
+                    if (l.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) l = l.Substring(0, l.Length - 4);
+                    names.Add(l.ToLowerInvariant());
+                }
+                if (names.Count > 0) { list = names; listNote = " (Liste: " + string.Join(", ", names.ToArray()) + ")"; }
+            }
+            catch (Exception e) { listNote = " (Liste unlesbar: " + e.Message + ")"; list = null; }
+        }
+
+        private static bool Listed(string asm) => list != null && list.Contains(asm.ToLowerInvariant());
+
+        private static string AssemblyOf(string file)
+        {
+            string n = Path.GetFileName(file);
+            if (n.EndsWith(".dll.mdb", StringComparison.OrdinalIgnoreCase)) return n.Substring(0, n.Length - 8);
+            if (n.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) return n.Substring(0, n.Length - 4);
+            return null;
+        }
+
+        private static HashSet<string> Decide(string[] files, string when, out string note)
+        {
+            var doomed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            bool check = Settings.B("CacheCheckFirst");
+            string why = null;
+            if (check) { Bind(); why = unavailable; }
+            if (!check || why != null)
+            {
+                // no check possible: clear everything (or only the listed mods if the list exists)
+                foreach (var f in files) { var a = AssemblyOf(f); if (a != null && (list == null || Listed(a))) doomed.Add(a); }
+                note = (check ? " (Prüfung nicht möglich: " + why + " - alles neu gebaut)" : " (Prüfung aus)") + listNote;
+                return doomed;
+            }
+            float start = Time.realtimeSinceStartup;
+            var verified = LoadVerified();
+            var still = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            int checkedNow = 0, known = 0, notEnabled = 0, listed = 0;
+            foreach (var f in files)
+            {
+                if (!f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) continue;
+                var asm = AssemblyOf(f);
+                if (asm == null) continue;
+                if (Listed(asm)) { doomed.Add(asm); listed++; continue; }
+                var mod = ModFor(asm);
+                if (mod == null) { notEnabled++; continue; }
+                // The game keeps a compiled mod even when its source files changed (or compiles while files
+                // are still being copied): then old code runs. A fingerprint of all Source\*.cs is stored with
+                // the check result; if the sources differ from the last check, the DLL is rebuilt.
+                string srcHash = SourceHash(mod);
+                string key;
+                try { var fi = new FileInfo(f); key = fi.Length + "|" + fi.LastWriteTimeUtc.Ticks + "|" + PermissionsOf(mod) + "|" + srcHash; } catch { key = null; }
+                if (srcHash != "-" && key != null && verified.TryGetValue(asm, out var before) && before != key && SameDll(before, key))
+                {
+                    doomed.Add(asm);
+                    Util.Log("Mod-Cache " + when + ": „" + mod.Name + "“ (" + asm + ".dll) passt nicht mehr zum Quellcode, wird neu gebaut.");
+                    continue;
+                }
+                if (key != null && verified.TryGetValue(asm, out var seen) && seen == key) { still[asm] = key; known++; continue; }
+                string v;
+                try { v = Violation(f, mod); checkedNow++; }
+                catch (Exception e)
+                {
+                    doomed.Add(asm);
+                    Util.Log("Mod-Cache " + when + ": „" + mod.Name + "“ (" + asm + ".dll) NICHT prüfbar, wird sicherheitshalber neu gebaut: " +
+                             (e is TargetInvocationException && e.InnerException != null ? e.InnerException.Message : e.Message));
+                    continue;
+                }
+                if (v == null) { if (key != null) still[asm] = key; continue; }
+                doomed.Add(asm);
+                Util.Log("Mod-Cache " + when + ": „" + mod.Name + "“ (" + asm + ".dll) würde vom Spiel abgelehnt, wird neu gebaut: " + v);
+            }
+            SaveVerified(still);
+            note = " (geprüft " + checkedNow + " in " + Mathf.RoundToInt((Time.realtimeSinceStartup - start) * 1000f) + " ms, " + known + " schon als gut bekannt" +
+                   (listed > 0 ? ", " + listed + " aus der Liste" : "") + (notEnabled > 0 ? ", " + notEnabled + " nicht aktive Mods unberührt" : "") + ")";
+            return doomed;
+        }
+
+        // Same DLL file (size + time) as at the last check, but something else (sources) changed.
+        private static bool SameDll(string a, string b)
+        {
+            var x = a.Split('|'); var y = b.Split('|');
+            return x.Length >= 2 && y.Length >= 2 && x[0] == y[0] && x[1] == y[1];
+        }
+
+        private static string SourceHash(Mod mod)
+        {
+            try
+            {
+                var src = Path.Combine(mod.Path ?? "", "Source");
+                if (!Directory.Exists(src)) return "-";
+                var files = Directory.GetFiles(src, "*.cs", SearchOption.AllDirectories);
+                Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+                using (var sha = System.Security.Cryptography.SHA1.Create())
+                {
+                    foreach (var f in files)
+                    {
+                        var name = System.Text.Encoding.UTF8.GetBytes(f.Substring(src.Length).ToLowerInvariant());
+                        sha.TransformBlock(name, 0, name.Length, null, 0);
+                        var b = File.ReadAllBytes(f);
+                        sha.TransformBlock(b, 0, b.Length, null, 0);
+                    }
+                    sha.TransformFinalBlock(new byte[0], 0, 0);
+                    return BitConverter.ToString(sha.Hash).Replace("-", "").Substring(0, 16);
+                }
+            }
+            catch { return "-"; }
+        }
+
+        private static Dictionary<string, string> LoadVerified()
+        {
+            var d = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                if (!File.Exists(VerifiedFile)) return d;
+                foreach (var l in File.ReadAllLines(VerifiedFile)) { int bar = l.IndexOf('|'); if (bar > 0 && l[0] != '#') d[l.Substring(0, bar)] = l.Substring(bar + 1); }
+            }
+            catch { d.Clear(); }
+            return d;
+        }
+
+        private static void SaveVerified(Dictionary<string, string> d)
+        {
+            try
+            {
+                Directory.CreateDirectory(Settings.Folder);
+                var lines = new List<string> { "# Mods im Cache, die die Spiel-Prüfung bestanden haben. Darf gelöscht werden." };
+                foreach (var kv in d) lines.Add(kv.Key + "|" + kv.Value);
+                File.WriteAllLines(VerifiedFile, lines.ToArray());
+            }
+            catch { }
+        }
+
+        private static void Run(string when, bool purgeStale)
+        {
+            try
+            {
+                LoadList();
+                string temp = Path.Combine(Application.persistentDataPath, "Temp");
+                if (!Directory.Exists(temp)) { Util.Log("Mod-Cache " + when + ": kein Temp-Ordner, nichts zu tun."); return; }
+                int deleted = 0, renamed = 0, stale = 0, failed = 0, kept = 0;
+                string firstError = null;
+                var files = Directory.GetFiles(temp, "*", SearchOption.TopDirectoryOnly);
+                if (purgeStale)
+                    foreach (var f in files)
+                        if (Path.GetFileName(f).IndexOf(StaleMarker, StringComparison.OrdinalIgnoreCase) >= 0)
+                            try { File.Delete(f); stale++; } catch { }
+                var doomed = Decide(files, when, out string note);
+                foreach (var f in files)
+                {
+                    var asm = AssemblyOf(f);
+                    if (asm == null) continue;
+                    if (!doomed.Contains(asm)) { kept++; continue; }
+                    try { File.Delete(f); deleted++; }
+                    catch (Exception de)
+                    {
+                        // locked (compiled this launch): rename, removed at the next start
+                        try { File.SetAttributes(f, FileAttributes.Normal); File.Move(f, f + StaleMarker + DateTime.Now.Ticks); renamed++; }
+                        catch (Exception me) { failed++; if (firstError == null) firstError = Path.GetFileName(f) + ": löschen " + de.Message + " / umbenennen " + me.Message; }
+                    }
+                }
+                Util.Log("Mod-Cache " + when + ": gelöscht " + deleted + ", umbenannt " + renamed + " (gesperrt, weg beim nächsten Start), alte Reste " + stale +
+                         (kept > 0 ? ", BEHALTEN " + kept : "") + (failed > 0 ? ", " + failed + " FEHLER - erster: " + firstError : "") + note);
+            }
+            catch (Exception e) { Util.Log("Mod-Cache " + when + ": fehlgeschlagen: " + e.Message); }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/FarAIThrottle.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Sandbox;
+
+    // Far-away world (ships/convoys outside player range) is simulated in Sandbox.Update():
+    // every group gets one "low frequency" AI/observation update per lowFrequencyUpdateInterval
+    // (game default 30 s game-time, private field in Sandbox). Cost per second ~ groups / interval.
+    // Raising the interval = fewer far-AI updates = less CPU, most noticeable with big mods
+    // (many groups) and time compression. Nearby + observed groups are NOT affected (updated every frame).
+    // Trade-off: far convoys react/re-route a bit later. Setting "FarAIInterval" in seconds,
+    // 30 = game default (no change), 0 = off. Suggested test: 60.
+    [HarmonyPatch(typeof(Sandbox), "Update")]
+    public static class FarAIThrottle
+    {
+        private static readonly AccessTools.FieldRef<Sandbox, float> interval =
+            AccessTools.FieldRefAccess<Sandbox, float>("lowFrequencyUpdateInterval");
+
+        private static void Prefix(Sandbox __instance)
+        {
+            float v = Settings.F("FarAIInterval");
+            if (v >= 5f && interval(__instance) != v) interval(__instance) = v;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/Loading.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::System.Collections.Generic;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UBOAT.Game.Scene.Utilities;
+    using global::UnityEngine;
+
+    // QoL #39: loading in port. With many items at once the port workers can get stuck and
+    // nothing reaches the boat any more. While docked, transport orders between port and boat
+    // that nobody works on (or that did not move for a while) are finished right away,
+    // with the game's own "resolve instantly" function.
+    public class Loading : ModuleBase
+    {
+        private readonly List<TransportOrder> buffer = new List<TransportOrder>();
+        private readonly HashSet<TransportOrder> seen = new HashSet<TransportOrder>();
+        private readonly Dictionary<TransportOrder, KeyValuePair<float, float>> progress = new Dictionary<TransportOrder, KeyValuePair<float, float>>();
+        private float next;
+
+        private UBOAT.Game.Scene.Tasks.PortServicesProvider provider;
+        private double lastLeft = -1;
+        private float lastChange;
+        private float nextDiag;
+        private int kicks;
+
+        // Watchdog for the port resupply queue: if "loading" shows but nothing moves,
+        // push it once more; if it is still stuck, cancel it so you can order again.
+        // The menu switch "CancelPortLoading" cancels it by hand.
+        // Dead orders: finished (or nothing left to carry) but still hanging on a storage slot.
+        // The slot then shows "wird verladen... 0 / 0" forever. Seen when a storage got more slots
+        // (Complete() removes the order only from the slot index it remembers) or when an order ran
+        // down to 0 without being completed. They are completed and taken off every slot.
+        private readonly List<TransportOrder> sweepBuf = new List<TransportOrder>();
+        internal int SweepDeadOrders()
+        {
+            int n = 0;
+            if (Util.PlayerShip == null) return 0;
+            foreach (var s in Util.Find<Storage>())
+                for (int i = 0; i < Util.Slots(s); i++)
+                {
+                    sweepBuf.Clear();
+                    if (!s.GetTransportOrders(i, sweepBuf)) continue;
+                    foreach (var o in sweepBuf)
+                    {
+                        if (o == null) { s.RemoveTransportOrder(i, o); n++; continue; }
+                        bool dead = o.IsCompleted || (o.CountLeft <= 0f && o.CountInTransit <= 0f);
+                        if (!dead) continue;
+                        if (!o.IsCompleted) { try { o.Complete(); } catch (System.Exception ex) { Util.Log("Verladen: Abschluss-Fehler " + ex.Message); } }
+                        s.RemoveTransportOrder(i, o);
+                        n++;
+                    }
+                }
+            if (n > 0) Util.Log("Verladen: " + n + " tote Aufträge (0 / 0) entfernt");
+            return n;
+        }
+
+        private void Watchdog()
+        {
+            if (Util.PlayerShip != null && Util.PlayerShip.Docked) SweepDeadOrders();
+            if (provider == null)
+                provider = HarmonyLib.Traverse.Create(typeof(UBOAT.Game.Sandbox.Missions.TutorialUtility)).Field("portServicesProvider").GetValue<UBOAT.Game.Scene.Tasks.PortServicesProvider>();
+            if (provider == null) return;
+            var t = HarmonyLib.Traverse.Create(provider);
+            var orders = t.Field("transportOrders").GetValue<List<TransportOrder>>();
+
+            var cancel = Settings.Get("CancelPortLoading");
+            if (cancel != null && cancel.On)
+            {
+                cancel.Value = 0f;
+                Settings.Save();
+                provider.CancelResupply();
+                ToolkitRunner.ShowNotice("Verladen abgebrochen. Du kannst neu bestellen.");
+                lastLeft = -1; kicks = 0;
+                return;
+            }
+            var force = Settings.Get("FixMyDamnShipment");
+            if (force != null && force.On)
+            {
+                force.Value = 0f;
+                Settings.Save();
+                ForceDeliver(provider, orders);
+                lastLeft = -1; kicks = 0;
+                return;
+            }
+            if (orders == null || orders.Count == 0) { lastLeft = -1; kicks = 0; return; }
+
+            double left = 0;
+            foreach (var o in orders) if (o != null) left += o.CountLeft;
+            if (left != lastLeft) { lastLeft = left; lastChange = Time.unscaledTime; return; }
+            if (Time.unscaledTime - lastChange < Settings.F("PortLoadingStuckSeconds")) return;
+
+            lastChange = Time.unscaledTime;
+            if (kicks == 0)
+            {
+                kicks++;
+                Util.Log("Verladen hängt, neuer Anstoß");
+                t.Method("AddDateListener").GetValue();
+            }
+            else
+            {
+                kicks = 0;
+                provider.CancelResupply();
+                ToolkitRunner.ShowNotice("Verladen hing fest und wurde abgebrochen. Bitte neu bestellen.");
+            }
+        }
+
+        // "Fix my damn shipment": deliver EVERYTHING that is ordered into the boat right now,
+        // including orders a worker is carrying, then clear whatever is left in the queue.
+        private void ForceDeliver(UBOAT.Game.Scene.Tasks.PortServicesProvider p, List<TransportOrder> orders)
+        {
+            var all = new HashSet<TransportOrder>();
+            if (orders != null) foreach (var o in orders) if (o != null) all.Add(o);
+            var ship = Util.PlayerShip;
+            if (ship != null)
+                foreach (var s in Util.Find<Storage>())
+                    for (int i = 0; i < Util.Slots(s); i++)
+                    {
+                        buffer.Clear();
+                        if (s.GetTransportOrders(i, buffer)) foreach (var o in buffer) if (o != null) all.Add(o);
+                    }
+            int n = 0;
+            foreach (var o in all)
+            {
+                if (o.IsCompleted) continue;
+                try
+                {
+                    if (o.CountInTransit > 0f) { o.CountLeft += o.CountInTransit; o.CountInTransit = 0f; }
+                    StorageUtility.ResolveTransportOrderInstantly(o);
+                }
+                catch (System.Exception ex) { Util.Log("Force: " + ex.Message); }
+                if (!o.IsCompleted) o.Complete();
+                n++;
+            }
+            n += SweepDeadOrders();
+            p.CancelResupply();   // clears any leftovers and ends the "loading" state
+            progress.Clear();
+            ToolkitRunner.ShowNotice("FIX MY DAMN SHIPMENT: " + n + " Lieferungen erzwungen. Ruhe jetzt.");
+        }
+
+        public override void Frame() => Loading_ResupplyPatch.RunPending();
+
+        public override void Tick()
+        {
+            if (Settings.B("PortLoadingFix") || Settings.B("FixMyDamnShipment") || Settings.B("CancelPortLoading")) Util.Safe("LoadingWatchdog", Watchdog);
+            if (!Settings.B("InstantPortLoading") || Time.unscaledTime < next) return;
+            next = Time.unscaledTime + 2f;
+            var ship = Util.PlayerShip;
+            // Before the first patrol the game keeps bought goods waiting until you sail out
+            // ("Georderte Waren werden ... geladen, bevor es zu seinem ersten Einsatz ausläuft").
+            // Then the boat does not count as docked, so allow that case too.
+            var career = Util.Career;
+            bool firstPatrol = career != null && career.BeforeFirstPatrol;
+            if (!ship.Docked && !firstPatrol) { progress.Clear(); return; }
+
+            seen.Clear();
+            foreach (var s in Util.Find<Storage>())
+                for (int i = 0; i < Util.Slots(s); i++)
+                {
+                    buffer.Clear();
+                    if (!s.GetTransportOrders(i, buffer)) continue;
+                    foreach (var o in buffer) if (o != null) seen.Add(o);
+                }
+
+            int done = 0, nDone = 0, nTransit = 0, nInside = 0, nBusy = 0;
+            float stuckAfter = Settings.F("PortLoadingStuckSeconds");
+            foreach (var o in seen)
+            {
+                if (o.IsCompleted || o.CountLeft <= 0f) { nDone++; continue; }
+                if (o.CountInTransit > 0f) { nTransit++; continue; }
+                bool portToBoat = !IsShip(o.SourceStorage, ship) || !IsShip(o.TargetStorage, ship);
+                if (!portToBoat) { nInside++; continue; }
+
+                bool idle = o.CharacterAction == null;
+                bool stuck = false;
+                if (!idle)
+                {
+                    if (progress.TryGetValue(o, out var p) && p.Key == o.CountLeft) stuck = Time.unscaledTime - p.Value > stuckAfter;
+                    else progress[o] = new KeyValuePair<float, float>(o.CountLeft, Time.unscaledTime);
+                }
+                if (!idle && !stuck && !firstPatrol) { nBusy++; continue; }
+
+                Util.Safe("Loading", () => StorageUtility.ResolveTransportOrderInstantly(o));
+                progress.Remove(o);
+                done++;
+            }
+            if (done > 0) Util.Log("Verladen: " + done + " Aufträge sofort erledigt" + (firstPatrol ? " (vor erster Feindfahrt)" : ""));
+            else if (seen.Count > 0 && Time.unscaledTime >= nextDiag)
+            {
+                nextDiag = Time.unscaledTime + 30f;
+                Util.Log("Verladen: " + seen.Count + " Aufträge gefunden, keiner erledigt (angedockt " + ship.Docked + ", vor erster Feindfahrt " + firstPatrol
+                    + "; fertig " + nDone + ", wird getragen " + nTransit + ", nur im Boot umräumen " + nInside + ", Crew arbeitet dran " + nBusy + ")");
+            }
+        }
+
+        private static bool IsShip(IItemStorage s, UBOAT.Game.Scene.Entities.PlayerShip ship)
+        {
+            var c = s as Component;
+            return c != null && c.transform.IsChildOf(ship.transform);
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::System.Collections.Generic;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UBOAT.Game.Scene.Utilities;
+    using global::UnityEngine;
+
+    // The real cause of the port hang: PortServicesProvider.AddDateListener moves ONE unit per loop
+    // step on the main thread. With tiny item weight the wait per unit becomes 0 ticks, so a stack of
+    // millions of units is moved in one endless loop -> the game freezes and the queue stays blocked
+    // (no more ammo, items or fuel). Fix: move the whole order in one step.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Tasks.PortServicesProvider), "AddDateListener")]
+    internal static class Loading_ResupplyPatch
+    {
+        private static readonly UBOAT.Game.Core.Data.GameDataReference durationFactor =
+            new UBOAT.Game.Core.Data.GameDataReference("General/Settings/Trade/Transfer Duration Factor (s/kg)");
+
+        // Providers whose next order must be moved. Not done right away: the shop screen still reads the
+        // shop slot right after placing the order (price, name). Moving the goods in that same moment
+        // emptied the slot -> crash in the shop screen and the order stayed "wird verladen" forever.
+        // So the move happens one frame later (RunPending, called every frame by the Loading module).
+        private static readonly System.Collections.Generic.List<UBOAT.Game.Scene.Tasks.PortServicesProvider> pending =
+            new System.Collections.Generic.List<UBOAT.Game.Scene.Tasks.PortServicesProvider>();
+        private static bool running;
+
+        internal static void RunPending()
+        {
+            if (pending.Count == 0) return;
+            var list = pending.ToArray(); pending.Clear();
+            foreach (var p in list)
+            {
+                if (p == null) continue;
+                running = true;
+                try { Util.Safe("Verladen", () => Traverse.Create(p).Method("AddDateListener").GetValue()); }
+                finally { running = false; }
+            }
+        }
+
+        private static bool Prefix(UBOAT.Game.Scene.Tasks.PortServicesProvider __instance)
+        {
+            if (!running && (Settings.B("InstantPortLoading") || Settings.B("PortLoadingFix")))
+            {
+                if (!pending.Contains(__instance)) pending.Add(__instance);
+                return false;
+            }
+            bool instant = Settings.B("InstantPortLoading");
+            bool fix = Settings.B("PortLoadingFix");
+            if (!instant && !fix) return true;
+            var t = HarmonyLib.Traverse.Create(__instance);
+            var orders = t.Field("transportOrders").GetValue<System.Collections.Generic.List<UBOAT.Game.Scene.Items.TransportOrder>>();
+            if (orders == null) return true;
+            orders.RemoveAll(o => o == null || o.IsCompleted);     // base fix: drop dead orders that block the queue
+            if (orders.Count == 0) return true;
+
+            var order = orders[0];
+            if (!instant)
+            {
+                // Base fix only: keep the game's normal waiting, but never let it run into the
+                // endless loop (0 ticks per unit because of tiny weight, or giant stacks).
+                long perUnit = order.ItemData.HasTag("Torpedo") ? 1 : (long)((double)order.ItemData.Mass * (double)(float)durationFactor * 10000000.0);
+                if (perUnit >= 1 && order.CountLeft <= 10000f) return true;
+            }
+            t.Field("currentTransportOrder").SetValue(order);
+            try
+            {
+                // Complete() fires the game's own handler, which starts the next order (back into this patch).
+                UBOAT.Game.Scene.Utilities.StorageUtility.ResolveTransportOrderInstantly(order);
+            }
+            catch (System.Exception ex)
+            {
+                Util.Log("Verladen Fehler: " + ex.Message);
+                if (!order.IsCompleted) order.Complete();
+            }
+            return false;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/MemoryCleaner.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::UnityEngine;
+
+    // Memory cleanup against the game's slowly growing RAM use: every X minutes the mod frees
+    // unused graphics/sound data and runs the .NET garbage collector. This causes one short hitch,
+    // so it waits for a calm moment (game paused or time compression on).
+    public class MemoryCleaner : ModuleBase
+    {
+        private float due = -1f, shipSince;
+
+        public override void Tick()
+        {
+            float min = Settings.F("MemoryCleanMinutes");
+            if (min <= 0f) { due = -1f; return; }
+            if (due < 0f) { due = Time.unscaledTime + min * 60f; return; }
+            if (Time.unscaledTime < due) return;
+            // Never while a save is loading or the boat just appeared: freeing "unused" assets then can unload
+            // ship prefabs the game is about to spawn (seen: HDML / Flower-Class spawn errors after a load).
+            if (SaveTools_LoadSpeedPatch.IsLoading || !Util.ShipReady || Util.SafeGet(() => Game.Saves != null && Game.Saves.IsLoading, false)
+                || Time.unscaledTime - shipSince < 120f)
+            { if (Util.PlayerShip == null) shipSince = Time.unscaledTime; return; }
+            bool calm = Time.timeScale == 0f || (Game.TimeCompression?.TimeCompression ?? false);
+            // Only in a calm moment (paused or time compression): the cleanup itself takes 0.3-0.65 s, which was
+            // a visible hitch when it was forced after 5 minutes during normal play.
+            if (!calm) return;
+            due = Time.unscaledTime + min * 60f;
+            long before = System.GC.GetTotalMemory(false);
+            Resources.UnloadUnusedAssets();
+            System.GC.Collect();
+            long after = System.GC.GetTotalMemory(false);
+            Util.Log("Speicher aufgeräumt: " + ((before - after) / 1048576) + " MB frei");
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::UnityEngine;
+
+    // Disk cache cleanup, once per game start: old cached data sheets (.dat, the game rebuilds them when needed),
+    // old crash reports and old mod logs older than X days are deleted. Save games are never touched.
+    public class CacheCleaner : ModuleBase
+    {
+        private bool done;
+
+        public override void Tick()
+        {
+            if (done || !Settings.B("AutoCleanCache")) return;
+            done = true;
+            Util.Safe("CacheCleaner", () =>
+            {
+                var limit = System.DateTime.Now.AddDays(-Mathf.Max(1f, Settings.F("AutoCleanDays")));
+                string root = Application.persistentDataPath;
+                int n = 0; long bytes = 0;
+                n += Clean(System.IO.Path.Combine(root, "Data Sheets"), "*.dat", limit, ref bytes);
+                n += Clean(System.IO.Path.Combine(Settings.Folder, "logs"), "*.*", limit, ref bytes, keep: "kriegstagebuch.txt");
+                n += Clean(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Deep Water Studio", "UBOAT", "Crashes"), "*.*", limit, ref bytes);
+                if (n > 0) Util.Log("Cache aufgeräumt: " + n + " Dateien, " + (bytes / 1048576) + " MB");
+            });
+        }
+
+        private static int Clean(string dir, string pattern, System.DateTime limit, ref long bytes, string keep = null)
+        {
+            if (!System.IO.Directory.Exists(dir)) return 0;
+            int n = 0;
+            foreach (var f in System.IO.Directory.GetFiles(dir, pattern, System.IO.SearchOption.AllDirectories))
+            {
+                try
+                {
+                    var fi = new System.IO.FileInfo(f);
+                    if (keep != null && fi.Name == keep) continue;
+                    if (fi.LastWriteTime > limit) continue;
+                    bytes += fi.Length;
+                    fi.Delete();
+                    n++;
+                }
+                catch { }
+            }
+            return n;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/PerfLogger.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Globalization;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::System.Reflection;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UnityEngine.Profiling;
+    using global::UnityEngine.SceneManagement;
+    using global::UBOAT.Game.Scene.Entities;
+
+    // Performance logger (plan: /uboat/logger-mod-plan.md). Off by default.
+    // Writes one small CSV per session to <persistent data>/UboatToolkit/logs (max. about 10 MB):
+    //  1. scene load times, 2. frames slower than 100 ms, 3. memory + GC every 5 min,
+    //  4. object counts every 5 min, 5. hotspot finder (F11): time spent in the game's Update methods, top 20 per minute.
+    public class PerfLogger : ModuleBase
+    {
+        private const long MaxBytes = 10L * 1024 * 1024;
+        private static string file;
+        private static long written;
+        private static double sceneLoadStart;
+        private float nextMemory, nextObjects;
+        private bool hooked;
+
+        // hotspot finder
+        private static readonly Dictionary<MethodBase, double> timeSpent = new Dictionary<MethodBase, double>();
+        private static readonly List<MethodBase> patched = new List<MethodBase>();
+        private static bool hotspotsOn;
+        private float nextHotspotDump;
+
+        private static void Write(string kind, string a, string b = "", string c = "")
+        {
+            if (!Settings.B("PerfLogger")) return;
+            try
+            {
+                if (file == null)
+                {
+                    var dir = Path.Combine(Settings.Folder, "logs");
+                    Directory.CreateDirectory(dir);
+                    file = Path.Combine(dir, "perf-" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".csv");
+                    File.WriteAllText(file, "time;realtime_s;kind;value1;value2;value3\n");
+                }
+                if (written > MaxBytes) return;
+                string line = DateTime.Now.ToString("HH:mm:ss.fff") + ";" + Time.realtimeSinceStartup.ToString("0.00", CultureInfo.InvariantCulture) + ";" + kind + ";" + a + ";" + b + ";" + c + "\n";
+                written += line.Length;
+                BgFile.Append(file, line);
+            }
+            catch (Exception e) { Util.Log("logger: " + e.Message); }
+        }
+
+        public override void Frame()
+        {
+            if (!hooked)
+            {
+                hooked = true;
+                SceneManager.sceneLoaded += (s, m) =>
+                {
+                    double took = Time.realtimeSinceStartupAsDouble - sceneLoadStart;
+                    Write("scene_loaded", s.name, sceneLoadStart > 0 ? took.ToString("0.00", CultureInfo.InvariantCulture) + " s since previous scene change" : "");
+                    sceneLoadStart = Time.realtimeSinceStartupAsDouble;
+                };
+                SceneManager.sceneUnloaded += s => { Write("scene_unloaded", s.name); sceneLoadStart = Time.realtimeSinceStartupAsDouble; };
+            }
+            if (!Settings.B("PerfLogger")) { if (hotspotsOn) SetHotspots(false); return; }
+
+            float ms = Time.unscaledDeltaTime * 1000f;
+            if (ms > 100f) Write("slow_frame", ms.ToString("0", CultureInfo.InvariantCulture) + " ms");
+            FrameSplit.Sample();
+
+            float now = Time.unscaledTime;
+            if (now >= nextMemory)
+            {
+                nextMemory = now + 300f;
+                Write("memory", "mono_MB=" + (Profiler.GetMonoUsedSizeLong() / 1048576),
+                    "reserved_MB=" + (Profiler.GetTotalReservedMemoryLong() / 1048576),
+                    "gc_runs=" + GC.CollectionCount(0) + "/" + GC.CollectionCount(1) + "/" + GC.CollectionCount(2));
+            }
+            if (now >= nextObjects)
+            {
+                nextObjects = now + 300f;
+                Write("objects", "gameobjects=" + Resources.FindObjectsOfTypeAll<GameObject>().Length,
+                    "textures=" + Resources.FindObjectsOfTypeAll<Texture>().Length + " meshes=" + Resources.FindObjectsOfTypeAll<Mesh>().Length,
+                    "sounds=" + Resources.FindObjectsOfTypeAll<AudioClip>().Length);
+            }
+
+            bool button = Settings.B("PerfHotspotsNow");
+            if (button) Settings.Set("PerfHotspotsNow", 0);
+            if (Settings.B("PerfHotspots") && (button || Keys.Down("KeyHotspotFinder2"))) SetHotspots(!hotspotsOn);
+            if (!Settings.B("PerfHotspots") && hotspotsOn) SetHotspots(false);
+            if (hotspotsOn && now >= nextHotspotDump)
+            {
+                nextHotspotDump = now + 60f;
+                int rank = 0;
+                foreach (var kv in timeSpent.OrderByDescending(k => k.Value).Take(20))
+                    Write("hotspot", (++rank).ToString(), kv.Key.DeclaringType?.Name + "." + kv.Key.Name, (kv.Value * 1000).ToString("0.0", CultureInfo.InvariantCulture) + " ms/min");
+                timeSpent.Clear();
+            }
+        }
+
+        private void SetHotspots(bool on)
+        {
+            var h = ToolkitLoader.Harmony;
+            var pre = new HarmonyMethod(AccessTools.Method(typeof(PerfLogger), nameof(Before)));
+            var post = new HarmonyMethod(AccessTools.Method(typeof(PerfLogger), nameof(After)));
+            if (on)
+            {
+                foreach (var type in AccessTools.GetTypesFromAssembly(typeof(PlayerShip).Assembly))
+                {
+                    if (!typeof(MonoBehaviour).IsAssignableFrom(type) || type.IsGenericTypeDefinition) continue;
+                    foreach (var name in new[] { "Update", "LateUpdate", "FixedUpdate" })
+                    {
+                        var m = AccessTools.DeclaredMethod(type, name, Type.EmptyTypes);
+                        if (m == null || m.IsAbstract || m.GetMethodBody() == null) continue;
+                        try { h.Patch(m, pre, post); patched.Add(m); } catch { }
+                    }
+                }
+                nextHotspotDump = Time.unscaledTime + 60f;
+                Write("hotspots", "on", patched.Count + " methods measured");
+            }
+            else
+            {
+                foreach (var m in patched)
+                {
+                    try { h.Unpatch(m, pre.method); h.Unpatch(m, post.method); } catch { }
+                }
+                patched.Clear();
+                timeSpent.Clear();
+                Write("hotspots", "off");
+            }
+            hotspotsOn = on;
+            UboatToolkit.ToolkitRunner.ShowNotice(on ? "Bremsen-Finder AN (kostet selbst Leistung) - Strg+Shift+H schaltet aus" : "Bremsen-Finder AUS", 5f);
+        }
+
+        private static void Before(out double __state) { __state = Time.realtimeSinceStartupAsDouble; }
+
+        private static void After(MethodBase __originalMethod, double __state)
+        {
+            double d = Time.realtimeSinceStartupAsDouble - __state;
+            timeSpent.TryGetValue(__originalMethod, out var t);
+            timeSpent[__originalMethod] = t + d;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Globalization;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::System.Reflection;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UnityEngine.Profiling;
+    using global::UnityEngine.SceneManagement;
+    using global::UBOAT.Game.Scene.Entities;
+
+    // Frame split: where does a frame go (scripts, physics, drawing, garbage collection, audio...)?
+    // Uses Unity's own profiler counters (work in the development build), one "frame_split" line per minute.
+    internal static class FrameSplit
+    {
+        private static readonly string[] Names = {
+            "PlayerLoop", "BehaviourUpdate", "LateBehaviourUpdate", "FixedBehaviourUpdate", "Physics.Simulate",
+            "GC.Collect", "Camera.Render", "Gfx.WaitForPresentOnGfxThread", "Gfx.WaitForGfxCommandsFromMainThread",
+            "Animators.Update", "AudioManager.Update", "ParticleSystem.Update", "Canvas.SendWillRenderCanvases",
+            "NavMeshManager", "Loading.ReadObject", "Instantiate", "Destroy" };
+        // 0.3.72: the fixed list above explained only ~20 of ~46 ms per frame (convoy test 2026-11-16). Every engine phase
+        // of the frame ("PostLateUpdate.xyz" ...) and the UI / IMGUI / culling markers are recorded too; once per
+        // minute the 14 biggest are logged as "Frame-Phasen".
+        private static readonly string[] Prefixes = { "Initialization.", "EarlyUpdate.", "FixedUpdate.", "PreUpdate.", "Update.", "PreLateUpdate.", "PostLateUpdate.", "TimeUpdate." };
+        private static readonly string[] Extra = {
+            "UGUI.Rendering.UpdateBatches", "Canvas.BuildBatch", "Layout", "GUI.Repaint", "GUI.ProcessEvents", "GUIUtility.SetSkin", "Culling", "Render Camera",
+            "MeshSkinning.Update", "EventSystem.Update", "CoroutinesDelayedCalls", "Gfx.PresentFrame", "WaitForTargetFPS", "Semaphore.WaitForSignal",
+            "Director.Update", "Animators.Update", "UpdateRendererBoundingVolumes", "Shadows.RenderShadowMap", "Drawing", "RenderLoop.Prepare", "SceneCulling",
+            "ScriptableRenderContext.Submit", "Camera.FireOnPreCull", "OnPreCull", "OnPreRender", "OnPostRender", "OnRenderImage", "Physics.Processing", "Physics.ProcessReports",
+            "Physics.UpdateBodies", "Physics.SyncColliderTransform", "Physics.Raycast", "Terrain.Heightmap.RenderStep1", "Water", "UIEvents.WillRenderCanvases",
+            "MeshSkinning.GPUSkinning", "MeshSkinning.Skin", "MeshSkinning.Render", "RenderForward.RenderLoopJob", "RenderDeferred.GBuffer", "Batch.DrawInstanced", "Mesh.DrawVBO", "ParticleSystem.Draw",
+            "Gfx.WaitForRenderThread", "WaitForJobGroupID", "Gfx.WaitForPresentOnGfxThread", "JobHandle.Complete" };
+        private static readonly List<Unity.Profiling.ProfilerRecorder> rec2 = new List<Unity.Profiling.ProfilerRecorder>();
+        private static readonly List<string> name2 = new List<string>();
+        private static readonly List<double> sum2 = new List<double>();
+        private static Unity.Profiling.ProfilerRecorder[] rec;
+        private static double[] sum;
+        private static int frames; private static float nextDump; private static bool failed;
+
+        internal static void Sample()
+        {
+            if (failed) return;
+            try
+            {
+                if (rec == null)
+                {
+                    rec = new Unity.Profiling.ProfilerRecorder[Names.Length];
+                    sum = new double[Names.Length];
+                    var all = new List<Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle>();
+                    Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle.GetAvailable(all);
+                    var found = new List<string>();
+                    foreach (var h in all)
+                    {
+                        var d = Unity.Profiling.LowLevel.Unsafe.ProfilerRecorderHandle.GetDescription(h);
+                        int i = Array.IndexOf(Names, d.Name);
+                        if (i < 0 && rec2.Count < 160 && d.Name != null && !name2.Contains(d.Name))
+                        {
+                            bool want = Array.IndexOf(Extra, d.Name) >= 0;
+                            if (!want) foreach (var pre in Prefixes) if (d.Name.StartsWith(pre)) { want = true; break; }
+                            if (want) { rec2.Add(Unity.Profiling.ProfilerRecorder.StartNew(d.Category, d.Name, 1)); name2.Add(d.Name); sum2.Add(0); }
+                        }
+                        if (i < 0 || rec[i].Valid) continue;
+                        rec[i] = Unity.Profiling.ProfilerRecorder.StartNew(d.Category, d.Name, 1);
+                        found.Add(d.Name);
+                    }
+                    Util.Log("Frame-Aufteilung: " + found.Count + " von " + Names.Length + " Messpunkten gefunden, dazu " + rec2.Count + " Phasen");
+                    nextDump = Time.unscaledTime + 60f;
+                }
+                for (int i = 0; i < rec.Length; i++) if (rec[i].Valid) sum[i] += rec[i].LastValue / 1e6;
+                for (int i = 0; i < rec2.Count; i++) if (rec2[i].Valid) sum2[i] += rec2[i].LastValue / 1e6;
+                frames++;
+                if (Time.unscaledTime < nextDump) return;
+                nextDump = Time.unscaledTime + 60f;
+                var sb = new System.Text.StringBuilder();
+                sb.Append("frames=").Append(frames).Append(" fps=").Append((frames / 60f).ToString("0.0", CultureInfo.InvariantCulture)).Append(" ms/frame:");
+                for (int i = 0; i < rec.Length; i++)
+                    if (rec[i].Valid) sb.Append(' ').Append(Names[i]).Append('=').Append((sum[i] / Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture));
+                int ships = 0; foreach (var e in Entity.List) if (e is Ship) ships++;
+                sb.Append(" ships=").Append(ships);
+                Util.Log("Frame-Aufteilung " + sb);
+                if (rec2.Count > 0)
+                {
+                    var idx = new List<int>(); for (int i = 0; i < rec2.Count; i++) idx.Add(i);
+                    idx.Sort((a, b) => sum2[b].CompareTo(sum2[a]));
+                    var s2 = new System.Text.StringBuilder();
+                    for (int k = 0; k < idx.Count && k < 14; k++)
+                        s2.Append(' ').Append(name2[idx[k]]).Append('=').Append((sum2[idx[k]] / Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture));
+                    Util.Log("Frame-Phasen ms/frame:" + s2);
+                    for (int i = 0; i < sum2.Count; i++) sum2[i] = 0;
+                }
+                Util.Log("Toolkit-Kosten ms/frame: Anzeige=" + (ToolkitRunner.GuiSeconds * 1000.0 / Math.Max(1, frames)).ToString("0.00", CultureInfo.InvariantCulture)
+                    + " (" + (ToolkitRunner.GuiCalls / (float)Math.Max(1, frames)).ToString("0.0", CultureInfo.InvariantCulture) + " Durchläufe/Bild, " + ToolkitRunner.GuiSkipped + " leere Durchläufe gespart) Module=" + (ToolkitRunner.ModuleSeconds * 1000.0 / Math.Max(1, frames)).ToString("0.00", CultureInfo.InvariantCulture));
+                // menu open and closed apart: is the cost the F10 menu or the always-on displays?
+                int closedCalls = ToolkitRunner.GuiCalls - ToolkitRunner.MenuCalls;
+                Util.Log("Toolkit-Anzeige ms je Durchlauf: Menü offen=" + (ToolkitRunner.MenuSeconds * 1000.0 / Math.Max(1, ToolkitRunner.MenuCalls)).ToString("0.00", CultureInfo.InvariantCulture)
+                    + " (" + ToolkitRunner.MenuCalls + "x), Menü zu=" + ((ToolkitRunner.GuiSeconds - ToolkitRunner.MenuSeconds) * 1000.0 / Math.Max(1, closedCalls)).ToString("0.00", CultureInfo.InvariantCulture)
+                    + " (" + closedCalls + "x)");
+                Util.Log("Toolkit-Bootssuche: " + Util.FindScans + " Suchläufe, zusammen " + (Util.FindSeconds * 1000.0).ToString("0", CultureInfo.InvariantCulture) + " ms in dieser Minute");
+                Util.FindScans = 0; Util.FindSeconds = 0;
+                ToolkitRunner.GuiSeconds = 0; ToolkitRunner.GuiCalls = 0; ToolkitRunner.GuiSkipped = 0; ToolkitRunner.ModuleSeconds = 0; ToolkitRunner.MenuSeconds = 0; ToolkitRunner.MenuCalls = 0;
+                for (int i = 0; i < sum.Length; i++) sum[i] = 0; frames = 0;
+            }
+            catch (Exception ex) { failed = true; Util.Log("Frame-Aufteilung aus: " + ex.Message); }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/QueueProfiler.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Globalization;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UBOAT.Game.Core;
+
+    // Brake finder for the game's own update dispatcher (ExecutionQueue).
+    // Most game logic does NOT run in MonoBehaviour.Update but as Action delegates in
+    // ExecutionQueue.update / lateUpdate / fixedUpdate (decompiled com.uboat.game.dll).
+    // The PerfLogger hotspot finder cannot see these. This module times each delegate.
+    // Setting "PerfQueue" (off by default). Writes to <Settings.Folder>/logs/queue-*.csv:
+    //  - every 60 s: top 20 delegates by time (ms per minute)
+    //  - every 5 min: list sizes (growing counts = leak hint: listeners added but never removed)
+    [HarmonyPatch]
+    public class QueueProfiler : ModuleBase
+    {
+        private static readonly AccessTools.FieldRef<ExecutionQueue, List<Action>> fUpdate = AccessTools.FieldRefAccess<ExecutionQueue, List<Action>>("update");
+        private static readonly AccessTools.FieldRef<ExecutionQueue, List<Action>> fLate = AccessTools.FieldRefAccess<ExecutionQueue, List<Action>>("lateUpdate");
+        private static readonly AccessTools.FieldRef<ExecutionQueue, List<Action>> fFixed = AccessTools.FieldRefAccess<ExecutionQueue, List<Action>>("fixedUpdate");
+        private static readonly AccessTools.FieldRef<ExecutionQueue, int> iUpdate = AccessTools.FieldRefAccess<ExecutionQueue, int>("currentUpdateIndex");
+        private static readonly AccessTools.FieldRef<ExecutionQueue, int> iLate = AccessTools.FieldRefAccess<ExecutionQueue, int>("currentLateUpdateIndex");
+        private static readonly AccessTools.FieldRef<ExecutionQueue, int> iFixed = AccessTools.FieldRefAccess<ExecutionQueue, int>("currentFixedUpdateIndex");
+
+        private static readonly Dictionary<string, double> spent = new Dictionary<string, double>();
+        private static ExecutionQueue lastQueue;
+        private static bool on;
+        private static string file;
+        private static long written;
+        private float nextTop, nextSizes;
+
+        public override void Frame()
+        {
+            on = Settings.B("PerfQueue");
+            if (!on) { spent.Clear(); return; }
+            float now = Time.unscaledTime;
+            if (now >= nextTop)
+            {
+                if (nextTop > 0f)
+                {
+                    int rank = 0;
+                    foreach (var kv in spent.OrderByDescending(k => k.Value).Take(20))
+                        Write("queue_top", (++rank).ToString(), kv.Key, (kv.Value * 1000).ToString("0.0", CultureInfo.InvariantCulture) + " ms/min");
+                }
+                spent.Clear();
+                nextTop = now + 60f;
+            }
+            if (now >= nextSizes && lastQueue != null)
+            {
+                nextSizes = now + 300f;
+                Write("queue_sizes", "update=" + fUpdate(lastQueue).Count, "late=" + fLate(lastQueue).Count, "fixed=" + fFixed(lastQueue).Count);
+            }
+        }
+
+        private static void Write(string kind, string a, string b, string c)
+        {
+            try
+            {
+                if (file == null)
+                {
+                    var dir = Path.Combine(Settings.Folder, "logs");
+                    Directory.CreateDirectory(dir);
+                    file = Path.Combine(dir, "queue-" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".csv");
+                    File.WriteAllText(file, "time;kind;value1;value2;value3\n");
+                }
+                if (written > 5L * 1024 * 1024) return;
+                string line = DateTime.Now.ToString("HH:mm:ss") + ";" + kind + ";" + a + ";" + b + ";" + c + "\n";
+                written += line.Length;
+                BgFile.Append(file, line);
+            }
+            catch (Exception e) { Util.Log("queue profiler: " + e.Message); }
+        }
+
+        private static string Name(Action a) =>
+            a.Method.DeclaringType != null ? a.Method.DeclaringType.Name + "." + a.Method.Name : a.Method.Name;
+
+        // Same loop as the original, plus timing. Index field is kept in sync because
+        // RemoveUpdateListener() adjusts it while the loop runs.
+        private static void Run(ExecutionQueue q, List<Action> list, AccessTools.FieldRef<ExecutionQueue, int> idx, int start)
+        {
+            idx(q) = start;
+            Action action = null;
+            try
+            {
+                while (idx(q) >= 0)
+                {
+                    action = list[idx(q)];
+                    double t = Time.realtimeSinceStartupAsDouble;
+                    action();
+                    double d = Time.realtimeSinceStartupAsDouble - t;
+                    string n = Name(action);
+                    spent.TryGetValue(n, out var old);
+                    spent[n] = old + d;
+                    idx(q)--;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (action != null) Debug.LogError("Error in execution queue method \"" + Name(action) + "\".");
+                Debug.LogException(ex);
+                Run(q, list, idx, Mathf.Min(idx(q) - 1, list.Count - 1));
+            }
+        }
+
+        [HarmonyPatch(typeof(ExecutionQueue), "RunUpdates"), HarmonyPrefix]
+        private static bool RunUpdates(ExecutionQueue __instance, int index)
+        {
+            lastQueue = __instance;
+            if (!on) return true;
+            Run(__instance, fUpdate(__instance), iUpdate, index);
+            return false;
+        }
+
+        [HarmonyPatch(typeof(ExecutionQueue), "RunLateUpdates"), HarmonyPrefix]
+        private static bool RunLateUpdates(ExecutionQueue __instance, int index)
+        {
+            if (!on) return true;
+            Run(__instance, fLate(__instance), iLate, index);
+            return false;
+        }
+
+        [HarmonyPatch(typeof(ExecutionQueue), "RunFixedUpdates"), HarmonyPrefix]
+        private static bool RunFixedUpdates(ExecutionQueue __instance, int index)
+        {
+            if (!on) return true;
+            Run(__instance, fFixed(__instance), iFixed, index);
+            return false;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/WolfpackStep.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Sandbox;
+    using global::UnityEngine;
+
+    // 0.4.8 (DoMe 2026-11-17: optimise the game). Measured with the hotspot finder: SandboxPlayerWolfpack.FixedUpdate
+    // was the most expensive method of the game (about 4.6 s per minute). In every physics step it searches all ship
+    // groups around the boat twice (near groups, far "impostor" groups), compares the lists and checks the coast
+    // distance. With low FPS the game runs 2-3 physics steps per frame, so the same search ran 2-3 times per frame
+    // although the boat moved a few centimetres. Now the two searches run in the first physics step of a frame only.
+    // The boat's own position update still runs in every step. Each minute the log shows calls, time and savings.
+    public class WolfpackStep : ModuleBase
+    {
+        internal static int lastFrame = -1, Ran, Saved;
+        internal static bool SkipNow;
+        internal static double Seconds;
+        private float nextLog;
+
+        public override void Tick()
+        {
+            if (Time.unscaledTime < nextLog) return;
+            if (nextLog > 0f && Ran + Saved > 0)
+                Util.Log("Nahbereich-Suche: " + Ran + " mal gelaufen (" + (Seconds * 1000.0).ToString("0") + " ms), " + Saved + " mal gespart (zweiter/dritter Physik-Schritt im selben Bild)");
+            nextLog = Time.unscaledTime + 60f; Ran = 0; Saved = 0; Seconds = 0;
+        }
+    }
+
+    [HarmonyPatch(typeof(SandboxPlayerWolfpack), "UpdateNearbyGroups")]
+    internal static class WolfpackStep_Near
+    {
+        private static bool Prefix(out double __state)
+        {
+            __state = 0;
+            bool skip = Settings.B("WolfpackOncePerFrame") && Time.frameCount == WolfpackStep.lastFrame;
+            WolfpackStep.SkipNow = skip;
+            if (skip) { WolfpackStep.Saved++; return false; }
+            WolfpackStep.lastFrame = Time.frameCount;
+            WolfpackStep.Ran++;
+            __state = Time.realtimeSinceStartupAsDouble;
+            return true;
+        }
+        private static void Finalizer(double __state) { if (__state > 0) WolfpackStep.Seconds += Time.realtimeSinceStartupAsDouble - __state; }
+    }
+
+    [HarmonyPatch(typeof(SandboxPlayerWolfpack), "UpdateImpostorGroups")]
+    internal static class WolfpackStep_Far
+    {
+        private static bool Prefix(out double __state)
+        {
+            __state = 0;
+            if (WolfpackStep.SkipNow) return false;
+            __state = Time.realtimeSinceStartupAsDouble;
+            return true;
+        }
+        private static void Finalizer(double __state) { if (__state > 0) WolfpackStep.Seconds += Time.realtimeSinceStartupAsDouble - __state; }
+    }
+}
+
+// ####################################################################################################
+// BEREICH 6 FIXES: Reparaturen von Spiel-Fehlern
+// ####################################################################################################
+
+// ====================================================================================================
+// Abschnitt: Modules/NavRescue.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Navigation;
+    using global::UnityEngine;
+
+    // QoL: crew members standing off the walkable area. Their walking agent is then "not placed on a
+    // NavMesh" and the game spams "SetDestination / ResetPath / GetRemainingDistance can only be
+    // called on an active agent ..." while the man is stuck and does nothing. Seen with many new
+    // recruits. Every 3 seconds every stuck man is put back onto the nearest walkable spot (up to 5 m).
+    public class NavRescue : ModuleBase
+    {
+        private PlayerCrew crew;
+        private float next;
+
+        private static bool Bad(Vector3 v) => float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z) || float.IsInfinity(v.x) || float.IsInfinity(v.y) || float.IsInfinity(v.z);
+
+        public override void Tick()
+        {
+            if (!Settings.B("FixOffNavmeshCrew") || !Util.ShipReady || Time.unscaledTime < next) return;
+            next = Time.unscaledTime + 3f;
+            if (crew == null) crew = Object.FindObjectOfType<PlayerCrew>();
+            if (crew == null || crew.Characters == null) return;
+            int fixedCount = 0;
+            foreach (var c in crew.Characters)
+            {
+                // A sailor with an invalid (NaN/Infinity) position makes Unity print "Infinity or NaN floating point
+                // numbers ... Chest Collider" every frame. Put him back on walkable floor near the boat's middle.
+                if (c != null && Bad(c.transform.position))
+                {
+                    var ch = c; var sh = Util.PlayerShip;
+                    Util.Safe("NavRescue.NaN", () =>
+                    {
+                        var nv = ch.Navigator;
+                        if (sh != null && nv != null && UnityEngine.AI.NavMesh.SamplePosition(sh.transform.position, out var h2, 60f, nv.WalkableAreasMask))
+                        {
+                            ch.transform.position = h2.position;
+                            var rb = ch.GetComponent<Rigidbody>(); if (rb != null) { rb.velocity = Vector3.zero; rb.angularVelocity = Vector3.zero; }
+                            nv.Warp(h2.position, LayerLookupMode.Auto, true);
+                            Util.Log("Laufweg: " + ch.Name + " hatte eine ungültige Position, zurückgesetzt");
+                        }
+                    });
+                    continue;
+                }
+                var nav = c != null ? c.Navigator : null;
+                var agent = nav != null ? nav.Agent : null;
+                if (agent == null || !agent.enabled || !agent.gameObject.activeInHierarchy || agent.isOnNavMesh) continue;
+                Util.Safe("NavRescue", () =>
+                {
+                    if (UnityEngine.AI.NavMesh.SamplePosition(agent.transform.position, out var hit, 5f, nav.WalkableAreasMask))
+                    {
+                        nav.Warp(hit.position, LayerLookupMode.Auto, true);
+                        fixedCount++;
+                    }
+                });
+            }
+            if (fixedCount > 0) Util.Log("Laufweg: " + fixedCount + " Matrosen zurück auf begehbaren Boden gesetzt");
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/SkillIconFix.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::DWS.Common.Resources;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Fix 'Requested asset at path "Icons/Skills/<Name> (Owned)" doesn't exist.': some skills (e.g. "Advanced
+    // Equipment", or skills added by other mods such as "RadiomanAuthority1") have no picture for every state.
+    // The game then logs an error with a long stack for each button, every time the skill tree opens.
+    // Now: try the picture quietly, else the same skill without the state suffix, else the game's "Unknown" icon.
+    [HarmonyPatch(typeof(UBOAT.Game.UI.SkillButton), "Start")]
+    internal static class SkillIconFix
+    {
+        private static readonly MethodInfo Ours = AccessTools.Method(typeof(SkillIconFix), nameof(Get));
+
+        public static Resource<Sprite> Get(ResourceManager rm, string path, object owner, bool logErrors)
+        {
+            if (!Settings.B("FixSkillIcons")) return rm.RetrieveAsset<Sprite>(path, owner, logErrors);
+            var s = rm.RetrieveAsset<Sprite>(path, owner, false);
+            if (s.Valid) return s;
+            int i = path.IndexOf(" (");
+            if (i > 0) { s = rm.RetrieveAsset<Sprite>(path.Substring(0, i), owner, false); if (s.Valid) return s; }
+            return rm.RetrieveAsset<Sprite>("Icons/Skills/Unknown", owner, false);
+        }
+
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
+        {
+            foreach (var c in code)
+            {
+                if ((c.opcode == OpCodes.Callvirt || c.opcode == OpCodes.Call) && c.operand is MethodInfo m && m.Name == "RetrieveAsset"
+                    && m.IsGenericMethod && m.GetGenericArguments()[0] == typeof(Sprite) && m.GetParameters().Length == 3)
+                { c.opcode = OpCodes.Call; c.operand = Ours; }
+                yield return c;
+            }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/Lookout/LrlOrphanScrub.cs
+// ====================================================================================================
+// Ausguck (Teil des UBOAT Toolkit): LrlOrphanScrub. Schalter: F10 > QoL > "Ausguck".
+
+namespace UboatToolkit.Modules.Lrl
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Items;
+    using global::UnityEngine;
+
+    internal static class LrlOrphanScrub
+    {
+        private const string LegacyModifierName = "LongRangeLookout.GroupSightRange";
+
+        private static readonly List<ObservationSpot> SpotBuffer = new List<ObservationSpot>();
+        private static readonly List<Modifier> Doomed = new List<Modifier>();
+
+        internal static int RemovedCount { get; private set; }
+
+        internal static void Sweep(PlayerShip ship)
+        {
+            if (ship == null)
+                return;
+
+            LrlProviders.GetAll(ship, SpotBuffer);
+
+            for (var i = 0; i < SpotBuffer.Count; i++)
+            {
+                var spot = SpotBuffer[i];
+
+                SweepParameter(spot, spot.GroupDetectionRange);
+            }
+
+            SpotBuffer.Clear();
+        }
+
+        private static void SweepParameter(ObservationSpot spot, Parameter parameter)
+        {
+            if (parameter == null)
+                return;
+
+            var scales = parameter.ScaleModifiers;
+            if (scales == null || scales.Count == 0)
+                return;
+
+            Doomed.Clear();
+
+            for (var i = 0; i < scales.Count; i++)
+            {
+                if (IsOurs(scales[i]))
+                    Doomed.Add(scales[i]);
+            }
+
+            for (var i = 0; i < Doomed.Count; i++)
+            {
+                var modifier = Doomed[i];
+
+                LrlLog.Info(string.Format(
+                    "scrub: removing legacy modifier from {0}.GroupSightRange - name=\"{1}\" value={2:0.000}",
+                    spot.Name, modifier.Name, modifier.Value));
+
+                modifier.Value = 1f;
+                scales.Remove(modifier);
+
+                RemovedCount++;
+            }
+
+            Doomed.Clear();
+        }
+
+        private static bool IsOurs(Modifier modifier)
+        {
+            if (modifier == null)
+                return false;
+
+            if (LegacyModifierName.Equals(modifier.Name))
+                return true;
+
+            if (modifier.GetType() != typeof(Modifier))
+                return false;
+
+            return Mathf.Abs(modifier.Value - LrlSettings.LegacyMultiplier) < 0.0005f;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/FadeReparent.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Fix: when a crew/port-worker figure fades in while its parent object (e.g. "Port Workers Controller")
+    // is being switched on or off, the game moves its "Fade Effect Renderer" into that parent at the wrong
+    // moment and Unity refuses with an error. The move is now done one frame later, when it is allowed.
+    // If the parent is gone by then, the orphaned renderer is removed so nothing is left behind.
+    public class FadeReparent : ModuleBase
+    {
+        private struct Job { public Transform Child, Parent; public bool Keep; public bool HadParent; }
+        private static readonly List<Job> jobs = new List<Job>();
+        private static int fixedCount;
+
+        public static void Set(Transform child, Transform parent, bool keep)
+        {
+            if (child == null) return;
+            if (!Settings.B("FixFadeReparent")) { child.SetParent(parent, keep); return; }
+            jobs.Add(new Job { Child = child, Parent = parent, Keep = keep, HadParent = parent != null });
+        }
+
+        public override void Frame()
+        {
+            if (jobs.Count == 0) return;
+            var list = jobs.ToArray(); jobs.Clear();
+            foreach (var j in list)
+            {
+                if (j.Child == null) continue;
+                try
+                {
+                    if (j.HadParent && j.Parent == null) { Object.Destroy(j.Child.gameObject); continue; }
+                    j.Child.SetParent(j.Parent, j.Keep);
+                    fixedCount++;
+                }
+                catch (System.Exception e) { Util.Log("Fade-Fix: " + e.Message); }
+            }
+        }
+
+        public static int Fixed => fixedCount;
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.InteractiveCharacter), "FadeInOut")]
+    internal static class FadeReparent_Patch
+    {
+        private static readonly MethodInfo SetParent2 = AccessTools.Method(typeof(Transform), nameof(Transform.SetParent), new[] { typeof(Transform), typeof(bool) });
+        private static readonly MethodInfo Ours = AccessTools.Method(typeof(FadeReparent), nameof(FadeReparent.Set));
+
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
+        {
+            var list = new List<CodeInstruction>(code);
+            int n = 0;
+            foreach (var c in list)
+                if ((c.opcode == OpCodes.Callvirt || c.opcode == OpCodes.Call) && c.operand as MethodInfo == SetParent2)
+                { c.opcode = OpCodes.Call; c.operand = Ours; n++; }
+            if (n != 1) Util.Log("Fade-Fix: erwartet 1 Stelle, gefunden " + n + (n == 0 ? " - bleibt unverändert." : " - alle umgeleitet."));
+            return list;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/IconFix.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::DWS.Common.Resources;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Fix 'Requested asset at path "Icons/Activators/Goods Depository" (or "Icons/Equipment/Fuel") doesn't exist.':
+    // the game has no picture for some port depots, tanks and items, and logs a red error with a long stack
+    // each time a storage window, banner or info box shows them. Now: picture quietly, else the folder's
+    // "Unknown" picture, else the activator "Unknown" picture - no red error.
+    [HarmonyPatch]
+    internal static class IconFix
+    {
+        private static readonly MethodInfo Ours = AccessTools.Method(typeof(IconFix), nameof(Get));
+        private static readonly string[] TypeNames = {
+            "UBOAT.Game.UI.ActivatorDetailsUI", "UBOAT.Game.UI.DeviceInfoUI", "UBOAT.Game.UI.Storage.StorageTabUI",
+            "UBOAT.Game.UI.Storage.StorageWindow", "UBOAT.Game.UI.Storage.StorageUICount", "UBOAT.Game.UI.Storage.StorageSlotUI",
+            "UBOAT.Game.UI.Banners.BaseActivatorBanner", "UBOAT.Game.UI.CharacterSelectionUI",
+            "UBOAT.Game.UI.StoryPlayerCharacterUI", "UBOAT.Game.UI.StoryPlayerCharacterSlotUI", "UBOAT.Game.UI.EquipmentUpgradeItemUI", "UBOAT.Game.UI.SkillTokenUI", "UBOAT.Game.UI.Map.PlayerShipMarkerController", "UBOAT.Game.UI.Map.EntityMarkerUI", "UBOAT.Game.UI.Banners.CharacterActivatorBanner" };
+
+        private static bool IsCall(object operand) => operand is MethodInfo m && m.Name == "RetrieveAsset"
+            && m.IsGenericMethod && m.GetGenericArguments()[0] == typeof(Sprite) && m.GetParameters().Length == 3;
+
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            var list = new List<MethodBase>();
+            foreach (var n in TypeNames)
+            {
+                var t = UboatToolkit.Util.FindType(n);
+                if (t == null) continue;
+                var types = new List<Type> { t };
+                types.AddRange(t.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic));
+                foreach (var ty in types)
+                    foreach (var m in AccessTools.GetDeclaredMethods(ty))
+                    {
+                        if (m.IsAbstract || m.IsGenericMethodDefinition || m.ContainsGenericParameters) continue;
+                        try { if (PatchProcessor.ReadMethodBody(m).Any(i => IsCall(i.Value))) list.Add(m); } catch { }
+                    }
+            }
+            return list;
+        }
+
+        public static Resource<Sprite> Get(ResourceManager rm, string path, object owner, bool logErrors)
+        {
+            if (!Settings.B("FixMissingIcons") || path == null) return rm.RetrieveAsset<Sprite>(path, owner, logErrors);
+            if (rm.AssetExists(path)) return rm.RetrieveAsset<Sprite>(path, owner, logErrors);
+            int i = path.LastIndexOf('/');
+            if (i > 0) { var u = path.Substring(0, i) + "/Unknown"; if (rm.AssetExists(u)) return rm.RetrieveAsset<Sprite>(u, owner, false); }
+            return rm.RetrieveAsset<Sprite>("Icons/Activators/Unknown", owner, false);
+        }
+
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
+        {
+            foreach (var c in code)
+            {
+                if ((c.opcode == OpCodes.Callvirt || c.opcode == OpCodes.Call) && IsCall(c.operand)) { c.opcode = OpCodes.Call; c.operand = Ours; }
+                yield return c;
+            }
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::DWS.Common.Resources;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Fix 'GameObject is already being activated or deactivated.' when coming back from the character
+    // screen: the main camera is switched off, and while Unity switches it off the free camera moves it
+    // to a new parent (not allowed then). The move is now done one frame later instead.
+    [HarmonyLib.HarmonyPatch]
+    internal static class CameraParentFix
+    {
+        private static int inDisable;
+        private static UnityEngine.Transform pendingT, pendingParent;
+        private static bool pendingWorld;
+
+        [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.MainCamera), "OnDisable"), HarmonyLib.HarmonyPrefix]
+        private static void Enter() => inDisable++;
+
+        [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.MainCamera), "OnDisable"), HarmonyLib.HarmonyFinalizer]
+        private static System.Exception Leave(System.Exception __exception) { if (inDisable > 0) inDisable--; return __exception; }
+
+        [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Camera.FreeFlyCameraController), "StopController"), HarmonyLib.HarmonyTranspiler]
+        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> T(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
+        {
+            var setParent = HarmonyLib.AccessTools.Method(typeof(UnityEngine.Transform), "SetParent", new[] { typeof(UnityEngine.Transform), typeof(bool) });
+            var ours = HarmonyLib.AccessTools.Method(typeof(CameraParentFix), nameof(SetParent));
+            foreach (var c in code)
+            {
+                if ((c.opcode == System.Reflection.Emit.OpCodes.Callvirt || c.opcode == System.Reflection.Emit.OpCodes.Call) && c.operand as System.Reflection.MethodInfo == setParent)
+                { c.opcode = System.Reflection.Emit.OpCodes.Call; c.operand = ours; }
+                yield return c;
+            }
+        }
+
+        public static void SetParent(UnityEngine.Transform t, UnityEngine.Transform parent, bool worldStays)
+        {
+            if (inDisable > 0 && Settings.B("FixCameraParent")) { pendingT = t; pendingParent = parent; pendingWorld = worldStays; return; }
+            t.SetParent(parent, worldStays);
+        }
+
+        internal static void RunPending()
+        {
+            if (pendingT == null) return;
+            var t = pendingT; pendingT = null;
+            try { if (t != null && pendingParent != null) t.SetParent(pendingParent, pendingWorld); } catch (System.Exception e) { Util.Log("Kamera-Fix: " + e.Message); }
+        }
+    }
+
+    public class CameraParentFixModule : ModuleBase
+    {
+        public override void Frame() => CameraParentFix.RunPending();
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::DWS.Common.Resources;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // 0.3.93 (DoMe: debug console still pops up about once a minute): many other UI parts (contact list, cursor
+    // action icons, periscope overlays) ask for pictures the game does not ship. Each one wrote a red
+    // "Requested asset at path ... doesn't exist." error, which opens the console. A missing picture is harmless:
+    // for paths under Icons/ and Images/ the error is now only counted, not written.
+    [HarmonyPatch]
+    internal static class IconFix_MissingLog
+    {
+        internal static int Hidden;
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            // Mono shares one method body for all class types (Sprite, Texture2D, ...): patching the Sprite version covers them all.
+            var list = new List<MethodBase>();
+            foreach (var t in new[] { typeof(DWS.Common.Resources.ResourceBase<Sprite>) })
+            {
+                var m = AccessTools.DeclaredMethod(t, "LogAssetMissing");
+                if (m != null && !list.Contains(m)) list.Add(m);
+            }
+            var ab = UboatToolkit.Util.FindType("DWS.Common.Resources.AssetBundleContainedResource`1");
+            if (ab != null)
+                foreach (var a in new[] { typeof(Sprite) })
+                {
+                    try { var m = AccessTools.DeclaredMethod(ab.MakeGenericType(a), "LogAssetMissing"); if (m != null && !list.Contains(m)) list.Add(m); } catch { }
+                }
+            return list;
+        }
+
+        private static bool Prefix(object __instance)
+        {
+            try
+            {
+                if (!Settings.B("FixMissingIcons")) return true;
+                var p = Traverse.Create(__instance).Property("Path").GetValue<string>();
+                if (p == null || !(p.StartsWith("Icons/") || p.StartsWith("Images/"))) return true;
+                if (Hidden++ < 20) Util.Log("Fehlendes Bild ohne roten Fehler übersprungen: " + p);
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/UiFixes.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::DWS.Common.Pooling;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Fix "Cannot set the parent of the GameObject 'Default Tooltip(Clone)' while activating or deactivating
+    // the parent GameObject 'GUI'": the game re-parents a reused tooltip to the canvas every time it opens,
+    // even when it already sits there. Unity refuses that while the GUI is being switched on/off.
+    // Now the move is skipped when the tooltip is already under the canvas, and otherwise done one frame later.
+    [HarmonyPatch(typeof(UBOAT.Game.UI.FloatingTooltip), "OpenInternal")]
+    internal static class UiFixes_TooltipParent
+    {
+        private static readonly MethodInfo SetParent2 = AccessTools.Method(typeof(Transform), nameof(Transform.SetParent), new[] { typeof(Transform), typeof(bool) });
+        private static readonly MethodInfo Ours = AccessTools.Method(typeof(UiFixes_TooltipParent), nameof(Set));
+
+        public static void Set(Transform child, Transform parent, bool keep)
+        {
+            if (child == null) return;
+            if (!Settings.B("FixTooltipParent")) { child.SetParent(parent, keep); return; }
+            if (child.parent == parent) return;
+            // Must happen right now: the game sizes and positions the tooltip on the next lines. Moving it a frame
+            // later left an empty box (DoMe 2026-11-12, visibility panel). Only the redundant move is skipped.
+            child.SetParent(parent, keep);
+        }
+
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
+        {
+            foreach (var c in code)
+            {
+                if ((c.opcode == OpCodes.Callvirt || c.opcode == OpCodes.Call) && c.operand as MethodInfo == SetParent2) { c.opcode = OpCodes.Call; c.operand = Ours; }
+                yield return c;
+            }
+        }
+    }
+
+    // Fix 'Pooled instance of prefab "Character/Other/Newspaper Mirror" has enabled animators ...':
+    // some props (newspaper stand) go back into the pool with their animator still running. The game notices
+    // that only when it reuses them, logs the error and throws the object away. We do the same at the moment
+    // it is handed back, without the error, so no broken object ever sits in the pool.
+    [HarmonyPatch(typeof(GlobalPool), nameof(GlobalPool.FreeInstance))]
+    internal static class UiFixes_PoolAnimators
+    {
+        private static readonly List<Animator> anims = new List<Animator>();
+        private static readonly List<SkinnedMeshRenderer> skins = new List<SkinnedMeshRenderer>();
+
+        private static void Postfix(GlobalPool __instance, GameObject instance)
+        {
+            if (!Settings.B("FixPoolAnimators") || instance == null) return;
+            var po = instance.GetComponent<PooledObject>();
+            if (po == null) return;
+            bool bad = false;
+            instance.GetComponentsInChildren(true, anims);
+            foreach (var a in anims) if (a != null && a.enabled) { bad = true; break; }
+            if (!bad) { instance.GetComponentsInChildren(true, skins); foreach (var s in skins) if (s != null && s.enabled) { bad = true; break; } }
+            anims.Clear(); skins.Clear();
+            if (!bad) return;
+            var pool = Traverse.Create(__instance).Method("GetPool", new[] { typeof(object) }).GetValue(po.PrefabPath);
+            if (pool != null)
+            {
+                var tp = Traverse.Create(pool);
+                if (tp.Property("Count").GetValue<int>() > 0 && (tp.Method("Peek").GetValue() as GameObject) == instance) tp.Method("Pop").GetValue();
+            }
+            Object.Destroy(instance);
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::DWS.Common.Pooling;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Fix NullReferenceException in FlamesRegistry.OnFlamesDetached / SpawnParticles: when a burning part is shot
+    // off a ship (e.g. a gun "Detached"), the burning surface reports to a fire registry whose flame effect is
+    // already gone. The game then throws every time. Now: nothing to move -> skip quietly.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Effects.FlamesRegistry), nameof(UBOAT.Game.Scene.Effects.FlamesRegistry.OnFlamesDetached))]
+    internal static class UiFixes_FlamesDetached
+    {
+        private static bool Prefix(UBOAT.Game.Scene.Effects.FlamesRegistry __instance, UBOAT.Game.Scene.Effects.FlammableSurface flames)
+        {
+            if (!Settings.B("FixFlames")) return true;
+            return __instance != null && __instance.FlamesEffect != null && flames != null && flames.transform.parent != null;
+        }
+
+        private static System.Exception Finalizer(System.Exception __exception) =>
+            __exception is System.NullReferenceException && Settings.B("FixFlames") ? null : __exception;
+    }
+
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Effects.FlamesRegistry), "SpawnParticles", new System.Type[0])]
+    internal static class UiFixes_FlamesSpawn
+    {
+        private static bool Prefix(UBOAT.Game.Scene.Effects.FlamesRegistry __instance) =>
+            !Settings.B("FixFlames") || (__instance != null && __instance.FlamesEffect != null);
+
+        private static System.Exception Finalizer(System.Exception __exception) =>
+            __exception is System.NullReferenceException && Settings.B("FixFlames") ? null : __exception;
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::DWS.Common.Pooling;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Diagnosis "empty box next to the eye" (DoMe 2026-11-12): every game tooltip that opens is checked 0.4 s later
+    // and written to the log once per kind: who opened it, text, measured size, font, material and the alpha of box and
+    // text. Shows whether the text is empty, invisible (alpha 0), unmeasured (font/material) or the box is something else.
+    public class TooltipDiag : ModuleBase
+    {
+        private struct Pending { public UBOAT.Game.UI.FloatingTooltip T; public float At; public string From; }
+        private static readonly List<Pending> pending = new List<Pending>();
+        private static readonly HashSet<string> done = new HashSet<string>();
+        internal static string Caller = "?";
+        private static int count;
+        private static readonly FieldInfo contentsF = AccessTools.Field(typeof(UBOAT.Game.UI.FloatingTooltip), "contents");
+        private static readonly FieldInfo openF = AccessTools.Field(typeof(UBOAT.Game.UI.FloatingTooltip), "isOpen");
+
+        internal static void Opened(object t)
+        {
+            var ft = t as UBOAT.Game.UI.FloatingTooltip;
+            if (ft == null || !Settings.B("DiagTooltip") || count >= 40) return;
+            pending.Add(new Pending { T = ft, At = Time.unscaledTime + 0.4f, From = Caller });
+            Caller = "?";
+        }
+
+        public override void Frame()
+        {
+            if (pending.Count == 0) return;
+            float now = Time.unscaledTime;
+            for (int i = pending.Count - 1; i >= 0; i--)
+            {
+                var p = pending[i];
+                if (now < p.At) continue;
+                pending.RemoveAt(i);
+                try { Check(p); } catch (System.Exception e) { Util.Log("Tooltip-Diagnose: " + e.Message); }
+            }
+        }
+
+        private static void Check(Pending p)
+        {
+            if (p.T == null) return;
+            var c = contentsF != null ? contentsF.GetValue(p.T) as TMPro.TextMeshProUGUI : null;
+            var img = p.T.GetComponent<UnityEngine.UI.Image>();
+            string text = c != null ? (c.text ?? "") : "<kein Text-Feld>";
+            bool empty = c == null || text.Trim().Length == 0;
+            string key = p.From + "|" + empty + "|" + (c != null && c.font != null ? c.font.name : "-");
+            if (!done.Add(key) && p.From != "Auge" && !empty) return;
+            count++;
+            var sb = new System.Text.StringBuilder();
+            sb.Append("Tooltip-Diagnose [").Append(p.From).Append("]: offen=").Append(openF != null ? openF.GetValue(p.T) : "?")
+              .Append(", aktiv=").Append(p.T.gameObject.activeInHierarchy);
+            var rt = p.T.transform as RectTransform;
+            if (rt != null) sb.Append(", Kasten=").Append(rt.rect.width.ToString("0")).Append("x").Append(rt.rect.height.ToString("0"));
+            if (img != null) sb.Append(", Kasten-Alpha=").Append(img.canvasRenderer.GetAlpha().ToString("0.00"));
+            if (c != null)
+            {
+                string one = text.Replace("\n", " / ").Replace("\r", "");
+                if (one.Length > 160) one = one.Substring(0, 160) + "...";
+                sb.Append(", Text(").Append(text.Length).Append(" Zeichen)='").Append(one).Append("'")
+                  .Append(", Text an=").Append(c.enabled).Append("/").Append(c.gameObject.activeInHierarchy)
+                  .Append(", Text-Alpha=").Append(c.canvasRenderer.GetAlpha().ToString("0.00"))
+                  .Append(", Farbe-A=").Append(c.color.a.ToString("0.00"))
+                  .Append(", Größe=").Append(c.fontSize.ToString("0.0"))
+                  .Append(", Schrift=").Append(c.font != null ? c.font.name : "KEINE")
+                  .Append(", Material=").Append(c.fontSharedMaterial != null ? c.fontSharedMaterial.name : "KEINES")
+                  .Append(", gemessen=").Append(c.preferredHeight.ToString("0"))
+                  .Append(", Zeichen sichtbar=").Append(c.textInfo != null ? c.textInfo.characterCount : -1)
+                  .Append(", Text-Rect=").Append(c.rectTransform.rect.width.ToString("0")).Append("x").Append(c.rectTransform.rect.height.ToString("0"));
+            }
+            Util.Log(sb.ToString());
+        }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.UI.FloatingTooltip), "OpenInternal")]
+    internal static class TooltipDiag_Open
+    {
+        private static void Postfix(object __result) { try { TooltipDiag.Opened(__result); } catch { } }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.UI.Resources.DetectabilityGUI), nameof(UBOAT.Game.UI.Resources.DetectabilityGUI.OnPointerEnter))]
+    internal static class TooltipDiag_Eye
+    {
+        private static void Prefix() { TooltipDiag.Caller = "Auge"; }
+        private static System.Exception Finalizer(System.Exception __exception)
+        {
+            if (__exception != null) Util.Log("Tooltip-Diagnose [Auge]: Spiel-Fehler beim Öffnen: " + __exception.GetType().Name + ": " + __exception.Message);
+            return __exception;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::System.Reflection.Emit;
+    using global::DWS.Common.Pooling;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Empty tooltip box (DoMe 2026-11-13: eye icon, also on the stock IXC): a game "Tooltip" whose text is empty
+    // (missing translation or update function returning "") still opened the box. Now: an empty text opens nothing,
+    // and the object path + key are logged once so the missing text can be found.
+    [HarmonyPatch(typeof(UBOAT.Game.UI.Tooltip), "Open")]
+    internal static class UiFixes_EmptyTooltip
+    {
+        private static readonly FieldInfo localeF = AccessTools.Field(typeof(UBOAT.Game.UI.Tooltip), "locale");
+        private static readonly HashSet<string> logged = new HashSet<string>();
+
+        internal static string PathOf(Transform t)
+        {
+            string path = t != null ? t.name : "?";
+            for (int i = 0; i < 4 && t != null && t.parent != null; i++) { t = t.parent; path = t.name + "/" + path; }
+            return path;
+        }
+
+        private static bool Prefix(UBOAT.Game.UI.Tooltip __instance, string ___localizationKey, System.Func<string> ___updateFunction)
+        {
+            try
+            {
+                string text = null, key = ___localizationKey;
+                if (___updateFunction != null) { text = ___updateFunction(); if (text == null) return true; key = "(Funktion)"; }
+                else if (key != null && localeF != null)
+                {
+                    var loc = localeF.GetValue(null);
+                    string k = key.EndsWith("/") ? key + __instance.name : key;
+                    text = loc != null ? Traverse.Create(loc).Method("get_Item", new[] { typeof(string) }, new object[] { k }).GetValue<string>() : null;
+                    key = k;
+                }
+                else return true;
+                string path = PathOf(__instance.transform);
+                TooltipDiag.Caller = "Tooltip " + path + " key=" + key;
+                if (text != null && text.Trim().Length > 0) return true;
+                if (logged.Add(path + "|" + key)) Util.Log("Tooltip ohne Text unterdrückt: " + path + ", Schlüssel '" + key + "'");
+                return !Settings.B("FixEmptyTooltip");
+            }
+            catch (System.Exception e) { Util.Log("Tooltip-Prüfung: " + e.Message); return true; }
+        }
+    }
+
+    [HarmonyPatch(typeof(UBOAT.Game.UI.PlainTooltip), nameof(UBOAT.Game.UI.PlainTooltip.Open))]
+    internal static class UiFixes_PlainTooltipDiag
+    {
+        private static readonly HashSet<string> logged = new HashSet<string>();
+        private static void Postfix(UBOAT.Game.UI.PlainTooltip __instance, RectTransform target, string contents)
+        {
+            try
+            {
+                if (!Settings.B("DiagTooltip")) return;
+                string path = UiFixes_EmptyTooltip.PathOf(target != null ? target.transform : __instance.transform);
+                bool empty = contents == null || contents.Trim().Length == 0;
+                if (logged.Add(path + "|" + empty))
+                    Util.Log("Tooltip-Diagnose [Plain " + path + "]: Text(" + (contents == null ? -1 : contents.Length) + " Zeichen)='" + (contents ?? "").Replace("\n", " / ") + "'");
+            }
+            catch { }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/VoiceRepair.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::DWS.Common.InjectionFramework;
+    using global::HarmonyLib;
+
+    // Voice language: at start, puts the chosen voice language back if the game reset it to the
+    // interface language, clears the game's "apply default voice" flag, and repairs a "latest version"
+    // entry that no longer exists (it would stamp new saves as unloadable). Writes settings.ubt only if needed.
+    internal static class VoiceRepair
+    {
+        private static readonly string[] Langs = { null, "German", "English" };
+
+        public static void Run()
+        {
+            if (!Settings.B("KeepVoiceLanguage")) return;
+            Type st = UboatToolkit.Util.FindType("UBOAT.Game.Core.Data.UserSettings");
+            if (st == null) { Util.Log("Sprache: UserSettings nicht gefunden"); return; }
+            object settings;
+            try { settings = ScriptableObjectSingleton.LoadSingleton(st); } catch (Exception e) { Util.Log("Sprache: Einstellungen nicht ladbar: " + e.Message); return; }
+            if (settings == null) { Util.Log("Sprache: noch keine Einstellungen - nur die Sperre ist aktiv"); return; }
+            bool changed = false;
+            var flag = AccessTools.Field(st, "applyDefaultVoiceLanguage");
+            if (flag != null && flag.FieldType == typeof(bool) && (bool)flag.GetValue(settings)) { flag.SetValue(settings, false); changed = true; Util.Log("Sprache: Spiel-Rücksetzung war vorgemerkt - gelöscht"); }
+            object gameplay = AccessTools.Property(st, "GameplaySettings")?.GetValue(settings, null) ?? AccessTools.Field(st, "gameplaySettings")?.GetValue(settings);
+            if (gameplay == null) { Util.Log("Sprache: Spiel-Einstellungen nicht erreichbar"); return; }
+            var gt = gameplay.GetType();
+            int idx = (int)Math.Round(Settings.F("VoiceLang"));
+            string want = idx > 0 && idx < Langs.Length ? Langs[idx] : null;
+            var voice = AccessTools.Field(gt, "voiceLanguage");
+            if (voice != null && want != null)
+            {
+                string cur = voice.GetValue(gameplay) as string;
+                if (!string.Equals(cur, want, StringComparison.OrdinalIgnoreCase)) { voice.SetValue(gameplay, want); changed = true; Util.Log("Sprache: Stimme war \"" + (cur ?? "leer") + "\" - zurück auf \"" + want + "\""); }
+            }
+            if (Settings.B("VoiceRepairVersion")) changed |= RepairVersion(st, gameplay, gt);
+            if (!changed) return;
+            var write = AccessTools.Method(st, "WriteToHDD");
+            if (write != null) { write.Invoke(settings, null); Util.Log("Sprache: Einstellungen gespeichert"); }
+        }
+
+        private static bool RepairVersion(Type st, object gameplay, Type gt)
+        {
+            var vf = AccessTools.Field(gt, "latestVersion");
+            if (vf == null) return false;
+            string stored = vf.GetValue(gameplay) as string;
+            var versions = Changelog(st);
+            if (versions == null || versions.Count == 0) return false;
+            if (!string.IsNullOrEmpty(stored) && versions.Contains(stored)) return false;
+            string newest = versions[versions.Count - 1];
+            vf.SetValue(gameplay, newest);
+            Util.Log("Sprache: gespeicherte Version \"" + (stored ?? "leer") + "\" fehlt in der Versionsliste - auf \"" + newest + "\" gesetzt (sonst gelten neue Spielstände als nicht ladbar)");
+            return true;
+        }
+
+        private static List<string> Changelog(Type st)
+        {
+            try
+            {
+                object gd = AccessTools.Field(st, "gameData")?.GetValue(null);
+                if (gd == null) return null;
+                var rows = AccessTools.Method(gd.GetType(), "GetDataRows", new[] { typeof(string) })?.Invoke(gd, new object[] { "General/Changelogs" }) as Array;
+                if (rows == null || rows.Length == 0) return null;
+                var result = new List<string>(rows.Length);
+                MethodInfo gs = null;
+                foreach (var row in rows)
+                {
+                    if (row == null) continue;
+                    if (gs == null) { gs = AccessTools.Method(row.GetType(), "GetString", new[] { typeof(int) }); if (gs == null) return null; }
+                    if (gs.Invoke(row, new object[] { 0 }) is string v && v.Length > 0) result.Add(v);
+                }
+                return result;
+            }
+            catch (Exception e) { Util.Log("Sprache: Versionsliste nicht lesbar: " + e.Message); return null; }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Karten-Markierung ohne Schiff (0.4.47)
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // Game log 2026-11-18: "Error in execution queue method EntityMarkersManager.DoLateUpdate: NullReferenceException at
+    // EntityMarkerUI.UpdateMarker", 10 to 12 times a minute, and each one opened the developer console for a moment
+    // (DoMe: "ploppt dauerhaft kurz die debug console auf"). A ship marker on the map/screen pointed at a ship that no
+    // longer exists. The marker is hidden instead; when its ship is back the game shows it again. Player display only.
+    [HarmonyPatch(typeof(UBOAT.Game.UI.Map.EntityMarkerUI), "UpdateMarker")]
+    internal static class EntityMarkerGuard_Patch
+    {
+        private static int caught; private static float nextLog;
+        private static System.Exception Finalizer(System.Exception __exception, UBOAT.Game.UI.Map.EntityMarkerUI __instance)
+        {
+            if (__exception == null) return null;
+            if (!(__exception is System.NullReferenceException) && !(__exception is MissingReferenceException)) return __exception;
+            caught++;
+            string name = "?";
+            try { if (__instance != null) { name = __instance.name; __instance.gameObject.SetActive(false); } } catch { }
+            if (Time.unscaledTime > nextLog)
+            {
+                nextLog = Time.unscaledTime + 60f;
+                string where = __exception.StackTrace ?? ""; int n = where.IndexOf('\n'); if (n > 0) where = where.Substring(0, n);
+                Util.Log("Karten-Markierung: " + caught + " mal zeigte eine Markierung auf ein Schiff, das es nicht mehr gibt (zuletzt " + name + "). Markierung ausgeblendet, kein Fehler mehr im Spiel-Log. Stelle: " + where.Trim());
+            }
+            return null;
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Patches/MissingTypeGuard.cs
+// ====================================================================================================
+namespace UboatToolkit.Patches
+{
+    using global::System.Collections.Generic;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+
+    // 0.4.58 (DoMe 2026-11-18 19:23: "die debug konsole dreht durch"). After a quick travel to a port the game asked in
+    // every picture for an entity type named "Port 03B" (that is a port MODEL name, no such type exists) and wrote an
+    // error each time: about 430 errors per minute, each one opening the developer console. The question is answered
+    // exactly as before ("no such type"); only the repeated error line is left out. The first time the caller is logged.
+    [HarmonyPatch]
+    internal static class MissingTypeGuard_Patch
+    {
+        private static readonly Dictionary<string, int> missing = new Dictionary<string, int>();
+        private static float nextLog; private static int skipped;
+        private static System.Reflection.MethodBase target;
+        private static bool Prepare()
+        {
+            target = AccessTools.Method(typeof(UBOAT.Game.Sandbox.EntityTypesDatabase), "GetEntityType", new[] { typeof(string) });
+            return target != null;
+        }
+        private static System.Reflection.MethodBase TargetMethod() => target;
+
+        private static bool Prefix(string name, ref UBOAT.Game.Scene.Entities.EntityType __result)
+        {
+            int n;
+            if (name == null || !missing.TryGetValue(name, out n)) return true;
+            missing[name] = n + 1; skipped++;
+            __result = null;
+            if (Time.unscaledTime >= nextLog)
+            {
+                nextLog = Time.unscaledTime + 60f;
+                Util.Log("Fehlender Typ: " + skipped + " wiederholte Fehlermeldungen des Spiels in der letzten Minute ausgelassen (" + name + " bisher " + (n + 1) + " mal gefragt)");
+                skipped = 0;
+            }
+            return false;
+        }
+
+        private static void Postfix(string name, UBOAT.Game.Scene.Entities.EntityType __result)
+        {
+            if (__result != null || name == null || missing.ContainsKey(name)) return;
+            missing[name] = 1;
+            string who = "";
+            try { var lines = System.Environment.StackTrace.Split('\n'); int shown = 0; for (int i = 0; i < lines.Length && shown < 5; i++) { var l = lines[i].Trim(); if (l.Contains("MissingTypeGuard") || l.Contains("Environment") || l.Contains("GetEntityType")) continue; who += " | " + l; shown++; } } catch { }
+            Util.Log("Fehlender Typ: das Spiel fragt nach \"" + name + "\", den es in den Daten nicht gibt. Erste Meldung bleibt, Wiederholungen werden ausgelassen. Gefragt von:" + who);
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/GameBugFixes.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // Bugs in the game itself that showed up in DoMe's log (2026-11-12).
+
+    // Actions without requirements ("*" in the data sheet) have null lists. A man with a
+    // "no helpers" skill then crashed when starting such an action (e.g. a watch station).
+    [HarmonyPatch(typeof(DisallowFollowersStatus), "ValidateHelperLimits")]
+    internal static class Fix_DisallowFollowersNull
+    {
+        private static bool Prefix(DisallowFollowersStatus __instance, SingleCharacterAction action, ref int workers, ref int followers)
+        {
+            try
+            {
+                if (action == null) return false;
+                var hard = action.HardRequirements; var soft = action.SoftRequirements;
+                string n = __instance.Name;
+                if ((hard != null && Array.IndexOf(hard, n) != -1) || (soft != null && Array.IndexOf(soft, n) != -1))
+                {
+                    workers = 0;
+                    followers = 0;
+                }
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+
+    // "Advanced Equipment" skill: entering a listening room on a boat without a radar detector crashed
+    // (the game looks for the detector without checking). Without a detector there is nothing to boost.
+    [HarmonyPatch(typeof(AdvancedEquipment), "Character_InteractableSlotChanged")]
+    internal static class Fix_AdvancedEquipmentNoDetector
+    {
+        private static Exception Finalizer(Exception __exception) => __exception is NullReferenceException ? null : __exception;
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // "GetRemainingDistance can only be called on an active agent that has been placed on a NavMesh" spam:
+    // the game asks how far a man still has to walk while he is not standing on walkable ground
+    // (agent switched off, or just pushed off the walk mesh - our NavRescue puts him back a moment later).
+    // Asking then is pointless; answer "not there yet" without asking, so nothing is logged.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator), "DestinationReached", HarmonyLib.MethodType.Getter)]
+    internal static class Fix_DestinationReachedOffMesh
+    {
+        private static bool Prefix(UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator __instance, ref bool __result)
+        {
+            try
+            {
+                var a = __instance.Agent;
+                if (a != null && a.isActiveAndEnabled && a.isOnNavMesh) return true;
+                __result = false;
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+
+    // Port recruits on the pier: same question for a recruit who is off the walk mesh. Wait and ask again later.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.DockRecruitsInteractable), "DoUpdate")]
+    internal static class Fix_DockRecruitsOffMesh
+    {
+        private static readonly HarmonyLib.AccessTools.FieldRef<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, System.Collections.Generic.List<UBOAT.Game.Scene.Characters.InteractiveCharacter>> chars =
+            HarmonyLib.AccessTools.FieldRefAccess<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, System.Collections.Generic.List<UBOAT.Game.Scene.Characters.InteractiveCharacter>>("characters");
+        private static readonly HarmonyLib.AccessTools.FieldRef<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, int> index =
+            HarmonyLib.AccessTools.FieldRefAccess<UBOAT.Game.Scene.Characters.DockRecruitsInteractable, int>("characterIndex");
+
+        private static bool Prefix(UBOAT.Game.Scene.Characters.DockRecruitsInteractable __instance, ref float __result)
+        {
+            try
+            {
+                var list = chars(__instance);
+                int i = index(__instance);
+                if (list == null || i < 0 || i >= list.Count) return true;
+                var c = list[i];
+                if (c == null || c.Navigator == null || c.Ai == null || !c.Ai.isActiveAndEnabled) return true;
+                var a = c.Navigator.Agent;
+                if (a == null || (a.isActiveAndEnabled && a.isOnNavMesh)) return true;
+                if (c.Ai.GetActiveBehaviour<UBOAT.Game.Core.AI.Behaviours.GoToBehaviour>() == null) return true;
+                __result = 0.1f;
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // Changing boats in port: the old boat's devices are destroyed while the resource bar still listens
+    // to them -> one error per device. Nothing left to show, so the error is dropped.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.Resources.ResourceGUI), "Gain_Modified")]
+    internal static class Fix_ResourceGuiBoatChange
+    {
+        private static System.Exception Finalizer(System.Exception __exception) => __exception is System.NullReferenceException ? null : __exception;
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // Skip the start videos (studio + publisher logo) and go straight to the main menu.
+    // Works from the moment the mod is loaded; the very first Unity logo comes before any mod and cannot be skipped.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.IntroScene), "Update")]
+    internal static class SkipStartupIntros
+    {
+        private static bool done;
+        private static void Prefix(UBOAT.Game.UI.IntroScene __instance)
+        {
+            if (done) return;
+            try
+            {
+                if (!Settings.B("SkipStartupIntros")) { done = true; return; }
+                var t = HarmonyLib.Traverse.Create(__instance);
+                if (System.Convert.ToInt32(t.Field("launchMode").GetValue()) != 0) { done = true; return; }   // only normal start
+                var warn = t.Field("gameFilesCorruptedWarning").GetValue<UnityEngine.GameObject>();
+                if (warn != null && warn.activeSelf) return;                                                   // let the player read that
+                if (t.Field("sceneResource").GetValue() == null) return;                                       // menu not requested yet
+                int stage = t.Field("stage").GetValue<int>();
+                if (stage > 1) { done = true; return; }
+                var vp = t.Field("videoPlayer").GetValue();
+                if (vp != null) HarmonyLib.AccessTools.Method(vp.GetType(), "Stop")?.Invoke(vp, null);
+                t.Field("wasPlaying").SetValue(true);
+                t.Field("stage").SetValue(1);   // the game's own code now opens the main menu this frame
+                done = true;
+                Util.Log("Start-Intros übersprungen");
+            }
+            catch (System.Exception e) { done = true; Util.Log("Start-Intros: " + e.Message); }
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // Every place in the game that asks a man's walk agent "how far is it still?" gets a safe version:
+    // if the agent is switched off or not on walkable ground right now, the answer is 0 instead of
+    // Unity's red "GetRemainingDistance can only be called on an active agent" line.
+    // (The game checks the ground once and then asks a few lines later, after the man may have been moved.)
+    [HarmonyLib.HarmonyPatch]
+    internal static class Fix_RemainingDistanceSafe
+    {
+        private static readonly System.Reflection.MethodInfo getter =
+            HarmonyLib.AccessTools.PropertyGetter(typeof(UnityEngine.AI.NavMeshAgent), "remainingDistance");
+        private static readonly System.Reflection.MethodInfo safe =
+            HarmonyLib.AccessTools.Method(typeof(Fix_RemainingDistanceSafe), nameof(Remaining));
+
+        public static float Remaining(UnityEngine.AI.NavMeshAgent a)
+        {
+            if (a == null || !a.isActiveAndEnabled || !a.isOnNavMesh) return 0f;
+            return a.remainingDistance;
+        }
+
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            var list = new System.Collections.Generic.List<System.Reflection.MethodBase>();
+            foreach (var t in new[] { typeof(UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator),
+                                      typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour),
+                                      typeof(UBOAT.Game.Scene.Characters.DockRecruitsInteractable) })
+                foreach (var m in HarmonyLib.AccessTools.GetDeclaredMethods(t))
+                {
+                    if (m.IsAbstract || m.ContainsGenericParameters) continue;
+                    try
+                    {
+                        foreach (var i in HarmonyLib.PatchProcessor.ReadMethodBody(m))
+                            if (i.Value is System.Reflection.MethodInfo mi && mi == getter) { list.Add(m); break; }
+                    }
+                    catch { }
+                }
+            return list;
+        }
+
+        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
+        {
+            foreach (var c in code)
+            {
+                if ((c.opcode == System.Reflection.Emit.OpCodes.Callvirt || c.opcode == System.Reflection.Emit.OpCodes.Call) && c.operand is System.Reflection.MethodInfo mi && mi == getter)
+                {
+                    c.opcode = System.Reflection.Emit.OpCodes.Call;
+                    c.operand = safe;
+                }
+                yield return c;
+            }
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // Fix NullReferenceException in TimeCompressionExtendedUI.OnEnable/OnDisable and
+    // TorpedoSalvoPreviewUI.ValidateQueuedUpdate: right after a boat change (or on a boat without the torpedo
+    // panel) the game's "current torpedo launchers panel" is still empty, and these methods ask it whether it is
+    // open. Now an empty panel simply counts as closed, and the rest of each method runs normally.
+    [HarmonyLib.HarmonyPatch]
+    internal static class Fix_LaunchersUiMissing
+    {
+        private static System.Collections.Generic.IEnumerable<System.Reflection.MethodBase> TargetMethods()
+        {
+            yield return HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.TimeCompressionExtendedUI), "OnEnable");
+            yield return HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.TimeCompressionExtendedUI), "OnDisable");
+            yield return HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.TorpedoSalvoPreviewUI), "ValidateQueuedUpdate");
+        }
+
+        public static bool Active(UBOAT.Game.UI.Periscope.TorpedoLaunchersUI ui) => ui != null && ui.gameObject.activeInHierarchy;
+        public static bool Opened(UBOAT.Game.UI.Periscope.TorpedoLaunchersUI ui) => ui != null && ui.IsOpened;
+
+        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
+        {
+            var getUi = HarmonyLib.AccessTools.PropertyGetter(typeof(UBOAT.Game.UI.GameUI), "CurrentTorpedoLaunchersUI");
+            var getGo = HarmonyLib.AccessTools.PropertyGetter(typeof(UnityEngine.Component), "gameObject");
+            var getAct = HarmonyLib.AccessTools.PropertyGetter(typeof(UnityEngine.GameObject), "activeInHierarchy");
+            var getOpen = HarmonyLib.AccessTools.PropertyGetter(typeof(UBOAT.Game.UI.Periscope.TorpedoLaunchersUI), "IsOpened");
+            var list = new System.Collections.Generic.List<HarmonyLib.CodeInstruction>(code);
+            for (int i = 0; i < list.Count - 1; i++)
+            {
+                if (!(list[i].operand is System.Reflection.MethodInfo m) || m != getUi) continue;
+                var n = list[i + 1].operand as System.Reflection.MethodInfo;
+                if (n == getOpen) { list[i + 1].opcode = System.Reflection.Emit.OpCodes.Call; list[i + 1].operand = HarmonyLib.AccessTools.Method(typeof(Fix_LaunchersUiMissing), nameof(Opened)); }
+                else if (n == getGo && i + 2 < list.Count && list[i + 2].operand as System.Reflection.MethodInfo == getAct)
+                {
+                    list[i + 1].opcode = System.Reflection.Emit.OpCodes.Call; list[i + 1].operand = HarmonyLib.AccessTools.Method(typeof(Fix_LaunchersUiMissing), nameof(Active));
+                    list[i + 2].opcode = System.Reflection.Emit.OpCodes.Nop; list[i + 2].operand = null;
+                }
+            }
+            return list;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // Fix "ArgumentOutOfRangeException ... MorphTarget.ApplyTo" (10x, e.g. on arriving in port): a character's face/body
+    // morph was made for a mesh with more vertices than the mesh he wears now. The game then throws every frame for him.
+    // Now: the error is caught, that one morph layer is switched off for this character (he keeps the plain mesh), and it
+    // is logged once with the character's path.
+    [HarmonyLib.HarmonyPatch(typeof(DWS.Common.Characters.Deformers.MorphDeformer), "UpdateDeformer")]
+    internal static class Fix_MorphOutOfRange
+    {
+        private static readonly System.Collections.Generic.HashSet<int> logged = new System.Collections.Generic.HashSet<int>();
+        private static System.Exception Finalizer(System.Exception __exception, DWS.Common.Characters.Deformers.MorphDeformer __instance)
+        {
+            if (!(__exception is System.ArgumentOutOfRangeException) || __instance == null) return __exception;
+            __instance.enabled = false;
+            if (logged.Add(__instance.GetInstanceID()))
+            {
+                var t = __instance.transform; string path = t.name;
+                for (int i = 0; i < 3 && t.parent != null; i++) { t = t.parent; path = t.name + "/" + path; }
+                Util.Log("Figur: Gesichts-/Körperform passt nicht zum Modell, abgeschaltet: " + path);
+            }
+            return null;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // "GameObject is already being activated or deactivated" when the game saves while the port window is open:
+    // after every save SavingNotificationUI switches the whole game UI off and on; that disables the port window, whose
+    // OnDisable then calls GameUI.SetMode(Normal) = SetActive on the UI that is just being switched off -> Unity error,
+    // and the port window is left in "Normal" mode (closed state broken). Now SetMode is skipped while the game UI itself
+    // is being switched off; when it comes back on, the port window simply stays open.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.PortActivitiesUI), "OnDisable")]
+    internal static class Fix_PortWindowSaveToggle
+    {
+        private static float nextLog;
+        public static void SetMode(UBOAT.Game.UI.GameUI ui, UBOAT.Game.UI.GameUI.Mode mode)
+        {
+            if (ui != null && !ui.gameObject.activeSelf)
+            {
+                if (UnityEngine.Time.unscaledTime > nextLog) { nextLog = UnityEngine.Time.unscaledTime + 60f; Util.Log("Hafen-Fenster: Umschalten beim Speichern übersprungen (Unity-Fehler vermieden)"); }
+                return;
+            }
+            ui.SetMode(mode);
+        }
+
+        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
+        {
+            var target = HarmonyLib.AccessTools.Method(typeof(UBOAT.Game.UI.GameUI), "SetMode", new[] { typeof(UBOAT.Game.UI.GameUI.Mode) });
+            int n = 0;
+            foreach (var c in code)
+            {
+                if (c.operand as System.Reflection.MethodInfo == target) { c.opcode = System.Reflection.Emit.OpCodes.Call; c.operand = HarmonyLib.AccessTools.Method(typeof(Fix_PortWindowSaveToggle), nameof(SetMode)); n++; }
+                yield return c;
+            }
+            if (n == 0) Util.Log("Hafen-Fenster-Fix: SetMode nicht gefunden, Fix nicht aktiv");
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // 'Slot "Fuel 1" / "Hidden Goods 1" is defined for entity type "Large Freighter 01/02" in game data, but it's missing
+    // in the entity prefab': the game data gives these freighters cargo for slots their 3D model does not have, so the game
+    // logs an error and that cargo item is never placed on the ship. Now the missing slot is added at runtime, next to a
+    // similar slot of the same ship (e.g. "Hidden Goods 1" next to another "Goods" slot), and the cargo is placed there.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.SandboxEntity), "SpawnEquipment", new[] { typeof(UBOAT.Game.Sandbox.SandboxEquipment), typeof(bool) }, new[] { HarmonyLib.ArgumentType.Normal, HarmonyLib.ArgumentType.Ref })]
+    internal static class Fix_MissingCargoSlot
+    {
+        private static readonly System.Collections.Generic.HashSet<string> logged = new System.Collections.Generic.HashSet<string>();
+        private static readonly System.Collections.Generic.List<UBOAT.Game.Scene.Entities.ShipEquipmentSlot> buf = new System.Collections.Generic.List<UBOAT.Game.Scene.Entities.ShipEquipmentSlot>();
+
+        private static void Prefix(UBOAT.Game.Sandbox.SandboxEntity __instance, UBOAT.Game.Sandbox.SandboxEquipment equipment, ref bool sceneSlotsAlreadyBuffered)
+        {
+            try
+            {
+                var ent = __instance?.SpawnedEntity;
+                if (ent == null || equipment?.Slot == null) return;
+                string name = equipment.Slot.Name;
+                if (string.IsNullOrEmpty(name) || name == "Deck Goods A") return;
+                ent.GetComponentsInChildren(true, buf);
+                foreach (var s in buf) if (s != null && s.name == name) return;          // slot exists: nothing to do
+                string stem = name.TrimEnd('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ');
+                string word = stem.Contains(" ") ? stem.Substring(stem.LastIndexOf(' ') + 1) : stem;
+                UBOAT.Game.Scene.Entities.ShipEquipmentSlot like = null;
+                foreach (var s in buf) if (s != null && s.name.StartsWith(stem)) { like = s; break; }
+                if (like == null) foreach (var s in buf) if (s != null && s.name.Contains(word)) { like = s; break; }
+                if (like == null) foreach (var s in buf) if (s != null && s.GetComponentInParent<UBOAT.Game.Scene.Items.Storage>() != null) { like = s; break; }
+                if (like == null) return;   // nothing similar on this ship: leave it to the game
+                var go = new UnityEngine.GameObject(name);
+                go.layer = like.gameObject.layer;
+                go.transform.SetParent(like.transform.parent, false);
+                go.transform.localPosition = like.transform.localPosition + new UnityEngine.Vector3(0f, 0f, 0.8f);
+                go.transform.localRotation = like.transform.localRotation;
+                go.AddComponent<UBOAT.Game.Scene.Entities.ShipEquipmentSlot>();
+                sceneSlotsAlreadyBuffered = false;   // the game re-reads the ship's slots and now finds the new one
+                string type = Util.SafeGet(() => __instance.Type.Name, "?");
+                if (logged.Add(type + "/" + name)) Util.Log("Ladung: Platz \"" + name + "\" fehlte im Modell von " + type + ", neben \"" + like.name + "\" ergänzt");
+            }
+            catch (System.Exception e) { Util.Log("Ladung: Platz ergänzen fehlgeschlagen: " + e.Message); }
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Characters.Skills;
+
+    // A periscope whose "vision" renderer has no material (seen on a custom boat model): Periscope.Awake stops at
+    // Instantiate(vision.sharedMaterial) ("The Object you want to instantiate is null"), so the rest of Awake never runs
+    // and Periscope.Update then throws a NullReferenceException EVERY FRAME (lag, periscope unusable). Now the empty
+    // renderer gets the visionUI material (or a plain one) first, so Awake finishes. Logged once per periscope.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Items.Periscope), "Awake")]
+    internal static class Fix_PeriscopeNoMaterial
+    {
+        private static void Prefix(UBOAT.Game.Scene.Items.Periscope __instance)
+        {
+            try
+            {
+                var vision = __instance.Vision;
+                if (vision == null || vision.sharedMaterial != null) return;
+                var ui = __instance.VisionUI;
+                var mat = ui != null && ui.sharedMaterial != null ? ui.sharedMaterial : null;
+                if (mat == null) { var sh = UnityEngine.Shader.Find("Unlit/Texture") ?? UnityEngine.Shader.Find("Standard"); if (sh != null) mat = new UnityEngine.Material(sh); }
+                if (mat == null) return;
+                vision.sharedMaterial = mat;
+                Util.Log("Sehrohr: '" + __instance.name + "' hatte kein Bild-Material, Ersatz gesetzt (" + mat.name + ") - sonst Fehler in jedem Bild");
+            }
+            catch (System.Exception e) { Util.Log("Sehrohr: Ersatz-Material fehlgeschlagen: " + e.Message); }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/GameFixes.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::DWS.Common.InjectionFramework;
+    using global::UBOAT.Game.Core.Time;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Missions;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Stories;
+    using global::UBOAT.Game.Scene.Tasks;
+    using global::UBOAT.Game.UI;
+
+    // Small game fixes, own code. Each part has its own switch.
+    public class GameFixes : ModuleBase
+    {
+        [Inject] internal static StoryFragmentsDatabase fragments;
+        private PlayerShip lastShip;
+
+        private bool warned;
+        private float nextPortCheck;
+
+        public override void Tick()
+        {
+            var ship = Util.PlayerShip;
+            if (ship != null && Settings.B("FixSkipperDead") && Time.unscaledTime > nextPortCheck)
+            {
+                nextPortCheck = Time.unscaledTime + 5.7f;
+                Util.Safe("Fixes.PortWarn", () => PortWarning(ship));
+            }
+            Util.Safe("Fixes.SpeedOff", Fix_SpeedCompression.Restore);
+            Util.Safe("Fixes.Officers", ExtraOfficers);
+            Util.Safe("Fixes.Sailors", ExtraSailors);
+            if (ship == null || ship == lastShip) return;
+            lastShip = ship;   // new game scene / save loaded
+            Util.Safe("Fixes.Inject", () => InjectionFramework.Instance.InjectIntoAssembly(typeof(GameFixes).Assembly));
+            if (Settings.B("FixPortDialogue")) Util.Safe("Fixes.Tags", () => CleanTags(ship));
+        }
+
+        // Stuck conversation tags make port officers show no options. Remove them once per load.
+        private static readonly string[] officerTrees = { "Driver", "Personnel Officer", "Harbor Captain", "Flotilla Commander", "Operations Officer" };
+        private static void CleanTags(PlayerShip ship)
+        {
+            var vars = ship.SandboxEntity?.Variables;
+            if (vars == null || vars.Count == 0) return;
+            var names = new HashSet<string> { "Activate", "FirstDialogue" };
+            var list = fragments == null ? null : Traverse.Create(fragments).Field("storyFragments").GetValue<List<StoryFragment>>();
+            if (list != null)
+                foreach (var f in list)
+                    if (f.Path != null && officerTrees.Any(p => f.Path.StartsWith(p)) && f.Id.Length > f.Path.Length)
+                        names.Add(f.Id.Substring(f.Path.Length));
+            int n = names.Count(vars.Remove);
+            if (n > 0) Util.Log("Hafen-Dialog: " + n + " haengende Gespraechs-Markierungen entfernt");
+        }
+
+        // Before reaching a port: warn if the commander is dead or wounded (port talks need him).
+        private void PortWarning(PlayerShip ship)
+        {
+            bool nearPort = !ship.Docked && Util.Find<UBOAT.Game.Scene.Dock.DockArea>(5f)
+                .Any(d => d != null && (d.transform.position - ship.transform.position).sqrMagnitude < 3000f * 3000f);
+            if (!nearPort) { warned = false; return; }
+            if (warned || SkipperOk()) return;
+            warned = true;
+            string text = "Achtung: Kommandant tot oder verwundet! Vor dem Anlegen heilen (F10 > Cheat > Alle heilen), sonst gehen die Hafen-Gespr\u00e4che nicht.";
+            var bar = UnityEngine.Object.FindObjectOfType<NotificationBarUI>();
+            if (bar != null) bar.OpenNow("Icons/Notification Bar/Notification - 40 - Danger", text);
+            Util.Log(text);
+        }
+
+        // More officers allowed on board (runtime only, nothing is written into the save).
+        private Modifier officerMod;
+        private object officerCareer;
+        private void ExtraOfficers()
+        {
+            var c = Util.Career;
+            float want = Settings.F("ExtraOfficers");
+            if (c == null) return;
+            if (!ReferenceEquals(c, officerCareer)) { officerMod = null; officerCareer = c; }
+            // 0.4.20: the value stored in the savegame is found again (by name) instead of adding a second one
+            if (want <= 0f) { Util.DropDelta(c.OfficersOnBoardLimit, "Toolkit Officers"); officerMod = null; return; }
+            officerMod = Util.OneDelta(c.OfficersOnBoardLimit, "Toolkit Officers");
+            if (officerMod.Value != want) officerMod.Value = want;
+            // 0.4.41 (DoMe: "ich kann plötzlich nur noch 19 offiziere mitnehmen"): the sum is written out whenever it changes
+            float total = c.OfficersOnBoardLimit.Value;
+            if (total != officerShown) { officerShown = total; Util.Log("Offiziere an Bord: Spiel " + (total - want).ToString("0") + " + Toolkit " + want.ToString("0") + " = " + total.ToString("0") + " erlaubt (Regler geht bis +60)"); }
+        }
+        private float officerShown = -1f;
+
+        // More sailors allowed on board. "Volle Crew" recruits up to FullCrewSize men, but the game
+        // only lets 20 sailors aboard a Type VII. With "SailorsFollowFullCrew" on, the sailor limit is
+        // raised so the whole wanted crew fits (FullCrewSize minus the officer places). Plus a manual
+        // extra. Runtime only, nothing is written into the save.
+        private Modifier sailorMod;
+        private object sailorCareer;
+        private void ExtraSailors()
+        {
+            var c = Util.Career;
+            if (c == null) return;
+            if (!ReferenceEquals(c, sailorCareer)) { sailorMod = null; sailorCareer = c; }
+            // 0.4.20 (log: "Matrosen an Bord: jetzt bis 1438 erlaubt"): the extra places stored in the savegame were
+            // counted as the game's own limit and new ones were added on top after every load.
+            sailorMod = Util.OneDelta(c.SailorsOnBoardLimit, "Toolkit Sailors", false);
+            float game = c.SailorsOnBoardLimit.Value - (sailorMod != null ? sailorMod.Value : 0f);
+            float want = 0f;
+            if (Settings.B("SailorsFollowFullCrew") && Settings.B("FullCrewAtStart"))
+                want = Mathf.Max(0f, Settings.F("FullCrewSize") - c.OfficersOnBoardLimit.Value - 1f - game);   // -1 = commander
+            want += Mathf.Max(0f, Settings.F("ExtraSailors"));
+            if (want <= 0f) { if (sailorMod != null) { sailorMod.Remove(); sailorMod = null; } return; }
+            if (sailorMod == null) sailorMod = Util.OneDelta(c.SailorsOnBoardLimit, "Toolkit Sailors");
+            want = Mathf.Round(want);
+            if (sailorMod.Value != want) { sailorMod.Value = want; Util.Log("Matrosen an Bord: jetzt bis " + Mathf.RoundToInt(game + want) + " erlaubt"); }
+        }
+
+        internal static bool SkipperOk()
+        {
+            var crew = Util.Find<PlayerCrew>(30f).FirstOrDefault();
+            var s = crew != null ? crew.Skipper : null;
+            return crew == null || (s != null && !s.Injury);
+        }
+    }
+
+    // --- Berlin time: all clocks show German time (CET), no time zone messages.
+    [HarmonyPatch(typeof(TimeZoneTracker), "LocalOffsetFromCET", MethodType.Getter)]
+    internal static class Fix_BerlinOffset
+    {
+        private static bool Prefix(ref int __result) { if (!Settings.B("BerlinTime")) return true; __result = 0; return false; }
+    }
+    [HarmonyPatch(typeof(TimeZoneTracker), "UpdateTimeZone")]
+    internal static class Fix_BerlinZone
+    {
+        private static bool Prefix(ref int ___currentUtcOffsetHours)
+        {
+            if (!Settings.B("BerlinTime")) return true;
+            ___currentUtcOffsetHours = 1;
+            return false;
+        }
+    }
+
+    // --- Commander dead or wounded: no port officer talks and no story dialogues that need him.
+    [HarmonyPatch(typeof(PortActivitiesUI), "StartAction")]
+    internal static class Fix_SkipperPortTalk
+    {
+        private static bool Prefix(string destinationOfficerTag)
+        {
+            if (!Settings.B("FixSkipperDead") || destinationOfficerTag == null || !destinationOfficerTag.StartsWith("Dialogue:")) return true;
+            return GameFixes.SkipperOk();
+        }
+    }
+    [HarmonyPatch(typeof(StoryDialogueAction), "GetState")]
+    internal static class Fix_SkipperStory
+    {
+        private static void Postfix(ref ActionStateData __result)
+        {
+            if (Settings.B("FixSkipperDead") && !GameFixes.SkipperOk()) __result = new ActionStateData(ActionState.Hidden);
+        }
+    }
+
+    // --- Port dialogue: a click while the dialogue closes must not break it.
+    [HarmonyPatch(typeof(GenericStory), "ContinueStory")]
+    internal static class Fix_StoryContinue
+    {
+        private static bool Prefix(GenericStory __instance, ref bool __result, object ___scriptingEnvironment)
+        {
+            if (!Settings.B("FixPortDialogue") || __instance.Running || ___scriptingEnvironment != null) return true;
+            __result = false;
+            return false;
+        }
+    }
+    [HarmonyPatch(typeof(GenericStory), "AddTempTag")]
+    internal static class Fix_StoryTag
+    {
+        private static bool Prefix(GenericStory __instance, object ___scriptingEnvironment)
+            => !Settings.B("FixPortDialogue") || __instance.Running || ___scriptingEnvironment != null;
+    }
+
+    // --- Radio assignments: rewards of earlier finished assignments get paid too.
+    [HarmonyPatch(typeof(MissionSummaryAnimation), "StopAnimation")]
+    internal static class Fix_RadioRewards
+    {
+        private static void Prefix(bool ___notableEventsMode, IMission ___mission, out object[] __state) { __state = new object[] { ___notableEventsMode, ___mission }; }
+        private static void Finalizer(object[] __state)
+        {
+            if (!Settings.B("FixRadioRewards") || __state == null || (bool)__state[0]) return;
+            Util.Safe("Fix.RadioRewards", () =>
+            {
+                var reg = Resources.FindObjectsOfTypeAll<MissionsRegister>().FirstOrDefault();
+                if (reg == null) return;
+                int paid = 0;
+                for (int i = 0; i < reg.Count; i++)
+                {
+                    var m = reg[i];
+                    var a = m as IAssignmentMission;
+                    if (a == null || ReferenceEquals(m, __state[1]) || m.State != MissionState.Completed) continue;
+                    if ((m.CompletionFlags & MissionCompletionFlags.RewardAccepted) != 0 || a.AssignmentObjectiveState != AssignmentObjectiveState.Completed) continue;
+                    m.GiveRewardsToPlayer();
+                    paid++;
+                }
+                if (paid == 0) return;
+                Util.Log("Funkauftrag: " + paid + " vergessene Belohnung(en) ausgezahlt");
+                var ui = UnityEngine.Object.FindObjectOfType<ActiveMissionSummaryUI>(true);
+                if (ui != null) AccessTools.Method(typeof(ActiveMissionSummaryUI), "ValidateDropdownOptions")?.Invoke(ui, null);
+            });
+        }
+    }
+
+    // --- Speed & range at high time compression (own approach):
+    // 1) physics runs at most x100 instead of x300, the rest is plain time skip
+    [HarmonyPatch(typeof(TimeCompressionController), "TimeCompressionScale_Changed")]
+    internal static class Fix_SpeedCompression
+    {
+        internal static bool Applied;
+        private static TimeCompressionController last;
+        // 0.4.22 (option audit): switched off while the time compression runs = the game's own values at once
+        // (before they came back only at the next change of the compression).
+        internal static void Restore()
+        {
+            if (!Applied || Settings.B("FixSpeedRange")) return;
+            Applied = false;
+            var c = last;
+            if (c != null)
+            {
+                var t = Traverse.Create(c);
+                if (!t.Field("timeCompression").GetValue<bool>()) return;
+                var mod = t.Field("timeScaleModifier").GetValue<Modifier>();
+                var gt = t.Field("gameTime").GetValue<GameTime>();
+                var par = t.Field("timeCompressionScale").GetValue<Parameter>();
+                if (mod == null || gt == null || par == null) return;
+                float s = par;
+                mod.Value = Mathf.Min(300f, s);
+                gt.ArtificialTimeScale = Mathf.Max(1f, s / 300f);
+                Util.Log("Zeitraffer-Fix aus: Spielwerte wieder gesetzt (Physik x" + mod.Value.ToString("0") + ")");
+            }
+        }
+        private static void Postfix(TimeCompressionController __instance, Parameter timeCompressionScale)
+        {
+            if (!Settings.B("FixSpeedRange")) { Applied = false; return; }   // the game's own method just set its own values
+            var t = Traverse.Create(__instance);
+            if (!t.Field("timeCompression").GetValue<bool>()) return;
+            Applied = true; last = __instance;
+            var mod = t.Field("timeScaleModifier").GetValue<Modifier>();   // field is a Modifier (was read as wrong type -> "Specified cast is not valid")
+            var gt = t.Field("gameTime").GetValue<GameTime>();
+            if (mod == null || gt == null) return;
+            float s = timeCompressionScale;
+            mod.Value = Mathf.Min(100f, s);
+            gt.ArtificialTimeScale = Mathf.Max(1f, s / 100f);
+        }
+    }
+    // 2) spray on the tower slows the boat a lot at high speed-up -> skipped there
+    [HarmonyPatch(typeof(ConningTowerSprayEffect), "FixedUpdate")]
+    internal static class Fix_SpeedSpray
+    {
+        private static bool Prefix(ConningTowerSprayEffect __instance)
+        {
+            if (!Settings.B("FixSpeedRange") || Time.timeScale < 100f) return true;
+            var ship = Util.PlayerShip;
+            if (ship == null || !__instance.transform.IsChildOf(ship.transform)) return true;
+            return ship.SubmergedOrGoingToSubmerge || ship.ActiveEngine == null || ship.ActiveEngine.GearIndex == 0;
+        }
+    }
+    // 3) water drag: learn the real value per boat and gear at normal speed, use it at x100 and more
+    [HarmonyPatch(typeof(PlayWay.Water.Extensions.NeuralNetworkPhysics), "SimpleUpdate")]
+    internal static class Fix_SpeedDrag
+    {
+        private static readonly Dictionary<string, float> learned = new Dictionary<string, float>();
+        private static bool loaded;
+        private static float nextSave;
+        private static string File => Path.Combine(Settings.Folder, "toolkit-drag.txt");
+
+        private static string Key(PlayerShip s) => (s.SandboxEntity?.Type?.Name ?? "?") + "|" + s.ActiveEngine.GearIndex;
+
+        internal static void Handle(PlayWay.Water.Extensions.NeuralNetworkPhysics p)
+        {
+            if (!Settings.B("FixSpeedRange")) return;
+            var ship = Util.PlayerShip;
+            if (ship == null || ship.ActiveEngine == null || ship.SubmergedOrGoingToSubmerge || ship.ActiveEngine.GearIndex == 0) return;
+            if (!p.transform.IsChildOf(ship.transform)) return;
+            Load();
+            var t = Traverse.Create(p);
+            string k = Key(ship);
+            if (Time.timeScale < 20f)
+            {
+                float now = t.Field("areaFractionSmoothed").GetValue<float>();
+                if (now <= 0.01f || now > 0.6f) return;
+                learned[k] = learned.TryGetValue(k, out var old) ? Mathf.Lerp(old, now, 0.01f) : now;
+                if (Time.unscaledTime > nextSave) { nextSave = Time.unscaledTime + 60f; Save(); }
+            }
+            else if (Time.timeScale >= 100f)
+            {
+                if (!learned.TryGetValue(k, out var v))
+                {
+                    string type = k.Substring(0, k.IndexOf('|') + 1);
+                    var any = learned.Where(e => e.Key.StartsWith(type)).Select(e => e.Value).ToList();
+                    v = any.Count > 0 ? any.Average() : 0.12f;
+                }
+                t.Field("areaFractionSmoothed").SetValue(v);
+                t.Field("submergedAreaFraction").SetValue(v);
+            }
+        }
+
+        private static void Load()
+        {
+            if (loaded) return;
+            loaded = true;
+            try
+            {
+                if (!System.IO.File.Exists(File)) return;
+                foreach (var line in System.IO.File.ReadAllLines(File))
+                {
+                    int i = line.LastIndexOf('=');
+                    if (i > 0 && float.TryParse(line.Substring(i + 1), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v)) learned[line.Substring(0, i)] = v;
+                }
+            }
+            catch { }
+        }
+
+        private static void Save()
+        {
+            try { System.IO.File.WriteAllLines(File, learned.Select(e => e.Key + "=" + e.Value.ToString(System.Globalization.CultureInfo.InvariantCulture))); } catch { }
+        }
+
+        private static void Prefix(PlayWay.Water.Extensions.NeuralNetworkPhysics __instance) => Handle(__instance);
+    }
+    [HarmonyPatch(typeof(PlayWay.Water.Extensions.NeuralNetworkPhysics), "Execute")]
+    internal static class Fix_SpeedDragFull
+    {
+        private static void Prefix(List<PlayWay.Water.Extensions.NeuralNetworkPhysics> list) { if (Time.timeScale >= 100f) Each(list); }
+        private static void Postfix(List<PlayWay.Water.Extensions.NeuralNetworkPhysics> list) => Each(list);
+        private static void Each(List<PlayWay.Water.Extensions.NeuralNetworkPhysics> list)
+        {
+            if (list == null || !Settings.B("FixSpeedRange")) return;
+            var ship = Util.PlayerShip;
+            if (ship == null) return;
+            for (int i = 0; i < list.Count; i++)
+                if (list[i] != null && list[i].transform.IsChildOf(ship.transform)) { Fix_SpeedDrag.Handle(list[i]); break; }
+        }
+    }
+
+    // --- Pause without blur and without the dark overlay.
+    [HarmonyPatch(typeof(PauseEffects), "SetPostProcessingWeight")]
+    internal static class Fix_PauseBlur
+    {
+        private static void Prefix(ref float f) { if (Settings.B("NoPauseBlur")) f = 0f; }
+    }
+    [HarmonyPatch(typeof(PauseOverlayUI), "ValidateState")]
+    internal static class Fix_PauseOverlay
+    {
+        private static void Postfix(PauseOverlayUI __instance) { if (Settings.B("NoPauseDark") && __instance.gameObject.activeSelf) __instance.gameObject.SetActive(false); }
+    }
+
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::DWS.Common.InjectionFramework;
+    using global::UBOAT.Game.Core.Time;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Missions;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Stories;
+    using global::UBOAT.Game.Scene.Tasks;
+    using global::UBOAT.Game.UI;
+
+    // New career: skip the intro tutorial (switch "SkipIntroTutorial", default on).
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Sandbox.Missions.StartScript), "StartIntroTutorial")]
+    internal static class GameFixes_SkipIntroTutorialPatch
+    {
+        private static bool Prefix()
+        {
+            if (!Settings.B("SkipIntroTutorial")) return true;
+            Util.Log("Einführungs-Tutorial übersprungen");
+            return false;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::DWS.Common.InjectionFramework;
+    using global::UBOAT.Game.Core.Time;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Missions;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Stories;
+    using global::UBOAT.Game.Scene.Tasks;
+    using global::UBOAT.Game.UI;
+
+    // QoL: "Mesh assigned to a collider is not readable: Bin / Clock / Folder_01".
+    // Cause (game code, Entity.CollectColliders): some small props in the boat/port have a collision
+    // shape whose 3D data is locked. The game then cannot compute its volume, writes a red error and
+    // counts the part with volume 0 (it is left out of weight/buoyancy spreading).
+    // Fix: the red line is replaced by one quiet toolkit log line per object, and the volume is
+    // taken from the shape's bounding box instead (always readable), so the part counts again.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Scene.Entities.Entity), "CollectColliders")]
+    internal static class GameFixes_UnreadableColliderPatch
+    {
+        private static readonly System.Collections.Generic.HashSet<string> told = new System.Collections.Generic.HashSet<string>();
+
+        private static System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> Transpiler(System.Collections.Generic.IEnumerable<HarmonyLib.CodeInstruction> code)
+        {
+            var logError = HarmonyLib.AccessTools.Method(typeof(UnityEngine.Debug), "LogError", new[] { typeof(object) });
+            var quiet = HarmonyLib.AccessTools.Method(typeof(GameFixes_UnreadableColliderPatch), nameof(Quiet));
+            foreach (var ci in code)
+            {
+                if (ci.Calls(logError)) yield return new HarmonyLib.CodeInstruction(System.Reflection.Emit.OpCodes.Call, quiet) { labels = ci.labels, blocks = ci.blocks };
+                else yield return ci;
+            }
+        }
+
+        public static void Quiet(object msg)
+        {
+            if (!Settings.B("FixUnreadableColliders")) { UnityEngine.Debug.LogError(msg); return; }
+            string s = msg as string ?? "";
+            if (told.Add(s)) Util.Log("Kollision ohne lesbare Form, Volumen aus Umriss berechnet: " + s.Replace("Mesh assigned to a collider is not readable: ", ""));
+        }
+
+        private static void Postfix(ref UnityEngine.Collider[] colliders, ref float[] colliderVolumes, ref float totalVolume)
+        {
+            if (!Settings.B("FixUnreadableColliders") || colliders == null || colliderVolumes == null) return;
+            try
+            {
+                for (int i = 0; i < colliders.Length && i < colliderVolumes.Length; i++)
+                {
+                    var mc = colliders[i] as UnityEngine.MeshCollider;
+                    if (mc == null || mc.sharedMesh == null || mc.sharedMesh.isReadable || colliderVolumes[i] > 0f) continue;
+                    var size = mc.sharedMesh.bounds.size;
+                    var sc = mc.transform.lossyScale;
+                    float v = UnityEngine.Mathf.Abs(size.x * sc.x * size.y * sc.y * size.z * sc.z);
+                    colliderVolumes[i] = v;
+                    totalVolume += v;
+                }
+            }
+            catch (System.Exception e) { Util.Log("Kollisions-Fix: " + e.Message); }
+        }
+    }
+
+    // QoL: "Couldn't sample navmesh for position (-65.7, 2.1, -41.4)".
+    // Cause (game code, GoToBehaviour.SnapTarget): a crew member is sent to a spot that lies a bit
+    // off the walkable area (here in port). The game only searches 1.5 m around it, finds nothing,
+    // writes the red error and the man gives up / stands around. Fix: search wider (up to 5 m)
+    // and send him to the nearest walkable point instead.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour), "SnapTarget")]
+    internal static class GameFixes_NavmeshSnapPatch
+    {
+        private static readonly System.Collections.Generic.HashSet<string> Warned = new System.Collections.Generic.HashSet<string>();
+        private static readonly System.Collections.Generic.Dictionary<string, int> Tries = new System.Collections.Generic.Dictionary<string, int>();
+        private static bool Prefix(UBOAT.Game.Core.AI.Behaviours.GoToBehaviour __instance, ref UnityEngine.Vector3 ___target, ref bool __result)
+        {
+            if (!Settings.B("FixNavmeshSnap")) return true;
+            try
+            {
+                var nav = HarmonyLib.Traverse.Create(__instance).Field("navigator").GetValue<UBOAT.Game.Scene.Characters.Navigation.NavMeshNavigator>();
+                if (nav == null) return true;
+                int mask = nav.WalkableAreasMask;
+                if (UnityEngine.AI.NavMesh.SamplePosition(___target, out var hit, 1.5f, mask)) return true;   // normal case: game does it
+                if (!UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 5f, mask)
+                    && !UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 60f, mask))
+                {
+                    // 0.3.53 (DoMe: many short error popups): nothing walkable within 60 m. The game would log a red
+                    // error every 3 s for minutes. Return the same "false" quietly and note it once in our log.
+                    string key = ___target.ToString();
+                    // 0.3.54 (DoMe: "nach 5 erfolglosen Versuchen helfen"): from the 5th try search up to 300 m and walk there.
+                    Tries.TryGetValue(key, out int n); Tries[key] = ++n;
+                    if (n >= 5 && UnityEngine.AI.NavMesh.SamplePosition(___target, out hit, 300f, mask)
+                        && (!Util.IsPlayers(nav) || Util.PlayerShip == null
+                            || UnityEngine.Vector3.Distance(hit.position, Util.PlayerShip.transform.position) < 80f))   // crew on own boat stays on own boat
+                    {
+                        Util.Log("Laufweg: Ziel " + key + " nach " + n + " Versuchen auf " + hit.position + " verlegt (" + UnityEngine.Vector3.Distance(___target, hit.position).ToString("0") + " m)");
+                        Tries.Remove(key);
+                        ___target = hit.position; __result = true; return false;
+                    }
+                    if (Warned.Add(key)) Util.Log("Laufweg: Ziel " + key + " nicht erreichbar (" + __instance.GetType().Name + "), Fehler-Popup unterdrückt");
+                    __result = false;
+                    return false;
+                }
+                ___target = hit.position;
+                __result = true;
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::DWS.Common.InjectionFramework;
+    using global::UBOAT.Game.Core.Time;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Missions;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Stories;
+    using global::UBOAT.Game.Scene.Tasks;
+    using global::UBOAT.Game.UI;
+
+    // QoL: "InvalidOperationException: Unrecognized mode." (game code, UseGun.OnModeChosen).
+    // The gun's target buttons (Ships / Aircraft / Hold fire) share one window with other devices.
+    // When the window switches, the old buttons are only removed at the end of the frame and can
+    // still fire with a mode the gun does not know -> error. Unknown modes are now simply ignored.
+    [HarmonyPatch(typeof(UBOAT.Game.Scene.Characters.Actions.UseGun), "OnModeChosen")]
+    internal static class Fix_GunUnknownMode
+    {
+        private static Exception Finalizer(Exception __exception, string mode)
+        {
+            if (__exception is InvalidOperationException && Settings.B("FixGunModeError"))
+            {
+                Util.Log("Geschütz: unbekannter Modus \"" + mode + "\" ignoriert");
+                return null;
+            }
+            return __exception;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::DWS.Common.InjectionFramework;
+    using global::UBOAT.Game.Core.Time;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Missions;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Stories;
+    using global::UBOAT.Game.Scene.Tasks;
+    using global::UBOAT.Game.UI;
+
+    // Unity "Development Console" (only exists in a Development Build of the game): it pops up on every error and covers
+    // the screen. It is closed again in the same frame. Logging is not affected: errors still go to output_log.txt.
+    // 0.3.91 (DoMe: "beim Laden flackert immer wieder die Debug-Konsole"): closing it once per Update was too late while
+    // loading (long frames, the console was drawn in between). Now it is also closed right when the error is logged
+    // (the console opens because of that error), before rendering and in OnGUI.
+    public class DevConsoleHide : ModuleBase
+    {
+        private static bool logged, hooked;
+        private static int closed, reasons; private static float nextCount;
+        internal static void Close()
+        {
+            if (!Settings.B("HideDevConsole") || !UnityEngine.Debug.developerConsoleVisible) return;
+            UnityEngine.Debug.developerConsoleVisible = false;
+            closed++;
+            if (UnityEngine.Time.unscaledTime > nextCount) { nextCount = UnityEngine.Time.unscaledTime + 60f; Util.Log("Entwickler-Konsole: bisher " + closed + " mal sofort wieder geschlossen"); }
+            if (!logged) { logged = true; Util.Log("Entwickler-Konsole geschlossen (Spiel läuft als Development Build: " + UnityEngine.Debug.isDebugBuild + ")"); }
+        }
+        internal static void Hook()
+        {
+            if (hooked) return;
+            hooked = true;
+            UnityEngine.Application.logMessageReceived += (c, st, t) =>
+            {
+                if (t != UnityEngine.LogType.Error && t != UnityEngine.LogType.Exception && t != UnityEngine.LogType.Assert) return;
+                bool was = UnityEngine.Debug.developerConsoleVisible;
+                Close();
+                // 0.3.93: name what opened the console (first line only), so the cause can be found in the log.
+                if (reasons < 30) { reasons++; var line = c ?? ""; int n = line.IndexOf('\n'); if (n >= 0) line = line.Substring(0, n); if (line.Length > 160) line = line.Substring(0, 160); DebugLog.Write("INFO", "Konsole ausgelöst von (" + t + (was ? ", war offen" : "") + "): " + line); }
+            };
+            UnityEngine.Application.onBeforeRender += Close;
+            // 0.4.45 (DoMe: "ploppt dauerhaft kurz die debug console auf"): errors that Unity raises WHILE it draws the
+            // picture (log: SkinnedMeshRenderer "rendering stopped", AmbientOcclusion) open the console after the points
+            // above and it stayed on screen for that one frame. Now it is also closed after every camera has drawn,
+            // which is the last moment before the console itself is painted.
+            UnityEngine.Camera.onPostRender += cam => Close();
+            UnityEngine.Rendering.RenderPipelineManager.endCameraRendering += (ctx, cam) => Close();
+            UnityEngine.Rendering.RenderPipelineManager.endFrameRendering += (ctx, cams) => Close();
+            Util.Log("Entwickler-Konsole: wird jetzt auch nach dem Zeichnen jeder Kamera geschlossen");
+        }
+        private float nextLog;
+        public override void Frame()
+        {
+            Hook();
+            Close();
+            if (closed > 0 && UnityEngine.Time.unscaledTime > nextLog) { nextLog = UnityEngine.Time.unscaledTime + 60f; Util.Log("Entwickler-Konsole " + closed + "x geschlossen in der letzten Minute"); closed = 0; }
+        }
+    }
+
+    // Diagnosis (DoMe 2026-11-13: "end patrol -> port takes forever"): logs every scene unload/load with time since
+    // the previous one, so the log shows how long a transition really took.
+    public class SceneTiming : ModuleBase
+    {
+        private static bool hooked;
+        private static float last = -1f;
+        private static void Mark(string what, string scene)
+        {
+            float now = UnityEngine.Time.realtimeSinceStartup;
+            Util.Log("Szene " + what + ": " + scene + (last >= 0f ? " (+" + (now - last).ToString("0.0") + " s)" : ""));
+            last = now;
+        }
+        public override void Frame()
+        {
+            if (hooked) return;
+            hooked = true;
+            UnityEngine.SceneManagement.SceneManager.sceneUnloaded += s => Mark("entladen", s.name);
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) => Mark("geladen", s.name + " " + m);
+        }
+    }
+
+    // Fix (DoMe 2026-11-13): quitting while a save is still being written left Autosave_5 at 16 KB, and "Fortsetzen"
+    // then crashed while loading it. Quitting now waits until the game has finished writing, then quits by itself.
+    public class QuitGuard : ModuleBase
+    {
+        private static bool hooked, quitPending;
+        private static UBOAT.Game.Core.Serialization.SavesManager saves;
+        private static UBOAT.Game.Core.Serialization.SavesManager Saves
+        {
+            get
+            {
+                if (saves == null)
+                {
+                    try { saves = DWS.Common.InjectionFramework.ScriptableObjectSingleton.LoadSingleton<UBOAT.Game.Core.Serialization.SavesManager>(); } catch { }
+                    if (saves == null) saves = UnityEngine.Object.FindObjectOfType<UBOAT.Game.Core.Serialization.SavesManager>();
+                }
+                return saves;
+            }
+        }
+        private static bool WantsToQuit()
+        {
+            try
+            {
+                if (!Settings.B("QuitWaitsForSave")) return true;
+                var s = Saves;
+                if (s == null || !s.IsSaving) return true;
+                if (!quitPending) Util.Log("Beenden wartet: Spielstand wird noch geschrieben");
+                quitPending = true;
+                return false;
+            }
+            catch { return true; }
+        }
+        public override void Frame()
+        {
+            if (!hooked) { hooked = true; UnityEngine.Application.wantsToQuit += WantsToQuit; }
+            if (!quitPending) return;
+            var s = Saves;
+            if (s != null && s.IsSaving) return;
+            quitPending = false;
+            Util.Log("Spielstand fertig geschrieben, Spiel wird beendet");
+            typeof(UnityEngine.Application).GetMethod("Quit", System.Type.EmptyTypes).Invoke(null, null);   // via reflection: direct call is forbidden in mods
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::DWS.Common.InjectionFramework;
+    using global::UBOAT.Game.Core.Time;
+    using global::UBOAT.Game.Core.Data;
+    using global::UBOAT.Game.Sandbox;
+    using global::UBOAT.Game.Sandbox.Missions;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::UBOAT.Game.Scene.Entities;
+    using global::UBOAT.Game.Scene.Stories;
+    using global::UBOAT.Game.Scene.Tasks;
+    using global::UBOAT.Game.UI;
+
+    // 0.3.58 (DoMe: upgrades cannot be bought, short error each click): the game's InstallUpgrade crashes (NRE) when
+    // the boat has no slot for the item (unfinished game upgrades like "Reinforced Pistons", unlocked by research cheats).
+    // Now: no crash, a short notice instead.
+    [HarmonyPatch(typeof(PortServicesProvider), "InstallUpgrade")]
+    internal static class Fix_UpgradeNoSlot
+    {
+        private static readonly System.Reflection.MethodInfo Find = AccessTools.Method(typeof(PortServicesProvider), "FindSuitableSlot");
+        private static bool Prefix(PortServicesProvider __instance, SandboxEquipmentData equipmentData, ref bool __result)
+        {
+            try
+            {
+                var ship = Util.PlayerShip;
+                if (Find == null || ship == null || equipmentData == null) return true;
+                if (Find.Invoke(__instance, new object[] { ship, equipmentData }) != null) return true;
+                Util.Log("Upgrade: kein passender Platz im Boot fuer " + equipmentData.Name);
+                ToolkitRunner.ShowNotice("Passt nicht in dein Boot: " + equipmentData.Name, 4f);
+                __result = false;
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/GameGuards.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections;
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.UI;
+    using global::UnityEngine;
+
+    // Game error guards: places where the game itself throws an error every frame (stutter, slow menus,
+    // crashes). Each guard only acts after the error really happened, or on the exact broken state.
+    internal static class Guards
+    {
+        internal static bool On(string key) => Settings.B(key);
+        private static readonly HashSet<string> logged = new HashSet<string>();
+        internal static void Once(string key, string text) { if (logged.Add(key)) Util.Log("Fehlerschutz: " + text); }
+        internal static bool IsNull(Exception e) => e is NullReferenceException;
+    }
+
+    // 1) Character without an action queue: the role code reads it every frame and throws.
+    [HarmonyPatch(typeof(CharacterRole), "HasPlayerOrders", new Type[] { typeof(ActionQueue) })]
+    internal static class Guard_NoQueueOrders
+    {
+        private static bool Prefix(ActionQueue actionQueue, ref bool __result)
+        {
+            if (actionQueue != null || !Guards.On("GuardNoQueue")) return true;
+            __result = false; return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(CharacterRole), "AssignJob", new Type[] { typeof(PlayableCharacter) })]
+    internal static class Guard_NoQueueJob
+    {
+        private static bool Prefix(PlayableCharacter character)
+        {
+            if (!Guards.On("GuardNoQueue")) return true;
+            if (character == null) return false;
+            try { return character.ActionQueue != null; } catch { return false; }
+        }
+    }
+
+    // 2) Card game that keeps running after its table is gone: finish it instead of erroring every frame.
+    [HarmonyPatch(typeof(PlayCardsAction), "UpdateAction")]
+    internal static class Guard_CardsWithoutTable
+    {
+        private static readonly FieldInfo table = AccessTools.Field(typeof(PlayCardsAction), "table");
+        private static bool Prefix(PlayCardsAction __instance)
+        {
+            if (!Guards.On("GuardCards")) return true;
+            if (__instance == null) return false;
+            try
+            {
+                if (table == null || table.GetValue(__instance) != null) return true;
+                __instance.CompleteAction();
+                Guards.Once("cards", "Kartenspiel ohne Tisch beendet");
+                return false;
+            }
+            catch { return true; }
+        }
+    }
+
+    // 3) Destroyed enemy torpedo launcher group that errors every frame: switch off only that broken one.
+    [HarmonyPatch]
+    internal static class Guard_EnemyLauncher
+    {
+        private static MethodBase target;
+        private static readonly HashSet<int> broken = new HashSet<int>();
+        private static bool Prepare()
+        {
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Items.NPCTorpedoLauncherGroup");
+            target = t != null ? AccessTools.Method(t, "DoUpdate") : null;
+            return target != null;
+        }
+        private static MethodBase TargetMethod() => target;
+        private static bool Prefix(object __instance)
+        {
+            var o = __instance as UnityEngine.Object;
+            return o == null || !broken.Contains(o.GetInstanceID());
+        }
+        private static Exception Finalizer(object __instance, Exception __exception)
+        {
+            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardEnemyLauncher")) return __exception;
+            try
+            {
+                if (__instance is UnityEngine.Object o) broken.Add(o.GetInstanceID());
+                if (__instance is Behaviour b) b.enabled = false;
+                Guards.Once("launcher", "kaputte Torpedowerfer-Gruppe eines Gegners abgeschaltet");
+            }
+            catch { }
+            return null;
+        }
+    }
+
+    // 4) Ceiling fade area with a missing neighbour (after interior changes): switch off only that one.
+    [HarmonyPatch]
+    internal static class Guard_CeilingFade
+    {
+        private static MethodBase target;
+        private static bool Prepare()
+        {
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Effects.FadingCeilingArea");
+            target = t != null ? AccessTools.Method(t, "DoUpdate") : null;
+            return target != null;
+        }
+        private static MethodBase TargetMethod() => target;
+        private static Exception Finalizer(object __instance, Exception __exception)
+        {
+            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardCeiling")) return __exception;
+            try { if (__instance is Behaviour b) b.enabled = false; Guards.Once("ceiling", "kaputte Decken-Blende abgeschaltet"); } catch { }
+            return null;
+        }
+    }
+
+    // 5) Portrait bar keeps destroyed portraits after crew changes: clean the list.
+    internal static class PortraitRepair
+    {
+        private static readonly FieldInfo portraits = AccessTools.Field(typeof(CharacterPortraitsUI), "portraits");
+        private static readonly FieldInfo start = AccessTools.Field(typeof(CharacterPortraitsUI), "displayStartIndex");
+        private static readonly FieldInfo end = AccessTools.Field(typeof(CharacterPortraitsUI), "displayEndIndex");
+        private static readonly FieldInfo count = AccessTools.Field(typeof(CharacterPortraitsUI), "displayablePortraitsCount");
+        private static readonly HashSet<int> dirty = new HashSet<int>();
+        internal static void Mark(CharacterPortraitsUI ui) { if (ui != null) dirty.Add(ui.GetInstanceID()); }
+        internal static void RepairIfDirty(CharacterPortraitsUI ui) { if (ui != null && dirty.Remove(ui.GetInstanceID())) Repair(ui); }
+        internal static void Repair(CharacterPortraitsUI ui)
+        {
+            if (ui == null || portraits == null) return;
+            try
+            {
+                var src = portraits.GetValue(ui) as CharacterPortraitUI[];
+                if (src == null || src.Length == 0) return;
+                var clean = new List<CharacterPortraitUI>();
+                foreach (var p in src) if (p != null && p) clean.Add(p);
+                if (clean.Count == src.Length) return;
+                portraits.SetValue(ui, clean.ToArray());
+                int live = clean.Count, s = 0;
+                try { if (start != null) s = Mathf.Clamp((int)start.GetValue(ui), 0, live); } catch { }
+                try { start?.SetValue(ui, s); } catch { }
+                try { end?.SetValue(ui, Mathf.Clamp(live, s, live)); } catch { }
+                try { count?.SetValue(ui, live); } catch { }
+                Guards.Once("portraits", "zerstörte Porträts aus der Leiste entfernt");
+            }
+            catch { }
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class Guard_PortraitsMark
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            foreach (var n in new[] { "Character_Added", "Character_Removed", "OnEnable", "OnDisable" })
+            { var m = AccessTools.Method(typeof(CharacterPortraitsUI), n); if (m != null) yield return m; }
+        }
+        private static void Postfix(CharacterPortraitsUI __instance) { if (Guards.On("GuardPortraits")) PortraitRepair.Mark(__instance); }
+    }
+
+    [HarmonyPatch]
+    internal static class Guard_PortraitsRun
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            foreach (var n in new[] { "RenderPortraits", "DoUpdate", "DisplayRange" })
+            { var m = AccessTools.Method(typeof(CharacterPortraitsUI), n); if (m != null) yield return m; }
+        }
+        private static void Prefix(CharacterPortraitsUI __instance) { if (Guards.On("GuardPortraits")) PortraitRepair.RepairIfDirty(__instance); }
+        private static Exception Finalizer(CharacterPortraitsUI __instance, Exception __exception)
+        {
+            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardPortraits")) return __exception;
+            PortraitRepair.Repair(__instance);
+            return null;
+        }
+    }
+
+    // 6) Duty schedule / squad screen keeps destroyed buttons when closing: clean lists, catch that error.
+    [HarmonyPatch]
+    internal static class Guard_ScheduleGroup
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            foreach (var n in new[] { "CreateCharacterButtons", "Start", "OnAddAnySailor", "OnDisbandAnySailor", "OnCharacterToggle" })
+            { var m = AccessTools.Method(typeof(AssignmentManagementGroupUI), n); if (m != null) yield return m; }
+        }
+        private static void Prefix(AssignmentManagementGroupUI __instance) { if (Guards.On("GuardSchedule")) Compact(__instance); }
+        private static Exception Finalizer(AssignmentManagementGroupUI __instance, Exception __exception)
+        {
+            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardSchedule")) return __exception;
+            Compact(__instance);
+            Guards.Once("schedule", "Dienstplan-Fehler abgefangen");
+            return null;
+        }
+        private static void Compact(object o)
+        {
+            if (o == null) return;
+            try
+            {
+                foreach (var f in o.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                {
+                    if (!(f.GetValue(o) is IList list) || list.IsReadOnly || list.IsFixedSize) continue;
+                    for (int i = list.Count - 1; i >= 0; i--)
+                    {
+                        var v = list[i];
+                        if (v == null || (v is UnityEngine.Object u && !u)) list.RemoveAt(i);
+                    }
+                }
+            }
+            catch { }
+        }
+    }
+
+    // 7) The squad +/- buttons sometimes change the type (sailor/officer) of other men: put it back.
+    [HarmonyPatch]
+    internal static class Guard_SquadTypeFence
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            foreach (var n in new[] { "OnAddAnySailor", "OnDisbandAnySailor" })
+            { var m = AccessTools.Method(typeof(AssignmentManagementGroupUI), n); if (m != null) yield return m; }
+        }
+        private static void Prefix(out Dictionary<PlayableCharacterData, PlayableCharacterData.Type> __state)
+        {
+            __state = null;
+            if (!Guards.On("GuardSquadType")) return;
+            var crew = Util.Find<PlayerCrew>(30f);
+            __state = new Dictionary<PlayableCharacterData, PlayableCharacterData.Type>();
+            foreach (var pc in crew)
+                if (pc != null && pc.Characters != null)
+                    foreach (var c in pc.Characters) if (c != null && c.Data != null) __state[c.Data] = c.Data.CharacterType;
+        }
+        private static Exception Finalizer(Dictionary<PlayableCharacterData, PlayableCharacterData.Type> __state, Exception __exception)
+        {
+            if (__state == null) return __exception;
+            foreach (var kv in __state)
+                try
+                {
+                    if (kv.Key.CharacterType != kv.Value)
+                    {
+                        kv.Key.CharacterType = kv.Value;
+                        Guards.Once("squadtype", "Trupp-Knopf hat einen Mann-Typ verändert - zurückgesetzt");
+                    }
+                }
+                catch { }
+            return __exception;
+        }
+    }
+
+    // 8) Schedule controller keeps a destroyed part after changing game settings.
+    [HarmonyPatch]
+    internal static class Guard_ScheduleSettings
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            var t = UboatToolkit.Util.FindType("UBOAT.Game.Scene.Tasks.ExpandedSchedulesController");
+            var m = t != null ? AccessTools.Method(t, "UserSettings_Changed") : null;
+            if (m != null) yield return m;
+        }
+        private static Exception Finalizer(Exception __exception)
+        {
+            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardSchedule")) return __exception;
+            Guards.Once("schedset", "Dienstplan-Fehler nach Einstellungen abgefangen");
+            return null;
+        }
+    }
+
+    // 9) Follower buttons on a portrait: hover check must not break the crew screen.
+    [HarmonyPatch(typeof(CharacterPortraitUI), "ValidateFollowerButtons")]
+    internal static class Guard_FollowerButtons
+    {
+        private static Exception Finalizer(Exception __exception)
+        {
+            if (__exception == null || !Guards.IsNull(__exception) || !Guards.On("GuardPortraits")) return __exception;
+            Guards.Once("followers", "Gefolgs-Knopf-Fehler abgefangen");
+            return null;
+        }
+    }
+
+    // 10) Boarding checkboxes in port: the game removes/adds the man and destroys/spawns his body inside the click
+    // (stutter with many clicks). Here the click only marks the box; the real changes run one by one afterwards
+    // through the game's own handler, so all its rules (limits, healing, spawn point) stay the same.
+    public class BoardingQueue : ModuleBase
+    {
+        private static readonly FieldInfo toggleAction = AccessTools.Field(typeof(CrewListUI), "toggleAction");
+        private static readonly FieldInfo items = AccessTools.Field(typeof(CrewListUI), "items");
+        private static readonly FieldInfo stateFunc = AccessTools.Field(typeof(CrewListUI), "toggleStateFunc");
+        private static readonly List<PlayableCharacterData> order = new List<PlayableCharacterData>();
+        private static readonly Dictionary<PlayableCharacterData, bool> want = new Dictionary<PlayableCharacterData, bool>();
+        private static CrewListUI ui;
+        private static float nextAt;
+        internal static bool Busy;
+
+        internal static bool IsDefault(CrewListUI u)
+        {
+            try { var a = toggleAction?.GetValue(u) as Action<PlayableCharacterData>; return a != null && a.Method.Name == "DefaultToggleHandler"; }
+            catch { return false; }
+        }
+
+        internal static bool Board(PlayableCharacterData d)
+        {
+            var crew = Util.Find<PlayerCrew>(30f);
+            foreach (var c in crew) if (c != null) return c.GetCharacter(d) != null;
+            return false;
+        }
+
+        // Too many selected for the game's limits? Counts the ticked boxes (incl. waiting changes).
+        internal static bool Full(CrewListUI u, PlayableCharacterData cand)
+        {
+            var career = Util.Career;
+            if (career == null) return false;
+            int sailors = 0, officers = 0; bool counted = false;
+            foreach (var row in u.GetComponentsInChildren<CrewListItemUI>(true))
+            {
+                if (row == null || row.CharacterData == null || !row.Toggled) continue;
+                if (ReferenceEquals(row.CharacterData, cand)) counted = true;
+                if (row.CharacterData.CharacterType == PlayableCharacterData.Type.Sailor) sailors++; else officers++;
+            }
+            if (!counted) { if (cand.CharacterType == PlayableCharacterData.Type.Sailor) sailors++; else officers++; }
+            return cand.CharacterType == PlayableCharacterData.Type.Sailor ? sailors > career.SailorsOnBoardLimit.Value : officers > career.OfficersOnBoardLimit.Value;
+        }
+
+        internal static void Queue(CrewListUI u, PlayableCharacterData d, bool board)
+        {
+            ui = u;
+            if (Board(d) == board) { want.Remove(d); order.Remove(d); }
+            else { if (!want.ContainsKey(d)) order.Add(d); want[d] = board; }
+            nextAt = Time.unscaledTime + 0.35f;
+        }
+
+        public override void Frame()
+        {
+            if (order.Count == 0 || Time.unscaledTime < nextAt) return;
+            var d = order[0]; order.RemoveAt(0);
+            bool w = want.TryGetValue(d, out bool v) && v; want.Remove(d);
+            Busy = true;
+            try { if (d != null && Board(d) != w) CrewListUI.DefaultToggleHandler(d); }
+            catch (Exception e) { Util.Log("Einschiffen: " + e.Message); }
+            finally { Busy = false; }
+            nextAt = Time.unscaledTime + 0.18f;
+            RefreshRows();
+        }
+
+        // Same row refresh the game does after a click.
+        private static void RefreshRows()
+        {
+            try
+            {
+                if (ui == null || !ui || !ui.gameObject.activeInHierarchy) return;
+                var list = items?.GetValue(ui) as IList;
+                var f = stateFunc?.GetValue(ui) as Func<PlayableCharacterData, CrewListUI.CharacterStateInfo>;
+                if (list != null && f != null)
+                    for (int i = list.Count - 1; i >= 0; i--)
+                        if (list[i] is CrewListItemUI it && it)
+                        {
+                            var s = f(it.CharacterData);
+                            it.State = s.State; it.Toggleable = s.Toggleable;
+                        }
+                ui.ValidateCountLabels();
+            }
+            catch { }
+        }
+
+        internal static void FlushNow() { nextAt = 0f; }
+    }
+
+    [HarmonyPatch(typeof(CrewListUI), "OnToggle")]
+    internal static class Boarding_TogglePatch
+    {
+        private static bool Prefix(CrewListUI __instance, CrewListItemUI item, bool value)
+        {
+            if (!Settings.B("BoardingQueue") || BoardingQueue.Busy || !BoardingQueue.IsDefault(__instance)) return true;
+            if (item == null || item.CharacterData == null) return true;
+            if (value && !BoardingQueue.Board(item.CharacterData) && BoardingQueue.Full(__instance, item.CharacterData))
+            {
+                try { item.Toggled = false; } catch { }
+                return false;
+            }
+            BoardingQueue.Queue(__instance, item.CharacterData, value);
+            try { __instance.ValidateCountLabels(); } catch { }
+            return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(CrewListUI), "OnDisable")]
+    internal static class Boarding_ClosePatch
+    {
+        private static void Postfix() => BoardingQueue.FlushNow();
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections;
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.UI;
+    using global::UnityEngine;
+
+    // Commander creation: the skill list (SkillTreeUI) crashed in Start with a NullReferenceException,
+    // so the list stayed empty and no campaign could be started. This repairs a missing link to the
+    // character screen and writes exactly what was missing into the toolkit log.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.SkillTreeUI), "Start")]
+    internal static class GuardSkillTree
+    {
+        private static void Prefix(UBOAT.Game.UI.SkillTreeUI __instance, ref UBOAT.Game.Scene.Spaces.CharacterScreenScene ___scene)
+        {
+            try
+            {
+                string path = __instance.transform.name; var p = __instance.transform.parent;
+                while (p != null) { path = p.name + "/" + path; p = p.parent; }
+                if (___scene == null)
+                {
+                    ___scene = UnityEngine.Object.FindObjectOfType<UBOAT.Game.Scene.Spaces.CharacterScreenScene>();
+                    Util.Log("Fähigkeiten-Liste: Verbindung zum Charakter-Bildschirm fehlte (" + path + ", Szene " + __instance.gameObject.scene.name + ") - " + (___scene != null ? "repariert" : "nicht gefunden"));
+                }
+                else if (___scene.Character == null || ___scene.Character.Data == null)
+                    Util.Log("Fähigkeiten-Liste: noch keine Figur geladen (" + path + ")");
+            }
+            catch (System.Exception e) { Util.Log("Fähigkeiten-Liste Prüfung: " + e); }
+        }
+
+        private static System.Exception Finalizer(UBOAT.Game.UI.SkillTreeUI __instance, System.Exception __exception)
+        {
+            if (__exception != null) Util.Log("Fähigkeiten-Liste Fehler: " + __exception);
+            return __exception;
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections;
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::HarmonyLib;
+    using global::UBOAT.Game.Scene.Characters;
+    using global::UBOAT.Game.Scene.Characters.Actions;
+    using global::UBOAT.Game.UI;
+    using global::UnityEngine;
+
+    // The captain creation screen has a skill page the game never fills (it is not wired up there).
+    // The game opens that page by itself when the new captain has free skill points. Normally he has
+    // none, but with our skill point cheats he has, so the empty page showed and blocked the campaign
+    // start. Here the creation screen stays on the appearance page; the cheat works later as usual.
+    [HarmonyLib.HarmonyPatch(typeof(UBOAT.Game.UI.CharacterScreenGUI), "Scene_CharacterChanged")]
+    internal static class GuardCreationSkillTab
+    {
+        private static void Postfix(UBOAT.Game.UI.CharacterScreenGUI __instance, UnityEngine.UI.Toggle ___skillsButton, UnityEngine.UI.Toggle ___customizeButton)
+        {
+            try
+            {
+                if (__instance.gameObject.scene.name != "Character Creation") return;
+                if (___skillsButton != null && ___skillsButton.isOn && ___customizeButton != null)
+                {
+                    ___customizeButton.isOn = true;
+                    Util.Log("Kapitän-Erstellung: leere Fähigkeiten-Seite übersprungen, Aussehen-Seite offen");
+                }
+            }
+            catch (System.Exception e) { Util.Log("Kapitän-Erstellung Prüfung: " + e); }
+        }
+    }
+}
+
+// ====================================================================================================
+// Abschnitt: Modules/OtherModFixes.cs
+// ====================================================================================================
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::DWS.Common.Characters;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UnityEngine.SceneManagement;
+    using global::UBOAT.Game.UI.MainMenu;
+
+    // Fix for the "Supply Price Editor" mod: it searched the whole scene for the main menu every
+    // frame, even at sea. Now it only searches while the main menu is loaded, at most once a second.
+    [HarmonyPatch]
+    internal static class SupplyPriceMenu_Patch
+    {
+        private static MainMenu cached;
+        private static float nextSearch;
+        private static bool errorLogged;
+
+        private static MethodBase Target()
+        {
+            var t = UboatToolkit.Util.FindType("SupplyPriceEditor.MainMenuContext");
+            var m = t == null ? null : AccessTools.Method(t, "FindMainMenu", Type.EmptyTypes);
+            return m != null && m.ReturnType == typeof(MainMenu) ? m : null;
+        }
+
+        private static bool Prepare()
+        {
+            bool ok = Target() != null;
+            Util.Log("Preis-Editor-Fix: " + (ok ? "aktiv (Hauptmenü-Suche nur im Hauptmenü, höchstens 1x pro Sekunde)." : "Supply Price Editor nicht gefunden - nichts zu tun."));
+            return ok;
+        }
+
+        private static MethodBase TargetMethod() => Target();
+
+        private static bool Prefix(ref MainMenu __result)
+        {
+            try
+            {
+                if (!Settings.B("FixSupplyPriceMenu")) return true;
+                if (!SceneManager.GetSceneByName("Main Menu").isLoaded) { cached = null; __result = null; return false; }
+                if (cached != null && cached.isActiveAndEnabled && cached.gameObject.scene.isLoaded) { __result = cached; return false; }
+                float now = Time.unscaledTime;
+                if (now < nextSearch) { __result = cached; return false; }
+                nextSearch = now + 1f;
+                return true;
+            }
+            catch (Exception e)
+            {
+                if (!errorLogged) { errorLogged = true; Util.Log("Preis-Editor-Fix: Fehler, nehme Original-Suche (einmalig): " + e.Message); }
+                return true;
+            }
+        }
+
+        private static void Postfix(MainMenu __result) { cached = __result; }
+    }
+
+    // Fix for the "Realistic Uniforms Revival" mod: it rebuilt a crewman's textures again and again
+    // although nothing on him changed. Those own rebuilds are skipped when renderers, meshes and
+    // materials are unchanged; rebuilds that other mods ask for afterwards are never touched.
+    internal static class UniformFix
+    {
+        public sealed class Pending
+        {
+            public object Character;
+            public Renderer[] Renderers;
+            public Material[][] Before;
+            public Mesh[] Meshes;
+            public int[] Verts, Subs;
+        }
+
+        public static Pending pending;
+        public static object afterBody;
+        public static FieldInfo redirectCharacter;
+        public static int skipped, passed, foreign, skippedR, passedR, foreignR, nextReport;
+        private static bool errorLogged;
+
+        public static MethodBase Apply()
+        {
+            var rt = UboatToolkit.Util.FindType("RealisticUniformsRevival.RealisticUniformClothesRuntime");
+            var rs = UboatToolkit.Util.FindType("RealisticUniformsRevival.RedirectState");
+            redirectCharacter = rs == null ? null : AccessTools.Field(rs, "Character");
+            var m = rt == null ? null : AccessTools.Method(rt, "ApplyMaterialToExistingWearable");
+            return m != null && redirectCharacter != null ? m : null;
+        }
+
+        public static bool On => Settings.B("FixUniformRebuild");
+
+        public static Mesh MeshOf(Renderer r)
+        {
+            if (r == null) return null;
+            if (r is SkinnedMeshRenderer sk) return sk.sharedMesh;
+            var f = r.GetComponent<MeshFilter>();
+            return f == null ? null : f.sharedMesh;
+        }
+
+        public static bool Unchanged(Pending p)
+        {
+            if (p.Character is Component body)
+                foreach (var r in body.GetComponentsInChildren<Renderer>(true)) if (r != null && Array.IndexOf(p.Renderers, r) < 0) return false;
+            for (int i = 0; i < p.Renderers.Length; i++)
+            {
+                var r = p.Renderers[i];
+                var was = p.Before[i];
+                if (r == null || was == null) return false;
+                var mesh = MeshOf(r);
+                if (!ReferenceEquals(mesh, p.Meshes[i])) return false;
+                if (mesh != null && (mesh.vertexCount != p.Verts[i] || mesh.subMeshCount != p.Subs[i])) return false;
+                var now = r.sharedMaterials;
+                if (now.Length != was.Length) return false;
+                for (int j = 0; j < now.Length; j++) if (!ReferenceEquals(now[j], was[j])) return false;
+            }
+            return true;
+        }
+
+        public static void Report()
+        {
+            int now = Environment.TickCount;
+            if (unchecked(now - nextReport) < 0) return;
+            nextReport = now + 60000;
+            int s = skipped - skippedR, q = passed - passedR, f = foreign - foreignR;
+            if (s == 0 && q == 0 && f == 0) return;
+            skippedR = skipped; passedR = passed; foreignR = foreign;
+            if (Settings.B("UniformLog")) Util.Log("Uniform-Fix: letzte Minute " + s + " unnötige Neuaufbauten übersprungen, " + q + " durchgelassen, " + f + " von anderen Mods unberührt. Sitzung: " + skipped + "/" + passed + "/" + foreign + ".");
+        }
+
+        public static void Error(Exception e) { if (!errorLogged) { errorLogged = true; Util.Log("Uniform-Fix: Fehler, Spielverhalten (einmalig): " + e); } }
+    }
+
+    [HarmonyPatch]
+    internal static class UniformFix_Apply
+    {
+        private static bool Prepare() => UniformFix.Apply() != null;
+        private static MethodBase TargetMethod() => UniformFix.Apply();
+
+        private static void Prefix(object[] __args)
+        {
+            UniformFix.pending = null;
+            UniformFix.afterBody = null;
+            try
+            {
+                if (!UniformFix.On || __args == null || __args.Length < 2) return;
+                var wearable = __args[1] as Component;
+                object character = __args[0] == null ? null : UniformFix.redirectCharacter.GetValue(__args[0]);
+                if (wearable == null || character == null) return;
+                var set = new List<Renderer>();
+                if (character is Component body) foreach (var r in body.GetComponentsInChildren<Renderer>(true)) if (r != null) set.Add(r);
+                var lods = wearable.GetComponent<LODReferences>();
+                var levels = lods != null ? lods.GetLODsDirect() : null;
+                if (levels != null)
+                    foreach (var lv in levels)
+                    {
+                        if (lv == null || lv.renderers == null) continue;
+                        foreach (var r in lv.renderers) if (r != null && !set.Contains(r)) set.Add(r);
+                    }
+                foreach (var r in wearable.GetComponentsInChildren<Renderer>(true)) if (r != null && !set.Contains(r)) set.Add(r);
+                var rs = set.ToArray();
+                var p = new UniformFix.Pending { Character = character, Renderers = rs, Before = new Material[rs.Length][], Meshes = new Mesh[rs.Length], Verts = new int[rs.Length], Subs = new int[rs.Length] };
+                for (int i = 0; i < rs.Length; i++)
+                {
+                    p.Before[i] = rs[i] != null ? rs[i].sharedMaterials : null;
+                    p.Meshes[i] = UniformFix.MeshOf(rs[i]);
+                    p.Verts[i] = p.Meshes[i] != null ? p.Meshes[i].vertexCount : -1;
+                    p.Subs[i] = p.Meshes[i] != null ? p.Meshes[i].subMeshCount : -1;
+                }
+                UniformFix.pending = p;
+            }
+            catch (Exception e) { UniformFix.pending = null; UniformFix.Error(e); }
+        }
+
+        // Runs first among postfixes: from here on rebuild requests come from other mods.
+        [HarmonyPriority(Priority.First)]
+        [HarmonyBefore("officersandsailors.nzo.compat")]
+        private static void Postfix()
+        {
+            var p = UniformFix.pending;
+            UniformFix.pending = null;
+            UniformFix.afterBody = p != null ? p.Character : null;
+        }
+
+        private static Exception Finalizer(Exception __exception)
+        {
+            UniformFix.pending = null;
+            UniformFix.afterBody = null;
+            UniformFix.Report();
+            return __exception;
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class UniformFix_Dirty
+    {
+        private static bool Prepare() => UniformFix.Apply() != null;
+        private static MethodBase TargetMethod() => AccessTools.Method(typeof(Character), "SetLODLevelsDirty", Type.EmptyTypes);
+
+        private static bool Prefix(object __instance)
+        {
+            var p = UniformFix.pending;
+            if (p == null)
+            {
+                if (UniformFix.afterBody != null && ReferenceEquals(UniformFix.afterBody, __instance)) UniformFix.foreign++;
+                return true;
+            }
+            if (!ReferenceEquals(p.Character, __instance)) return true;
+            try { if (UniformFix.Unchanged(p)) { UniformFix.skipped++; return false; } }
+            catch (Exception e) { UniformFix.Error(e); }
+            UniformFix.passed++;
+            return true;
+        }
+    }
+
+    // Companion fixes for the "Projekt Bifrost" mod: its gauges are updated at a few Hz instead of
+    // every frame (list in toolkit-bifrost-throttle.txt, "Typ = Hz"), its depth-charge tally no longer
+    // throws on every detonation when its chalkboard never bound, plus a UI path report in the log.
+    internal static class BifrostCfg
+    {
+        private static readonly string[] DefaultTypes = { "ThermoPlath", "Uboat.Mods.Moonphase.Mapper.SmoothRotator", "IndicatorHandlerEM2", "IndicatorHandler", "Uboat.Mods.Moonphase.Mapper.Thermo_outer", "Uboat.Mods.Moonphase.Mapper.hgWet" };
+        private static readonly float[] DefaultHz = { 10f, 30f, 10f, 10f, 10f, 10f };
+        private static List<KeyValuePair<string, float>> list;
+        public static bool On => Settings.B("FixBifrost");
+        private static string FilePath => System.IO.Path.Combine(Settings.Folder, "toolkit-bifrost-throttle.txt");
+
+        public static List<KeyValuePair<string, float>> Throttles()
+        {
+            if (list != null) return list;
+            list = new List<KeyValuePair<string, float>>();
+            for (int i = 0; i < DefaultTypes.Length; i++) list.Add(new KeyValuePair<string, float>(DefaultTypes[i], DefaultHz[i]));
+            try
+            {
+                if (!System.IO.File.Exists(FilePath))
+                {
+                    System.IO.Directory.CreateDirectory(Settings.Folder);
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine("# Bifrost-Anzeigen: wie oft pro Sekunde sie neu gerechnet werden (0 = jedes Bild).");
+                    sb.AppendLine("# Zeile: Typname = Hz. Neue Zeilen für weitere Anzeigen sind erlaubt. Wirkt nach Spiel-Neustart.");
+                    for (int i = 0; i < DefaultTypes.Length; i++) sb.AppendLine(DefaultTypes[i] + " = " + DefaultHz[i].ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    System.IO.File.WriteAllText(FilePath, sb.ToString());
+                }
+                foreach (var raw in System.IO.File.ReadAllLines(FilePath))
+                {
+                    var line = raw.Trim();
+                    if (line.Length == 0 || line[0] == '#') continue;
+                    int eq = line.IndexOf('=');
+                    if (eq <= 0) continue;
+                    string type = line.Substring(0, eq).Trim();
+                    if (!float.TryParse(line.Substring(eq + 1).Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float hz)) continue;
+                    hz = Mathf.Clamp(hz, 0f, 120f);
+                    int at = list.FindIndex(kv => string.Equals(kv.Key, type, StringComparison.OrdinalIgnoreCase));
+                    if (at >= 0) list[at] = new KeyValuePair<string, float>(type, hz); else list.Add(new KeyValuePair<string, float>(type, hz));
+                }
+            }
+            catch (Exception e) { Util.Log("Bifrost-Fix: Liste nicht lesbar, nehme Standard: " + e.Message); }
+            return list;
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class Bifrost_Throttle
+    {
+        private static readonly Dictionary<int, float> nextDue = new Dictionary<int, float>();
+        private static readonly Dictionary<Type, float> interval = new Dictionary<Type, float>();
+        public static long Skipped, Ran;
+
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            var missing = new List<string>();
+            foreach (var kv in BifrostCfg.Throttles())
+            {
+                var t = UboatToolkit.Util.FindType(kv.Key);
+                var u = t == null ? null : AccessTools.DeclaredMethod(t, "Update");
+                if (u == null) { missing.Add(kv.Key); continue; }
+                interval[t] = kv.Value <= 0f ? 0f : 1f / kv.Value;
+                yield return u;
+            }
+            if (missing.Count > 0 && interval.Count > 0) Util.Log("Bifrost-Fix: nicht gefunden (übersprungen): " + string.Join(", ", missing.ToArray()));
+        }
+
+        private static bool Prepare()
+        {
+            foreach (var kv in BifrostCfg.Throttles()) if (UboatToolkit.Util.FindType(kv.Key) != null) return true;
+            return false;
+        }
+
+        private static bool Prefix(MonoBehaviour __instance)
+        {
+            try
+            {
+                if (!BifrostCfg.On || __instance == null) return true;
+                if (!interval.TryGetValue(__instance.GetType(), out float iv) || iv <= 0f) return true;
+                int id = __instance.GetInstanceID();
+                float now = Time.unscaledTime;
+                if (nextDue.TryGetValue(id, out float due) && now < due) { Skipped++; return false; }
+                if (nextDue.Count >= 256 && !nextDue.ContainsKey(id)) nextDue.Clear();   // forget destroyed instances
+                nextDue[id] = now + iv;
+                Ran++;
+                return true;
+            }
+            catch { return true; }
+        }
+
+        private static void Cleanup()
+        {
+            if (interval.Count == 0) return;
+            Util.Log("Bifrost-Fix: " + interval.Count + " Anzeige(n) gedrosselt.");
+            Application.quitting += () =>
+            {
+                long all = Skipped + Ran;
+                if (all == 0) return;
+                Util.Log("Bifrost-Fix: Sitzung " + Skipped + " von " + all + " Anzeige-Updates gespart (" + (Skipped * 100.0 / all).ToString("0.0") + " %)" + (Bifrost_DepthCharge.Suppressed > 0 ? ", " + Bifrost_DepthCharge.Suppressed + " Wasserbomben-Fehler verhindert" : "") + ".");
+            };
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class Bifrost_DepthCharge
+    {
+        private static FieldInfo chalk;
+        private static bool logged;
+        public static int Suppressed;
+
+        private static MethodBase Target()
+        {
+            var t = UboatToolkit.Util.FindType("UBOAT.Mods.Moonphase.Main");
+            if (t == null) return null;
+            chalk = AccessTools.Field(t, "chalkHandler");
+            var m = AccessTools.DeclaredMethod(t, "depthChargesDetonatedDuringCurrentEncounterChanged");
+            return chalk != null ? m : null;
+        }
+
+        private static bool Prepare() => Target() != null;
+        private static MethodBase TargetMethod() => Target();
+
+        private static bool Prefix()
+        {
+            try
+            {
+                if (!BifrostCfg.On || !Settings.B("FixBifrostDepthCharge")) return true;
+                if (chalk.GetValue(null) as UnityEngine.Object != null) return true;
+                Suppressed++;
+                if (!logged) { logged = true; Util.Log("Bifrost-Fix: Kreidetafel nie verbunden - Wasserbomben-Zähler übersprungen (sonst Fehler bei jeder Detonation). Wasserbomben selbst unverändert."); }
+                return false;
+            }
+            catch (Exception e)
+            {
+                if (!logged) { logged = true; Util.Log("Bifrost-Fix: Wächter fehlgeschlagen, Bifrost läuft normal: " + e.Message); }
+                return true;
+            }
+        }
+    }
+
+    // Writes Bifrost's UI paths to the log once, 20 s after the game UI appears.
+    public class BifrostProbe : ModuleBase
+    {
+        private float probeAt = -1f, firstTry = -1f, nextTry;
+        private bool done;
+        private static int moonphase;   // 0 = not checked yet, 1 = there, 2 = not there (TypeByName scans every assembly: ~350 ms)
+        private static readonly string[] Paths = { "GUI/Viewport/Main UI Area", "GUI/Viewport/Main UI Area/TimeCompressionExtendedUI", "GUI/Viewport/Main UI Area/TimeCompressionExtendedUI Alternative", "GUI/Viewport/Main UI Area/TimeCompressionExtendedUI Alternative/Timer" };
+
+        public override void Tick()
+        {
+            if (done || !BifrostCfg.On || !Settings.B("BifrostUiLog")) return;
+            if (moonphase == 0) moonphase = UboatToolkit.Util.FindType("UBOAT.Mods.Moonphase.Main") != null ? 1 : 2;
+            if (moonphase == 2) { done = true; return; }
+            float now = Time.unscaledTime;
+            // GameObject.Find searches the whole scene (300-600 ms here). It ran every second for as long as the
+            // UI path was missing, i.e. all game long. Now: one try every 15 s, give up after 5 minutes.
+            if (probeAt < 0f)
+            {
+                if (firstTry < 0f) firstTry = now;
+                if (now - firstTry > 300f) { done = true; Util.Log("Bifrost-Fix: UI-Pfad nicht gefunden, Prüfung beendet"); return; }
+                if (now < nextTry) return;
+                nextTry = now + 15f;
+                if (GameObject.Find(Paths[0]) != null) probeAt = now + 20f;
+            }
+            if (probeAt < 0f || now < probeAt) return;
+            done = true;
+            Util.Safe("Bifrost.Probe", () =>
+            {
+                var sb = new System.Text.StringBuilder("Bifrost-Fix: UI-Pfade:");
+                foreach (var p in Paths)
+                {
+                    var go = GameObject.Find(p);
+                    sb.Append("\n   ").Append(go != null ? "OK      " : "FEHLT   ").Append(p);
+                    if (go != null) sb.Append("  (Kinder ").Append(go.transform.childCount).Append(", Text ").Append(go.GetComponentsInChildren<UnityEngine.UI.Text>(true).Length).Append(", Bild ").Append(go.GetComponentsInChildren<UnityEngine.UI.Image>(true).Length).Append(")");
+                }
+                var area = GameObject.Find(Paths[0]);
+                if (area != null)
+                {
+                    sb.Append("\n   Kinder von 'Main UI Area':");
+                    for (int i = 0; i < area.transform.childCount; i++) sb.Append("\n     ").Append(area.transform.GetChild(i).name).Append(area.transform.GetChild(i).gameObject.activeInHierarchy ? "" : "  (inaktiv)");
+                }
+                Util.Log(sb.ToString());
+            });
+        }
+    }
+}
+
+namespace UboatToolkit.Modules
+{
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Reflection;
+    using global::DWS.Common.Characters;
+    using global::UBOAT.Game.Scene.Effects;
+    using global::HarmonyLib;
+    using global::UnityEngine;
+    using global::UnityEngine.SceneManagement;
+    using global::UBOAT.Game.UI.MainMenu;
+
+    // Fix for mods that give characters clothes which do not exist in the game (seen: "Cap NCO" from
+    // "officers-and-sailors-better-ncos"). The game then writes two red errors per character and the
+    // piece stays empty anyway. Here a missing accessory is simply left out, without the errors.
+    [HarmonyPatch]
+    internal static class MissingWearable_Patch
+    {
+        private static DWS.Common.Resources.ResourceManager rm;
+        private static readonly HashSet<string> reported = new HashSet<string>();
+
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            yield return AccessTools.Method(typeof(Character), "LoadWearable", new[] { typeof(string), typeof(bool) });
+            yield return AccessTools.Method(typeof(Character), "LoadWearableAsync", new[] { typeof(string), typeof(bool) });
+        }
+
+        private static bool Prefix(string path)
+        {
+            try
+            {
+                if (!Settings.B("FixMissingWearables") || path == null || !path.StartsWith("Character/Accessories/")) return true;
+                if (rm == null) rm = Traverse.Create(typeof(Character)).Field("resourceManager").GetValue<DWS.Common.Resources.ResourceManager>();
+                if (rm == null || rm.AssetExists(path)) return true;
+                if (reported.Add(path)) Util.Log("Kleidung fehlt im Spiel, wird weggelassen: " + path);
+                return false;   // LoadWearable then returns null, same as the game does after its error
+            }
+            catch { return true; }
+        }
+    }
+}
+
+// ====================================================================================================
 // Abschnitt: Modules/TextureRace.cs
 // ====================================================================================================
 namespace UboatToolkit.Modules
@@ -39246,392 +39644,9 @@ namespace UboatToolkit.Modules
     }
 }
 
-// ====================================================================================================
-// Abschnitt: Modules/Traffic.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Scene.Entities;
-
-    // Time compression ignores fishing boats and friendly (green) ships, and
-    // "back to water": if the boat is stuck on land anyway, it is put back at the last safe spot at sea.
-    public class Traffic : ModuleBase
-    {
-        private Vector2 lastSafe;
-        private bool hasSafe;
-        private float stuckSince = -1f;
-
-        // true = this group should not stop time compression.
-        public static bool Ignore(SandboxGroup g)
-        {
-            if (g == null) return false;
-            if (Settings.B("IgnoreFishingBoats") && g.Type == "Fishing Boat") return true;
-            var me = Util.PlayerShip?.SandboxEntity?.Country;
-            if (g.Country == null || me == null) return false;
-            var rel = g.Country.GetRelationWith(me);
-            if (Settings.B("IgnoreAlliedShips") && rel == Country.Relation.Ally) return true;
-            if (Settings.B("IgnoreNeutralShips") && rel == Country.Relation.Neutral) return true;
-            return false;
-        }
-
-        // For the mod's own contact stop: true if all ships of this contact are ignored.
-        public static bool Ignore(IContactInfo c)
-        {
-            var list = new List<SingularContactInfo>();
-            if (c is SingularContactInfo s) list.Add(s);
-            else if (c is CompoundContactInfo cc)
-                list.AddRange(Traverse.Create(cc).Field("entityInfos").GetValue<List<SingularContactInfo>>() ?? new List<SingularContactInfo>());
-            if (list.Count == 0) return false;
-            foreach (var x in list)
-            {
-                var e = Traverse.Create(x).Field("entity").GetValue<SandboxEntity>();
-                if (!Ignore(e?.Group)) return false;
-            }
-            return true;
-        }
-
-        public override void Tick()
-        {
-            var w = Game.Wolfpack;
-            var ship = Util.PlayerShip;
-            if (w == null || ship.Docked) { stuckSince = -1f; return; }
-
-            // Remember the last spot with at least 1 km water to the coast.
-            if (w.LandDistance > 1f) { lastSafe = w.Position; hasSafe = true; }
-
-            var o = Settings.Get("BackToWaterNow");
-            if (o != null && o.On) { o.Value = 0; BackToWater("von Hand"); return; }
-
-            if (!Settings.B("BackToWater")) { stuckSince = -1f; return; }
-            bool engineOn = ship.ActiveEngine != null && ship.ActiveEngine.GearIndex != 0;
-            bool stuck = w.LandDistance < 0.3f && engineOn && Mathf.Abs(ship.AverageVelocity) < 0.3f;
-            if (!stuck) { stuckSince = -1f; return; }
-            if (stuckSince < 0f) { stuckSince = Time.unscaledTime; return; }
-            if (Time.unscaledTime - stuckSince >= Settings.F("BackToWaterSeconds")) BackToWater("automatisch");
-        }
-
-        private void BackToWater(string how)
-        {
-            stuckSince = -1f;
-            if (!hasSafe) { ToolkitRunner.ShowNotice("Keine sichere Stelle gemerkt", 4f); return; }
-            var w = Game.Wolfpack;
-            var tc = Game.TimeCompression;
-            if (tc != null) tc.TimeCompression = false;
-            w.SetPosition(lastSafe, true, true);
-            ToolkitRunner.ShowNotice("Zurück ins Wasser (" + how + ")", 6f);
-        }
-    }
-
-    // The game's own time compression stop on a new sighting: undo it for ignored groups.
-    [HarmonyPatch(typeof(SandboxPlayerWolfpack), "PlayerWolfpack_ObservationAdded")]
-    internal static class Traffic_ObservationPatch
-    {
-        private static void Prefix(out bool __state)
-        {
-            __state = Game.TimeCompression?.TimeCompression ?? false;
-        }
-
-        private static void Postfix(GroupObservation observation, bool __state)
-        {
-            var tc = Game.TimeCompression;
-            if (!__state || tc == null || tc.TimeCompression) return;
-            if (Traffic.Ignore(observation?.Group)) tc.TimeCompression = true;
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/WolfpackStep.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Sandbox;
-    using global::UnityEngine;
-
-    // 0.4.8 (DoMe 2026-11-17: optimise the game). Measured with the hotspot finder: SandboxPlayerWolfpack.FixedUpdate
-    // was the most expensive method of the game (about 4.6 s per minute). In every physics step it searches all ship
-    // groups around the boat twice (near groups, far "impostor" groups), compares the lists and checks the coast
-    // distance. With low FPS the game runs 2-3 physics steps per frame, so the same search ran 2-3 times per frame
-    // although the boat moved a few centimetres. Now the two searches run in the first physics step of a frame only.
-    // The boat's own position update still runs in every step. Each minute the log shows calls, time and savings.
-    public class WolfpackStep : ModuleBase
-    {
-        internal static int lastFrame = -1, Ran, Saved;
-        internal static bool SkipNow;
-        internal static double Seconds;
-        private float nextLog;
-
-        public override void Tick()
-        {
-            if (Time.unscaledTime < nextLog) return;
-            if (nextLog > 0f && Ran + Saved > 0)
-                Util.Log("Nahbereich-Suche: " + Ran + " mal gelaufen (" + (Seconds * 1000.0).ToString("0") + " ms), " + Saved + " mal gespart (zweiter/dritter Physik-Schritt im selben Bild)");
-            nextLog = Time.unscaledTime + 60f; Ran = 0; Saved = 0; Seconds = 0;
-        }
-    }
-
-    [HarmonyPatch(typeof(SandboxPlayerWolfpack), "UpdateNearbyGroups")]
-    internal static class WolfpackStep_Near
-    {
-        private static bool Prefix(out double __state)
-        {
-            __state = 0;
-            bool skip = Settings.B("WolfpackOncePerFrame") && Time.frameCount == WolfpackStep.lastFrame;
-            WolfpackStep.SkipNow = skip;
-            if (skip) { WolfpackStep.Saved++; return false; }
-            WolfpackStep.lastFrame = Time.frameCount;
-            WolfpackStep.Ran++;
-            __state = Time.realtimeSinceStartupAsDouble;
-            return true;
-        }
-        private static void Finalizer(double __state) { if (__state > 0) WolfpackStep.Seconds += Time.realtimeSinceStartupAsDouble - __state; }
-    }
-
-    [HarmonyPatch(typeof(SandboxPlayerWolfpack), "UpdateImpostorGroups")]
-    internal static class WolfpackStep_Far
-    {
-        private static bool Prefix(out double __state)
-        {
-            __state = 0;
-            if (WolfpackStep.SkipNow) return false;
-            __state = Time.realtimeSinceStartupAsDouble;
-            return true;
-        }
-        private static void Finalizer(double __state) { if (__state > 0) WolfpackStep.Seconds += Time.realtimeSinceStartupAsDouble - __state; }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Modules/WolfpackTuning.cs
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System;
-    using global::System.Collections.Generic;
-    using global::System.Reflection;
-    using global::System.Reflection.Emit;
-    using global::HarmonyLib;
-    using global::UBOAT.Game.Core.Data;
-    using global::UBOAT.Game.Sandbox.HQ;
-    using global::UBOAT.Game.Sandbox.Missions;
-
-    // Wolfpack settings: from which date packs form, chance, max boats, first target tonnage.
-    // Done by swapping the game's own values in its code (transpiler); untouched if the game changed.
-    internal static class WolfpackTuning
-    {
-        public static readonly string[] FromNames = { "September 1940 (erster Rudel-Einsatz)", "Juli 1940", "November 1940", "Januar 1941", "8. Mai 1941 (Spiel)" };
-        private static readonly DateTime[] FromDates = { new DateTime(1940, 9, 1), new DateTime(1940, 7, 1), new DateTime(1940, 11, 1), new DateTime(1941, 1, 1), new DateTime(1941, 5, 8) };
-        private static bool On => Settings.B("Wolfpack");
-
-        internal static readonly MethodInfo ToFloat = Conversion("op_Implicit", typeof(float));
-        internal static readonly MethodInfo ToInt = Conversion("op_Explicit", typeof(int));
-        private static MethodInfo Conversion(string name, Type returns)
-        {
-            try
-            {
-                foreach (var m in typeof(GameDataReference).GetMethods(BindingFlags.Public | BindingFlags.Static))
-                {
-                    if (m.Name != name || m.ReturnType != returns) continue;
-                    var ps = m.GetParameters();
-                    if (ps.Length == 1 && ps[0].ParameterType == typeof(GameDataReference)) return m;
-                }
-            }
-            catch { }
-            return null;
-        }
-
-        public static DateTime GateDate(int year, int month, int day)
-        {
-            if (!On) return new DateTime(year, month, day);
-            int i = (int)Math.Round(Settings.F("WolfpackFrom"));
-            return FromDates[i < 0 || i >= FromDates.Length ? 0 : i];
-        }
-        public static float Probability(GameDataReference r) { float v = (float)r; return On ? Math.Max(5f, Math.Min(100f, Settings.F("WolfpackChance"))) / 100f : v; }
-        public static float MaxUnits(GameDataReference r) { float v = (float)r; return On ? Math.Max(2f, Math.Min(8f, (float)Math.Round(Settings.F("WolfpackBoats")))) : v; }
-        public static int FirstObjectiveGrt(GameDataReference r) { int v = (int)r; return On ? (int)Math.Max(1000f, Math.Min(50000f, Settings.F("WolfpackGrt"))) : v; }
-
-        internal static bool IsCall(CodeInstruction c, MethodInfo m) => m != null && (c.opcode == OpCodes.Call || c.opcode == OpCodes.Callvirt) && c.operand as MethodInfo == m;
-        internal static bool IsStaticLoad(CodeInstruction c, string name) => c.opcode == OpCodes.Ldsfld && (c.operand as FieldInfo)?.Name == name;
-        internal static bool IsDateCtor(CodeInstruction c)
-        {
-            var ctor = c.operand as ConstructorInfo;
-            if (c.opcode != OpCodes.Newobj || ctor == null || ctor.DeclaringType != typeof(DateTime)) return false;
-            var ps = ctor.GetParameters();
-            return ps.Length == 3 && ps[0].ParameterType == typeof(int) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int);
-        }
-
-        // Replaces the call right after "ldsfld name" with our method (exactly one site, else untouched).
-        internal static List<CodeInstruction> SwapAfterField(IEnumerable<CodeInstruction> code, string field, MethodInfo conv, string ours, string where)
-        {
-            var list = new List<CodeInstruction>(code);
-            int site = -1, found = 0;
-            for (int i = 0; i + 1 < list.Count; i++)
-                if (IsStaticLoad(list[i], field) && IsCall(list[i + 1], conv)) { site = i + 1; found++; }
-            if (found != 1) { Util.Log("Rudel: " + where + " Stelle " + field + " " + found + "/1 - nicht geändert (Spiel-Update?)"); return list; }
-            list[site].operand = AccessTools.Method(typeof(WolfpackTuning), ours);
-            return list;
-        }
-    }
-
-    [HarmonyPatch(typeof(Headquarters), "ParseReport")]
-    internal static class Wolfpack_ParseReportPatch
-    {
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
-        {
-            var list = new List<CodeInstruction>(code);
-            int dates = 0, probs = 0;
-            foreach (var c in list) { if (WolfpackTuning.IsDateCtor(c)) dates++; else if (WolfpackTuning.IsCall(c, WolfpackTuning.ToFloat)) probs++; }
-            if (dates != 1 || probs != 1) { Util.Log("Rudel: ParseReport Datum " + dates + "/1, Chance " + probs + "/1 - nicht geändert (Spiel-Update?)"); return list; }
-            foreach (var c in list)
-            {
-                if (WolfpackTuning.IsDateCtor(c)) { c.opcode = OpCodes.Call; c.operand = AccessTools.Method(typeof(WolfpackTuning), "GateDate"); }
-                else if (WolfpackTuning.IsCall(c, WolfpackTuning.ToFloat)) c.operand = AccessTools.Method(typeof(WolfpackTuning), "Probability");
-            }
-            return list;
-        }
-    }
-
-    [HarmonyPatch(typeof(Headquarters), "StartWolfpack")]
-    internal static class Wolfpack_StartPatch
-    {
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code) =>
-            WolfpackTuning.SwapAfterField(code, "maxUnitsPerWolfpack", WolfpackTuning.ToFloat, "MaxUnits", "StartWolfpack");
-    }
-
-    [HarmonyPatch(typeof(WolfpackAttackMission), "OnMissionStarted")]
-    internal static class Wolfpack_MissionPatch
-    {
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code) =>
-            WolfpackTuning.SwapAfterField(code, "wolfpackFirstObjectiveGRT", WolfpackTuning.ToInt, "FirstObjectiveGrt", "OnMissionStarted");
-    }
-}
-
-
-// ====================================================================================================
-// Abschnitt: Wasserbomben-Zähler (0.4.32)
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::HarmonyLib;
-
-    // DoMe 2026-11-18: wants the depth charge achievement ("Survivor"). Game rule (SurvivorAchievement, DepthCharge.Explode):
-    // 100 depth charges must explode closer than 1500 m to the boat during ONE encounter; the achievement is given
-    // when the boat then leaves the group area and is in no enemy area any more. Leaving earlier resets the count.
-    // This only shows the game's own counter (display, nothing is changed).
-    [HarmonyPatch(typeof(UBOAT.Game.Sandbox.PlayerCareer), "DepthChargesDetonatedDuringCurrentEncounter", MethodType.Setter)]
-    internal static class DepthChargeCounter_Patch
-    {
-        private static int last;
-        private static void Postfix(UBOAT.Game.Sandbox.PlayerCareer __instance)
-        {
-            try
-            {
-                int n = __instance.DepthChargesDetonatedDuringCurrentEncounter;
-                if (n == last) return;
-                int before = last; last = n;
-                if (!Settings.B("DepthChargeCounter")) return;
-                if (n == 0) { if (before > 0) Util.Log("Wasserbomben-Zähler: zurück auf 0 (Begegnung verlassen), vorher " + before); return; }
-                if (n == 1 || n % 10 == 0 || n == 100)
-                {
-                    Util.Log("Wasserbomben-Zähler: " + n + " von 100 in dieser Begegnung");
-                    UboatToolkit.ToolkitRunner.ShowNotice(n >= 100 ? "Wasserbomben: " + n + "/100 erreicht. Jetzt ablaufen, bis kein Gegner-Gebiet mehr da ist!" : "Wasserbomben: " + n + "/100", n >= 100 ? 10f : 3f);
-                }
-            }
-            catch { }
-        }
-    }
-}
-
-// ====================================================================================================
-// Abschnitt: Auftragsziel genau (0.4.35)
-// ====================================================================================================
-namespace UboatToolkit.Modules
-{
-    using global::System.Collections.Generic;
-    using global::HarmonyLib;
-    using global::UnityEngine;
-    using global::UBOAT.Game.Sandbox;
-    using global::UBOAT.Game.Sandbox.Missions;
-
-    // DoMe 2026-11-18: "gibt das Spiel her, wo auf den Meter genau das eigentliche Ziel ist? ... SS Fairwood finden ...
-    // Mission teilweise verbuggt". Game code (SinkShipMission): the target is one ship of a moving convoy or warship
-    // group. "Find" is done when that GROUP appears in 3D near the boat, "Sink" when the ship is sunk. The mission only
-    // listens for the sinking. When the group reaches its port and is removed, nothing ends the mission: it stays
-    // open for ever. This part reads the group's exact map position (display only, changes nothing) and writes into
-    // the log what state the target is in. Scope: map/mission data only, no boat, no enemy is changed.
-    public class MissionTargetInfo : ModuleBase
-    {
-        private static readonly System.Reflection.FieldInfo GroupF = AccessTools.Field(typeof(SinkShipMission), "groupToAttack");
-        private static readonly System.Reflection.FieldInfo EntityF = AccessTools.Field(typeof(SinkShipMission), "targetEntity");
-        private static readonly System.Text.StringBuilder tree = new System.Text.StringBuilder();
-        private float next, nextNotice; private string lastState = "";
-
-        private string lastTree = "";
-        private static void Collect(IMission m, List<SinkShipMission> found, int depth)
-        {
-            if (m == null || depth > 6) return;
-            tree.Append(depth == 0 ? "" : " > ").Append(m.GetType().Name);
-            var st = AccessTools.Field(m.GetType(), "stage"); if (st != null) tree.Append(" (Stufe ").Append(st.GetValue(m)).Append(")");
-            var s = m as SinkShipMission; if (s != null) found.Add(s);
-            var mm = m as Mission; if (mm == null) return;
-            foreach (var c in mm.Children) Collect(c, found, depth + 1);
-        }
-
-        public override void Tick()
-        {
-            if (Time.unscaledTime < next) return;
-            next = Time.unscaledTime + 10f;
-            var career = Util.Career; var w = Game.Wolfpack;
-            if (career == null || w == null || GroupF == null || EntityF == null) return;
-            var list = new List<SinkShipMission>();
-            tree.Length = 0;
-            Collect(career.CurrentAssignment as IMission, list, 0);
-            string t = tree.ToString();
-            if (t != lastTree) { lastTree = t; Util.Log("Auftragsziel: aktive Aufträge im Spiel: " + (t == "" ? "keine" : t)); }
-            if (list.Count == 0) { if (lastState != "") { lastState = ""; Util.Log("Auftragsziel: kein Auftrag „Schiff finden/versenken“ mehr aktiv"); } return; }
-            foreach (var m in list)
-            {
-                var grp = GroupF.GetValue(m) as SandboxGroup; var ent = EntityF.GetValue(m) as SandboxEntity;
-                string name = ent == null ? "?" : (ent.RequestIdentitity() != null ? ent.RequestIdentitity().Name : ent.Name);
-                string state, text;
-                if (ent == null || !grp)
-                {
-                    state = name + "|weg";
-                    text = "Auftragsziel " + name + ": Die Schiffsgruppe gibt es nicht mehr (im Hafen angekommen oder aufgelöst). Der Auftrag kann so nicht mehr erfüllt werden; das Spiel beendet ihn in diesem Fall nicht von selbst.";
-                }
-                else
-                {
-                    Vector2 d = grp.Position - w.Position;
-                    float km = d.magnitude, brg = Mathf.Atan2(d.x, d.y) * Mathf.Rad2Deg; if (brg < 0f) brg += 360f;
-                    var mob = grp as SandboxMobileGroup;
-                    float crs = Mathf.Atan2(grp.Up.x, grp.Up.y) * Mathf.Rad2Deg; if (crs < 0f) crs += 360f;
-                    state = name + "|" + m.Stage + "|" + grp.SpawnState + "|" + ent.IsPacified;
-                    text = "Auftragsziel " + name + " (Stufe " + m.Stage + "): " + km.ToString("0.0") + " km entfernt, Peilung " + brg.ToString("000") + "°, Kurs " + crs.ToString("000") + "°"
-                        + (mob != null ? ", Fahrt " + mob.Velocity.ToString("0.0") + " (Kartenwert), noch " + mob.Route.Count + " Wegpunkte" : ", steht")
-                        + ", Gruppe " + grp.Name + " mit " + grp.Entities.Count + " Schiffen, in 3D: " + (grp.SpawnState == SpawnState.Spawned ? "ja" : "nein") + (ent.IsPacified ? ", Ziel ist schon ausgeschaltet" : "");
-                }
-                bool changed = state != lastState; lastState = state;
-                if (changed) Util.Log(text);
-                if (Settings.B("CheatMissionTarget") && (changed || Time.unscaledTime >= nextNotice))
-                {
-                    nextNotice = Time.unscaledTime + 30f;
-                    if (!changed) Util.Log(text);
-                    ToolkitRunner.ShowNotice(text, 12f);
-                }
-            }
-        }
-    }
-}
 // ####################################################################################################
-// TEIL: Warthog
+// BEREICH 7 WARTHOG
 // ####################################################################################################
-// UBOAT Toolkit - Warthog: Teile für U-1337
-// Diese Datei fasst 16 frühere Einzeldateien zusammen (0.4.30). Jeder Abschnitt nennt seine alte Datei.
 
 // ====================================================================================================
 // Abschnitt: Modules/Warthog/WarthogAir.cs
@@ -41605,4 +41620,3 @@ namespace UboatToolkit.Modules.Warthog
         }
     }
 }
-
