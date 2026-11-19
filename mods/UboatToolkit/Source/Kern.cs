@@ -490,9 +490,34 @@ namespace UboatToolkit
         {
             var o = Settings.Get(key);
             if (o == null || string.IsNullOrEmpty(o.Text) || Capturing != null || Typing) return false;
-            if (Enum.TryParse<KeyCode>(o.Text.Trim(), true, out var single)) return Input.GetKey(single);
+            // 0.4.71: a plain key held with Ctrl or Alt is another combination (C = thruster down, Ctrl+C = greatest depth
+            // fired both). Shift stays allowed: the thrusters use it as "whole boat".
+            if (Enum.TryParse<KeyCode>(o.Text.Trim(), true, out var single)) return Input.GetKey(single) && (IsModifier(single) || !(Ctrl || Alt));
             // combos: the named modifiers must be held too (else Ctrl+Alt+PageUp would also fire on plain PageUp)
             return Parse(o.Text, out var code, out var c, out var sh, out var a) && Input.GetKey(code) && (!c || Ctrl) && (!sh || Shift) && (!a || Alt);
+        }
+
+        // 0.4.71 (DoMe 2026-11-19: "anscheinend kannst du belegte tasten nicht auslesen?"): the keys as they really are
+        // (ini values, not defaults), and every base key that carries more than one function.
+        public static void LogTable()
+        {
+            var by = new System.Collections.Generic.Dictionary<KeyCode, System.Collections.Generic.List<Opt>>();
+            int n = 0;
+            foreach (var o in Settings.All)
+            {
+                if (!o.IsKey || string.IsNullOrEmpty(o.Text)) continue;
+                n++;
+                KeyCode code;
+                if (!Enum.TryParse(o.Text.Trim(), true, out code) && !Parse(o.Text, out code, out _, out _, out _)) continue;
+                if (IsModifier(code)) continue;
+                if (!by.TryGetValue(code, out var l)) by[code] = l = new System.Collections.Generic.List<Opt>();
+                l.Add(o);
+            }
+            var parts = new System.Collections.Generic.List<string>();
+            foreach (var kv in by)
+                if (kv.Value.Count > 1)
+                    parts.Add(kv.Key + ": " + string.Join(" | ", global::System.Linq.Enumerable.Select(kv.Value, o => o.Text + " = " + o.Label.Trim())));
+            Util.Log("Tasten (aus der ini gelesen): " + n + " belegt. Grundtasten mit mehreren Funktionen: " + (parts.Count == 0 ? "keine" : string.Join("; ", parts)));
         }
 
         // The bound key as a KeyCode (single key names like "LeftAlt" or "Mouse3" allowed).
@@ -3478,6 +3503,7 @@ namespace UboatToolkit
                 if (B("DiagLogs")) { Set("CrewAILog", 1); Set("OfficerWatchLog", 1); }
                 // Write back so new settings from a mod update appear in the file.
                 Save();
+                Util.Safe("Keys.LogTable", Keys.LogTable);
             }
             catch (Exception e)
             {
