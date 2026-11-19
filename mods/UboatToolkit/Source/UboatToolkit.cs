@@ -8088,7 +8088,7 @@ namespace UboatToolkit.Modules
         private static readonly Dictionary<int, float> lastSeen = new Dictionary<int, float>();
         private static Alert current;          // waiting for an answer
         private static bool windowOpen, pausedByUs;
-        private static bool cursorKept; private static CursorLockMode cursorWasLock;
+        private static bool cursorKept;
         private static float ignoreUntil;
         private static int ignoredCount;
         private static GameTime gameTime;
@@ -8330,8 +8330,10 @@ namespace UboatToolkit.Modules
                 // locks the pointer while the player aims a gun or looks through a scope and never sets it again, so
                 // freeing it here left it free for good. While the pointer is locked the box no longer touches it;
                 // the box is answered with its keys then. A free pointer is only kept visible, as before.
-                if (!cursorKept) { cursorKept = true; cursorWasLock = Cursor.lockState; if (cursorWasLock != CursorLockMode.None) Util.Log("Beschuss-Fenster: Mauszeiger ist vom Spiel gesperrt (Zielen), bleibt so; Antwort per Taste"); }
-                if (cursorWasLock == CursorLockMode.None) { Cursor.visible = true; Cursor.lockState = CursorLockMode.None; }
+                // 0.4.90 (DoMe 2026-11-19: box comes up, then the mouse stays a pointer for good while aiming the flak): the box
+                // never touches the mouse pointer any more. Before, a box that opened with a free pointer kept forcing it free
+                // every picture, also after the player took a gun. With a locked pointer (aiming) the box is answered by key.
+                if (!cursorKept) { cursorKept = true; Util.Log("Beschuss-Fenster: offen, Mauszeiger bleibt wie ihn das Spiel hat (" + (Cursor.lockState == CursorLockMode.None ? "frei, Knöpfe klickbar" : "gesperrt beim Zielen, Antwort per Taste") + ")"); }
             }
             var box = new Rect(Screen.width - 340, Screen.height / 2f - 140, 330, 280);
             Imgui.Box(box, "Herr Kaleun, was tun wir?");
