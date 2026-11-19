@@ -8784,15 +8784,36 @@ namespace UboatToolkit.Modules
             {
                 nextDiveCall = Time.unscaledTime + 2f;
                 UnderFire.ManGunsUntil = 0f;
-                int called = 0;
+                int called = 0, outside = 0;
+                var who = new System.Text.StringBuilder();
+                var hatch = ship.GetEquipment<UBOAT.Game.Scene.Items.Hatch>("Exterior");
+                bool locked = hatch != null && hatch.Locked;
                 foreach (var h in crew.Characters)
                 {
                     if (h == null) continue;
                     var a = h.Action;
-                    if (a == null || a.Activator == null || !(a.Activator.AssociatedEquipment is Gun)) continue;
+                    bool atGun = a != null && a.Activator != null && a.Activator.AssociatedEquipment is Gun;
+                    // 0.4.69 (DoMe 2026-11-19: "tauchbefehle sind immer noch funktionslos"; log 09:09:33 order 6 m, 40 s
+                    // later every ballast tank still 0 % water, and no man was at a gun): the game opens the flood
+                    // valves only when NOBODY is left outside (CloseExteriorHatch.ValidateHatchOpeness), not just no
+                    // gunner. Now every man outside is called in while a dive order waits, and the log names them.
+                    bool isOut = false;
+                    try { isOut = !locked && h.Navigator != null && (object)h.Navigator.Area == (object)ship.BoatExteriorArea && h.Health > 0f && h.isActiveAndEnabled; } catch { }
+                    if (isOut)
+                    {
+                        outside++;
+                        if (outside <= 12) who.Append(outside > 1 ? ", " : "").Append(h.name).Append(" (").Append(a != null ? a.GetType().Name : "ohne Auftrag").Append(")");
+                    }
+                    if (a == null || !(atGun || isOut)) continue;
                     h.StopCurrentAction(true); called++;
                 }
-                if (called > 0) Util.Log("Tauchbefehl hat Vorrang (Zieltiefe " + ship.TargetDepth.ToString("0.0") + " m): " + called + " Mann von den Geschützen abgezogen, damit die Turmluke schließt und die Tauchzellen fluten");
+                if (called > 0) Util.Log("Tauchbefehl hat Vorrang (Zieltiefe " + ship.TargetDepth.ToString("0.0") + " m): " + called + " Mann von Geschützen und Deck abgezogen, damit die Turmluke schließt und die Tauchzellen fluten");
+                if (!locked && Time.unscaledTime > nextDiveWait)
+                {
+                    nextDiveWait = Time.unscaledTime + 5f;
+                    Util.Log("Tauchen wartet: Turmluke nicht verriegelt, " + outside + " Mann draußen" + (outside > 0 ? ": " + who : " (Spiel prüft die Luke alle 1,3 s neu)")
+                        + "; Zieltiefe " + ship.TargetDepth.ToString("0.0") + " m, Deck " + ship.DeckDepthUnclamped.ToString("0.0") + " m, Wasser unter dem Deck " + (ship.BottomDepth - ship.DeckDepthUnclamped).ToString("0.0") + " m");
+                }
             }
             bool guns = !diveOrder && ship.DeckDepth < 1f && !ship.SubmergedOrGoingToSubmerge && (((Settings.B("AutoManGuns") || Settings.B("AutoManFlak")) && ship.Alarmed) || Time.unscaledTime < UnderFire.ManGunsUntil);
             bool gunsAll = Time.unscaledTime < UnderFire.ManGunsUntil;
@@ -8845,7 +8866,7 @@ namespace UboatToolkit.Modules
                 hadMax = max > 0f || auto;
             }
         }
-        private bool hadMax; private int headO = -1, headS = -1; private float nextDiveCall;
+        private bool hadMax; private int headO = -1, headS = -1; private float nextDiveCall, nextDiveWait;
         private float lastPing = -9999f, lastPingReal = -9999f;
 
         // Sends the nearest free sailor to do one action at this activator (for one-off jobs).
