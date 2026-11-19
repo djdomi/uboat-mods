@@ -33561,7 +33561,21 @@ namespace UboatToolkit.Modules
                 // Never for diesel tanks: the game shows fuel % as (fuel mass / tank mass limit), so a bigger
                 // limit made the tank read 0 % and the boat "out of fuel" although it was full.
                 bool fuelTank = s.StorageType != null && s.StorageType.StartsWith("Fuel");
-                Util.ScaleParameter(t.Field("itemsMassLimit").GetValue<Parameter>(), noLimit && !fuelTank ? 1000000f : 1f);
+                // 0.4.88 (DoMe's log 2026-11-19: one stack of 4294971000 small calibre rounds). The game's ammunition carrier
+                // works out "(mass limit - mass) / mass of one round" as a whole number (ResupplyAmmunitionRoleTask:168).
+                // With the limit x 1000000 that number no longer fitted, turned into -2147483648, and carrying a negative
+                // amount ADDED 2147483648 rounds to the source stack each time. Now the limit ends at 1000 tons per
+                // storage, which still never fills up but always fits.
+                var lim = t.Field("itemsMassLimit").GetValue<Parameter>();
+                float factor = 1f;
+                if (noLimit && !fuelTank && lim != null)
+                {
+                    Util.ScaleParameter(lim, 1f);
+                    float baseLimit = (float)lim;
+                    factor = baseLimit > 0f ? Mathf.Clamp(1000000f / baseLimit, 1f, 1000000f) : 1f;
+                    if (!massLogged) { massLogged = true; Util.Log("Lager ohne Gewichts-Grenze: Grenze je Lager 1000 t statt Spielwert x 1000000 (z. B. " + s.name + " " + baseLimit.ToString("0") + " kg x " + factor.ToString("0") + ")"); }
+                }
+                Util.ScaleParameter(lim, factor);
             }
             StackData.Apply();
             Util.Safe("ShopStock", ShopStock);
@@ -33576,14 +33590,25 @@ namespace UboatToolkit.Modules
                 // Never for diesel: the game reads the fuel amount from its weight, so "no weight"
                 // made every tank show 0 kg and look empty, even right after refuelling.
                 Util.ScaleParameter(e.Mass, noWeight && !(e is Fuel) && !(e is StoredTorpedo) ? 0.0000001f : 1f);   // 0.4.2: torpedoes keep their game weight
-                if (e is Cargo c) ApplyStack(c);
+                if (e is Cargo c)
+                {
+                    ApplyStack(c);
+                    // repair of the stacks the old limit blew up: take the wrongly added 2147483648 packs off again
+                    if (c.Count >= 2147483648f && !(c is Fuel))
+                    {
+                        float old = c.Count;
+                        float fixedCount = Mathf.Max(1f, Mathf.Round(old - Mathf.Floor(old / 2147483648f) * 2147483648f));
+                        c.Count = fixedCount;
+                        Util.Log("Lager-Reparatur: Stapel " + (c.Data != null ? c.Data.Name : "?") + " von " + old.ToString("0") + " auf " + fixedCount.ToString("0") + " gesetzt (Rechenfehler durch die alte Gewichts-Grenze)");
+                    }
+                }
             }
             Util.Safe("StackCheck", StackCheck);
         }
 
         // 0.4.68 (DoMe 2026-11-19: "der stackcheat scheint auch nicht mehr korrekt zu funktionieren"; the log only
         // showed the database write, not what lies in the storages). Read only: what the boat's storages really hold.
-        private static string lastCheck = ""; private static float nextCheck;
+        private static string lastCheck = ""; private static float nextCheck; private static bool massLogged;
         private static void StackCheck()
         {
             int stores = 0, items = 0, split = 0, low = 0, ignoreOff = 0; float big = 0f, bigLimit = 0f; string bigName = "-", splitEx = "-", lowEx = "-";
