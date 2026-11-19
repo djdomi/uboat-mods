@@ -2153,7 +2153,7 @@ namespace UboatToolkit
             new[] { "fernglas", "binocular", "uzo" },
             new[] { "diesel", "treibstoff", "sprit", "fuel", "kraftstoff", "tank" },
             new[] { "motor", "maschine", "antrieb", "engine", "schraube", "propeller" },
-            new[] { "geschwindigkeit", "speed", "tempo", "fahrt", "schneller", "knoten" },
+            new[] { "geschwindigkeit", "speed", "tempo", "fahrt", "schnell", "knoten" },
             new[] { "erfolg", "achievement", "errungenschaft", "steam" },
             new[] { "auftrag", "mission", "aufgabe", "einsatz", "assignment" },
             new[] { "geleit", "konvoi", "convoy", "eskorte", "geleitschutz", "escort" },
@@ -2184,7 +2184,7 @@ namespace UboatToolkit
             new[] { "log", "protokoll", "diagnose", "fehler", "debug", "konsole", "console" },
             new[] { "ton", "sound", "geraeusch", "lautstaerke", "audio", "stimme" },
             new[] { "speichern", "save", "spielstand", "autosave", "sicherung" },
-            new[] { "leistung", "fps", "ruckel", "lag", "performance", "schnell" },
+            new[] { "leistung", "fps", "ruckel", "lag", "performance" },
             new[] { "anzeige", "hud", "instrument", "tacho", "messer", "gauge" },
             new[] { "luke", "luken", "hatch", "schott", "tuer" },
             new[] { "anker", "anchor" },
@@ -2192,7 +2192,7 @@ namespace UboatToolkit
             new[] { "trimm", "trim", "ballast", "tauchzelle", "regelzelle" },
             new[] { "unsterblich", "unverwundbar", "gott", "god", "immortal", "unzerstoerbar" },
             new[] { "unendlich", "unbegrenzt", "infinite", "unlimited", "endlos" },
-            new[] { "automatisch", "auto", "selbst", "von allein" },
+            new[] { "automatisch", "auto", "selbst", "allein" },
         };
 
         public static string Norm(string s)
@@ -2388,6 +2388,8 @@ namespace UboatToolkit
                         else if (sig != stFirst) { stOk = false; stBad.Append(" [").Append(stFirstWord).Append(" / ").Append(x).Append("]"); }
                         float took = global::UnityEngine.Time.realtimeSinceStartup - t0;
                         stTotal += took; if (took > stLongest) { stLongest = took; stLongestWord = x; }
+                        // a single word must never hold a picture: give up and say which word it was
+                        if (took > 0.05f) { tested = true; Util.Log("Suche: Selbsttest abgebrochen, das Wort \"" + x + "\" brauchte " + (took * 1000f).ToString("F0") + " ms (Grenze 50 ms). Bis dahin " + stSame + " von " + stRows + " Wortgruppen gleich"); return; }
                     }
                     else
                     {
