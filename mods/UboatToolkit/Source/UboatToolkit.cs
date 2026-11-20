@@ -622,6 +622,7 @@ namespace UboatToolkit
         public static void LogTable()
         {
             var by = new System.Collections.Generic.Dictionary<KeyCode, System.Collections.Generic.List<Opt>>();
+            var exact = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<Opt>>();
             int n = 0;
             foreach (var o in Settings.All)
             {
@@ -632,13 +633,23 @@ namespace UboatToolkit
                 if (IsModifier(code)) continue;
                 if (!by.TryGetValue(code, out var l)) by[code] = l = new System.Collections.Generic.List<Opt>();
                 l.Add(o);
+                bool xc = false, xs = false, xa = false; KeyCode xk;
+                if (!Parse(o.Text, out xk, out xc, out xs, out xa)) xk = code;
+                string id = (xc ? "Ctrl+" : "") + (xs ? "Shift+" : "") + (xa ? "Alt+" : "") + xk;
+                if (!exact.TryGetValue(id, out var xl)) exact[id] = xl = new System.Collections.Generic.List<Opt>();
+                xl.Add(o);
             }
+            var dups = new System.Collections.Generic.List<string>();
+            foreach (var kv in exact)
+                if (kv.Value.Count > 1)
+                    dups.Add(kv.Key + " = " + string.Join(" | ", global::System.Linq.Enumerable.Select(kv.Value, o => o.Label.Trim())));
             var parts = new System.Collections.Generic.List<string>();
             foreach (var kv in by)
                 if (kv.Value.Count > 1)
                     parts.Add(kv.Key + ": " + string.Join(" | ", global::System.Linq.Enumerable.Select(kv.Value, o => o.Text + " = " + o.Label.Trim())));
             Util.Log(Addons.Report);
             Util.Log("Tasten (aus der ini gelesen): " + n + " belegt. Grundtasten mit mehreren Funktionen: " + (parts.Count == 0 ? "keine" : string.Join("; ", parts)));
+            Util.Log("Tasten doppelt im Toolkit (genau dieselbe Kombination, es gilt jeweils nur die erste): " + (dups.Count == 0 ? "keine" : dups.Count + ": " + string.Join("; ", dups)));
             Util.Safe("Keys.OtherMods", OtherMods);
         }
 
@@ -651,7 +662,7 @@ namespace UboatToolkit
             {
                 if (string.Equals(file, Settings.FilePath, StringComparison.OrdinalIgnoreCase)) continue;
                 string name = global::System.IO.Path.GetFileName(file);
-                var same = new System.Collections.Generic.List<string>(); var keys = new System.Collections.Generic.List<string>();
+                var same = new System.Collections.Generic.List<string>(); var keys = new System.Collections.Generic.List<string>(); var diffs = new System.Collections.Generic.List<string>();
                 int entries = 0, differ = 0;
                 foreach (var raw in global::System.IO.File.ReadAllLines(file))
                 {
@@ -664,7 +675,7 @@ namespace UboatToolkit
                     {
                         string my = mine.IsKey ? mine.Text : mine.Value.ToString("0.###", global::System.Globalization.CultureInfo.InvariantCulture);
                         bool diff = mine.IsKey ? !string.Equals(my, v, StringComparison.OrdinalIgnoreCase) : !(float.TryParse(v, global::System.Globalization.NumberStyles.Float, global::System.Globalization.CultureInfo.InvariantCulture, out var f) && Math.Abs(f - mine.Value) < 0.0005f);
-                        if (diff) differ++;
+                        if (diff) { differ++; diffs.Add(k + " (Toolkit " + (my == "" ? "leer" : my) + ", dort " + (v == "" ? "leer" : v) + ")"); }
                         same.Add(k + (diff ? " (Toolkit " + my + ", dort " + v + ")" : ""));
                         if (diff && mine.IsKey) keys.Add("gleiche Funktion „" + mine.Label.Trim() + "“ auf zwei Tasten: Toolkit " + (my == "" ? "keine" : my) + ", dort " + (v == "" ? "keine" : v));
                     }
@@ -680,7 +691,7 @@ namespace UboatToolkit
                     }
                 }
                 Util.Log("Doppelt mit " + name + " (nur lesen): " + entries + " Einträge dort; gleicher Schalter- oder Tasten-Name in beiden Dateien " + same.Count + " (davon mit anderem Wert " + differ + ")"
-                    + (same.Count == 0 ? "" : ": " + string.Join(", ", same.GetRange(0, Math.Min(same.Count, 40)).ToArray()) + (same.Count > 40 ? " …" : ""))
+                    + (diffs.Count == 0 ? "" : ": " + string.Join(", ", diffs.ToArray()))
                     + "; Tasten-Konflikte " + keys.Count + (keys.Count == 0 ? "" : ": " + string.Join("; ", keys.ToArray())));
             }
         }
@@ -3284,6 +3295,7 @@ namespace UboatToolkit
             Bool(Tools, "CamLog", "Log: Kamera-Zoom", false);
             Bool(Tools, "OrbitLog", "Log: Außenkamera unter Wasser", false);
             Bool(Tools, "StationLog", "Log: Stationen (Zoom, Drehknöpfe)", false);
+            Bool(Tools, "DrawCountLog", "Log: alle 5 Minuten zählen, was gezeichnet wird (Zeile \"Zeichnen\"; kostet dabei etwa 0,2 s)", false);
             Bool(Tools, "SaveCatLog", "Log: Karriere-Reiter in der Spielstand-Liste", false);
             Bool(Tools, "ScopeLog", "Log: Sehrohr-Overlays laden", false);
             Num(Tools, "ScopeLogSlowMs", "  langsam ab ... ms", 20, 0, 1000, 5);
@@ -33962,6 +33974,31 @@ namespace UboatToolkit.Modules
             Util.Safe("GpuAudit", () =>
             {
                 double t0 = Time.realtimeSinceStartupAsDouble;
+                // 0.4.91 (log 2026-11-19: this count held a picture for 190 to 219 ms every 5 minutes): the count of everything
+                // that is drawn only runs with its log switch (off by default). The cheap lines below stay.
+                if (Settings.B("DrawCountLog")) CountDrawn();
+                // water module (com.playway.water): values live in its settings objects, read by name
+                var wsb = new System.Text.StringBuilder();
+                foreach (var tn in new[] { "PlayWay.Water.WaterProjectSettings", "PlayWay.Water.WaterQualitySettings" })
+                {
+                    var tp = HarmonyLib.AccessTools.TypeByName(tn); if (tp == null) { wsb.Append(' ').Append(tn).Append(" fehlt;"); continue; }
+                    var ip = HarmonyLib.AccessTools.Property(tp, "Instance"); object inst = ip != null ? ip.GetValue(null, null) : null;
+                    if (inst == null) { wsb.Append(' ').Append(tn).Append(" ohne Instanz;"); continue; }
+                    foreach (var pn in new[] { "PhysicsThreads", "PhysicsThreadsPriority", "AllowCpuFFT", "AllowFloatingPointMipMaps", "SinglePrecision", "CurrentQualityLevel", "MaxSpectrumResolution", "AllowHighPrecisionTextures", "TileSizeScale", "WavesMode" })
+                    {
+                        var pp = HarmonyLib.AccessTools.Property(tp, pn);
+                        if (pp != null && pp.GetIndexParameters().Length == 0) wsb.Append(' ').Append(pn).Append('=').Append(System.Convert.ToString(pp.GetValue(inst, null), System.Globalization.CultureInfo.InvariantCulture)).Append(';');
+                    }
+                }
+                Util.Log("Wasser-Modul (nur lesen):" + wsb);
+                double ms = (Time.realtimeSinceStartupAsDouble - t0) * 1000.0;
+                Util.Log("Rechenkerne (nur lesen): PC meldet " + SystemInfo.processorCount + " Kerne, Unity nutzt " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount + " Arbeiter + Hauptfaden (Höchstwert " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerMaximumCount + ")");
+            });
+        }
+
+        private static void CountDrawn()
+        {
+                double t0 = Time.realtimeSinceStartupAsDouble;
                 var mats = new HashSet<Material>(); var meshes = new Dictionary<Mesh, int>();
                 int rend = 0, visible = 0, noInst = 0, rendNoInst = 0, repeat = 0, repeatNoInst = 0;
                 foreach (var r in Object.FindObjectsOfType<MeshRenderer>())
@@ -33995,22 +34032,7 @@ namespace UboatToolkit.Modules
                 foreach (var g in Object.FindObjectsOfType<UnityEngine.UI.Graphic>()) if (g != null && g.isActiveAndEnabled) graphics++;
                 int markers = Object.FindObjectsOfType<UBOAT.Game.UI.Map.EntityMarkerUI>().Length;
                 int ships = Object.FindObjectsOfType<UBOAT.Game.Scene.Entities.Ship>().Length;
-                // water module (com.playway.water): values live in its settings objects, read by name
-                var wsb = new System.Text.StringBuilder();
-                foreach (var tn in new[] { "PlayWay.Water.WaterProjectSettings", "PlayWay.Water.WaterQualitySettings" })
-                {
-                    var tp = HarmonyLib.AccessTools.TypeByName(tn); if (tp == null) { wsb.Append(' ').Append(tn).Append(" fehlt;"); continue; }
-                    var ip = HarmonyLib.AccessTools.Property(tp, "Instance"); object inst = ip != null ? ip.GetValue(null, null) : null;
-                    if (inst == null) { wsb.Append(' ').Append(tn).Append(" ohne Instanz;"); continue; }
-                    foreach (var pn in new[] { "PhysicsThreads", "PhysicsThreadsPriority", "AllowCpuFFT", "AllowFloatingPointMipMaps", "SinglePrecision", "CurrentQualityLevel", "MaxSpectrumResolution", "AllowHighPrecisionTextures", "TileSizeScale", "WavesMode" })
-                    {
-                        var pp = HarmonyLib.AccessTools.Property(tp, pn);
-                        if (pp != null && pp.GetIndexParameters().Length == 0) wsb.Append(' ').Append(pn).Append('=').Append(System.Convert.ToString(pp.GetValue(inst, null), System.Globalization.CultureInfo.InvariantCulture)).Append(';');
-                    }
-                }
-                Util.Log("Wasser-Modul (nur lesen):" + wsb);
                 double ms = (Time.realtimeSinceStartupAsDouble - t0) * 1000.0;
-                Util.Log("Rechenkerne (nur lesen): PC meldet " + SystemInfo.processorCount + " Kerne, Unity nutzt " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount + " Arbeiter + Hauptfaden (Höchstwert " + Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerMaximumCount + ")");
                 Util.Log("Zeichnen (Zählung, nur lesen): Schiffe " + ships + "; Teile " + rend + " (im Bild " + visible + "), davon ohne Gruppen-Zeichnen " + rendNoInst
                     + "; gleiche Teile mehrfach " + repeat + ", davon ohne Gruppen-Zeichnen " + repeatNoInst + "; Materialien " + mats.Count + ", ohne Gruppen-Zeichnen " + noInst
                     + "; Figuren-Modelle " + skin + " (im Bild " + skinVisible + ", Knochen " + bones + "); Partikel-Systeme " + ps + " (laufen " + playing + ", Partikel " + alive
@@ -34018,7 +34040,6 @@ namespace UboatToolkit.Modules
                     + ", Kontakt-Markierungen " + markers + "; Grafikkarte: " + SystemInfo.graphicsDeviceType + ", Gruppen-Zeichnen möglich " + SystemInfo.supportsInstancing
                     + ", Rechen-Shader " + SystemInfo.supportsComputeShaders + ", Zeichnen auf mehreren Kernen " + SystemInfo.graphicsMultiThreaded + " (" + SystemInfo.renderingThreadingMode + ")"
                     + ", Prozessor-Kerne " + SystemInfo.processorCount + "; Zählung dauerte " + ms.ToString("0") + " ms");
-            });
         }
     }
 }
@@ -34065,6 +34086,7 @@ namespace UboatToolkit.Modules
         public override void Tick()
         {
             float now = Time.unscaledTime;
+            if (psList != null) Util.Safe("Save.Drain", Drain);
             if (now < nextFast) return;
             float step = now - (nextFast - 0.5f); nextFast = now + 0.5f;
             if (Util.PlayerShip == null) return;
@@ -34078,10 +34100,13 @@ namespace UboatToolkit.Modules
             if (now >= nextScan)
             {
                 nextScan = now + 3f; scanStep = (scanStep + 1) % 4;
-                if (scanStep == 0) { Util.Safe("Save.Unseen", () => Unseen(Settings.B("SaveUnseenEffects"))); Util.Safe("Save.Underwater", () => Underwater(Settings.B("SaveNoSmokeUnderwater"))); }
-                else if (scanStep == 1) Util.Safe("Save.MeshGpu", () => MeshGpu(Settings.B("SaveMeshParticlesGpu")));
-                else if (scanStep == 2) Util.Safe("Save.FarSpray", () => Spray(Settings.B("SaveFarSpray")));
-                else Util.Safe("Save.Markers", () => Markers(Settings.B("SaveMarkersOwnCanvas")));
+                // 0.4.91 (log 2026-11-19: this module held a picture for 70 to 94 ms about once a minute with three convoys):
+                // the three walks over all effects of the scene are ONE list now, and the list is worked off in slices of
+                // at most 1 ms per picture (Drain). Each part's longest time is in the minute line.
+                float t0 = Time.realtimeSinceStartup;
+                if (scanStep == 0) { Util.Safe("Save.Effects", StartEffects); msFind = Mathf.Max(msFind, (Time.realtimeSinceStartup - t0) * 1000f); }
+                else if (scanStep == 2) { Util.Safe("Save.FarSpray", () => Spray(Settings.B("SaveFarSpray"))); msSpray = Mathf.Max(msSpray, (Time.realtimeSinceStartup - t0) * 1000f); }
+                else if (scanStep == 3) { Util.Safe("Save.Markers", () => Markers(Settings.B("SaveMarkersOwnCanvas"))); msMarkers = Mathf.Max(msMarkers, (Time.realtimeSinceStartup - t0) * 1000f); }
             }
             if (now >= nextLog)
             {
@@ -34096,6 +34121,8 @@ namespace UboatToolkit.Modules
                         + ", Schatten auf der Karte " + (mapShadow ? "aus" : "normal") + ", Detail auf der Karte " + (mapLod ? "niedrig" : "normal")
                         + "; Effekte mit Anhalten außerhalb des Bildes " + nCull + "; Trümmer-Partikel gesammelt gezeichnet " + nInst + "; Gischt/Bugwelle ferner Schiffe aus " + nSpray);
                 mapSeconds = 0f;
+                Util.Log("Sparen: längste Dauer je Teil in der letzten Minute: Effekte-Liste holen " + msFind.ToString("0.0") + " ms, Liste abarbeiten " + msDrain.ToString("0.0") + " ms je Bild (" + drainFrames + " Bilder, " + drainItems + " Effekte), Gischt " + msSpray.ToString("0.0") + " ms, Markierungen " + msMarkers.ToString("0.0") + " ms, Karten-Effekte " + msMapFx.ToString("0.0") + " ms");
+                msFind = msDrain = msSpray = msMarkers = msMapFx = 0f; drainFrames = 0; drainItems = 0;
                 if (Settings.B("SaveNoSmokeUnderwater")) Util.Log("Sparen: Rauch/Feuer tiefer als 5 m unter Wasser gestoppt " + nUnder + " (seit Spielstart), gerade gestoppt " + under.Count + ", nach Auftauchen wieder gestartet " + nUnderBack);
             }
         }
@@ -34108,12 +34135,14 @@ namespace UboatToolkit.Modules
             {
                 if (mapPaused && now < nextMapScan) return;
                 nextMapScan = now + 15f; mapPaused = true;
+                float t0 = Time.realtimeSinceStartup;
                 foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
                 {
                     if (p == null || !p.isPlaying || p.isPaused) continue;
                     p.Pause(false); paused.Add(p);
                 }
                 nMapPaused = paused.Count;
+                msMapFx = Mathf.Max(msMapFx, (Time.realtimeSinceStartup - t0) * 1000f);
             }
             else if (mapPaused)
             {
@@ -34146,18 +34175,8 @@ namespace UboatToolkit.Modules
         // 3D view: an effect outside the picture waits ("qualmt erst wieder, wenn du hinsiehst")
         private void Unseen(bool on)
         {
-            if (on)
-            {
-                foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
-                {
-                    if (p == null || cull.ContainsKey(p)) continue;
-                    var m = p.main; cull[p] = m.cullingMode;
-                    if (m.cullingMode != ParticleSystemCullingMode.Pause) m.cullingMode = ParticleSystemCullingMode.Pause;
-                }
-                if (cull.Count > 4000) { var dead = new List<ParticleSystem>(); foreach (var k in cull.Keys) if (k == null) dead.Add(k); foreach (var k in dead) cull.Remove(k); }
-                nCull = cull.Count;
-            }
-            else if (cull.Count > 0)
+            if (on) return;   // the "on" work is done per effect in Drain
+            if (cull.Count > 0)
             {
                 foreach (var kv in cull) if (kv.Key != null) { var m = kv.Key.main; m.cullingMode = kv.Value; }
                 Util.Log("Sparen: Anhalten außerhalb des Bildes aus, " + cull.Count + " Effekte wieder wie im Spiel");
@@ -34186,39 +34205,69 @@ namespace UboatToolkit.Modules
                 under.Clear(); nUnder = 0;
                 return;
             }
-            var own = Util.PlayerShip != null ? Util.PlayerShip.transform : null;
-            foreach (var p in Object.FindObjectsOfType<ParticleSystem>())
+        }
+
+        // One list of all effects of the scene, fetched every 12 s, worked off in slices of at most 1 ms per picture.
+        private ParticleSystem[] psList; private int psIdx; private bool psUnseen, psUnder, psMesh; private Transform psOwn;
+        private readonly HashSet<ParticleSystem> meshSeen = new HashSet<ParticleSystem>();
+        private float msFind, msDrain, msSpray, msMarkers, msMapFx; private int drainFrames, drainItems;
+        private void StartEffects()
+        {
+            psUnseen = Settings.B("SaveUnseenEffects"); psUnder = Settings.B("SaveNoSmokeUnderwater"); psMesh = Settings.B("SaveMeshParticlesGpu");
+            Unseen(psUnseen); Underwater(psUnder); MeshGpu(psMesh);          // switched off = put back at once
+            if (!psUnseen && !psUnder && !psMesh) { psList = null; return; }
+            if (psList != null) return;                                        // the last list is not worked off yet
+            psList = Object.FindObjectsOfType<ParticleSystem>(); psIdx = 0;
+            psOwn = Util.PlayerShip != null ? Util.PlayerShip.transform : null;
+        }
+        private void Drain()
+        {
+            float t0 = Time.realtimeSinceStartup; int n = 0;
+            while (psIdx < psList.Length)
             {
+                var p = psList[psIdx++];
                 if (p == null) continue;
-                float y = p.transform.position.y;
-                if (under.Contains(p))
+                n++;
+                if (psUnseen && !cull.ContainsKey(p))
                 {
-                    if (y > -2f) { under.Remove(p); p.Play(false); nUnderBack++; }
-                    continue;
+                    var m = p.main; cull[p] = m.cullingMode;
+                    if (m.cullingMode != ParticleSystemCullingMode.Pause) m.cullingMode = ParticleSystemCullingMode.Pause;
                 }
-                if (y > -5f || !p.isEmitting) continue;
-                if (!SmokeName(p.name) && !(p.transform.parent != null && SmokeName(p.transform.parent.name))) continue;
-                if (own != null && p.transform.IsChildOf(own)) continue;
-                p.Stop(false, ParticleSystemStopBehavior.StopEmitting);
-                under.Add(p); nUnder++;
+                if (psUnder)
+                {
+                    float y = p.transform.position.y;
+                    if (under.Contains(p)) { if (y > -2f) { under.Remove(p); p.Play(false); nUnderBack++; } }
+                    else if (y <= -5f && p.isEmitting && (SmokeName(p.name) || (p.transform.parent != null && SmokeName(p.transform.parent.name))) && !(psOwn != null && p.transform.IsChildOf(psOwn)))
+                    { p.Stop(false, ParticleSystemStopBehavior.StopEmitting); under.Add(p); nUnder++; }
+                }
+                if (psMesh && meshSeen.Add(p))
+                {
+                    var r = p.GetComponent<ParticleSystemRenderer>();
+                    if (r != null && r.renderMode == ParticleSystemRenderMode.Mesh && !r.enableGPUInstancing) { r.enableGPUInstancing = true; inst.Add(r); }
+                }
+                if ((n & 15) == 0 && Time.realtimeSinceStartup - t0 > 0.001f) break;
             }
+            drainFrames++; drainItems += n;
+            msDrain = Mathf.Max(msDrain, (Time.realtimeSinceStartup - t0) * 1000f);
+            if (psIdx < psList.Length) return;
+            psList = null;
+            if (cull.Count > 4000) { var dead = new List<ParticleSystem>(); foreach (var k in cull.Keys) if (k == null) dead.Add(k); foreach (var k in dead) cull.Remove(k); }
+            nCull = cull.Count;
             under.RemoveWhere(x => x == null);
+            inst.RemoveWhere(x => x == null); nInst = inst.Count;
+            if (meshSeen.Count > 6000) meshSeen.RemoveWhere(x => x == null);
         }
 
         // debris made of 3D models: the graphics card draws all pieces of one effect in one go
         private void MeshGpu(bool on)
         {
-            if (on)
-            {
-                foreach (var r in Object.FindObjectsOfType<ParticleSystemRenderer>())
-                    if (r != null && r.renderMode == ParticleSystemRenderMode.Mesh && !r.enableGPUInstancing) { r.enableGPUInstancing = true; inst.Add(r); }
-                inst.RemoveWhere(x => x == null); nInst = inst.Count;
-            }
-            else if (inst.Count > 0)
+            if (on) return;   // the "on" work is done per effect in Drain
+            if (inst.Count > 0)
             {
                 foreach (var r in inst) if (r != null) r.enableGPUInstancing = false;
                 inst.Clear(); nInst = 0;
             }
+            meshSeen.Clear();
         }
 
         // Every contact marker gets its own small drawing surface. Moving one marker then no longer makes the processor
